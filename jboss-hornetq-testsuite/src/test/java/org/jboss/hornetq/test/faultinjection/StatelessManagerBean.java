@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.hornetq.test;
+package org.jboss.hornetq.test.faultinjection;
 
+import javax.ejb.Local;
+import javax.ejb.Stateless;
 
 /**
  * StatelessTestBean
@@ -23,9 +25,17 @@ package org.jboss.hornetq.test;
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @version $Revision: $
  */
-public interface StatelessManager
+@Stateless
+@Local(StatelessManager.class)
+public class StatelessManagerBean implements StatelessManager
 {
-   boolean forcedClassLevelFailure();
+   public boolean forcedClassLevelFailure()
+   {
+      return false;
+   }
 
-   boolean forcedMethodLevelFailure();
+   public boolean forcedMethodLevelFailure()
+   {
+      return false;
+   }
 }

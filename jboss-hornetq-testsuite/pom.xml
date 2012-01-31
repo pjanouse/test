@@ -35,11 +35,19 @@
         </plugins>
     </build>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<!--         REMEMBER TO ADD VERSIONS WHICH ARE IN DISTRIBUTED AS7/EAP6 SERVER -->
         <arquillian.container.version>7.1.0.CR1b</arquillian.container.version>
+        <version.netty>3.2.5.Final</version.netty>
+        <version.hornetq>2.2.7.Final</version.hornetq>
+        
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.org.jboss.arquillian>1.0.0.CR7</version.org.jboss.arquillian>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.0.0-cr-2</version.org.jboss.shrinkwrap.shrinkwrap>
         <version.byteman>2.0.0</version.byteman>
+        <version.junit>4.9</version.junit>
+        <version.jms.api>1.0.0.Final-redhat-1</version.jms.api>
+        <version.log4j>1.2.16</version.log4j>
+        
     </properties>
 
     <dependencies>
@@ -85,13 +93,17 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.9</version>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         
-
+        <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>${version.log4j}</version>
+                </dependency>
         
-<!--        my implementation of server kill-->
+<!-- implementation of server kill from our project - arquillian-extension-kill -->
         <dependency>
             <groupId>org.jboss.arquillian.extension</groupId>
             <artifactId>arquillian-extension-kill</artifactId>
@@ -104,31 +116,31 @@
             <version>${version.byteman}</version>
         </dependency>
         
-        
         <dependency>
             <groupId>org.jboss.byteman</groupId>
             <artifactId>byteman-submit</artifactId>
             <version>${version.byteman}</version>
-        </dependency><!-- dependencies for hornetq client -->
+        </dependency>
+        
+        <!-- dependencies for hornetq client -->
         <dependency>
             <groupId>org.jboss.spec.javax.jms</groupId>
             <artifactId>jboss-jms-api_1.1_spec</artifactId>
-            <version>1.0.0.Final-redhat-1</version>
-        </dependency>
-        
+            <version>${version.jms.api}</version>
+        </dependency>        
         <dependency>
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
-            <version>3.2.5.Final</version>
+            <version>${version.netty}</version>
         </dependency>
         <dependency>
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-core-client</artifactId>
-            <version>2.2.7.Final</version>
+            <version>${version.hornetq}</version>
         </dependency><dependency>
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-jms-client</artifactId>
-            <version>2.2.7.Final</version>
+            <version>${version.hornetq}</version>
         </dependency>
 
         <!-- dependency for servlets -->

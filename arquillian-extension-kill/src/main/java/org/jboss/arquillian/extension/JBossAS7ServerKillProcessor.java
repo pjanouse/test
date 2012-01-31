@@ -5,12 +5,11 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
-
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
 
 public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
-	private final Logger log = Logger.getLogger(
+	private static final Logger log = Logger.getLogger(
 			JBossAS7ServerKillProcessor.class.getName());
 	private static String killSequence = "[jbossHome]/bin/jboss-admin.[suffix] --connect quit";
 	private int checkDurableTime = 10;
@@ -34,7 +33,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 			suffix = "sh";
 		}
 		killSequence = killSequence.replace("[suffix]", suffix);
-		log.info("killseqeunce: " + killSequence);
+		log.info("killsequence: " + killSequence);
 		int checkn = 0;
 		boolean killed = false;
 		do {
