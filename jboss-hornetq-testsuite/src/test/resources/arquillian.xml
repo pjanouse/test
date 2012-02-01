@@ -28,7 +28,7 @@
                 <property name="serverConfig">standalone-ha.xml</property>
                 <property name="managementAddress" >127.0.0.1</property>
                 <property name="startupTimeoutInSeconds">60</property>
-                <prproperty name="managementPort">9999</prproperty>
+                <property name="managementPort">9999</property>
             </configuration>
         </container>
 
@@ -38,7 +38,7 @@
                 <property name="javaVmArguments">-Djboss.node.name=node-udp-1 -Djboss.socket.binding.port-offset=100 -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:localhost,port:9191 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
                 <property name="serverConfig">standalone-ha.xml</property>
                 <property name="managementAddress" >127.0.0.1</property>
-                <prproperty name="managementPort">10099</prproperty>
+                <property name="managementPort">10099</property>
                 <property name="startupTimeoutInSeconds">60</property>
             </configuration>
         </container>

@@ -9,7 +9,7 @@ Now let's get all dependecies:
 3. run "mvn clean install" in arquillian-extension-kill project
 4. download, unzip and copy maven repo from http://download.devel.redhat.com/devel/candidates/JBEAP/JBEAP-6.0.0-DR12/ to ~/.m2/repository/ 
     -- only hornetq client jars, jms-api is needed from there - should be made better
-5. now cross fingers and try "mvn clean install -Dtest=FaultInjectionTest" :-) (ted jsem zjistil, ze testy nechavaji pustene servery a tlucou se mezi sebou, bude to treba doladit)
+5. now cross fingers and try "mvn clean install -DJBOSS_HOME_1=/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/server0/jboss-as-7.1.0.CR1b -DJBOSS_HOME_2=/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/server1/jboss-as-7.1.0.CR1b"
 
 Test packages:
 

@@ -62,12 +62,9 @@ public class FailoverTestCase {
         // ... <container qualifier="container2" mode="manual">  
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
         // manual means - start/stop manually
-        controller.stop(CONTAINER1);
-        
-        controller.stop(CONTAINER2);
         
         controller.start(CONTAINER1);
-        
+
         controller.start(CONTAINER2);
         
         controller.stop(CONTAINER1);
