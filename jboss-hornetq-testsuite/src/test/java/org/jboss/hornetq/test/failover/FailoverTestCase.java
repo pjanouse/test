@@ -1,6 +1,5 @@
-package org.jboss.hornetq.test.cluster;
+package org.jboss.hornetq.test.failover;
 
-import org.jboss.hornetq.test.failover.*;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -13,6 +12,8 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -21,7 +22,7 @@ import org.junit.runner.RunWith;
  * @author mnovak
  */
 @RunWith(Arquillian.class)
-public class ClusterTest {
+public class FailoverTestCase {
     
     private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
 
@@ -52,11 +53,11 @@ public class ClusterTest {
                 .addAsManifestResource(new StringAsset("Dependencies: org.hornetq\n"), "MANIFEST.MF");
     }
     
-    // This test will start two servers in cluster
-    // Sent some messages to first
+    // This test will start two servers in dedicated topology
+    // Sent some messages to first 
     // Receive messages from the second one
     @Test   
-    public void simpleClusterTest() throws Exception {
+    public void simpleFailoverTest() throws Exception {
         //CONTAINER2 variable corresponds to container's name specified via qualifier arquillian.xml
         // ... <container qualifier="container2" mode="manual">  
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
@@ -67,14 +68,16 @@ public class ClusterTest {
         
         controller.start(CONTAINER1);
         
-        deployer.deploy(DEPLOYMENT1);
-        
-        controller.start(CONTAINER2);        
+        controller.start(CONTAINER2);
         
         controller.stop(CONTAINER1);
         
+        controller.stop(CONTAINER2);
         
-        controller.start(CONTAINER1);
+    }
+    
+    @Before @After
+    public void stopAllServers()    {
         
         controller.stop(CONTAINER1);
         

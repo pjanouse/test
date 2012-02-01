@@ -18,28 +18,23 @@ import org.jboss.byteman.annotation.BMRules;
 import org.jboss.byteman.rule.RuleInstaller;
 import org.jboss.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.hornetq.apps.clients.ReceiverClientAckNonHa;
+import org.junit.After;
+import org.junit.Before;
 
 @RunWith(Arquillian.class)
-public class FaultInjectionTest {
+public class FaultInjectionTestCase {
 
     public static final String CONTAINER1 = "clustering-udp-0-unmanaged";
     
     public static final String CONTAINER2 = "clustering-udp-1-unmanaged";
-    
-    private static final String DEPLOYMENT1 = "dep.container1";
-    
+   
     @ArquillianResource
     ContainerController controller;
-    
-    @ArquillianResource
-    private Deployer deployer;
-    
+   
     String hostname = "localhost";
     
     String queueName = "testQueue";
-    
-    
-
+   
     /**
      * 
      * Start server "CONTAINER1". Deploy byteman rule in annotations. Run jms
@@ -55,8 +50,6 @@ public class FaultInjectionTest {
     public void simpleFaultInjectionTest() throws InterruptedException  {
 
         controller.start(CONTAINER1);
-
-//        deployer.deploy(DEPLOYMENT1);
 
         // this will install byteman rule
         RuleInstaller.installRule(this.getClass());
@@ -92,4 +85,14 @@ public class FaultInjectionTest {
         controller.stop(CONTAINER2);
 
     }
+    
+    @Before @After
+    public void stopAllServers()    {
+        
+        controller.stop(CONTAINER1);
+        
+        controller.stop(CONTAINER2);
+        
+    }
+    
 }

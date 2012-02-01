@@ -29,6 +29,8 @@
                     <systemPropertyVariables>
                         <BYTEMAN_JAR>${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar</BYTEMAN_JAR>
                         <BYTEMAN_SUBMIT_JAR>${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar</BYTEMAN_SUBMIT_JAR>
+                        <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
+                        <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
