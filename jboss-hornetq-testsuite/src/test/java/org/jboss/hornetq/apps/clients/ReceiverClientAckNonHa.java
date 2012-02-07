@@ -1,7 +1,10 @@
 package org.jboss.hornetq.apps.clients;
 
 import java.util.HashMap;
+import java.util.logging.Level;
 import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.jms.HornetQJMSClient;
@@ -19,8 +22,10 @@ public class ReceiverClientAckNonHa extends Thread {
         
         private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
         
+        private static Context remoteContext;
+        
         String hostname = "localhost";
-        String queueName = "testQueue";
+        String queueName = "java://queue/testQueue";
         long waitAfterReceiveMessage = 0;
         long receiveTimeOut = 20000;
         // after how many messages will be sent ack
@@ -55,9 +60,9 @@ public class ReceiverClientAckNonHa extends Thread {
         @Override
         public void run() {
             
-            QueueConnection conn = null;
+            Connection conn = null;
             Queue queue = null;
-            QueueSession session = null;
+            Session session = null;
 
             try {
                 ///////////////////////////////////////////////////////////////////////
@@ -86,15 +91,29 @@ public class ReceiverClientAckNonHa extends Thread {
                 logger.info(transportConfiguration);
                 //////////////////////////////////////////////////////////////////////////////
 
-                conn = cf.createQueueConnection();
+//                final Properties env = new Properties();
+//                env.put(Context.INITIAL_CONTEXT_FACTORY, InitialContextFactory.class.getName());
+//                env.put(Context.PROVIDER_URL, "remote://localhost:4447");
+//                env.put("jboss.naming.client.ejb.context", true);
+//                try {
+//                    remoteContext = new InitialContext(env);
+//                } catch (NamingException ex) {
+//                    ex.printStackTrace();
+//                    java.util.logging.Logger.getLogger(ProducerClientAckNonHA.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//
+//                ConnectionFactory cf = (ConnectionFactory) remoteContext.lookup("java://RemoteConnectionFactory");
+                
+                conn = cf.createConnection();
 
                 conn.start();
                 // FIXME - replace by jndi lookup
-                queue = (Queue) HornetQJMSClient.createQueue(queueName);
+                queue = HornetQJMSClient.createQueue(queueName);
+//                queue = (Queue) remoteContext.lookup(queueName);
 
-                session = conn.createQueueSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
+                session = conn.createSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
 
-                QueueReceiver receiver = session.createReceiver(queue);
+                MessageConsumer receiver = session.createConsumer(queue);
                 
                 Message message = null;
                 Message lastMessage = null;
@@ -125,7 +144,7 @@ public class ReceiverClientAckNonHa extends Thread {
                 logger.info("Receiver for node: " + hostname + ". Received NULL - number of received messages: "
                                 + count);
 
-            } catch (JMSException ex) {
+        } catch (JMSException ex) {
                 
                 logger.error("Exception was thrown during receiving messages:", ex);
                 

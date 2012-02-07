@@ -5,14 +5,17 @@
 package org.jboss.hornetq.apps.clients;
 
 import java.util.HashMap;
+import java.util.logging.Level;
 import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.jms.HornetQJMSClient;
 import org.hornetq.api.jms.JMSFactoryType;
+
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
 import org.hornetq.jms.client.HornetQConnectionFactory;
-
 
 /**
  * Simple sender with client acknowledge session. Not able to failover.
@@ -20,49 +23,49 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
  * @author mnovak
  */
 public class ProducerClientAckNonHA extends Thread {
-        
-        private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
-        
-        String hostname = "localhost";
-        String queueName = "testQueue";
-        int numberOfMessages = 1000;
-        long waitAfterMessage = 0;
-         
-        public ProducerClientAckNonHA(String queueName) {
-            
-            this.queueName = queueName;
-            
-        }
-        
-        public ProducerClientAckNonHA(String hostname, String queueName) {
-            
-            this.hostname = hostname;
-            
-            this.queueName = queueName;
-        }
-        
-        public ProducerClientAckNonHA(String hostname, String queueName, int numberOfMessages, long waitAfterMessage) {
-            
-            this.hostname = hostname;
-            
-            this.queueName = queueName;
-            
-            this.numberOfMessages = numberOfMessages;
-            
-            this.waitAfterMessage = waitAfterMessage;
-            
-        }
-        
-        public void run() {
-            
-            QueueConnection conn = null;
-            Queue queue = null;
-            QueueSession session = null;
 
-            try {
-                ///////////////////////////////////////////////////////////////////////
-                ///////// FIXME REPLACE BY REMOTE JNDI LOOKUP for connection factory
-                ////////////////////////////////////////////////////////////////////////
+    private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
+    private static Context remoteContext;
+    String hostname = "localhost";
+    String queueName = "java://queue/testQueue";
+    int numberOfMessages = 1000;
+    long waitAfterMessage = 0;
+
+    public ProducerClientAckNonHA(String queueName) {
+
+        this.queueName = queueName;
+
+    }
+
+    public ProducerClientAckNonHA(String hostname, String queueName) {
+
+        this.hostname = hostname;
+
+        this.queueName = queueName;
+    }
+
+    public ProducerClientAckNonHA(String hostname, String queueName, int numberOfMessages, long waitAfterMessage) {
+
+        this.hostname = hostname;
+
+        this.queueName = queueName;
+
+        this.numberOfMessages = numberOfMessages;
+
+        this.waitAfterMessage = waitAfterMessage;
+
+    }
+
+    public void run() {
+
+        Connection conn = null;
+        Queue queue = null;
+        Session session = null;
+
+        try {
+            ///////////////////////////////////////////////////////////////////////
+            ///////// FIXME REPLACE BY REMOTE JNDI LOOKUP for connection factory
+            ////////////////////////////////////////////////////////////////////////
                 HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put("host", hostname);
                 map.put("port", 5445);
@@ -83,42 +86,55 @@ public class ProducerClientAckNonHA extends Thread {
                 for (String s : transportConfiguration.getParams().keySet()) {
                     logger.info("property: " + s + "  value: " + transportConfiguration.getParams().get(s));
                 }
-                logger.info(transportConfiguration);
-                //////////////////////////////////////////////////////////////////////////////
+            logger.info(transportConfiguration);
+            //////////////////////////////////////////////////////////////////////////////
 
-                conn = cf.createQueueConnection();
+//            final Properties env = new Properties();
+//            env.put(Context.INITIAL_CONTEXT_FACTORY, InitialContextFactory.class.getName());
+//            env.put(Context.PROVIDER_URL, "remote://localhost:4447");
+//            env.put("jboss.naming.client.ejb.context", true);
+//            try {
+//                remoteContext = new InitialContext(env);
+//            } catch (NamingException ex) {
+//                ex.printStackTrace();
+//                java.util.logging.Logger.getLogger(ProducerClientAckNonHA.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//
+//            ConnectionFactory cf = (ConnectionFactory) remoteContext.lookup("java://RemoteConnectionFactory");
 
-                conn.start();
-                // FIXME - replace by jndi lookup
-                queue = (Queue) HornetQJMSClient.createQueue(queueName);
+            conn = cf.createConnection();
 
-                session = conn.createQueueSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
+            conn.start();
+            // FIXME - replace by jndi lookup
+            queue = HornetQJMSClient.createQueue(queueName);
+//            queue = (Queue) remoteContext.lookup("java://"+queueName);
 
-                QueueSender sender = session.createSender(queue);
+            session = conn.createSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
 
-                for (int i = 0; i < numberOfMessages; i++) {
+            MessageProducer sender = session.createProducer(queue);
 
-                    Message message = session.createTextMessage("This is content of test message.");
+            for (int i = 0; i < numberOfMessages; i++) {
 
-                    sender.send(message);
+                Message message = session.createTextMessage("This is content of test message.");
 
-                    logger.info("Producer for node: " + hostname + ". Sent message - count: "
-                                + i + ", messageId:" + message.getJMSMessageID());
-                }
-                
-            } catch (JMSException ex) {
-                
-                logger.error("Exception was thrown during sending messages:", ex);
-                
+                sender.send(message);
+
+                logger.info("Producer for node: " + hostname + ". Sent message - count: "
+                        + i + ", messageId:" + message.getJMSMessageID());
+            }
+
+        } catch (JMSException ex) {
+
+            logger.error("Exception was thrown during sending messages:", ex);
+
         } finally {
-                if (conn != null) {
-                    try {
-                        conn.close();
-                    } catch (JMSException ex) {
-                        // ignore
-                    }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (JMSException ex) {
+                    // ignore
                 }
             }
         }
-    
+    }
 }
