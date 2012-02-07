@@ -1,1 +1,4 @@
-/arquillian-extension-kill/target/
+**/target/
+**/*.iml
+**/*.ipr
+**/*.iws

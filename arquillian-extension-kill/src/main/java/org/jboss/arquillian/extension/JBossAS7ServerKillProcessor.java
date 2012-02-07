@@ -11,11 +11,9 @@ import org.jboss.arquillian.container.spi.ServerKillProcessor;
 public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 	private static final Logger log = Logger.getLogger(
 			JBossAS7ServerKillProcessor.class.getName());
-	private static String killSequence = "[jbossHome]/bin/jboss-admin.[suffix] --connect quit";
-	private int checkDurableTime = 10;
-	private int numofCheck = 120;
+	private static String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --connect quit";
 
-	@Override
+    @Override
 	public void kill(Container container) throws Exception {
 		log.info("waiting for byteman to kill server");
                 
@@ -27,7 +25,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
 		String suffix;
 		String os = System.getProperty("os.name").toLowerCase();
-		if(os.indexOf("windows") > -1) {
+		if(os.contains("windows")) {
 			suffix = "bat";
 		} else {
 			suffix = "sh";
@@ -36,9 +34,11 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 		log.info("killsequence: " + killSequence);
 		int checkn = 0;
 		boolean killed = false;
-		do {
+        int numOfCheck = 120;
+        do {
 			if(checkJBossAlive()) {
-				Thread.sleep(checkDurableTime * 1000);
+                int checkDurableTime = 10;
+                Thread.sleep(checkDurableTime * 1000);
 				log.info("jboss-as is alive");
 			} else {
 				killed = true;
@@ -47,7 +47,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                                 
 			}
 			checkn ++;
-		} while(checkn < numofCheck);
+		} while(checkn < numOfCheck);
 		
 		if(killed) {
 			log.info("jboss-as killed by byteman scirpt");
