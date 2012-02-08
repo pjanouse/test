@@ -21,6 +21,7 @@
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
         <version.jnp-client>5.0.5.Final</version.jnp-client>
+        <xalan.version>2.7.0</xalan.version>
     </properties>
 
     <build>
@@ -126,6 +127,13 @@
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-jms-client</artifactId>
             <version>${hornetq.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>${xalan.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
