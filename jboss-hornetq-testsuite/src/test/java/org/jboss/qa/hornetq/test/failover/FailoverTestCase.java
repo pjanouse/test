@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import java.util.HashMap;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -14,6 +15,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +33,10 @@ public class FailoverTestCase {
     public static final String CONTAINER2 = "clustering-udp-1-unmanaged";
     
     private static final String DEPLOYMENT1 = "dep.container1";
+    
+    private static HashMap<String,String> liveServerProperties = null;
+            
+    private static HashMap<String,String> backupServerProperties = null;
     
     @ArquillianResource
     ContainerController controller;
@@ -63,9 +69,11 @@ public class FailoverTestCase {
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
         // manual means - start/stop manually
         
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1, liveServerProperties);
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2, backupServerProperties);
+        
+        logger.info("mnovak: it works :-)");
         
         controller.stop(CONTAINER1);
         
@@ -81,4 +89,18 @@ public class FailoverTestCase {
         controller.stop(CONTAINER2);
         
     }
+    
+    @BeforeClass
+    public static void setupPropertiesForContainers()    {
+        
+        liveServerProperties = new HashMap<String, String>();
+        
+        liveServerProperties.put("serverConfig", "standalone-ha-simple-live.xml");
+        
+        backupServerProperties = new HashMap<String, String>();
+        
+        backupServerProperties.put("serverConfig", "standalone-ha-simple-backup.xml");
+        
+    }
+    
 }
