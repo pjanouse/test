@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static junit.framework.Assert.assertEquals;
+
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
 
@@ -26,6 +28,53 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     String queueName = "testQueue";
 
     /**
+     * Stops all servers
+     */
+    @Before
+    @After
+    public void stopAllServers() {
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * Dummy smoke test which sends and receives messages
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    public void dummySendReceiveTest() throws InterruptedException {
+
+        final String MY_QUEUE = "dummyQueue";
+        final String MY_QUEUE_JNDI = "/queue/dummyQueue";
+        final String MY_QUEUE_JNDI_NEW = "/queue/dummyQueue_new_name";
+        final int MESSAGES_COUNT = 10;
+
+        controller.start(CONTAINER1);
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
+        jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
+
+        Thread producer = new ProducerClientAckNonHA(hostname, MY_QUEUE, MESSAGES_COUNT, 10);
+        producer.start();
+        producer.join(4000);
+        assertEquals(MESSAGES_COUNT, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+
+        Thread consumer = new ReceiverClientAckNonHa(MY_QUEUE);
+        consumer.start();
+        consumer.join(400);
+
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+
+        jmsAdminOperations.removeQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+
+        controller.stop(CONTAINER1);
+    }
+
+    /**
      * Start server "CONTAINER1". Deploy byteman rule in annotations. Run jms
      * producer which kills server - controller.kill() just wait for byteman to
      * kill server. Start server "CONTAINER1" again. Send some messages.
@@ -33,7 +82,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     @BMRules(
-            @BMRule(name = "rule - kill server after send message", targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl", targetMethod = "processRoute",
+            @BMRule(name = "rule - kill server after send message",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman will invoke kill\"); killJVM();"))
     public void simpleFaultInjectionTest() throws InterruptedException {
 
@@ -47,10 +98,10 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         // start producer which will lead to kill server by byteman
         producer.start();
 
-        // this will wait for kill 
+        // this will wait for kill
         controller.kill(CONTAINER1);
 
-        // start server again 
+        // start server again
         controller.start(CONTAINER1);
 
         //and produce messages
@@ -74,37 +125,5 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
     }
 
-    @Test
-    @RunAsClient
-    public void dummySendReceiveTest() throws InterruptedException {
-        controller.start(CONTAINER1);
 
-        final String MY_QUEUE = "q1";
-        final String MY_QUEUE_JNDI = "/queue/q1";
-
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
-
-        // run producer asynchronously
-        Thread producer = new ProducerClientAckNonHA(hostname, MY_QUEUE, 10, 10);
-        producer.start();
-
-        producer.join(4000);
-        Thread.sleep(5000);
-
-        log.error("XXXXXXXXXXXXXXxx" + jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-
-        log.error("AAAA " + jmsAdminOperations.removeMessagesFromQueue(MY_QUEUE));
-
-        jmsAdminOperations.removeQueue(MY_QUEUE);
-        jmsAdminOperations.close();
-
-        controller.stop(CONTAINER1);
-    }
-
-    @Before
-    @After
-    public void stopAllServers() {
-        controller.stop(CONTAINER1);
-    }
 }

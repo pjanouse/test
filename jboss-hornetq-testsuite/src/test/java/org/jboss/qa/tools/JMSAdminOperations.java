@@ -114,6 +114,30 @@ public final class JMSAdminOperations {
     }
 
     /**
+     * Adds JNDI name for queue
+     *
+     * @param queueName queue name
+     * @param jndiName  new JNDI name for the queue
+     */
+    public void addQueueJNDIName(String queueName, String jndiName) {
+        addDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
+    }
+
+    /**
+     * Cleanups queue
+     *
+     * @param queueName queue name
+     */
+    public void cleanUpQueue(String queueName) {
+        try {
+            removeMessagesFromQueue(queueName);
+            removeQueue(queueName);
+        } catch (Exception e) {
+            // Ignore any exceptions
+        }
+    }
+
+    /**
      * Returns count of messages on queue
      *
      * @param queueName queue name
@@ -131,7 +155,7 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return (modelNode != null) ? modelNode.get("result").asLong(0) : 0;
+        return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
 
     /**
@@ -141,18 +165,35 @@ public final class JMSAdminOperations {
      * @return count of removed messages from queue
      */
     public long removeMessagesFromQueue(String queueName) {
-        final ModelNode countMessages = new ModelNode();
-        countMessages.get(ClientConstants.OP).set("remove-messages");
-        countMessages.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        countMessages.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        countMessages.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
+        final ModelNode removeMessagesFromQueue = new ModelNode();
+        removeMessagesFromQueue.get(ClientConstants.OP).set("remove-messages");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         ModelNode modelNode;
         try {
-            modelNode = this.applyUpdate(countMessages);
+            modelNode = this.applyUpdate(removeMessagesFromQueue);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return (modelNode != null) ? modelNode.get("result").asLong(0) : 0;
+        return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    /**
+     * Disables security on HornetQ
+     */
+    public void disableSecurity() {
+        final ModelNode disableSecurity = new ModelNode();
+        disableSecurity.get(ClientConstants.OP).set("write-attribute");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        disableSecurity.get("name").set("security-enabled");
+        disableSecurity.get("value").set(Boolean.FALSE);
+        try {
+            this.applyUpdate(disableSecurity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -162,7 +203,7 @@ public final class JMSAdminOperations {
      * @param destinationName destination name
      * @param jndiName        JNDI name
      */
-    public void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
+    private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("add-jndi");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
