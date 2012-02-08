@@ -7,7 +7,7 @@
 <!--    <container qualifier="jbossas-managed-7" default="true" managed="true" >
         <configuration>
             <property name="jbossHome">/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-as-7.1.0.CR1b</property>
-            <property name="javaVmArguments">-Djboss.modules.system.pkgs=org.jboss.byteman,com.sun.tools.attach -Xbootclasspath/a:/home/mnovak/Downloads/jdk1.6.0_21/lib/tools.jar:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
+            <property name="javaVmArguments">-Djboss.modules.system.pkgs=org.jboss.byteman,com.sun.qa.attach -Xbootclasspath/a:/home/mnovak/Downloads/jdk1.6.0_21/lib/qa.jar:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
             <property name="javaVmArguments">-Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:localhost,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
             <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:localhost,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
             <property name="serverConfig">standalone-ha.xml</property>
