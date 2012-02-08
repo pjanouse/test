@@ -1,10 +1,12 @@
 package org.jboss.qa.hornetq.test.faultinjection;
 
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAckNonHa;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -16,6 +18,8 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
 
+    // Logger
+    private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     String hostname = "localhost";
 
@@ -70,14 +74,37 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    public void dummySendReceiveTest() throws InterruptedException {
+        controller.start(CONTAINER1);
+
+        final String MY_QUEUE = "q1";
+        final String MY_QUEUE_JNDI = "/queue/q1";
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
+
+        // run producer asynchronously
+        Thread producer = new ProducerClientAckNonHA(hostname, MY_QUEUE, 10, 10);
+        producer.start();
+
+        producer.join(4000);
+        Thread.sleep(5000);
+
+        log.error("XXXXXXXXXXXXXXxx" + jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+
+        log.error("AAAA " + jmsAdminOperations.removeMessagesFromQueue(MY_QUEUE));
+
+        jmsAdminOperations.removeQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+
+        controller.stop(CONTAINER1);
+    }
+
     @Before
     @After
     public void stopAllServers() {
-
         controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-
     }
-
 }
