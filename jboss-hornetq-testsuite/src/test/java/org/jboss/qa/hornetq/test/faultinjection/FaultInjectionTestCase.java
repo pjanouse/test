@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.faultinjection;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.clients.FaultInjectionClient;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAckNonHa;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -15,7 +16,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.Session;
+
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
@@ -47,8 +51,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
-        final String MY_QUEUE_JNDI_NEW = "/queue/dummyQueue_new_name";
-        final int MESSAGES_COUNT = 10;
+        final String MY_QUEUE_JNDI_NEW = "java:jboss/exported/jms/queue/dummyQueue_new_name";
+        final String MY_QUEUE_JNDI_CLIENT = "jms/queue/dummyQueue_new_name";
+        final int MESSAGES = 10;
 
         controller.start(CONTAINER1);
 
@@ -57,14 +62,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
 
-        Thread producer = new ProducerClientAckNonHA(hostname, MY_QUEUE, MESSAGES_COUNT, 10);
-        producer.start();
-        producer.join(4000);
-        assertEquals(MESSAGES_COUNT, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        client.sendMessages(MY_QUEUE_JNDI_CLIENT);
+        assertNull(client.getExceptionDuringSend());
+        assertEquals(MESSAGES, client.getSentMessages());
 
-        Thread consumer = new ReceiverClientAckNonHa(MY_QUEUE);
-        consumer.start();
-        consumer.join(400);
+        assertEquals(MESSAGES, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+
+        client.receiveMessages(MY_QUEUE_JNDI_CLIENT);
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(MESSAGES, client.getReceivedMessages());
 
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
 
@@ -87,8 +94,14 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman will invoke kill\"); killJVM();"))
     public void simpleFaultInjectionTest() throws InterruptedException {
+        final String MY_QUEUE = "dummyQueue";
+        final String MY_QUEUE_JNDI = "/queue/dummyQueue";
 
         controller.start(CONTAINER1);
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
         // this will install byteman rule
         RuleInstaller.installRule(this.getClass());
@@ -119,11 +132,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         // wait for consumer
         consumer.join(60000);
 
+        jmsAdminOperations.removeQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+
         controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-
     }
-
-
 }
