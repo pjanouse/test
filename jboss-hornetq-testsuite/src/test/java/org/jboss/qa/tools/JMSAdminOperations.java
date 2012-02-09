@@ -281,6 +281,40 @@ public final class JMSAdminOperations {
         }
         return result;
     }
+    
+    private void setPersistenceEnabled(boolean persistenceEnabled) {
+        final ModelNode removeJmsQueue = new ModelNode();
+        removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeJmsQueue.get("name").set("persistence-enabled");
+        removeJmsQueue.get("value").set(Boolean.TRUE);
+        
+        try {
+            this.applyUpdate(removeJmsQueue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private void setClustered(boolean clustered) {
+        final ModelNode removeJmsQueue = new ModelNode();
+        removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeJmsQueue.get("name").set("persistence-enabled");
+        removeJmsQueue.get("value").set(Boolean.TRUE);
+        
+        try {
+            this.applyUpdate(removeJmsQueue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    
+    
+    
 
     /**
      * Exception
