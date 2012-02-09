@@ -17,10 +17,11 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
-import java.util.Arrays;
-
 import org.jboss.byteman.agent.submit.ScriptText;
 import org.jboss.byteman.agent.submit.Submit;
+import org.jboss.logging.Logger;
+
+import java.util.Arrays;
 
 /**
  * SumitUtil
@@ -28,33 +29,28 @@ import org.jboss.byteman.agent.submit.Submit;
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @version $Revision: $
  */
-public class SubmitUtil
-{
-    public static void install(String key, String script)
-    {
-        try
-        {
+public class SubmitUtil {
+
+    // Logger
+    private static final Logger log = Logger.getLogger(SubmitUtil.class);
+
+    public static void install(String key, String script) {
+        try {
             Submit submit = new Submit();
             submit.addScripts(Arrays.asList(new ScriptText(key, script)));
-            System.out.println("mnovak: rule was submitted: " + script);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new SubmitException("Could not install script from file", e);
-            
+
         }
     }
 
-    public static void uninstall(String key, String script)
-    {
-        try
-        {
+    public static void uninstall(String key, String script) {
+        try {
             Submit submit = new Submit();
             submit.deleteScripts(Arrays.asList(new ScriptText(key, script)));
-            System.out.println("mnovak: rule was deleted: " + script);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new SubmitException("Could not uninstall script from file", e);
         }
     }

@@ -4,8 +4,6 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.FaultInjectionClient;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAckNonHa;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
@@ -18,8 +16,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.*;
 
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
@@ -48,7 +45,6 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     public void dummySendReceiveTest() throws InterruptedException {
-
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
         final String MY_QUEUE_JNDI_NEW = "java:jboss/exported/jms/queue/dummyQueue_new_name";
@@ -82,18 +78,18 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start server "CONTAINER1". Deploy byteman rule in annotations. Run jms
-     * producer which kills server - controller.kill() just wait for byteman to
-     * kill server. Start server "CONTAINER1" again. Send some messages.
+     * Server is killed before is commit written int the journal during send
+     *
+     * @throws InterruptedException is something is wrong
      */
     @Test
     @RunAsClient
     @BMRules(
-            @BMRule(name = "rule - kill server after send message",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "System.out.println(\"Byteman will invoke kill\"); killJVM();"))
-    public void simpleFaultInjectionTest() throws InterruptedException {
+            @BMRule(name = "Kill before transaction commit is written into journal - send",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"xxxxxxxxxx   Byteman will invoke kill\");killJVM();"))
+    public void transactionBeforeWriteCommitSend() throws InterruptedException {
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
 
@@ -103,38 +99,26 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.cleanUpQueue(MY_QUEUE);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
-        // this will install byteman rule
+        log.info("Installing Byteman rule ...");
+
+        // Let's install byteman rule
         RuleInstaller.installRule(this.getClass());
 
-        // run producer asynchronously
-        Thread producer = new ProducerClientAckNonHA(hostname, queueName);
-        // start producer which will lead to kill server by byteman
-        producer.start();
-
-        // this will wait for kill
+        log.info("Execution of the client ...");
+        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 10, 0, true);
+        client.sendMessages(MY_QUEUE_JNDI);
+        Thread.sleep(100);
         controller.kill(CONTAINER1);
 
-        // start server again
         controller.start(CONTAINER1);
-
-        //and produce messages
-        Thread producer2 = new ProducerClientAckNonHA(hostname, queueName);
-
-        producer2.start();
-
-        // consumer messages
-        Thread consumer = new ReceiverClientAckNonHa(queueName);
-
-        consumer.start();
-
-        // wait for producer2
-        producer2.join(40000);
-        // wait for consumer
-        consumer.join(60000);
+        client.receiveMessages(MY_QUEUE_JNDI);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
 
         jmsAdminOperations.removeQueue(MY_QUEUE);
         jmsAdminOperations.close();
-
         controller.stop(CONTAINER1);
     }
 }

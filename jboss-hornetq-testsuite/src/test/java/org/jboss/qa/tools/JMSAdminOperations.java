@@ -226,12 +226,14 @@ public final class JMSAdminOperations {
      * @param durable         Is durable destination
      */
     private void createJmsDestination(String destinationType, String destinationName, String jndiName, boolean durable) {
+        String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
         ModelNode createJmsQueueOperation = new ModelNode();
         createJmsQueueOperation.get(ClientConstants.OP).set(ClientConstants.ADD);
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         createJmsQueueOperation.get("entries").add(jndiName);
+        createJmsQueueOperation.get("entries").add("java:jboss/exported" + externalSuffix + jndiName);
         createJmsQueueOperation.get("durable").set(durable);
         try {
             this.applyUpdate(createJmsQueueOperation);
