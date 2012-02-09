@@ -65,7 +65,7 @@
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="DEBUG"/>
                 <formatter>
                     <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
@@ -83,6 +83,9 @@
             </logger>
             <logger category="org.apache.tomcat.util.modeler">
                 <level name="WARN"/>
+            </logger>
+            <logger category="org.hornetq">
+                <level name="DEBUG"/>
             </logger>
             <logger category="sun.rmi">
                 <level name="WARN"/>
@@ -620,10 +623,10 @@
 
     <interfaces>
         <interface name="management">
-            <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
+            <loopback-address value="127.0.0.2"/>
         </interface>
         <interface name="public">
-            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+            <loopback-address value="127.0.0.2"/>
         </interface>
     </interfaces>
 
@@ -640,8 +643,6 @@
         <socket-binding name="jgroups-mping" port="0" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45700"/>
         <socket-binding name="management-native" interface="management" port="${jboss.management.native.port:9999}"/>
         <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
-        <socket-binding name="messaging" port="5445" interface="public" />
-        <socket-binding name="messaging-throughput" port="5455" interface="public" />
         <socket-binding name="messaging-backup2" port="5446" interface="public" />
         <socket-binding name="modcluster" port="0"  multicast-address="224.0.1.105" multicast-port="23364"/>
         <socket-binding name="osgi-http" interface="management" port="8090"/>

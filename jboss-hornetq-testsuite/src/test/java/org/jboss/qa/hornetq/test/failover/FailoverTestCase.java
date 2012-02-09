@@ -78,7 +78,7 @@ public class FailoverTestCase {
                     action = "incrementCounter(\"counter\");"
                     + "System.out.println(\"Called org.hornetq.core.journal.impl.JournalImpl.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
              @BMRule(name = "Clean shutdown on JournalImpl.doInternalWrite.appendUpdateRecord",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
                     targetMethod = "appendUpdateRecord",
                     condition="readCounter(\"counter\")>100",
                     action = "System.out.println(\"Byteman invoked\"); killJVM();")}
@@ -101,7 +101,6 @@ public class FailoverTestCase {
         
         controller.kill(CONTAINER1);
         
-        logger.info("mnovak: Server was killed");
         
         producer.join();
         

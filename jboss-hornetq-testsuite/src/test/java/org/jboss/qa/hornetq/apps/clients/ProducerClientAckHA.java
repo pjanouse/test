@@ -28,7 +28,7 @@ public class ProducerClientAckHA extends Thread {
     String hostname = "localhost";
     int jndiPort = 4447;
     String queueNameJndi = "jms/queue/testQueue1";
-    int numberOfMessages = 200;
+    int numberOfMessages = 1000;
     long waitAfterMessage = 0;
 
     public ProducerClientAckHA(String queueName) {

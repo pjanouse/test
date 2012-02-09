@@ -65,7 +65,7 @@
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="DEBUG"/>
                 <formatter>
                     <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
@@ -80,6 +80,9 @@
             </periodic-rotating-file-handler>
             <logger category="com.arjuna">
                 <level name="WARN"/>
+            </logger>
+            <logger category="org.hornetq">
+                <level name="DEBUG"/>
             </logger>
             <logger category="org.apache.tomcat.util.modeler">
                 <level name="WARN"/>
@@ -645,10 +648,10 @@
 
     <interfaces>
         <interface name="management">
-            <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
+            <loopback-address value="127.0.0.1"/>
         </interface>
         <interface name="public">
-            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+            <loopback-address value="127.0.0.1"/>
         </interface>
     </interfaces>
 
@@ -667,7 +670,6 @@
         <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
         <socket-binding name="messaging" port="5445" interface="public" />
         <socket-binding name="messaging-throughput" interface="public" port="5455"/>
-        <socket-binding name="messaging-backup" interface="public" port="5446"/>
         <socket-binding name="modcluster" port="0"  multicast-address="224.0.1.105" multicast-port="23364"/>
         <socket-binding name="osgi-http" interface="management" port="8090"/>
         <socket-binding name="remoting" port="4447"/>
