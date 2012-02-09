@@ -17,9 +17,9 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
+import org.jboss.logging.Logger;
+
 import java.lang.reflect.Method;
-
-
 
 /**
  * MethodRuleInstaller
@@ -27,61 +27,47 @@ import java.lang.reflect.Method;
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @version $Revision: $
  */
-public class RuleInstaller
-{
+public class RuleInstaller {
+
+    // Logger
+    private static final Logger log = Logger.getLogger(RuleInstaller.class);
+
     public static final String CLASS_KEY_PREFIX = "Class:";
     public static final String METHOD_KEY_PREFIX = "Method:";
 
     /**
-     * 
      * This will install rule which is described in annotation of caller method.
-     * 
-     * @param testClass 
-     * 
+     *
+     * @param testClass class with test
      */
     public static void installRule(Class testClass) {
         try {
-        RuleInstaller ruleInstaller = new RuleInstaller();
-        
-        // get name of caller method - of the test with byteman annotation
-        Throwable t = new Throwable();
-        
-        StackTraceElement[] elements = t.getStackTrace();
-        
-        String callerMethodName = elements[1].getMethodName();
-        
-        System.out.println("CallerClassName=" + testClass.getName() + " , Caller method name: " + callerMethodName);
-        
-        ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
-        
-        } catch (NoSuchMethodException ex)  {
-            ex.printStackTrace();
+            RuleInstaller ruleInstaller = new RuleInstaller();
+            Throwable t = new Throwable();
+            StackTraceElement[] elements = t.getStackTrace();
+            String callerMethodName = elements[1].getMethodName();
+            log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
+            ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
+        } catch (NoSuchMethodException ex) {
+            log.error(ex.getMessage(), ex);
         }
-        
     }
 
-
-    public void installMethod(Method method)
-    {
+    public void installMethod(Method method) {
         String script = ExtractScriptUtil.extract(method);
-
-        if(script != null)
-        {
+        if (script != null) {
             SubmitUtil.install(generateKey(METHOD_KEY_PREFIX), script);
         }
     }
 
-    public void uninstallMethod(Method method)
-    {
+    public void uninstallMethod(Method method) {
         String script = ExtractScriptUtil.extract(method);
-        if(script != null)
-        {
+        if (script != null) {
             SubmitUtil.uninstall(generateKey(METHOD_KEY_PREFIX), script);
         }
     }
 
-    private String generateKey(String prefix)
-    {
+    private String generateKey(String prefix) {
         return prefix + Thread.currentThread().getName();
     }
 }
