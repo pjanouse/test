@@ -7,8 +7,12 @@ import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
+import org.jboss.qa.tools.byteman.annotation.BMRule;
+import org.jboss.qa.tools.byteman.annotation.BMRules;
+import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -46,7 +50,7 @@ public class FailoverTestCase {
     
     String hostname = "localhost";
     
-    String queueName = "testQueue";
+    String queueName = "jms/queue/testQueue1";
         
     // this is just example of preparing deployment - deployed refactored servlet from MRG
     // managed=false means that deployment is deployed manually from test using Deployer 
@@ -58,11 +62,27 @@ public class FailoverTestCase {
                 .addAsWebInfResource("apps/servlets/hornetqtestservlet/web.xml", "web.xml")
                 .addAsManifestResource(new StringAsset("Dependencies: org.hornetq\n"), "MANIFEST.MF");
     }
-    
+
     // This test will start two servers in dedicated topology
     // Sent some messages to first 
     // Receive messages from the second one
     @Test   
+    @BMRules(
+            {@BMRule(name = "setup counter for JournalImpl",
+                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
+                    targetMethod = "<init>",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for JournalImpl.appendUpdateRecord",
+                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
+                    targetMethod = "appendUpdateRecord",
+                    action = "incrementCounter(\"counter\");"
+                    + "System.out.println(\"Called org.hornetq.core.journal.impl.JournalImpl.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
+             @BMRule(name = "Clean shutdown on JournalImpl.doInternalWrite.appendUpdateRecord",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "appendUpdateRecord",
+                    condition="readCounter(\"counter\")>100",
+                    action = "System.out.println(\"Byteman invoked\"); killJVM();")}
+    )
     public void simpleFailoverTest() throws Exception {
         //CONTAINER2 variable corresponds to container's name specified via qualifier arquillian.xml
         // ... <container qualifier="container2" mode="manual">  
@@ -70,8 +90,20 @@ public class FailoverTestCase {
         // manual means - start/stop manually
         
         controller.start(CONTAINER1, liveServerProperties);
+        
+        RuleInstaller.installRule(this.getClass());
 
         controller.start(CONTAINER2, backupServerProperties);
+    
+        ProducerClientAckHA producer = new ProducerClientAckHA(queueName);
+        
+        producer.start();
+        
+        controller.kill(CONTAINER1);
+        
+        logger.info("mnovak: Server was killed");
+        
+        producer.join();
         
         logger.info("mnovak: it works :-)");
         

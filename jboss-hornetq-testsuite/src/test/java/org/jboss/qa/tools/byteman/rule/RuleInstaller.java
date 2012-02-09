@@ -64,7 +64,7 @@ public class RuleInstaller
     public void installMethod(Method method)
     {
         String script = ExtractScriptUtil.extract(method);
-        System.out.println("mnovak: install method called");
+
         if(script != null)
         {
             SubmitUtil.install(generateKey(METHOD_KEY_PREFIX), script);
