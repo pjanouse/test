@@ -19,16 +19,16 @@ import org.jboss.sasl.JBossSaslProvider;
  */
 public class ProducerClientAckHA extends Thread {
 
-    static {
-        Security.addProvider(new JBossSaslProvider());
-    }
+//    static {
+//        Security.addProvider(new JBossSaslProvider());
+//    }
     private static final Logger logger = Logger.getLogger(ProducerClientAckHA.class);
     private int numberOfRetries = 0;
     private int maxRetries = 30;
     String hostname = "localhost";
     int jndiPort = 4447;
-    String queueNameJndi = "queue/testQueue1";
-    int numberOfMessages = 1000;
+    String queueNameJndi = "jms/queue/testQueue1";
+    int numberOfMessages = 200;
     long waitAfterMessage = 0;
 
     public ProducerClientAckHA(String queueName) {
@@ -96,7 +96,7 @@ public class ProducerClientAckHA extends Thread {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                logger.debug("Producer for node: " + hostname + ". Sent message with property count: " + i + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Producer for node: " + hostname + ". Sent message with property count: " + i + ", messageId:" + msg.getJMSMessageID());
 
                 i++;
 
