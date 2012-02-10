@@ -88,8 +88,10 @@ public class FailoverTestCase {
         jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setBroadCastGroup(null, -1, "231.8.8.8", 8765,  2000, "netty", "");
-
+        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 8765,  2000, "netty", "");
+        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 8765, 2000);
+        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 0, 100000, -1, 1000, true);
+        
         controller.stop(CONTAINER1);
         
     }

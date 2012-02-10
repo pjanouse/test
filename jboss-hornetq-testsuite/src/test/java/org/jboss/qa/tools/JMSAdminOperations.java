@@ -418,7 +418,7 @@ public final class JMSAdminOperations {
         }
     }
 
-    public void setBroadCastGroup(String localBindAddress, int localBindPort,
+    public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
             String groupAddress, int groupPort, long broadCastPeriod,
             String connectorName, String backupConnectorName) {
 
@@ -426,7 +426,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("broadcast-group", "bg-group");
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(localBindAddress)) {
             model.get("local-bind-address").set(localBindAddress);
@@ -453,14 +453,88 @@ public final class JMSAdminOperations {
         if (!isEmpty(backupConnectorName)) {
             model.get("connectors").add(backupConnectorName);
         }
-
+        
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+    
+    public void setDiscoveryGroup(String name, String localBindAddress, 
+            String groupAddress, int groupPort, long refreshTimeout) {
 
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
+
+        if (!isEmpty(localBindAddress)) {
+            model.get("local-bind-address").set(localBindAddress);
+        }
+
+        if (!isEmpty(groupAddress)) {
+            model.get("group-address").set(groupAddress);
+        }
+
+        if (!isEmpty(groupPort)) {
+            model.get("group-port").set(groupPort);
+        }
+        
+        if (!isEmpty(refreshTimeout)) {
+            model.get("refresh-timeout").set(refreshTimeout);
+        }
+
+    }
+    
+    public void setClusterConnections(String address, 
+            String discoveryGroupRef, boolean  forwardWhenNoConsumers, int maxHops,
+                    long minLargeMessageSize, int reconnectAttempts, long retryInterval, 
+                    boolean useDuplicateDetection) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", "failover-cluster");
+
+        if (!isEmpty(address)) {
+            model.get("address").set(address);
+        }
+        
+        if (!isEmpty(discoveryGroupRef)) {
+            model.get("discovery-group-ref").set(discoveryGroupRef);
+        }
+        
+        if (!isEmpty(forwardWhenNoConsumers)) {
+            model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
+        }
+
+        if (!isEmpty(maxHops)) {
+            model.get("max-hops").set(maxHops);
+        }
+        
+        if (!isEmpty(minLargeMessageSize)) {
+            model.get("min-large-message-size").set(minLargeMessageSize);
+        }
+        
+        if (!isEmpty(reconnectAttempts)) {
+            model.get("reconnect-attempts").set(reconnectAttempts);
+        }
+        
+        if (!isEmpty(retryInterval)) {
+            model.get("retry-interval").set(retryInterval);
+        }
+        
+        if (!isEmpty(useDuplicateDetection)) {
+            model.get("use-duplicate-detection").set(useDuplicateDetection);
+        }
+        
+    }  
+    
+    
+    
     public boolean isEmpty(Object attribute) {
         
         boolean empty = false;
