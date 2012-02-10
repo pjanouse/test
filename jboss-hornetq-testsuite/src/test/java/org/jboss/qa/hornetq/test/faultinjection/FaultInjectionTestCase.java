@@ -77,8 +77,55 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         controller.stop(CONTAINER1);
     }
 
+
+    //============================================================================================================
+    //============================================================================================================
+    // Transactional session - commit
+    //============================================================================================================
+    //============================================================================================================
+
     /**
-     * Server is killed before is commit written int the journal during send
+     * Server is killed before transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill before transactional data are written into journal - send",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeMessageTransactional",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void beforeTransactionalOperationIsWrittenSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+    }
+
+    /**
+     * Server is killed after transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after transactional data are written into journal - send",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeMessageTransactional",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void afterTransactionalOperationIsWrittenSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true);
+        // Should be 0 message because server is killed before commit
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+    }
+
+    /**
+     * Server is killed before is commit written into the journal during send
      *
      * @throws InterruptedException is something is wrong
      */
@@ -89,7 +136,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void transactionBeforeWriteCommitSend() throws InterruptedException {
+    public void transactionBeforeWriteCommitSendTest() throws InterruptedException {
         FaultInjectionClient client = createFaultInjection(0, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
@@ -109,7 +156,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void transactionAfterWriteCommitSend() throws InterruptedException {
+    public void transactionAfterWriteCommitSendTest() throws InterruptedException {
         FaultInjectionClient client = createFaultInjection(0, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
@@ -117,13 +164,276 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
-     * Creates fault injection client and sends and receives one message
+     * Server is killed before is commit written into the journal during receive
      *
-     * @param ackMode
-     * @param transacted
-     * @return
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void transactionBeforeWriteCommitReceiveTest() throws InterruptedException {
+        final String MY_QUEUE = "dummyQueue";
+        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * Server is killed after is commit written into the journal during receive
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after transaction commit is written into journal - receive",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void transactionAfterWriteCommitReceiveTest() throws InterruptedException {
+        final String MY_QUEUE = "dummyQueue";
+        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * Server is killed after is message deleted from journal after receive
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after message is deleted from journal - receive",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "deleteMessage",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void transactionAfterDeleteMessageFromJournalReceiveTest() throws InterruptedException {
+        final String MY_QUEUE = "dummyQueue";
+        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    //============================================================================================================
+    //============================================================================================================
+    // Transactional session - rollback
+    //============================================================================================================
+    //============================================================================================================
+
+    /**
+     * Server is killed before transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill before do rollback - send",
+                    targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void beforeDoRollbackSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true, false, true);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+    }
+
+    /**
+     * Server is killed after transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after do rollback - send",
+                    targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void afterDoRollbackSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true, false, true);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+    }
+
+    /**
+     * Server is killed before transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill before do rollback - receive",
+                    targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void beforeDoRollbackReceive() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true, true, true);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        final String MY_QUEUE = "dummyQueue";
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * Server is killed after transactional data are written into the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after do rollback - receive",
+                    targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void afterDoRollbackReceive() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true, true, true);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        final String MY_QUEUE = "dummyQueue";
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    //============================================================================================================
+    //============================================================================================================
+    // No-transactional session - client ack mode
+    //============================================================================================================
+    //============================================================================================================
+
+    /**
+     * Server is killed before ack is stored into the journal
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules({
+            @BMRule(name = "Kill before ack is written in journal",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeAcknowledge",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Kill before ack is written in journal",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeAcknowledgeTransactional",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")}
+    )
+    public void clientAckBeforeWriteAckSendTest() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        final String MY_QUEUE = "dummyQueue";
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * Server is killed after QueueImpl.acknowledge
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after acknowledge()",
+                    targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+                    targetMethod = "acknowledge",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();"))
+    public void clientAckAfterWriteAckSendTest() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
+        assertNull(client.getExceptionDuringSend());
+        assertNotNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+
+        final String MY_QUEUE = "dummyQueue";
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
+        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.close();
+        controller.stop(CONTAINER1);
+    }
+
+    //============================================================================================================
+    //============================================================================================================
+    // Private methods
+    //============================================================================================================
+    //============================================================================================================
+
+
+    /**
+     * Creates fault injection client and sends and receives one message - before send and commit
+     *
+     * @param ackMode    acknowledge mode for JMS client
+     * @param transacted is JMS session transacted?
+     * @return instance of {@link FaultInjectionClient}
      */
     private FaultInjectionClient createFaultInjection(int ackMode, boolean transacted) {
+        return createFaultInjection(ackMode, transacted, false, false);
+    }
+
+    /**
+     * Creates fault injection client and sends and receives one message. If parameter <code>ruleBeforeReceive</code>
+     * is true, server is not killed and calling method can evaluate results and has to kill server.
+     *
+     * @param ackMode           acknowledge mode for JMS client
+     * @param transacted        is JMS session transacted?
+     * @param ruleBeforeReceive install Byteman rule before receive?
+     * @param rollbackOnly      is rollback only?
+     * @return instance of {@link FaultInjectionClient}
+     */
+    private FaultInjectionClient createFaultInjection(int ackMode, boolean transacted, boolean ruleBeforeReceive, boolean rollbackOnly) {
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
 
@@ -133,20 +443,36 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.cleanUpQueue(MY_QUEUE);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
-        log.info("Installing Byteman rule ...");
-        RuleInstaller.installRule(this.getClass());
-
-        log.info("Execution of the client ...");
         FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 1, ackMode, transacted);
-        client.sendMessages(MY_QUEUE_JNDI);
+        if (!ruleBeforeReceive) {
+            client.setRollbackOnly(rollbackOnly);
+            log.info("Installing Byteman rule before sending message ...");
+            RuleInstaller.installRule(this.getClass());
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // Ignore it
+            }
 
-        controller.kill(CONTAINER1);
-        controller.start(CONTAINER1);
-        client.receiveMessages(MY_QUEUE_JNDI);
+            log.info("Execution of the client ...");
+            client.sendMessages(MY_QUEUE_JNDI);
 
-        jmsAdminOperations.removeQueue(MY_QUEUE);
-        jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+            controller.kill(CONTAINER1);
+            controller.start(CONTAINER1);
+            client.receiveMessages(MY_QUEUE_JNDI);
+            jmsAdminOperations.removeQueue(MY_QUEUE);
+            jmsAdminOperations.close();
+            controller.stop(CONTAINER1);
+        } else {
+            log.info("Execution of the client ...");
+            client.sendMessages(MY_QUEUE_JNDI);
+            client.setRollbackOnly(rollbackOnly);
+            log.info("Installing Byteman rule before receiving message ...");
+            RuleInstaller.installRule(this.getClass());
+            client.receiveMessages(MY_QUEUE_JNDI);
+            controller.kill(CONTAINER1);
+            controller.start(CONTAINER1);
+        }
         return client;
     }
 }

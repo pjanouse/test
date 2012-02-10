@@ -34,6 +34,7 @@ public class FaultInjectionClient {
     private boolean transactionSession;
     private int receivedMessages;
     private int receiveTimeout = 1000;
+    private boolean rollbackOnly;
 
     private Exception exceptionDuringSend;
     private Exception exceptionDuringReceive;
@@ -117,8 +118,13 @@ public class FaultInjectionClient {
                 }
             }
             if (this.transactionSession) {
-                session.commit();
-                this.sentMessages = this.messages;
+                if (!this.rollbackOnly) {
+                    session.commit();
+                    this.sentMessages = this.messages;
+                } else {
+                    session.rollback();
+                    this.sentMessages = 0;
+                }
             }
             producer.close();
         } catch (Exception e) {
@@ -173,12 +179,18 @@ public class FaultInjectionClient {
                 this.receivedMessages++;
             }
             if (this.transactionSession) {
-                session.commit();
+                if (!this.rollbackOnly) {
+                    session.commit();
+                } else {
+                    session.rollback();
+                    this.receivedMessages = 0;
+                }
             }
             consumer.close();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            this.exceptionDuringSend = e;
+            this.exceptionDuringReceive = e;
+            this.receivedMessages = 0;
             if (session != null && this.transactionSession) {
                 try {
                     session.rollback();
@@ -332,5 +344,13 @@ public class FaultInjectionClient {
 
     public void setExceptionDuringReceive(Exception exceptionDuringReceive) {
         this.exceptionDuringReceive = exceptionDuringReceive;
+    }
+
+    public boolean isRollbackOnly() {
+        return rollbackOnly;
+    }
+
+    public void setRollbackOnly(boolean rollbackOnly) {
+        this.rollbackOnly = rollbackOnly;
     }
 }
