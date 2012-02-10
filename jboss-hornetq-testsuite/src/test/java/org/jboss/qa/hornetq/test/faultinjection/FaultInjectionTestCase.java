@@ -88,8 +88,42 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             @BMRule(name = "Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
-                    action = "System.out.println(\"xxxxxxxxxx   Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionBeforeWriteCommitSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(0, client.getReceivedMessages());
+    }
+
+    /**
+     * Server is killed after is commit written int the journal during send
+     *
+     * @throws InterruptedException is something is wrong
+     */
+    @Test
+    @RunAsClient
+    @BMRules(
+            @BMRule(name = "Kill after transaction commit is written into journal - send",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+    public void transactionAfterWriteCommitSend() throws InterruptedException {
+        FaultInjectionClient client = createFaultInjection(0, true);
+        assertNotNull(client.getExceptionDuringSend());
+        assertNull(client.getExceptionDuringReceive());
+        assertEquals(1, client.getReceivedMessages());
+    }
+
+    /**
+     * Creates fault injection client and sends and receives one message
+     *
+     * @param ackMode
+     * @param transacted
+     * @return
+     */
+    private FaultInjectionClient createFaultInjection(int ackMode, boolean transacted) {
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
 
@@ -100,25 +134,19 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
         log.info("Installing Byteman rule ...");
-
-        // Let's install byteman rule
         RuleInstaller.installRule(this.getClass());
 
         log.info("Execution of the client ...");
-        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 10, 0, true);
+        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 1, ackMode, transacted);
         client.sendMessages(MY_QUEUE_JNDI);
-        Thread.sleep(100);
-        controller.kill(CONTAINER1);
 
+        controller.kill(CONTAINER1);
         controller.start(CONTAINER1);
         client.receiveMessages(MY_QUEUE_JNDI);
-        assertNotNull(client.getExceptionDuringSend());
-        assertNull(client.getExceptionDuringReceive());
-        assertEquals(0, client.getReceivedMessages());
-        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
 
         jmsAdminOperations.removeQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
+        return client;
     }
 }

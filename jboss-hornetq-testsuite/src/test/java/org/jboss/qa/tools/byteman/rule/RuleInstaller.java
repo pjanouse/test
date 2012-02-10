@@ -41,15 +41,23 @@ public class RuleInstaller {
      * @param testClass class with test
      */
     public static void installRule(Class testClass) {
-        try {
-            RuleInstaller ruleInstaller = new RuleInstaller();
-            Throwable t = new Throwable();
-            StackTraceElement[] elements = t.getStackTrace();
-            String callerMethodName = elements[1].getMethodName();
-            log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
-            ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
-        } catch (NoSuchMethodException ex) {
-            log.error(ex.getMessage(), ex);
+        RuleInstaller ruleInstaller = new RuleInstaller();
+        Throwable t = new Throwable();
+        StackTraceElement[] elements = t.getStackTrace();
+        boolean installed = false;
+        for (int level = 1; level < elements.length; level++) {
+            try {
+                String callerMethodName = elements[level].getMethodName();
+                log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
+                ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
+                installed = true;
+                break;
+            } catch (Exception ex) {
+                // Ignore it
+            }
+        }
+        if (!installed) {
+            log.error("Cannot find corresponding annotations on stack trace methods");
         }
     }
 
