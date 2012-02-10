@@ -10,6 +10,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
+import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -62,55 +63,90 @@ public class FailoverTestCase {
                 .addAsWebInfResource("apps/servlets/hornetqtestservlet/web.xml", "web.xml")
                 .addAsManifestResource(new StringAsset("Dependencies: org.hornetq\n"), "MANIFEST.MF");
     }
-
-    // This test will start two servers in dedicated topology
-    // Sent some messages to first 
-    // Receive messages from the second one
-    @Test   
-    @BMRules(
-            {@BMRule(name = "setup counter for JournalImpl",
-                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
-                    targetMethod = "<init>",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for JournalImpl.appendUpdateRecord",
-                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
-                    targetMethod = "appendUpdateRecord",
-                    action = "incrementCounter(\"counter\");"
-                    + "System.out.println(\"Called org.hornetq.core.journal.impl.JournalImpl.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
-             @BMRule(name = "Clean shutdown on JournalImpl.doInternalWrite.appendUpdateRecord",
-                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
-                    targetMethod = "appendUpdateRecord",
-                    condition="readCounter(\"counter\")>100",
-                    action = "System.out.println(\"Byteman invoked\"); killJVM();")}
-    )
-    public void simpleFailoverTest() throws Exception {
+    
+    
+    @Before
+    public void prepareServer() throws Exception {
         //CONTAINER2 variable corresponds to container's name specified via qualifier arquillian.xml
         // ... <container qualifier="container2" mode="manual">  
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
         // manual means - start/stop manually
+        liveServerProperties = new HashMap<String, String>();
+        
+        liveServerProperties.put("serverConfig", "standalone-ha-2.xml");
         
         controller.start(CONTAINER1, liveServerProperties);
+     
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         
-        RuleInstaller.installRule(this.getClass());
+        jmsAdminOperations.setAllowFailback(true);
+        jmsAdminOperations.setBindingsDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setJournalDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setLargeMessagesDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setBroadCastGroup(null, -1, "231.8.8.8", 8765,  2000, "netty", "");
 
-        controller.start(CONTAINER2, backupServerProperties);
-    
-        ProducerClientAckHA producer = new ProducerClientAckHA(queueName);
-        
-        producer.start();
-        
-        controller.kill(CONTAINER1);
-        
-        
-        producer.join();
-        
-        logger.info("mnovak: it works :-)");
-        
         controller.stop(CONTAINER1);
         
-        controller.stop(CONTAINER2);
+    }
+    
+    @Test
+    public void test()  {
         
     }
+
+//    // This test will start two servers in dedicated topology
+//    // Sent some messages to first 
+//    // Receive messages from the second one
+//    @Test   
+//    @BMRules(
+//            {@BMRule(name = "setup counter for JournalImpl",
+//                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
+//                    targetMethod = "<init>",
+//                    action = "createCounter(\"counter\")"),
+//            @BMRule(name = "Info messages and counter for JournalImpl.appendUpdateRecord",
+//                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
+//                    targetMethod = "appendUpdateRecord",
+//                    action = "incrementCounter(\"counter\");"
+//                    + "System.out.println(\"Called org.hornetq.core.journal.impl.JournalImpl.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
+//             @BMRule(name = "Clean shutdown on JournalImpl.doInternalWrite.appendUpdateRecord",
+//                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
+//                    targetMethod = "appendUpdateRecord",
+//                    condition="readCounter(\"counter\")>100",
+//                    action = "System.out.println(\"Byteman invoked\"); killJVM();")}
+//    )
+//    public void simpleFailoverTest() throws Exception {
+//        //CONTAINER2 variable corresponds to container's name specified via qualifier arquillian.xml
+//        // ... <container qualifier="container2" mode="manual">  
+//        //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
+//        // manual means - start/stop manually
+//        
+//        controller.start(CONTAINER1, liveServerProperties);
+//        
+//        RuleInstaller.installRule(this.getClass());
+//
+//        controller.start(CONTAINER2, backupServerProperties);
+//    
+//        ProducerClientAckHA producer = new ProducerClientAckHA(queueName);
+//        
+//        producer.start();
+//        
+//        controller.kill(CONTAINER1);
+//        
+//        
+//        producer.join();
+//        
+//        logger.info("mnovak: it works :-)");
+//        
+//        controller.stop(CONTAINER1);
+//        
+//        controller.stop(CONTAINER2);
+//        
+//    }
     
     @Before @After
     public void stopAllServers()    {
@@ -126,7 +162,7 @@ public class FailoverTestCase {
         
         liveServerProperties = new HashMap<String, String>();
         
-        liveServerProperties.put("serverConfig", "standalone-ha-simple-live.xml");
+        liveServerProperties.put("serverConfig", "standalone-ha-2.xml");
         
         backupServerProperties = new HashMap<String, String>();
         
