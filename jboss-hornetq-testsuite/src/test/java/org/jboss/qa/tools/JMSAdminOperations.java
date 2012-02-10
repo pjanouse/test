@@ -14,20 +14,16 @@ import static org.jboss.as.arquillian.container.Authentication.getCallbackHandle
 /**
  * Basic administration operations for JMS subsystem
  * <p/>
- * User: jpai
- * User: pslavice@redhat.com
+ * User: jpai User: pslavice@redhat.com
  */
 public final class JMSAdminOperations {
 
     // Logger
     private static final Logger logger = Logger.getLogger(JMSAdminOperations.class);
-
     // Definition for the queue
     private static final String DESTINATION_TYPE_QUEUE = "jms-queue";
-
     // Definition for the topics
     private static final String DESTINATION_TYPE_TOPIC = "jms-topic";
-
     // Instance of Model controller client
     private final ModelControllerClient modelControllerClient;
 
@@ -42,7 +38,7 @@ public final class JMSAdminOperations {
      * Constructor
      *
      * @param hostName host with the administration
-     * @param port     port where is administration available
+     * @param port port where is administration available
      */
     public JMSAdminOperations(final String hostName, final int port) {
         try {
@@ -68,7 +64,7 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     public void createQueue(String queueName, String jndiName) {
         createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, true);
@@ -78,8 +74,8 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
-     * @param durable   is queue durable
+     * @param jndiName JNDI queue name
+     * @param durable is queue durable
      */
     public void createQueue(String queueName, String jndiName, boolean durable) {
         createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
@@ -89,7 +85,7 @@ public final class JMSAdminOperations {
      * Creates topic
      *
      * @param topicName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     public void createTopic(String topicName, String jndiName) {
         createJmsDestination(DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
@@ -117,7 +113,7 @@ public final class JMSAdminOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     public void addQueueJNDIName(String queueName, String jndiName) {
         addDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
@@ -201,7 +197,7 @@ public final class JMSAdminOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name
+     * @param jndiName JNDI name
      */
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
@@ -222,8 +218,8 @@ public final class JMSAdminOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name for destination
-     * @param durable         Is durable destination
+     * @param jndiName JNDI name for destination
+     * @param durable Is durable destination
      */
     private void createJmsDestination(String destinationType, String destinationName, String jndiName, boolean durable) {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
@@ -264,15 +260,16 @@ public final class JMSAdminOperations {
     /**
      * Applies update to server
      *
-     * @param update instance of the update @see {@link ModelNode}
+     * @param update instance of the update
+     * @see {@link ModelNode}
      * @return instance of ModelNode
-     * @throws IOException                if something goes wrong
+     * @throws IOException if something goes wrong
      * @throws JMSAdminOperationException if something goes wrong
      */
     private ModelNode applyUpdate(final ModelNode update) throws IOException, JMSAdminOperationException {
         ModelNode result = this.modelControllerClient.execute(update);
-        if (result.hasDefined(ClientConstants.OUTCOME) &&
-                ClientConstants.SUCCESS.equals(result.get(ClientConstants.OUTCOME).asString())) {
+        if (result.hasDefined(ClientConstants.OUTCOME)
+                && ClientConstants.SUCCESS.equals(result.get(ClientConstants.OUTCOME).asString())) {
             logger.info(String.format("Operation successful for update = '%s'", update.toString()));
         } else if (result.hasDefined(ClientConstants.FAILURE_DESCRIPTION)) {
             final String failureDesc = result.get(ClientConstants.FAILURE_DESCRIPTION).toString();
@@ -283,30 +280,15 @@ public final class JMSAdminOperations {
         }
         return result;
     }
-    
-    private void setPersistenceEnabled(boolean persistenceEnabled) {
+
+    public void setPersistenceEnabled(boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         removeJmsQueue.get("name").set("persistence-enabled");
         removeJmsQueue.get("value").set(Boolean.TRUE);
-        
-        try {
-            this.applyUpdate(removeJmsQueue);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    private void setClustered(boolean clustered) {
-        final ModelNode removeJmsQueue = new ModelNode();
-        removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        removeJmsQueue.get("name").set("persistence-enabled");
-        removeJmsQueue.get("value").set(Boolean.TRUE);
-        
+
         try {
             this.applyUpdate(removeJmsQueue);
         } catch (Exception e) {
@@ -314,9 +296,184 @@ public final class JMSAdminOperations {
         }
     }
 
-    
-    
-    
+    public void setClustered(boolean clustered) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("clustered");
+        model.get("value").set(Boolean.TRUE);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setSharedStore(boolean clustered) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("shared-store");
+        model.get("value").set(Boolean.TRUE);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setAllowFailback(boolean clustered) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("allow-failback");
+        model.get("value").set(Boolean.TRUE);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*
+     * Can be "NIO" or "AIO"
+     *
+     */
+    public void setJournalType(String journalType) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("journal-type");
+        model.get("value").set(journalType);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setJournalDirectory(String path) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
+        model.get("path").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setPagingDirectory(String path) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        model.get("path").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setLargeMessagesDirectory(String path) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
+        model.get("path").set(path);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setBindingsDirectory(String path) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
+        model.get("path").set(path);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setBroadCastGroup(String localBindAddress, int localBindPort,
+            String groupAddress, int groupPort, long broadCastPeriod,
+            String connectorName, String backupConnectorName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", "bg-group");
+
+        if (!isEmpty(localBindAddress)) {
+            model.get("local-bind-address").set(localBindAddress);
+        }
+
+        if (!isEmpty(localBindPort)) {
+            model.get("local-bind-port").set(localBindPort);
+        }
+
+        if (!isEmpty(groupAddress)) {
+            model.get("group-address").set(groupAddress);
+        }
+
+        if (!isEmpty(groupPort)) {
+            model.get("group-port").set(groupPort);
+        }
+
+        if (!isEmpty(broadCastPeriod)) {
+            model.get("broadcast-period").set(broadCastPeriod);
+        }
+
+        model.get("connectors").add(connectorName);
+
+        if (!isEmpty(backupConnectorName)) {
+            model.get("connectors").add(backupConnectorName);
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean isEmpty(Object attribute) {
+        
+        boolean empty = false;
+
+        if (attribute == null || "".equals(attribute)) {
+
+            empty = true;
+
+        }
+
+        return empty;
+
+    }
 
     /**
      * Exception

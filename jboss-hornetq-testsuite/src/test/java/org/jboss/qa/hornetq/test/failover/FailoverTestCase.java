@@ -10,6 +10,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
+import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -70,10 +71,31 @@ public class FailoverTestCase {
         // ... <container qualifier="container2" mode="manual">  
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
         // manual means - start/stop manually
+        liveServerProperties = new HashMap<String, String>();
         
-        controller.start(CONTAINER1);
+        liveServerProperties.put("serverConfig", "standalone-ha-2.xml");
         
+        controller.start(CONTAINER1, liveServerProperties);
+     
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        
+        jmsAdminOperations.setAllowFailback(true);
+        jmsAdminOperations.setBindingsDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setJournalDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setLargeMessagesDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setBroadCastGroup(null, -1, "231.8.8.8", 8765,  2000, "netty", "");
+
         controller.stop(CONTAINER1);
+        
+    }
+    
+    @Test
+    public void test()  {
         
     }
 
@@ -140,7 +162,7 @@ public class FailoverTestCase {
         
         liveServerProperties = new HashMap<String, String>();
         
-        liveServerProperties.put("serverConfig", "standalone-ha-simple-live.xml");
+        liveServerProperties.put("serverConfig", "standalone-ha-2.xml");
         
         backupServerProperties = new HashMap<String, String>();
         
