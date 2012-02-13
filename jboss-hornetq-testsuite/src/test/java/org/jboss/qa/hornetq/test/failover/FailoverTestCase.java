@@ -65,11 +65,58 @@ public class FailoverTestCase extends HornetQTestCase {
         // ... <container qualifier="container2" mode="manual">  
         //other values for are mode="suite|class|manual" , "suite" is default, "class" not implemented yet, that will be in ARQ-236,
         // manual means - start/stop manually
+//        prepareLiveServer(CONTAINER1);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        Thread.sleep(20000);
+        
+//        prepareBackupServer(CONTAINER2);
+        
+    }
+    
+    public void prepareBackupServer(String containerName) {
+        
+        backupServerProperties = new HashMap<String, String>();
+        
+        backupServerProperties.put("serverConfig", "standalone-ha-2.xml");
+        
+        controller.start(containerName, backupServerProperties);
+     
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        
+        jmsAdminOperations.setJmxDomainName("org.hornetq.backup");
+        jmsAdminOperations.setBackup(true);
+        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setBindingsDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setJournalDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setLargeMessagesDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 9875,  2000, "netty", "");
+        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 9875, 60000);
+        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 1, 10000, true, "netty");
+        
+        jmsAdminOperations.setRedistributionDelay(0L);
+        jmsAdminOperations.setHaForConnectionFactory("RemoteConnectionFactory", true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory("RemoteConnectionFactory", true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory("RemoteConnectionFactory", 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory("RemoteConnectionFactory", 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", -1);
+        
+        controller.stop(containerName);
+        
+    }
+    
+    public void prepareLiveServer(String containerName) {
+        
         liveServerProperties = new HashMap<String, String>();
         
         liveServerProperties.put("serverConfig", "standalone-ha-2.xml");
         
-        controller.start(CONTAINER1, liveServerProperties);
+        controller.start(containerName, liveServerProperties);
      
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         
@@ -82,18 +129,17 @@ public class FailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 8765,  2000, "netty", "");
-        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 8765, 2000);
-        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 2, 10000, true, "netty");
+        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 9875,  2000, "netty", "");
+        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 9875, 60000);
+        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 1, 10000, true, "netty");
         jmsAdminOperations.setRedistributionDelay(0L);
-        jmsAdminOperations.addJndiBindingForConnectionFactory("RemoteConnectionFactory","java:jboss/exported/RemoteConnectionFactory");
         jmsAdminOperations.setHaForConnectionFactory("RemoteConnectionFactory", true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory("RemoteConnectionFactory", true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory("RemoteConnectionFactory", 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory("RemoteConnectionFactory", 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", -1);
         
-        controller.stop(CONTAINER1);
+        controller.stop(containerName);
         
     }
     

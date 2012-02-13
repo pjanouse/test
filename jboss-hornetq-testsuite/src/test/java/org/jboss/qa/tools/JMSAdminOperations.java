@@ -642,6 +642,36 @@ public final class JMSAdminOperations {
         applyUpdateWithRetry(model, 50);
         
     }
+    
+    public void setJmxDomainName(String jmsDomainName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        model.get("jmx-domain").set(jmsDomainName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public void setBackup(boolean isBackup) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        model.get("name").set("jmx-domain");
+        model.get("value").set(isBackup);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
         
     
     
@@ -656,7 +686,7 @@ public final class JMSAdminOperations {
                     throw new RuntimeException(e);
                 } else {
                     // ignore those exceptions
-                    // TODO Report it
+                    // TODO create a new jira for this problem 
                 }
             }
         }
