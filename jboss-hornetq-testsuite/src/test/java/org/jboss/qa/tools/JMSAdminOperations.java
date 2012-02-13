@@ -485,13 +485,20 @@ public final class JMSAdminOperations {
         if (!isEmpty(refreshTimeout)) {
             model.get("refresh-timeout").set(refreshTimeout);
         }
+        
+        
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
     
     public void setClusterConnections(String address, 
             String discoveryGroupRef, boolean  forwardWhenNoConsumers, int maxHops,
-                    long minLargeMessageSize, int reconnectAttempts, long retryInterval, 
-                    boolean useDuplicateDetection) {
+                    long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -499,39 +506,38 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", "failover-cluster");
 
-        if (!isEmpty(address)) {
-            model.get("address").set(address);
-        }
-        
-        if (!isEmpty(discoveryGroupRef)) {
-            model.get("discovery-group-ref").set(discoveryGroupRef);
-        }
-        
-        if (!isEmpty(forwardWhenNoConsumers)) {
-            model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
+        model.get("cluster-connection-address").set(address);
+        model.get("discovery-group-name").set(discoveryGroupRef);
+        model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
+        model.get("max-hops").set(maxHops);
+        model.get("retry-interval").set(retryInterval);
+        model.get("use-duplicate-detection").set(useDuplicateDetection);
+        model.get("connector-ref").set(connectorName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-        if (!isEmpty(maxHops)) {
-            model.get("max-hops").set(maxHops);
-        }
+    }
+
+    public void setRedistributionDelay(long delay) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
+        model.get("name").set("redistribution-delay");
+        model.get("value").set(delay);
         
-        if (!isEmpty(minLargeMessageSize)) {
-            model.get("min-large-message-size").set(minLargeMessageSize);
-        }
         
-        if (!isEmpty(reconnectAttempts)) {
-            model.get("reconnect-attempts").set(reconnectAttempts);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        
-        if (!isEmpty(retryInterval)) {
-            model.get("retry-interval").set(retryInterval);
-        }
-        
-        if (!isEmpty(useDuplicateDetection)) {
-            model.get("use-duplicate-detection").set(useDuplicateDetection);
-        }
-        
-    }  
+    }
     
     
     
@@ -548,6 +554,115 @@ public final class JMSAdminOperations {
         return empty;
 
     }
+    
+    public void addJndiBindingForConnectionFactory(String connectionFactoryName, String newConnectionFactoryJndiName) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add-jndi");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("jndi-binding").set(newConnectionFactoryJndiName);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("ha");
+        model.get("value").set(value);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("block-on-acknowledge");
+        model.get("value").set(value);
+        
+        applyUpdateWithRetry(model, 50);
+        
+    }
+    
+    public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("retry-interval");
+        model.get("value").set(value);
+        
+        applyUpdateWithRetry(model, 50);
+    }
+    
+    public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("retry-interval-multiplier");
+        model.get("value").set(value);
+        
+        applyUpdateWithRetry(model, 50);
+        
+    }
+    
+    public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        
+        model.get("name").set("reconnect-attempts");
+        model.get("value").set(value);
+        applyUpdateWithRetry(model, 50);
+        
+    }
+        
+    
+    
+    public void applyUpdateWithRetry(ModelNode model, int retry)   {
+            
+        for (int i = 0; i < retry; i++) {
+            try {
+                this.applyUpdate(model);
+                return;
+            } catch (Exception e) {
+                if (i >= retry - 1)  {
+                    throw new RuntimeException(e);
+                } else {
+                    // ignore those exceptions
+                    // TODO Report it
+                }
+            }
+        }
+    
+    }
+
 
     /**
      * Exception

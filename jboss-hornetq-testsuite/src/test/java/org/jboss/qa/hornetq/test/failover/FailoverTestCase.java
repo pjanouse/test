@@ -10,6 +10,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAckNonHA;
 import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
+import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -29,22 +30,15 @@ import org.junit.runner.RunWith;
  * @author mnovak
  */
 @RunWith(Arquillian.class)
-public class FailoverTestCase {
+public class FailoverTestCase extends HornetQTestCase {
     
     private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
 
-    public static final String CONTAINER1 = "clustering-udp-0-unmanaged";
-    
-    public static final String CONTAINER2 = "clustering-udp-1-unmanaged";
-    
     private static final String DEPLOYMENT1 = "dep.container1";
     
     private static HashMap<String,String> liveServerProperties = null;
             
     private static HashMap<String,String> backupServerProperties = null;
-    
-    @ArquillianResource
-    ContainerController controller;
     
     @ArquillianResource
     private Deployer deployer;
@@ -90,7 +84,14 @@ public class FailoverTestCase {
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 8765,  2000, "netty", "");
         jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 8765, 2000);
-        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 0, 100000, -1, 1000, true);
+        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 2, 10000, true, "netty");
+        jmsAdminOperations.setRedistributionDelay(0L);
+        jmsAdminOperations.addJndiBindingForConnectionFactory("RemoteConnectionFactory","java:jboss/exported/RemoteConnectionFactory");
+        jmsAdminOperations.setHaForConnectionFactory("RemoteConnectionFactory", true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory("RemoteConnectionFactory", true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory("RemoteConnectionFactory", 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory("RemoteConnectionFactory", 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", -1);
         
         controller.stop(CONTAINER1);
         
