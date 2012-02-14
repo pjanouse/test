@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import static org.jboss.as.arquillian.container.Authentication.getCallbackHandler;
+import org.jboss.dmr.ModelType;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -281,6 +282,11 @@ public final class JMSAdminOperations {
         return result;
     }
 
+    /** 
+     * Sets persistence-enabled attribute in servers configuration.
+     * 
+     * @param persistenceEnabled - true for persist messages
+     */
     public void setPersistenceEnabled(boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
@@ -296,6 +302,11 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Sets clustered attribute to the given value
+     * 
+     * @param clustered 
+     */
     public void setClustered(boolean clustered) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -643,13 +654,13 @@ public final class JMSAdminOperations {
         
     }
     
-    public void setJmxDomainName(String jmsDomainName) {
+    public void setJmxDomainName(String jmxDomainName) {
         final ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("jmx-domain").set(jmsDomainName);
+        model.get("name").set("jmx-domain");
+        model.get("value").set(jmxDomainName);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -662,8 +673,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("name").set("jmx-domain");
+        model.get("name").set("backup");
         model.get("value").set(isBackup);
         
         try {
@@ -671,6 +681,44 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    /** 
+     * 
+     * Adds loopback-address type of the given interface of the given name.
+     * 
+     * Removes inet-address type.
+     * 
+     * Like: <loopback-address value="127.0.0.2" \>
+     * 
+     * @param interfaceName - name of the interface like "public" or "managemant"
+     * @param address - ipAddress of the interface     
+     * 
+     */
+    public void setLoopBackAddressType(String interfaceName, String ipAddress) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
+        model.get("name").set("loopback-address");
+        model.get("value").set(ipAddress);
+                
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("undefine-attribute");
+        model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
+        model.get("name").set("inet-address");
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
     }
         
     
