@@ -38,7 +38,7 @@ public final class JMSAdminOperations {
      * Constructor
      *
      * @param hostName host with the administration
-     * @param port port where is administration available
+     * @param port     port where is administration available
      */
     public JMSAdminOperations(final String hostName, final int port) {
         try {
@@ -64,7 +64,7 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName JNDI queue name
+     * @param jndiName  JNDI queue name
      */
     public void createQueue(String queueName, String jndiName) {
         createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, true);
@@ -74,8 +74,8 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName JNDI queue name
-     * @param durable is queue durable
+     * @param jndiName  JNDI queue name
+     * @param durable   is queue durable
      */
     public void createQueue(String queueName, String jndiName, boolean durable) {
         createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
@@ -85,7 +85,7 @@ public final class JMSAdminOperations {
      * Creates topic
      *
      * @param topicName queue name
-     * @param jndiName JNDI queue name
+     * @param jndiName  JNDI queue name
      */
     public void createTopic(String topicName, String jndiName) {
         createJmsDestination(DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
@@ -113,7 +113,7 @@ public final class JMSAdminOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName new JNDI name for the queue
+     * @param jndiName  new JNDI name for the queue
      */
     public void addQueueJNDIName(String queueName, String jndiName) {
         addDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
@@ -124,10 +124,23 @@ public final class JMSAdminOperations {
      *
      * @param queueName queue name
      */
-    public void cleanUpQueue(String queueName) {
+    public void cleanupQueue(String queueName) {
         try {
             removeMessagesFromQueue(queueName);
             removeQueue(queueName);
+        } catch (Exception e) {
+            // Ignore any exceptions
+        }
+    }
+
+    /**
+     * Cleanups topic
+     *
+     * @param topicName topic name
+     */
+    public void cleanupTopic(String topicName) {
+        try {
+            removeTopic(topicName);
         } catch (Exception e) {
             // Ignore any exceptions
         }
@@ -197,7 +210,7 @@ public final class JMSAdminOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName JNDI name
+     * @param jndiName        JNDI name
      */
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
@@ -218,8 +231,8 @@ public final class JMSAdminOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName JNDI name for destination
-     * @param durable Is durable destination
+     * @param jndiName        JNDI name for destination
+     * @param durable         Is durable destination
      */
     private void createJmsDestination(String destinationType, String destinationName, String jndiName, boolean durable) {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
@@ -261,10 +274,10 @@ public final class JMSAdminOperations {
      * Applies update to server
      *
      * @param update instance of the update
-     * @see {@link ModelNode}
      * @return instance of ModelNode
-     * @throws IOException if something goes wrong
+     * @throws IOException                if something goes wrong
      * @throws JMSAdminOperationException if something goes wrong
+     * @see {@link ModelNode}
      */
     private ModelNode applyUpdate(final ModelNode update) throws IOException, JMSAdminOperationException {
         ModelNode result = this.modelControllerClient.execute(update);
@@ -410,7 +423,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
         model.get("path").set(path);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -419,8 +432,8 @@ public final class JMSAdminOperations {
     }
 
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
-            String groupAddress, int groupPort, long broadCastPeriod,
-            String connectorName, String backupConnectorName) {
+                                  String groupAddress, int groupPort, long broadCastPeriod,
+                                  String connectorName, String backupConnectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -453,16 +466,16 @@ public final class JMSAdminOperations {
         if (!isEmpty(backupConnectorName)) {
             model.get("connectors").add(backupConnectorName);
         }
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
-    public void setDiscoveryGroup(String name, String localBindAddress, 
-            String groupAddress, int groupPort, long refreshTimeout) {
+
+    public void setDiscoveryGroup(String name, String localBindAddress,
+                                  String groupAddress, int groupPort, long refreshTimeout) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -481,13 +494,12 @@ public final class JMSAdminOperations {
         if (!isEmpty(groupPort)) {
             model.get("group-port").set(groupPort);
         }
-        
+
         if (!isEmpty(refreshTimeout)) {
             model.get("refresh-timeout").set(refreshTimeout);
         }
-        
-        
-        
+
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -495,10 +507,10 @@ public final class JMSAdminOperations {
         }
 
     }
-    
-    public void setClusterConnections(String address, 
-            String discoveryGroupRef, boolean  forwardWhenNoConsumers, int maxHops,
-                    long retryInterval, boolean useDuplicateDetection, String connectorName) {
+
+    public void setClusterConnections(String address,
+                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
+                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -530,19 +542,18 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
         model.get("name").set("redistribution-delay");
         model.get("value").set(delay);
-        
-        
+
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
-    
-    
+
+
     public boolean isEmpty(Object attribute) {
-        
+
         boolean empty = false;
 
         if (attribute == null || "".equals(attribute)) {
@@ -554,25 +565,25 @@ public final class JMSAdminOperations {
         return empty;
 
     }
-    
+
     public void addJndiBindingForConnectionFactory(String connectionFactoryName, String newConnectionFactoryJndiName) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add-jndi");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("jndi-binding").set(newConnectionFactoryJndiName);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -580,16 +591,16 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("ha");
         model.get("value").set(value);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -597,13 +608,13 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
-        
+
         applyUpdateWithRetry(model, 50);
-        
+
     }
-    
+
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -611,12 +622,12 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval");
         model.get("value").set(value);
-        
+
         applyUpdateWithRetry(model, 50);
     }
-    
+
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -624,25 +635,25 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
-        
+
         applyUpdateWithRetry(model, 50);
-        
+
     }
-    
+
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
-        
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-        
+
         model.get("name").set("reconnect-attempts");
         model.get("value").set(value);
         applyUpdateWithRetry(model, 50);
-        
+
     }
-    
+
     public void setJmxDomainName(String jmsDomainName) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -656,7 +667,7 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void setBackup(boolean isBackup) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -665,24 +676,73 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
         model.get("name").set("jmx-domain");
         model.get("value").set(isBackup);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-        
-    
-    
-    public void applyUpdateWithRetry(ModelNode model, int retry)   {
-            
+
+    /**
+     * Removes address settings
+     *
+     * @param address address specification
+     */
+    public void removeAddressSettings(String address) {
+        try {
+            ModelNode setAddressAttributes = new ModelNode();
+            setAddressAttributes.get(ClientConstants.OP).set("remove");
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+            try {
+                this.applyUpdate(setAddressAttributes);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Adds address settings
+     *
+     * @param address             address specification
+     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes        The max bytes size
+     * @param redeliveryDelay     Defines how long to wait before attempting redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any messages
+     * @param pageSizeBytes       The paging size
+     */
+    public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                                   long redistributionDelay, long pageSizeBytes) {
+        ModelNode setAddressAttributes = new ModelNode();
+        setAddressAttributes.get(ClientConstants.OP).set("add");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+        setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
+        setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
+        setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
+        setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
+        setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        try {
+            this.applyUpdate(setAddressAttributes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void applyUpdateWithRetry(ModelNode model, int retry) {
+
         for (int i = 0; i < retry; i++) {
             try {
                 this.applyUpdate(model);
                 return;
             } catch (Exception e) {
-                if (i >= retry - 1)  {
+                if (i >= retry - 1) {
                     throw new RuntimeException(e);
                 } else {
                     // ignore those exceptions
@@ -690,7 +750,7 @@ public final class JMSAdminOperations {
                 }
             }
         }
-    
+
     }
 
 

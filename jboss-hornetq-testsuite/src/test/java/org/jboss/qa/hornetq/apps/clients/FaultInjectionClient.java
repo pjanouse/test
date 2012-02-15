@@ -77,7 +77,7 @@ public class FaultInjectionClient {
      * @return context
      * @throws NamingException if something is wrong
      */
-    private synchronized Context getContext() throws NamingException {
+    private Context getContext() throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
         env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));

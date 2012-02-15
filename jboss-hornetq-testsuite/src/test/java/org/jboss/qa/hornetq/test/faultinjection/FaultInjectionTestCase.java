@@ -18,15 +18,19 @@ import javax.jms.Session;
 
 import static junit.framework.Assert.*;
 
+/**
+ * Test case covers basic fault injection tests for standalone node.
+ * <p/>
+ * Scenarios are inherited from EAP5 test plan and from NTT customer scenarios.
+ *
+ * @author pslavice@redhat.com
+ */
+@SuppressWarnings({"ThrowableResultOfMethodCallIgnored"})
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
-
-    String hostname = "localhost";
-
-    String queueName = "testQueue";
 
     /**
      * Stops all servers
@@ -54,7 +58,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
 
@@ -184,7 +188,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -211,7 +215,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -238,7 +242,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -309,7 +313,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final String MY_QUEUE = "dummyQueue";
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -336,7 +340,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final String MY_QUEUE = "dummyQueue";
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -373,7 +377,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final String MY_QUEUE = "dummyQueue";
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -400,7 +404,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final String MY_QUEUE = "dummyQueue";
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -440,7 +444,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.cleanUpQueue(MY_QUEUE);
+        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
         FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 1, ackMode, transacted);
