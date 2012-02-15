@@ -1,3 +1,4 @@
+//TODO parametrize location of journal directory
 package org.jboss.qa.tools;
 
 import org.jboss.as.controller.client.ModelControllerClient;
@@ -8,8 +9,6 @@ import org.jboss.logging.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
-import static org.jboss.as.arquillian.container.Authentication.getCallbackHandler;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -43,7 +42,7 @@ public final class JMSAdminOperations {
     public JMSAdminOperations(final String hostName, final int port) {
         try {
             InetAddress inetAddress = InetAddress.getByName(hostName);
-            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port, getCallbackHandler());
+            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
         } catch (UnknownHostException e) {
             throw new RuntimeException("Cannot create model controller client for host: " + hostName + " and port " + port, e);
         }
@@ -206,6 +205,31 @@ public final class JMSAdminOperations {
     }
 
     /**
+     * Sets permission privileges to a given role.
+     *
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
+     * @param permission possible values {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value      true for enable permission
+     */
+    public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("security-setting", address);
+        model.get(ClientConstants.OP_ADDR).add("role", role);
+        model.get("name").set(permission);
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Add JNDI name
      *
      * @param destinationType type of destination (queue, topic)
@@ -294,14 +318,18 @@ public final class JMSAdminOperations {
         return result;
     }
 
+    /**
+     * Sets persistence-enabled attribute in servers configuration.
+     *
+     * @param persistenceEnabled - true for persist messages
+     */
     public void setPersistenceEnabled(boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         removeJmsQueue.get("name").set("persistence-enabled");
-        removeJmsQueue.get("value").set(Boolean.TRUE);
-
+        removeJmsQueue.get("value").set(persistenceEnabled);
         try {
             this.applyUpdate(removeJmsQueue);
         } catch (Exception e) {
@@ -309,14 +337,18 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Sets clustered attribute.
+     *
+     * @param clustered set true to allow server to create cluster
+     */
     public void setClustered(boolean clustered) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get("name").set("clustered");
-        model.get("value").set(Boolean.TRUE);
-
+        model.get("value").set(clustered);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -324,13 +356,18 @@ public final class JMSAdminOperations {
         }
     }
 
-    public void setSharedStore(boolean clustered) {
+    /**
+     * Set this to true if this server shares journal with other server (with live of backup)
+     *
+     * @param sharedStore share journal
+     */
+    public void setSharedStore(boolean sharedStore) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get("name").set("shared-store");
-        model.get("value").set(Boolean.TRUE);
+        model.get("value").set(sharedStore);
 
         try {
             this.applyUpdate(model);
@@ -339,13 +376,18 @@ public final class JMSAdminOperations {
         }
     }
 
-    public void setAllowFailback(boolean clustered) {
+    /**
+     * Allow jms clients to reconnect from backup to live when live comes alive.
+     *
+     * @param allowFailback
+     */
+    public void setAllowFailback(boolean allowFailback) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get("name").set("allow-failback");
-        model.get("value").set(Boolean.TRUE);
+        model.get("value").set(allowFailback);
 
         try {
             this.applyUpdate(model);
@@ -357,6 +399,7 @@ public final class JMSAdminOperations {
     /*
      * Can be "NIO" or "AIO"
      *
+     * @param "NIO" or "AIO"
      */
     public void setJournalType(String journalType) {
         final ModelNode model = new ModelNode();
@@ -373,6 +416,11 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * The directory to store the journal files in.
+     *
+     * @param path set absolute path
+     */
     public void setJournalDirectory(String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -387,6 +435,11 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * The directory to store paged messages in.
+     *
+     * @param path set absolute path
+     */
     public void setPagingDirectory(String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -401,6 +454,11 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * The directory in which to store large messages.
+     *
+     * @param path set absolute path
+     */
     public void setLargeMessagesDirectory(String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -416,7 +474,13 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * The directory in which to store the persisted bindings.
+     *
+     * @param path set absolute path
+     */
     public void setBindingsDirectory(String path) {
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -431,6 +495,19 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * A broadcast group is the means by which a server broadcasts connectors over the network.
+     * A connector defines a way in which a client (or other server) can make connections to the server.
+     *
+     * @param name                a unique name for the broadcast group - mandatory.
+     * @param localBindAddress    local bind address that the datagram socket is bound to. The default value is the wildcard IP address chosen by the kernel
+     * @param localBindPort       local port to which the datagram socket is bound to.
+     * @param groupAddress        multicast address to which the data will be broadcast - mandatory.
+     * @param groupPort           UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
+     * @param connectorName       A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
+     */
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
                                   String groupAddress, int groupPort, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
@@ -474,9 +551,17 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Discovery group defines how connector information is received from a multicast address.
+     *
+     * @param name             A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this local address.
+     * @param groupAddress     Multicast IP address of the group to listen on - mandatory.
+     * @param groupPort        UDP port of the multicast group - mandatory
+     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     */
     public void setDiscoveryGroup(String name, String localBindAddress,
                                   String groupAddress, int groupPort, long refreshTimeout) {
-
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -498,8 +583,6 @@ public final class JMSAdminOperations {
         if (!isEmpty(refreshTimeout)) {
             model.get("refresh-timeout").set(refreshTimeout);
         }
-
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -508,7 +591,19 @@ public final class JMSAdminOperations {
 
     }
 
-    public void setClusterConnections(String address,
+    /**
+     * Sets cluster configuration.
+     *
+     * @param name                   Name of the cluster group - like "failover-cluster"
+     * @param address                Name of address this cluster connection applies to.
+     * @param discoveryGroupRef      Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval          Period (in ms) between successive retries.
+     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName          Name of connector to use for live connection.
+     */
+    public void setClusterConnections(String name, String address,
                                       String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
@@ -516,7 +611,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("cluster-connection", "failover-cluster");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
         model.get("discovery-group-name").set(discoveryGroupRef);
@@ -534,6 +629,11 @@ public final class JMSAdminOperations {
 
     }
 
+    /**
+     * How long (in ms) to wait after the last consumer is closed on a queue before redistributing messages.
+     *
+     * @param delay in milliseconds
+     */
     public void setRedistributionDelay(long delay) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -542,8 +642,6 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
         model.get("name").set("redistribution-delay");
         model.get("value").set(delay);
-
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -551,21 +649,12 @@ public final class JMSAdminOperations {
         }
     }
 
-
-    public boolean isEmpty(Object attribute) {
-
-        boolean empty = false;
-
-        if (attribute == null || "".equals(attribute)) {
-
-            empty = true;
-
-        }
-
-        return empty;
-
-    }
-
+    /**
+     * Add new jndi name for connection factory.
+     *
+     * @param connectionFactoryName
+     * @param newConnectionFactoryJndiName
+     */
     public void addJndiBindingForConnectionFactory(String connectionFactoryName, String newConnectionFactoryJndiName) {
 
         ModelNode model = new ModelNode();
@@ -582,6 +671,12 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Sets ha attribute.
+     *
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -599,6 +694,12 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Whether or not messages are acknowledged synchronously.
+     *
+     * @param connectionFactoryName
+     * @param value                 default false, should be true for fail-over scenarios
+     */
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -613,6 +714,12 @@ public final class JMSAdminOperations {
 
     }
 
+    /**
+     * The time (in ms) to retry a connection after failing.
+     *
+     * @param connectionFactoryName
+     * @param value
+     */
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
 
         ModelNode model = new ModelNode();
@@ -626,6 +733,12 @@ public final class JMSAdminOperations {
         applyUpdateWithRetry(model, 50);
     }
 
+    /**
+     * Multiplier to apply to successive retry intervals.
+     *
+     * @param connectionFactoryName
+     * @param value                 1.0 by default
+     */
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
 
         ModelNode model = new ModelNode();
@@ -640,6 +753,13 @@ public final class JMSAdminOperations {
 
     }
 
+    /**
+     * How many times should client retry connection when connection is lost. This should be -1
+     * if failover is required.
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
 
         ModelNode model = new ModelNode();
@@ -654,13 +774,18 @@ public final class JMSAdminOperations {
 
     }
 
-    public void setJmxDomainName(String jmsDomainName) {
+    /**
+     * The JMX domain used to registered HornetQ MBeans in the MBeanServer. ?
+     *
+     * @param jmxDomainName
+     */
+    public void setJmxDomainName(String jmxDomainName) {
         final ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("jmx-domain").set(jmsDomainName);
+        model.get("name").set("jmx-domain");
+        model.get("value").set(jmxDomainName);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -668,13 +793,17 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Is this server bakcup?
+     *
+     * @param isBackup
+     */
     public void setBackup(boolean isBackup) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("name").set("jmx-domain");
+        model.get("name").set("backup");
         model.get("value").set(isBackup);
 
         try {
@@ -735,8 +864,109 @@ public final class JMSAdminOperations {
         }
     }
 
-    public void applyUpdateWithRetry(ModelNode model, int retry) {
+    /**
+     * Adds loop back-address type of the given interface of the given name.
+     * <p/>
+     * Removes inet-address type as a side effect.
+     * <p/>
+     * Like: <loopback-address value="127.0.0.2" \>
+     *
+     * @param interfaceName - name of the interface like "public" or "management"
+     * @param ipAddress     - ipAddress of the interface
+     */
+    public void setLoopBackAddressType(String interfaceName, String ipAddress) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
+        model.get("name").set("loopback-address");
+        model.get("value").set(ipAddress);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("undefine-attribute");
+        model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
+        model.get("name").set("inet-address");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Removes broadcast group.
+     *
+     * @param nameOfTheBroadcastGroup name of the broadcast group
+     */
+    public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", nameOfTheBroadcastGroup);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Removes discovery group
+     *
+     * @param dggroup name of the discovery group
+     */
+    public void removeDiscoveryGroup(String dggroup) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("discovery-group", dggroup);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * Removes clustering group.
+     *
+     * @param clusterGroupName name of the discovery group
+     */
+    public void removeClusteringGroup(String clusterGroupName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * This method is hack! Somehow calling update model throw exception when it should not.
+     * For this reason try it more times until success.
+     *
+     * @param model model
+     * @param retry how many times to retry
+     */
+    private void applyUpdateWithRetry(ModelNode model, int retry) {
         for (int i = 0; i < retry; i++) {
             try {
                 this.applyUpdate(model);
@@ -744,15 +974,66 @@ public final class JMSAdminOperations {
             } catch (Exception e) {
                 if (i >= retry - 1) {
                     throw new RuntimeException(e);
-                } else {
-                    // ignore those exceptions
-                    // TODO create a new jira for this problem 
                 }
             }
         }
-
     }
 
+    /**
+     * Sets logging level for console log - standard output.
+     *
+     * @param level like "ALL", "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+     */
+    public void setLoggingLevelForConsole(String level) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("change-log-level");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("console-handler", "CONSOLE");
+        model.get("level").set(level);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Adds new logging category.
+     *
+     * @param category like "org.hornetq"
+     * @param level    like DEBUG, WARN, FINE,...
+     */
+    public void addLoggerCategory(String category, String level) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("logger", category);
+        model.get("category").add(category);
+        model.get("level").set(level);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * This method checks whether object is null or empty string - "".
+     *
+     * @param attribute object
+     * @return true if null or empty
+     */
+    private boolean isEmpty(Object attribute) {
+        boolean empty = false;
+        if (attribute == null || "".equals(attribute)) {
+            empty = true;
+        }
+        return empty;
+    }
 
     /**
      * Exception
