@@ -7,11 +7,9 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
-import static org.jboss.as.arquillian.container.Authentication.getCallbackHandler;
-import org.jboss.dmr.ModelType;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -45,7 +43,7 @@ public final class JMSAdminOperations {
     public JMSAdminOperations(final String hostName, final int port) {
         try {
             InetAddress inetAddress = InetAddress.getByName(hostName);
-            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port, getCallbackHandler());
+            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
         } catch (UnknownHostException e) {
             throw new RuntimeException("Cannot create model controller client for host: " + hostName + " and port " + port, e);
         }
@@ -189,6 +187,31 @@ public final class JMSAdminOperations {
         disableSecurity.get("value").set(Boolean.FALSE);
         try {
             this.applyUpdate(disableSecurity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets permission privileges to a given role.
+     * 
+     * @param address address of the queue like '#' (for all queues)
+     * @param role role of the user like 'guest'
+     * @param permission possible values {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value true for enable permission
+     */
+    public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("security-setting", address);
+        model.get(ClientConstants.OP_ADDR).add("role", role);
+        model.get("name").set(permission);
+        model.get("value").set(value);
+        
+        try {
+            this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -451,6 +474,7 @@ public final class JMSAdminOperations {
      * @param path set absolute path
      */
     public void setBindingsDirectory(String path) {
+        
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -567,6 +591,7 @@ public final class JMSAdminOperations {
      * 
      * Sets cluster configuration.
      * 
+     * @param name Name of the cluster group - like "failover-cluster"
      * @param address Name of address this cluster connection applies to. 
      * @param discoveryGroupRef Name of discovery group used by this bridge. 
      * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target? 
@@ -575,7 +600,7 @@ public final class JMSAdminOperations {
      * @param useDuplicateDetection Should duplicate detection headers be inserted in forwarded messages?
      * @param connectorName Name of connector to use for live connection. 
      */
-    public void setClusterConnections(String address, 
+    public void setClusterConnections(String name, String address, 
             String discoveryGroupRef, boolean  forwardWhenNoConsumers, int maxHops,
                     long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
@@ -583,7 +608,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("cluster-connection", "failover-cluster");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
         model.get("discovery-group-name").set(discoveryGroupRef);
@@ -823,9 +848,67 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    /**
+     * Removes broadcast group. 
+     * 
+     * @param nameOfTheBroadcastGroup name of the broadcast group
+     */
+    public void removeBroadcastGroup(String nameOfTheBroadcastGroup)    {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", nameOfTheBroadcastGroup);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Removes discovery group
+     * 
+     * @param dggroup name of the discovery group
+     */
+    public void removeDiscoveryGroup(String dggroup) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("discovery-group", dggroup);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         
     }
+    
+    /**
+     * Removes clustering group.
+     * 
+     * @param clusterGroupName name of the discovery group
+     */
+    public void removeClusteringGroup(String clusterGroupName) {
         
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }   
     
     /** 
      * This method is hack! Somehow calling update model throw exception when it should not.
@@ -834,7 +917,7 @@ public final class JMSAdminOperations {
      * @param model model
      * @param retry how many times to retry 
      */
-    public void applyUpdateWithRetry(ModelNode model, int retry)   {
+    private void applyUpdateWithRetry(ModelNode model, int retry)   {
             
         for (int i = 0; i < retry; i++) {
             try {
@@ -848,13 +931,56 @@ public final class JMSAdminOperations {
         }
     }
     
+    /**
+     * Sets logging level for console log - standard output.
+     * 
+     * @param level like "ALL", "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+
+     */
+    public void setLoggingLevelForConsole(String level)   {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("change-log-level");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("console-handler", "CONSOLE");
+        model.get("level").set(level);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Adds new logging category.
+     * 
+     * @param category like "org.hornetq"
+     * @param level like DEBUG, WARN, FINE,...
+     */
+    public void addLoggerCategory(String category, String level)    {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("logger", category);
+        model.get("category").add(category);
+        model.get("level").set(level);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /** 
      * This method checks whether object is null or empty string - "".
      * 
      * @param attribute object
      * @return true if null or empty
      */
-    public boolean isEmpty(Object attribute) {
+    private boolean isEmpty(Object attribute) {
         
         boolean empty = false;
 
@@ -867,7 +993,6 @@ public final class JMSAdminOperations {
         return empty;
 
     }
-
 
     /**
      * Exception

@@ -129,14 +129,15 @@ public class FailoverTestCase extends HornetQTestCase {
         
         prepareLiveServer(CONTAINER1);
         prepareBackupServer(CONTAINER2);
+        
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        Thread.sleep(10000);
+        
+        Thread.sleep(20000);
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
         
     }
-    
     
     /**
      * Prepares live server for dedicated topology.
@@ -146,6 +147,14 @@ public class FailoverTestCase extends HornetQTestCase {
      */
     public void prepareLiveServer(String containerName) {
        
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String udpGroupAddress = "231.8.8.8";
+        int udpGroupPort = 9875;
+        
         controller.start(containerName);
      
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
@@ -163,18 +172,28 @@ public class FailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 9875,  2000, "netty", "");
-        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 9875, 60000);
-        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 1, 10000, true, "netty");
+        
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, -1, udpGroupAddress, udpGroupPort,  2000, connectorName, "");
+        
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, udpGroupAddress, udpGroupPort, 60000);
+        
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 10000, true, connectorName);
+        
         jmsAdminOperations.setRedistributionDelay(0L);
-        jmsAdminOperations.setHaForConnectionFactory("RemoteConnectionFactory", true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory("RemoteConnectionFactory", true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory("RemoteConnectionFactory", 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory("RemoteConnectionFactory", 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", -1);
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
         
         controller.stop(containerName);
-        
     }
     
     /**
@@ -187,6 +206,15 @@ public class FailoverTestCase extends HornetQTestCase {
      */
     public void prepareBackupServer(String containerName) {
         
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String udpGroupAddress = "231.8.8.8";
+        int udpGroupPort = 9875;
+        String bindingAddress = "127.0.0.2";
+        
         // set public IP address to 127.0.0.2
         // start it on 127.0.0.1 and then modify standalone-ha...xml to start on 127.0.0.2
         controller.start(containerName);
@@ -195,29 +223,40 @@ public class FailoverTestCase extends HornetQTestCase {
         // it's not possible to set managementAddress to 127.0.0.2, arquillian won't get it
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations("127.0.0.1",10099);
 
-        jmsAdminOperations.setLoopBackAddressType("public", "127.0.0.2");
+        jmsAdminOperations.setLoopBackAddressType("public", bindingAddress);
         
         jmsAdminOperations.setJmxDomainName("org.hornetq.backup");
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
+        
         jmsAdminOperations.setBindingsDirectory("/tmp/hornetq-journal/");
         jmsAdminOperations.setJournalDirectory("/tmp/hornetq-journal/");
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setLargeMessagesDirectory("/tmp/hornetq-journal/");
         jmsAdminOperations.setPagingDirectory("/tmp/hornetq-journal/");
+        
         jmsAdminOperations.setPersistenceEnabled(true);
-
-        jmsAdminOperations.setBroadCastGroup("bg-group", null, -1, "231.8.8.8", 9875,  2000, "netty", "");
-        jmsAdminOperations.setDiscoveryGroup("dg-group", null, "231.8.8.8", 9875, 60000);
-        jmsAdminOperations.setClusterConnections("jms", "dg-group", false, 1, 10000, true, "netty");
+        jmsAdminOperations.setJournalType("NIO");
+        
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, -1, udpGroupAddress, udpGroupPort,  2000, connectorName, "");
+        
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, udpGroupAddress, udpGroupPort, 60000);
+        
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 10000, true, connectorName);
         
         jmsAdminOperations.setRedistributionDelay(0L);
-        jmsAdminOperations.setHaForConnectionFactory("RemoteConnectionFactory", true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory("RemoteConnectionFactory", true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory("RemoteConnectionFactory", 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory("RemoteConnectionFactory", 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", -1);
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
         
         controller.stop(containerName);
         
