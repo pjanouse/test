@@ -1,4 +1,3 @@
-//TODO parametrize location of journal directory
 package org.jboss.qa.tools;
 
 import org.jboss.as.controller.client.ModelControllerClient;
@@ -9,11 +8,16 @@ import org.jboss.logging.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 
 /**
  * Basic administration operations for JMS subsystem
  * <p/>
- * User: jpai User: pslavice@redhat.com
+ * TODO parametrize location of journal directory
+ *
+ * @author jpai
+ * @author mnovak@redhat.com
+ * @author pslavice@redhat.com
  */
 public final class JMSAdminOperations {
 
@@ -992,6 +996,96 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("console-handler", "CONSOLE");
         model.get("level").set(level);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Removes defined bridge, method just logs exception it does not throws exception
+     *
+     * @param name Name of the bridge
+     */
+    public void removeBridge(String name) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("bridge", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Creates new bridge
+     *
+     * @param name              bridge name
+     * @param queueName         source queue
+     * @param forwardingAddress target address
+     * @param reconnectAttempts reconnect attempts for bridge
+     * @param staticConnector   static connector
+     */
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                             String staticConnector) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("bridge", name);
+        model.get("queue-name").set(queueName);
+        if (forwardingAddress != null) {
+            model.get("forwarding-address").set(forwardingAddress);
+        }
+        model.get("reconnect-attempts").set(reconnectAttempts);
+        model.get("static-connectors").add(staticConnector);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Remove remote connector
+     *
+     * @param name bridge name
+     */
+    public void removeRemoteConnector(String name) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Creates remote connector
+     *
+     * @param name   bridge name
+     * @param params source queue
+     */
+    public void createRemoteConnector(String name, Map<String, String> params) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
+        model.get("socket-binding").set("messaging");
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("param").add(key + "=" + params.get(key));
+            }
+        }
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
