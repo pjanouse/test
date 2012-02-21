@@ -33,7 +33,6 @@
             </configuration>
         </container>
 
-        <!-- there is a bug in arquillian - it does not detect server on 127.0.0.2 so management address must be 127.0.0.1 to work properly  -->
         <container qualifier="clustering-udp-1-unmanaged" default="false" mode="manual" >
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
