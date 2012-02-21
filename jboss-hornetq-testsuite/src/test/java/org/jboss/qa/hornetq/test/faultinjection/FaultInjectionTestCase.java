@@ -3,7 +3,7 @@ package org.jboss.qa.hornetq.test.faultinjection;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.FaultInjectionClient;
+import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
@@ -62,7 +62,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
 
-        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client = new SimpleJMSClient("localhost", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
         client.sendMessages(MY_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringSend());
         assertEquals(MESSAGES, client.getSentMessages());
@@ -101,7 +101,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "storeMessageTransactional",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void beforeTransactionalOperationIsWrittenSend() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true);
+        SimpleJMSClient client = createFaultInjection(0, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -121,7 +121,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void afterTransactionalOperationIsWrittenSend() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true);
+        SimpleJMSClient client = createFaultInjection(0, true);
         // Should be 0 message because server is killed before commit
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
@@ -141,7 +141,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionBeforeWriteCommitSendTest() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true);
+        SimpleJMSClient client = createFaultInjection(0, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -161,7 +161,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionAfterWriteCommitSendTest() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true);
+        SimpleJMSClient client = createFaultInjection(0, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
         assertEquals(1, client.getReceivedMessages());
@@ -181,7 +181,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionBeforeWriteCommitReceiveTest() throws InterruptedException {
         final String MY_QUEUE = "dummyQueue";
-        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        SimpleJMSClient client = createFaultInjection(0, true, true, false);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -208,7 +208,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionAfterWriteCommitReceiveTest() throws InterruptedException {
         final String MY_QUEUE = "dummyQueue";
-        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        SimpleJMSClient client = createFaultInjection(0, true, true, false);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -235,7 +235,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void transactionAfterDeleteMessageFromJournalReceiveTest() throws InterruptedException {
         final String MY_QUEUE = "dummyQueue";
-        FaultInjectionClient client = createFaultInjection(0, true, true, false);
+        SimpleJMSClient client = createFaultInjection(0, true, true, false);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -266,7 +266,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "doRollback",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void beforeDoRollbackSend() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true, false, true);
+        SimpleJMSClient client = createFaultInjection(0, true, false, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -286,7 +286,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void afterDoRollbackSend() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true, false, true);
+        SimpleJMSClient client = createFaultInjection(0, true, false, true);
         assertNotNull(client.getExceptionDuringSend());
         assertNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -305,7 +305,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "doRollback",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void beforeDoRollbackReceive() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true, true, true);
+        SimpleJMSClient client = createFaultInjection(0, true, true, true);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -332,7 +332,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void afterDoRollbackReceive() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(0, true, true, true);
+        SimpleJMSClient client = createFaultInjection(0, true, true, true);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -369,7 +369,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();")}
     )
     public void clientAckBeforeWriteAckSendTest() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
+        SimpleJMSClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -396,7 +396,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();"))
     public void clientAckAfterWriteAckSendTest() throws InterruptedException {
-        FaultInjectionClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
+        SimpleJMSClient client = createFaultInjection(Session.CLIENT_ACKNOWLEDGE, false, true, false);
         assertNull(client.getExceptionDuringSend());
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
@@ -421,9 +421,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @param ackMode    acknowledge mode for JMS client
      * @param transacted is JMS session transacted?
-     * @return instance of {@link FaultInjectionClient}
+     * @return instance of {@link org.jboss.qa.hornetq.apps.clients.SimpleJMSClient}
      */
-    private FaultInjectionClient createFaultInjection(int ackMode, boolean transacted) {
+    private SimpleJMSClient createFaultInjection(int ackMode, boolean transacted) {
         return createFaultInjection(ackMode, transacted, false, false);
     }
 
@@ -435,9 +435,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @param transacted        is JMS session transacted?
      * @param ruleBeforeReceive install Byteman rule before receive?
      * @param rollbackOnly      is rollback only?
-     * @return instance of {@link FaultInjectionClient}
+     * @return instance of {@link org.jboss.qa.hornetq.apps.clients.SimpleJMSClient}
      */
-    private FaultInjectionClient createFaultInjection(int ackMode, boolean transacted, boolean ruleBeforeReceive, boolean rollbackOnly) {
+    private SimpleJMSClient createFaultInjection(int ackMode, boolean transacted, boolean ruleBeforeReceive, boolean rollbackOnly) {
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
 
@@ -447,7 +447,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
-        FaultInjectionClient client = new FaultInjectionClient("localhost", 4447, 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient("localhost", 4447, 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before sending message ...");

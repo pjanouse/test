@@ -12,14 +12,14 @@ import javax.naming.NamingException;
 import java.util.Properties;
 
 /**
- * Creates new byte JMS messages with required size
+ * Implementation of the simple JMS client who is able to send and receive messages to or from server
  *
  * @author pslavice@redhat.com
  */
-public class FaultInjectionClient {
+public class SimpleJMSClient {
 
     // Logger
-    private static final Logger log = Logger.getLogger(FaultInjectionClient.class);
+    private static final Logger log = Logger.getLogger(SimpleJMSClient.class);
 
     private String connectionFactoryName = "jms/RemoteConnectionFactory";
     private String hostname;
@@ -48,7 +48,7 @@ public class FaultInjectionClient {
      * @param ackMode            acknowledge mode
      * @param transactionSession is session transacted
      */
-    public FaultInjectionClient(String hostname, int port, int messages, int ackMode, boolean transactionSession) {
+    public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession) {
         this(hostname, port, messages, ackMode, transactionSession, new ByteMessageBuilder());
     }
 
@@ -62,7 +62,7 @@ public class FaultInjectionClient {
      * @param transactionSession is session transacted
      * @param messageBuilder     messages builder used for building messages
      */
-    public FaultInjectionClient(String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
+    public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -127,6 +127,7 @@ public class FaultInjectionClient {
                 }
             }
             producer.close();
+            log.info(String.format("Sent '%s' messages", this.sentMessages));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.exceptionDuringSend = e;
@@ -187,6 +188,7 @@ public class FaultInjectionClient {
                 }
             }
             consumer.close();
+            log.info(String.format("Received '%s' messages", this.receivedMessages));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.exceptionDuringReceive = e;
