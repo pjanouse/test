@@ -127,6 +127,7 @@ public class SimpleJMSClient {
                 }
             }
             producer.close();
+            log.info(String.format("Sent '%s' messages", this.sentMessages));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.exceptionDuringSend = e;
@@ -187,6 +188,7 @@ public class SimpleJMSClient {
                 }
             }
             consumer.close();
+            log.info(String.format("Received '%s' messages", this.receivedMessages));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.exceptionDuringReceive = e;

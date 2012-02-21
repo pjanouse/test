@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.HighLoadProducerWithSemaphores;
+import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.junit.After;
@@ -18,10 +19,9 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Session;
 import javax.jms.Topic;
 import javax.naming.Context;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
@@ -44,6 +44,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     public void stopAllServers() {
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
+        deleteDataFolderForJBoss1();
+        deleteDataFolderForJBoss2();
     }
 
     /**
@@ -72,28 +74,32 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer2.cleanupQueue(TEST_QUEUE);
         jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
 
-        jmsAdminContainer2.removeRemoteConnector("bridge-connector");
-        jmsAdminContainer2.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteConnector("bridge-connector");
+        jmsAdminContainer1.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
+        Thread.sleep(500);
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("host", "127.0.0.1");
-        params.put("port", "5445");
-        jmsAdminContainer2.createRemoteConnector("bridge-connector", null);
-        jmsAdminContainer2.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", "10.34.3.146", 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
+        jmsAdminContainer1.reloadServer();
+        //controller.stop(CONTAINER1);
+        //controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
 
         Thread.sleep(2000);
-        /**
-         SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
-         client1.sendMessages(TEST_QUEUE_JNDI);
+        SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        client1.sendMessages(TEST_QUEUE_JNDI);
 
-         // Let's bridge to transfer messages
-         Thread.sleep(1000);
+        log.error("!!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!");
+        log.error("!!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!");
+        Thread.sleep(1000);
 
-         SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
-         client2.receiveMessages(TEST_QUEUE_JNDI);
-         assertEquals(MESSAGES, client2.getReceivedMessages());
-         **/
+        // Let's bridge to transfer messages
+        SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(MESSAGES, client2.getReceivedMessages());
 
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();

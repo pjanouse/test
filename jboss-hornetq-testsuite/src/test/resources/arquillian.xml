@@ -25,7 +25,7 @@
         <container qualifier="clustering-udp-0-unmanaged" default="true" mode="manual" >
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
+                <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR} -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n</property>
                 <property name="serverConfig">standalone-full.xml</property>
                 <property name="managementAddress" >127.0.0.1</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -37,7 +37,7 @@
         <container qualifier="clustering-udp-1-unmanaged" default="false" mode="manual" >
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9191 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR} -Djboss.bind.address=10.34.3.146</property>
+                <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9191 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR} -Djboss.bind.address=10.34.3.146 -Xrunjdwp:transport=dt_socket,address=8686,server=y,suspend=n</property>
                 <property name="serverConfig">standalone-full.xml</property>
                 <property name="managementAddress" >10.34.3.146</property>
                 <property name="managementPort">9999</property>

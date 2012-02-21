@@ -1074,18 +1074,54 @@ public final class JMSAdminOperations {
      * @param name   bridge name
      * @param params source queue
      */
-    public void createRemoteConnector(String name, Map<String, String> params) {
+    public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
-        model.get("socket-binding").set("messaging");
+        model.get("socket-binding").set(socketBinding);
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key + "=" + params.get(key));
+                model.get("param").add(key, params.get(key));
             }
         }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Remove outbound socket binding
+     *
+     * @param name remote socket binding name
+     */
+    public void removeRemoteSocketBinding(String name) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Adds outbound socket binding
+     *
+     * @param name remote socket binding name
+     */
+    public void addRemoteSocketBinding(String name, String host, int port) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", name);
+        model.get("port").set(port);
+        model.get("host").set(host);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -1108,6 +1144,19 @@ public final class JMSAdminOperations {
         model.get("category").add(category);
         model.get("level").set(level);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Reloads server instance
+     */
+    public void reloadServer() {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("reload");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
