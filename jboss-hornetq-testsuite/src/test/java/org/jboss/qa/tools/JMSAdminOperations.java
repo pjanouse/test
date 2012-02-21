@@ -898,6 +898,30 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Adds inet-address type of the given interface name.
+     * <p/>
+     * Removes inet-address type as a side effect.
+     * <p/>
+     * Like: <inet-address value="127.0.0.2" \>
+     *
+     * @param interfaceName - name of the interface like "public" or "management"
+     * @param ipAddress     - ipAddress of the interface
+     */
+    public void setInetAddress(String interfaceName, String ipAddress) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
+        model.get("name").set("inet-address");
+        model.get("value").set(ipAddress);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Removes broadcast group.

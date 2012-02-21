@@ -1,66 +1,52 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.security.Security;
-import java.util.Observable;
 import java.util.Properties;
-import java.util.logging.Level;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
 import org.apache.log4j.Logger;
-import org.jboss.sasl.JBossSaslProvider;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
+ * 
  * Simple sender with client acknowledge session. Able to fail over.
- *
+ * 
+ * This class extends Thread class and should be started as a thread using start().
+ * 
  * @author mnovak
  */
 public class ProducerClientAckHA extends Thread {
 
-//    static {
-//        Security.addProvider(new JBossSaslProvider());
-//    }
     private static final Logger logger = Logger.getLogger(ProducerClientAckHA.class);
-    private int numberOfRetries = 0;
     private int maxRetries = 30;
-    String hostname = "localhost";
-    int jndiPort = 4447;
-    String queueNameJndi = "jms/queue/testQueue1";
-    int numberOfMessages = 1000;
-    long waitAfterMessage = 0;
+    private String hostname = "localhost";
+    private int port = 4447;
+    private String queueNameJndi = "jms/queue/testQueue1";
+    private int messages = 1000;
+    private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
-    public ProducerClientAckHA(String queueName) {
-
-        this.queueNameJndi = queueName;
-
-    }
-
-    public ProducerClientAckHA(String hostname, int jndiPort, String queueName) {
-
+    /**
+     * 
+     * @param hostname hostname
+     * @param port port
+     * @param messages number of messages to send
+     * @param messageBuilder message builder
+     * @param maxRetries number of retries to send message after server fails
+     * @param queueNameJndi set jndi name of the queue to send messages
+     */
+    public ProducerClientAckHA(String hostname, int port, String queueNameJndi, int messages) {
         this.hostname = hostname;
-
-        this.jndiPort = jndiPort;
-
-        this.queueNameJndi = queueName;
-
+        this.port = port;
+        this.messages = messages;
+        this.queueNameJndi = queueNameJndi;
     }
-
-    public ProducerClientAckHA(String hostname, int jndiPort, String queueName, int numberOfMessages, long waitAfterMessage) {
-
-        this.hostname = hostname;
-
-        this.jndiPort = jndiPort;
-
-        this.queueNameJndi = queueName;
-
-        this.numberOfMessages = numberOfMessages;
-
-        this.waitAfterMessage = waitAfterMessage;
-
-    }
-
+    
+    /**
+     * Starts end messages to server. This should be started as Thread - producerer.start();
+     * 
+     */
     public void run() {
 
         Context context = null;
@@ -70,15 +56,15 @@ public class ProducerClientAckHA extends Thread {
         Session session = null;
 
         try {
-
+            
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + jndiPort);
+            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
             context = new InitialContext(env);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
-            Queue queue = (Queue) context.lookup(queueNameJndi);
+            Queue queue = (Queue) context.lookup(getQueueNameJndi());
 
             con = cf.createConnection();
 
@@ -86,19 +72,20 @@ public class ProducerClientAckHA extends Thread {
 
             MessageProducer producer = session.createProducer(queue);
 
-            int i = 1;
+            int counter = 1;
 
             Message msg = null;
 
-            while (i <= numberOfMessages) {
+            while (counter <= getMessages()) {
 
-                msg = createMessage(session, i);
+//                msg = this.messageBuilder.createMessage(session);
+                msg = session.createTextMessage("counter: " + counter);
                 // send message in while cycle
-                sendMessage(producer, msg);
+                sendMessage(producer, msg, counter);
 
-                logger.info("Producer for node: " + hostname + ". Sent message with property count: " + i + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Producer for node: " + getHostname() + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
-                i++;
+                counter++;
 
             }
 
@@ -106,7 +93,7 @@ public class ProducerClientAckHA extends Thread {
 
         } catch (Exception e) {
 
-            logger.error("Producer got exception:", e);
+            logger.error("Producer got exception and ended:", e);
 
         } finally {
 
@@ -131,16 +118,6 @@ public class ProducerClientAckHA extends Thread {
         }
     }
 
-    private Message createMessage(Session session, int counter) throws Exception {
-
-        // TODO - here provide some Abstraction - how to create message
-        TextMessage message = session.createTextMessage("This is text message " + counter);
-
-        message.setIntProperty("count", counter);
-
-        return message;
-    }
-
     /**
      * Send message to server. Try send message and if succeed than return. If
      * send fails and exception is thrown it tries send again until max retry is
@@ -149,8 +126,10 @@ public class ProducerClientAckHA extends Thread {
      * @param producer
      * @param msg
      */
-    private void sendMessage(MessageProducer producer, Message msg) throws Exception {
-
+    private void sendMessage(MessageProducer producer, Message msg, int counter) throws Exception {
+        
+        int numberOfRetries = 0;
+        
         while (numberOfRetries < maxRetries) {
             try {
 
@@ -165,8 +144,8 @@ public class ProducerClientAckHA extends Thread {
             } catch (JMSException ex) {
 
                 try {
-                    logger.info("SEND RETRY - Producer for node: " + hostname
-                            + ". Sent message with property count: " + msg.getIntProperty("count")
+                    logger.info("SEND RETRY - Producer for node: " + getHostname()
+                            + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
                 } catch (JMSException e) {} // ignore 
 
@@ -174,12 +153,68 @@ public class ProducerClientAckHA extends Thread {
 
             }
         }
-
+        
         // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for producer for node: " + hostname
-                + ". Sent message with property count: " + msg.getIntProperty("count")
+        throw new Exception("FAILURE - MaxRetry reached for producer for node: " + getHostname()
+                + ". Sent message with property count: "
                 + ", messageId:" + msg.getJMSMessageID());
 
+    }
+
+    /**
+     * @return the hostname
+     */
+    public String getHostname() {
+        return hostname;
+    }
+
+    /**
+     * @param hostname the hostname to set
+     */
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    /**
+     * @return the port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * @param port the port to set
+     */
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    /**
+     * @return the queueNameJndi
+     */
+    public String getQueueNameJndi() {
+        return queueNameJndi;
+    }
+
+    /**
+     * @param queueNameJndi the queueNameJndi to set
+     */
+    public void setQueueNameJndi(String queueNameJndi) {
+        this.queueNameJndi = queueNameJndi;
+    }
+
+    /**
+     * @return the messages
+     */
+    public int getMessages() {
+        return messages;
+    }
+
+    /**
+     * @param messages the messages to set
+     */
+    public void setMessages(int messages) {
+        this.messages = messages;
     }
 }
 

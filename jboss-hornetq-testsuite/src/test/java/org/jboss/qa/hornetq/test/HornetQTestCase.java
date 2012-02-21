@@ -37,6 +37,12 @@ public class HornetQTestCase {
 
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
+    
+    // Journal directory for first live/backup pair or first node in cluster
+    protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "/tmp/hornetq-journal-A";
+    
+    // Journal directory for second live/backup pair or second node in cluster
+    protected static final String JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "/tmp/hornetq-journal-B";
 
 
     @ArquillianResource
