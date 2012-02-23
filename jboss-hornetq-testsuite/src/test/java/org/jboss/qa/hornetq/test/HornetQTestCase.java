@@ -15,6 +15,13 @@ import java.util.Properties;
 
 /**
  * Parent class for all HornetQ test cases.
+ * <p/>
+ * How to use this class:
+ *  - class contains two properties with name of defined containers
+ *    <code>CONTAINER1</code> and <code>CONTAINER2</code>
+ *  - class contains two properties with IP addresses used in test
+ *    <code>CONTAINER1_IP</code> and <code>CONTAINER2_IP</code>
+ *
  *
  * @author pslavice@redhat.com
  */
@@ -24,10 +31,16 @@ public class HornetQTestCase {
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     // Arquillian container name
-    protected static final String CONTAINER1 = "clustering-udp-0-unmanaged";
+    protected static final String CONTAINER1 = "node-1";
+
+    // IP address for container 1
+    protected static String CONTAINER1_IP = "127.0.0.1";
 
     // Arquillian container name
-    protected static final String CONTAINER2 = "clustering-udp-1-unmanaged";
+    protected static final String CONTAINER2 = "node-2";
+
+    // IP address for container 2
+    protected static String CONTAINER2_IP = "127.0.0.2";
 
     // Name of the connection factory in JNDI
     protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
@@ -38,9 +51,25 @@ public class HornetQTestCase {
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
 
+    // Journal directory for first live/backup pair or first node in cluster
+    protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "/tmp/hornetq-journal-A";
+
+    // Journal directory for second live/backup pair or second node in cluster
+    protected static final String JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "/tmp/hornetq-journal-B";
 
     @ArquillianResource
     protected ContainerController controller;
+
+    static {
+        if (System.getProperty("MYTESTIP_1") != null) {
+            CONTAINER1_IP = System.getProperty("MYTESTIP_1");
+            log.info(String.format("Setting CONTAINER1_IP='%s'", CONTAINER1_IP));
+        }
+        if (System.getProperty("MYTESTIP_2") != null) {
+            CONTAINER2_IP = System.getProperty("MYTESTIP_2");
+            log.info(String.format("Setting CONTAINER2_IP='%s'", CONTAINER2_IP));
+        }
+    }
 
     /**
      * Cleanups resources
