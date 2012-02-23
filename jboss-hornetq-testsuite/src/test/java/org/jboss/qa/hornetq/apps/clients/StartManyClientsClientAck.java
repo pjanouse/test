@@ -5,7 +5,11 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.QueueTextMessageVerifier;
 
 /**
  *  This class starts producers and receivers on multiple queues. 
@@ -14,11 +18,14 @@ import java.util.List;
  */
 public class StartManyClientsClientAck {
     
+    private static final Logger logger = Logger.getLogger(StartManyClientsClientAck.class);
+
     private String hostname;
     
     private int jndiPort;
     
     private String queueJndiNamePrefix;    
+
     private int messages;
     
     private int numberOfQueues;
@@ -30,11 +37,12 @@ public class StartManyClientsClientAck {
     private List<ProducerClientAckHA> producers = new ArrayList<ProducerClientAckHA>();
     
     private List<ReceiverClientAckHA> receivers = new ArrayList<ReceiverClientAckHA>();
+    
+    private HashMap<String,MessageVerifier> verifiers = new HashMap<String,MessageVerifier>();
    
     public StartManyClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu)  {
         
-        this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 500);
-        
+        this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
     }
     
     public StartManyClientsClientAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
@@ -55,30 +63,47 @@ public class StartManyClientsClientAck {
      */
     public void startClients() {
         
+        MessageVerifier queueTextMessageVerifier = null;
+        
         // create producers and receivers
         for (int destinationNumber = 0; destinationNumber < getNumberOfQueues(); destinationNumber++)  {
             
+            queueTextMessageVerifier = new QueueTextMessageVerifier();
+            
+            verifiers.put(getQueueJndiNamePrefix() + destinationNumber, queueTextMessageVerifier);
+            
+            ProducerClientAckHA p = null;
+            
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
                 
-                producers.add(new ProducerClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages()));
+                p = new ProducerClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
+                
+                p.setMessageVerifier(queueTextMessageVerifier);
+                
+                producers.add(p);
                 
             }
             
+            ReceiverClientAckHA r = null;
+            
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
                 
-                receivers.add(new ReceiverClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber));
+                r = new ReceiverClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
                 
+                r.setMessageVerifier(queueTextMessageVerifier);
+                
+                receivers.add(r);
             }
             
         }
         
         // start all clients - producers first
-        for (ProducerClientAckHA producer : producers)  {
-            producer.start();
+        for (Thread producerThread : producers)  {
+            producerThread.start();
         }
         // start receivers
-        for (ReceiverClientAckHA receiver : receivers)  {
-            receiver.start();
+        for (Thread receiverThread : receivers)  {
+            receiverThread.start();
         }
         
     }
@@ -93,16 +118,16 @@ public class StartManyClientsClientAck {
         boolean isFinished = true;
         
         // check producers first
-        for (ProducerClientAckHA producer : producers)  {
+        for (Thread producerThread : producers)  {
             
-            if (producer.isAlive()) {
+            if (producerThread.isAlive()) {
                 isFinished = false;
             }
         }
         // check receivers
-        for (ReceiverClientAckHA receiver : receivers)  {
+        for (Thread receiverThread : receivers)  {
             
-            if (receiver.isAlive()) {
+            if (receiverThread.isAlive()) {
                 isFinished = false;
             }
         }
@@ -111,12 +136,46 @@ public class StartManyClientsClientAck {
         
     }
     
-    public void evaluateResults()   {
+    /**
+     * Check whether number of sent and received messages is equal for all clients and whether clients
+     * ended properly without exception.
+     * 
+     */
+    public boolean evaluateResults() throws Exception   {
         
-        throw new UnsupportedOperationException();
+        boolean isOk = true;
+        
+        // check clients if they got an exception
+        for (ProducerClientAckHA producer : producers)  {
+            if (producer.getException() != null)    {
+                isOk = false;
+                logger.error("Receiver for host " + producer.getHostname() + " and queue " + producer.getQueueNameJndi() + 
+                        " got exception: " + producer.getException().getMessage());
+            }
+        }
+        // start receivers
+        for (ReceiverClientAckHA receiver : receivers)  {
+            if (receiver.getException() != null)    {
+                isOk = false;
+                logger.error("Receiver for host " + receiver.getHostname() + " and queue " + receiver.getQueueNameJndi() + 
+                        " got exception: " + receiver.getException().getMessage());
+            }
+        }
+        
+        // check message verifiers
+        for (String queue : verifiers.keySet()) {
+            logger.info("################################################################");
+            logger.info("Queue: " + queue + " -- Number of received messages: " + verifiers.get(queue).getReceivedMessages().size() +
+                " Number of sent messages: " + verifiers.get(queue).getSentMessages().size());
+            if (!verifiers.get(queue).verifyMessages())  {
+                isOk = false;
+            }
+            logger.info("################################################################");
+        }
+        return isOk;
         
     }
-
+    
     /**
      * @return the hostname
      */

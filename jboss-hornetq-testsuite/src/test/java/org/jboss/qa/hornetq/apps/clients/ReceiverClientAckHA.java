@@ -1,42 +1,66 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.HashMap;
-import java.util.Observable;
-import java.util.Properties;
+import java.util.*;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
 import org.apache.log4j.Logger;
-import org.hornetq.api.core.TransportConfiguration;
-import org.hornetq.api.jms.HornetQJMSClient;
-import org.hornetq.api.jms.JMSFactoryType;
-import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
-import org.hornetq.jms.client.HornetQConnectionFactory;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import java.util.Observable;
+import javax.jms.Queue;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
  *
  * @author mnovak
  */
-public class ReceiverClientAckHA extends Thread   {
+public class ReceiverClientAckHA extends Thread {
 
-    private static final Logger logger = Logger.getLogger(ProducerClientAckHA.class);
-    private int maxRetries = 30;
-    private String hostname = "localhost";
-    private int port = 4447;
+    private static final Logger logger = Logger.getLogger(ReceiverClientAckHA.class);
+    private int maxRetries;
+    private String hostname;
+    private int port;
     private String queueNameJndi = "jms/queue/testQueue1";
-    private long receiveTimeOut = 30000;
-    private int ackAfter = 10;
+    private long receiveTimeOut;
+    private int ackAfter;
+    private MessageVerifier messageVerifier;
+    private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
+    private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
+    private int count = 0;
+    private Exception exception = null;
 
+    /**
+     * Creates a receiver to queue with client acknowledge.
+     * 
+     * @param hostname hostname
+     * @param port jndi port
+     * @param queueJndiName jndi name of the queue    
+     */
     public ReceiverClientAckHA(String hostname, int port, String queueJndiName) {
+        
+        this(hostname, port, queueJndiName, 30000, 10, 30);
+        
+    }
+    
+    /**
+     * Creates a receiver to queue with client acknowledge.
+     * 
+     * @param hostname hostname
+     * @param port jndi port
+     * @param queueJndiName jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter send ack after how many messages
+     * @param maxRetries how many times to retry receive before giving up
+     */
+    public ReceiverClientAckHA(String hostname, int port, String queueJndiName, long receiveTimeOut,
+            int ackAfter, int maxRetries) {
         
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueJndiName;
+        this.receiveTimeOut = receiveTimeOut;
+        this.ackAfter = ackAfter;
+        this.maxRetries = maxRetries;
         
     }
 
@@ -44,6 +68,7 @@ public class ReceiverClientAckHA extends Thread   {
     public void run() {
 
         Context context = null;
+        ConnectionFactory cf = null;
         Connection conn = null;
         Session session = null;
         Queue queue = null;
@@ -55,7 +80,7 @@ public class ReceiverClientAckHA extends Thread   {
             env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
             context = new InitialContext(env);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
             conn = cf.createConnection();
 
@@ -71,48 +96,40 @@ public class ReceiverClientAckHA extends Thread   {
             
             Message lastMessage = null;
             
-            int count = 0;
-            
-            while ((message = receiveMessage(receiver, count)) != null) {
-
+            while ((message = receiveMessage(receiver)) != null) {
+                
+                listOfReceivedMessagesToBeAcked.add(message);
+                
                 count++;
                 
                 if (count % ackAfter == 0) { // try to ack message
-                    
-                    try {
-                        message.acknowledge();
-                    } catch(Exception ex)   {
-                       logger.error("Exception thrown during acknowledge. Receiver for node: " + getHostname() + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
-                       // all unacknowledge messges will be received again
-                       count = count - ackAfter;
-                    }
-                    logger.info("Receiver for node: " + getHostname() + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
-                    
+                    acknowledgeMessage(message);
                 } else { // i don't want to ack now
-                    
-                    logger.info("Receiver for node: " + getHostname() + ". Received message - count: "
+                    logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
+                            + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
+                
                 // hold information about last message so we can ack it when null is received = queue empty
                 lastMessage = message;
-
             }
-
-            logger.info("Receiver for node: " + getHostname() + ". Received NULL - number of received messages: " + count);
             
-            lastMessage.acknowledge();
+            acknowledgeMessage(lastMessage);
 
+            logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
+                    +". Received NULL - number of received messages: " + count);
+            
+            if (messageVerifier != null)    {
+                messageVerifier.addReceivedMessages(listOfReceivedMessages);
+            }
+            
         } catch (JMSException ex) {
-
             logger.error("JMSException was thrown during receiving messages:", ex);
-
+            exception = ex;
         } catch (Exception ex) {
-
             logger.error("Exception was thrown during receiving messages:", ex);
+            exception = ex;
             throw new RuntimeException("Fatal exception was thrown in receiver. Receiver for node: " + getHostname());
-
         } finally {
             if (conn != null) {
                 try {
@@ -125,20 +142,44 @@ public class ReceiverClientAckHA extends Thread   {
     }
     
     /**
+     * Try to acknowledge a message.
+     * 
+     * @param message message to be acknowledged
+     * @throws JMSException  
+     * 
+     */
+    public void acknowledgeMessage(Message message) throws JMSException {
+        try {
+
+            message.acknowledge();
+            
+            logger.info("Receiver for node: " + getHostname() + ". Received message - count: "
+                            + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
+            
+            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+
+        } catch (Exception ex) {
+            logger.error("Exception thrown during acknowledge. Receiver for node: " + getHostname() + ". Received message - count: "
+                    + count + ", messageId:" + message.getJMSMessageID());
+            // all unacknowledge messges will be received again
+            count = count - ackAfter;
+        }
+        
+        listOfReceivedMessagesToBeAcked.clear();
+    }
+    /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
      * consumer.receiver(timeout) throw JMSException maxRetries's times then throw Exception above.
      * 
      * @param consumer consumer message consumer
-     * @param count counter
      * @return message or null
      * @throws Exception when maxRetries was reached
      * 
      */
-    public Message receiveMessage(MessageConsumer consumer, int count) throws Exception {
+    public Message receiveMessage(MessageConsumer consumer) throws Exception {
         
         Message msg = null;
-        
         int numberOfRetries = 0;
         
         // receive message with retry
@@ -147,15 +188,11 @@ public class ReceiverClientAckHA extends Thread   {
             try {
                 
                 msg = consumer.receive(receiveTimeOut);
-                
                 return msg;
                 
             } catch (JMSException ex)   {
-                
                 numberOfRetries++;
-                
                 logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (count + 1));
-        
             }
         }
        
@@ -216,6 +253,48 @@ public class ReceiverClientAckHA extends Thread   {
      */
     public void setQueueNameJndi(String queueNameJndi) {
         this.queueNameJndi = queueNameJndi;
+    }
+
+    /**
+     * @return the messageVerifier
+     */
+    public MessageVerifier getMessageVerifier() {
+        return messageVerifier;
+    }
+
+    /**
+     * @param messageVerifier the messageVerifier to set
+     */
+    public void setMessageVerifier(MessageVerifier messageVerifier) {
+        this.messageVerifier = messageVerifier;
+    }
+
+    /**
+     * @return the listOfReceivedMessages
+     */
+    public List<Message> getListOfReceivedMessages() {
+        return listOfReceivedMessages;
+    }
+
+    /**
+     * @param listOfReceivedMessages the listOfReceivedMessages to set
+     */
+    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+        this.listOfReceivedMessages = listOfReceivedMessages;
+    }
+
+    /**
+     * @return the exception
+     */
+    public Exception getException() {
+        return exception;
+    }
+
+    /**
+     * @param exception the exception to set
+     */
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 
 }

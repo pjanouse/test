@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import javax.jms.*;
 import javax.naming.Context;
@@ -7,6 +9,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
@@ -26,7 +29,12 @@ public class ProducerClientAckHA extends Thread {
     private String queueNameJndi = "jms/queue/testQueue1";
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-
+    private List<Message> listOfSentMessages = new ArrayList<Message>();
+    private MessageVerifier messageVerifier;
+    private Exception exception = null;
+    
+    private int counter = 0;
+    
     /**
      * 
      * @param hostname hostname
@@ -44,7 +52,7 @@ public class ProducerClientAckHA extends Thread {
     }
     
     /**
-     * Starts end messages to server. This should be started as Thread - producerer.start();
+     * Starts end messages to server. This should be started as Thread - producer.start();
      * 
      */
     public void run() {
@@ -72,27 +80,26 @@ public class ProducerClientAckHA extends Thread {
 
             MessageProducer producer = session.createProducer(queue);
 
-            int counter = 1;
-
             Message msg = null;
 
-            while (counter <= getMessages()) {
+            while (counter < getMessages()) {
 
-//                msg = this.messageBuilder.createMessage(session);
-                msg = session.createTextMessage("counter: " + counter);
+                msg = messageBuilder.createMessage(session);
                 // send message in while cycle
-                sendMessage(producer, msg, counter);
-
+                sendMessage(producer, msg);
+                
                 logger.info("Producer for node: " + getHostname() + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
-
-                counter++;
 
             }
 
             producer.close();
+            
+            if (messageVerifier != null)    {
+                messageVerifier.addSendMessages(listOfSentMessages);
+            }
 
         } catch (Exception e) {
-
+            setException(e);
             logger.error("Producer got exception and ended:", e);
 
         } finally {
@@ -126,17 +133,20 @@ public class ProducerClientAckHA extends Thread {
      * @param producer
      * @param msg
      */
-    private void sendMessage(MessageProducer producer, Message msg, int counter) throws Exception {
+    private void sendMessage(MessageProducer producer, Message msg) throws Exception {
         
         int numberOfRetries = 0;
         
         while (numberOfRetries < maxRetries) {
+            
             try {
 
                 producer.send(msg);
                 
-                // notify all observers about sent message
-
+                getListOfSentMessages().add(msg);
+                
+                counter++;
+                
                 numberOfRetries = 0;
 
                 return;
@@ -150,13 +160,12 @@ public class ProducerClientAckHA extends Thread {
                 } catch (JMSException e) {} // ignore 
 
                 numberOfRetries++;
-
             }
         }
         
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for producer for node: " + getHostname()
-                + ". Sent message with property count: "
+                + ". Sent message with property count: " + counter
                 + ", messageId:" + msg.getJMSMessageID());
 
     }
@@ -215,6 +224,48 @@ public class ProducerClientAckHA extends Thread {
      */
     public void setMessages(int messages) {
         this.messages = messages;
+    }
+
+    /**
+     * @return the listOfSentMessages
+     */
+    public List<Message> getListOfSentMessages() {
+        return listOfSentMessages;
+    }
+
+    /**
+     * @param listOfSentMessages the listOfSentMessages to set
+     */
+    public void setListOfSentMessages(List<Message> listOfSentMessages) {
+        this.listOfSentMessages = listOfSentMessages;
+    }
+
+    /**
+     * @return the messageVerifier
+     */
+    public MessageVerifier getMessageVerifier() {
+        return messageVerifier;
+    }
+
+    /**
+     * @param messageVerifier the messageVerifier to set
+     */
+    public void setMessageVerifier(MessageVerifier messageVerifier) {
+        this.messageVerifier = messageVerifier;
+    }
+
+    /**
+     * @return the exception
+     */
+    public Exception getException() {
+        return exception;
+    }
+
+    /**
+     * @param exception the exception to set
+     */
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 }
 

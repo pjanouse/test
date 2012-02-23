@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import java.util.HashMap;
 import java.util.Map;
 import javax.jms.Session;
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -34,15 +35,15 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class FailoverTestCase extends HornetQTestCase {
     
-    private static final Logger logger = Logger.getLogger(ProducerClientAckNonHA.class);
+    private static final Logger logger = Logger.getLogger(FailoverTestCase.class);
 
     private static final String DEPLOYMENT1 = "dep.container1";
     
-    private static final int NUMBER_OF_QUEUES = 3;
+    private static final int NUMBER_OF_QUEUES = 5;
     
-    private static final int NUMBER_OF_PRODUCERS_PER_QUEUE = 1;
+    private static final int NUMBER_OF_PRODUCERS_PER_QUEUE = 2;
     
-    private static final int NUMBER_OF_RECEIVERS_PER_QUEUE = 2;
+    private static final int NUMBER_OF_RECEIVERS_PER_QUEUE = 10;
     
     @ArquillianResource
     private Deployer deployer;
@@ -88,7 +89,7 @@ public class FailoverTestCase extends HornetQTestCase {
              @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    condition="readCounter(\"counter\")>100",
+                    condition="readCounter(\"counter\")>50",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void simpleFailoverTest() throws Exception {
         
@@ -109,6 +110,8 @@ public class FailoverTestCase extends HornetQTestCase {
         
         waitForClientsToFinish(clients);
         
+        Assert.assertTrue(clients.evaluateResults());
+        
         controller.stop(CONTAINER1);
         
         controller.stop(CONTAINER2);
@@ -121,11 +124,6 @@ public class FailoverTestCase extends HornetQTestCase {
 
     }
     
-    private void evaluateResults(StartManyClientsClientAck clients)  {
-        
-            clients.evaluateResults();
-            
-    }
     
     @After
     public void stopAllServers()    {
@@ -202,7 +200,7 @@ public class FailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
+//        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
         jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
         
         jmsAdminOperations.removeAddressSettings("#");
@@ -285,7 +283,7 @@ public class FailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
+//        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
         jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
         
         jmsAdminOperations.removeAddressSettings("#");
@@ -301,6 +299,13 @@ public class FailoverTestCase extends HornetQTestCase {
         backupConf.put("managementPort", "9999");
         controller.start(CONTAINER2, backupConf);
         controller.stop(CONTAINER2);
+    }
+    
+    public void prepareColocatedServer(String container)    {
+        
+        prepareLiveServer(container);
+        
+        
     }
     
     /**
