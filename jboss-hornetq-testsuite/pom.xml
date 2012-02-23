@@ -17,7 +17,7 @@
         <hornetq.version>2.2.11.Final</hornetq.version>
 
         <arquillian.version>1.0.0.CR7</arquillian.version>
-        <arquillian.container.version>7.1.0.Final-SNAPSHOT</arquillian.container.version>
+        <arquillian.container.version>7.1.0.Final</arquillian.container.version>
         <version.byteman>2.0.0</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -50,6 +50,8 @@
                         </BYTEMAN_SUBMIT_JAR>
                         <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
+                        <MYTESTIP_1>${env.MYTESTIP_1}</MYTESTIP_1>
+                        <MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

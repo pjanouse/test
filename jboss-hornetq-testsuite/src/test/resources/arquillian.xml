@@ -1,50 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<arquillian xmlns="http://www.jboss.org/arquillian-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.jboss.org/arquillian-1.0 http://jboss.org/schema/arquillian/arquillian-1.0.xsd">
-   
-   
-    <defaultProtocol type="Servlet 3.0" />
-<!--    <container qualifier="jbossas-managed-7" default="true" managed="true" >
-        <configuration>
-            <property name="jbossHome">/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-as-7.1.0.CR1b</property>
-            <property name="javaVmArguments">-Djboss.modules.system.pkgs=org.jboss.byteman,com.sun.qa.attach -Xbootclasspath/a:/home/mnovak/Downloads/jdk1.6.0_21/lib/qa.jar:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
-            <property name="javaVmArguments">-Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:localhost,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
-            <property name="javaVmArguments">-javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:localhost,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
-            <property name="serverConfig">standalone-ha.xml</property>
-        </configuration>
-        <extension qualifier="byteman">
-            <property name="autoInstallAgent">false</property>
-            <property name="agentProperties">org.jboss.byteman.verbose=true</property>
-        </extension>
-    </container>    -->
-   
-    
-     <!-- Group of manually managed containers used for failover testing,
-         see ARQ-336 for details. -->
-    <group qualifier="clustering-udp-unmanaged">
-        <container qualifier="clustering-udp-0-unmanaged" default="true" mode="manual" >
+<arquillian xmlns="http://jboss.com/arquillian" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.jboss.org/arquillian-1.0 http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+    <defaultProtocol type="Servlet 3.0"/>
+    <group qualifier="cluster">
+        <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9091 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=8586,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_1}
+                    -Djboss.bind.address.management=${MYTESTIP_1}
+                </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="managementAddress" >127.0.0.1</property>
-                <property name="startupTimeoutInSeconds">60</property>
-                <property name="managementPort">9999</property>
+                <property name="startupTimeoutInSeconds">120</property>
+                <property name="managementAddress" >${MYTESTIP_1}</property>
             </configuration>
         </container>
 
-        <container qualifier="clustering-udp-1-unmanaged" default="false" mode="manual" >
+        <container qualifier="node-2" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:127.0.0.1,port:9191 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=8686,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_2}
+                    -Djboss.bind.address.management=${MYTESTIP_2}
+                </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="managementAddress" >127.0.0.2</property>
-                <property name="managementPort">9999</property>
-                <property name="startupTimeoutInSeconds">60</property>
+                <property name="startupTimeoutInSeconds">120</property>
+                <property name="managementAddress" >${MYTESTIP_2}</property>
             </configuration>
         </container>
     </group>
-    
-    
 </arquillian>
 
