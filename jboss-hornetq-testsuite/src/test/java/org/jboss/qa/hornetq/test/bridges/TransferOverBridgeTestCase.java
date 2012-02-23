@@ -4,9 +4,10 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
-import org.jboss.qa.hornetq.apps.clients.HighLoadProducerWithSemaphores;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
+import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.junit.After;
@@ -14,15 +15,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
+import javax.jms.Message;
 import javax.jms.Session;
-import javax.jms.Topic;
-import javax.naming.Context;
-import java.util.concurrent.Semaphore;
+import javax.jms.TextMessage;
 
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * Basic tests for transfer messages over core-bridge
@@ -55,10 +53,50 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    public void basicSendMessagesViaBridge() throws InterruptedException {
+    public void normalMessagesTest() throws InterruptedException {
+        testLogic(10, new ByteMessageBuilder(30), null);
+    }
+
+    /**
+     * Large message, byte message
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    public void largeByteMessagesTest() throws InterruptedException {
+        testLogic(10, new ByteMessageBuilder(1024), null);
+    }
+
+    /**
+     * Large message, text message
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    public void largeTextMessagesTest() throws InterruptedException {
+        final int SIZE = 1024;
+        testLogic(10, new TextMessageBuilder(SIZE), new MessageVerifier() {
+            @Override
+            public void verifyMessage(Message message) throws Exception {
+                assertTrue(message instanceof TextMessage);
+                assertTrue(((TextMessage) message).getText().length() == SIZE);
+            }
+        });
+    }
+
+    /**
+     * Starts target server later
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    public void startTargetServerLaterTest() throws InterruptedException {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
-        final int MESSAGES = 10;
+        final int messages = 100;
 
         // Start servers
         controller.start(CONTAINER1);
@@ -77,112 +115,190 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.removeRemoteConnector("bridge-connector");
         jmsAdminContainer1.removeBridge("myBridge");
         jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
-        Thread.sleep(500);
+
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+        controller.start(CONTAINER1);
 
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", "10.34.3.146", 5445);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
-        jmsAdminContainer1.reloadServer();
-        //controller.stop(CONTAINER1);
-        //controller.start(CONTAINER1);
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
 
         jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
 
-        Thread.sleep(2000);
-        SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
-        log.error("!!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!");
-        log.error("!!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!  !!!!!!!!!!!");
-        Thread.sleep(1000);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+        controller.start(CONTAINER2);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
 
-        // Let's bridge to transfer messages
-        SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         client2.receiveMessages(TEST_QUEUE_JNDI);
-        assertEquals(MESSAGES, client2.getReceivedMessages());
+        assertEquals(messages, client2.getReceivedMessages());
 
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
     }
 
+    /**
+     * Starts source server later
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    public void startSourceServerLaterTest() throws InterruptedException {
+        final String TEST_QUEUE = "dummyQueue";
+        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final int messages = 100;
+
+        // Start servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations("10.34.3.146", 9999);
+
+        // Create queue
+        jmsAdminContainer1.cleanupQueue(TEST_QUEUE);
+        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer2.cleanupQueue(TEST_QUEUE);
+        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+
+        jmsAdminContainer1.removeRemoteConnector("bridge-connector");
+        jmsAdminContainer1.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", "10.34.3.146", 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        client1.sendMessages(TEST_QUEUE_JNDI);
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+        controller.start(CONTAINER2);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(messages, client2.getReceivedMessages());
+
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+    }
+
+    //============================================================================================================
+    //============================================================================================================
+    // Private methods
+    //============================================================================================================
+    //============================================================================================================
 
     /**
-     * Implementation of the test logic, logic is shared for all test scenarios
+     * Implementation of the basic test scenario
      *
-     * @param gapBetweenConsumers gap between consumers and producer
-     * @param messagesCount       total count of messages
-     * @param consumersCount      count of consumers used in tests
-     * @param receiveTimeout      receive timeout for consumers
-     * @param messageBuilder      implementation of {@link org.jboss.qa.hornetq.apps.MessageBuilder} used for test
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
+     * @param messageVerifier instance of the messages verifier
      */
-    private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
-                           int receiveTimeout, MessageBuilder messageBuilder,
-                           int maxSizeBytes, int pageSizeBytes) {
-        final String TOPIC = "pageTopic";
-        final String TOPIC_JNDI = "/topic/pageTopic";
-        final String ADDRESS = "jms.topic." + TOPIC;
+    private void testLogic(int messages, MessageBuilder messageBuilder, MessageVerifier messageVerifier) {
+        final String TEST_QUEUE = "dummyQueue";
+        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
 
+        // Start servers
         controller.start(CONTAINER1);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.cleanupTopic(TOPIC);
-        jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
-        jmsAdminOperations.removeAddressSettings(ADDRESS);
-        jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", maxSizeBytes, 1000, 1000, pageSizeBytes);
+        controller.start(CONTAINER2);
 
-        // Clients and semaphores
-        HighLoadProducerWithSemaphores producer;
-        HighLoadConsumerWithSemaphores[] consumers;
-        Semaphore[] semaphores;
-        semaphores = new Semaphore[consumersCount];
-        consumers = new HighLoadConsumerWithSemaphores[consumersCount];
-        for (int i = 0; i < semaphores.length; i++) {
-            semaphores[i] = new Semaphore(0);
-        }
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations("10.34.3.146", 9999);
 
-        Context context = null;
-        Connection connection = null;
-        Session session = null;
-        long startTime = System.currentTimeMillis();
-        try {
-            context = getContext();
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI);
-            Topic topic = (Topic) context.lookup(TOPIC_JNDI);
+        // Create queue
+        jmsAdminContainer1.cleanupQueue(TEST_QUEUE);
+        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer2.cleanupQueue(TEST_QUEUE);
+        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
 
-            producer = new HighLoadProducerWithSemaphores("producer", topic, cf, semaphores[0], gapBetweenConsumers,
-                    messagesCount, messageBuilder);
-            for (int i = 0; i < consumers.length; i++) {
-                consumers[i] = new HighLoadConsumerWithSemaphores("consumer " + i, topic, cf, semaphores[i],
-                        (i + 1 < semaphores.length) ? semaphores[i + 1] : null,
-                        gapBetweenConsumers, receiveTimeout);
-                consumers[i].start();
-            }
-            Thread.sleep(5000);
-            producer.start();
-            producer.join();
-            for (HighLoadConsumerWithSemaphores consumer : consumers) {
-                consumer.join();
-            }
-            if (producer.getSentMessages() != messagesCount) {
-                fail("Producer did not send defined count of messages");
-            } else {
-                for (int i = 0; i < consumers.length; i++) {
-                    if (consumers[i].getReceivedMessages() != messagesCount) {
-                        fail(String.format("Receiver #%s did not received defined count of messages", i));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            fail(e.getMessage());
-        } finally {
-            cleanupResources(context, connection, session);
-        }
-        log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
+        jmsAdminContainer1.removeRemoteConnector("bridge-connector");
+        jmsAdminContainer1.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
 
-        jmsAdminOperations.removeTopic(TOPIC);
-        jmsAdminOperations.close();
         controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", "10.34.3.146", 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient("127.0.0.1", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        if (messageBuilder != null) {
+            client1.setMessageBuilder(messageBuilder);
+        }
+        client1.sendMessages(TEST_QUEUE_JNDI);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient("10.34.3.146", 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        if (messageVerifier != null) {
+            client2.setMessageVerifier(messageVerifier);
+        }
+        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(messages, client2.getReceivedMessages());
+
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
     }
 }

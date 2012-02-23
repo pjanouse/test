@@ -9,6 +9,7 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.security.auth.callback.CallbackHandler;
 import java.util.Properties;
 
 /**
@@ -81,6 +82,7 @@ public class SimpleJMSClient {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
         env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
+
         return new InitialContext(env);
     }
 
