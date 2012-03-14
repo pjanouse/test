@@ -8,30 +8,32 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
  * 
- * Simple sender with client acknowledge session. Able to fail over.
+ * Publisher with client acknowledge session. Able to fail over.
  * 
- * This class extends Thread class and should be started as a thread using start().
+ * This class extends thread class and should be started as a thread using start().
  * 
  * @author mnovak
  */
-public class ProducerClientAckHA extends Thread {
+public class PublisherClientAck extends Thread {
 
-    private static final Logger logger = Logger.getLogger(ProducerClientAckHA.class);
+    private static final Logger logger = Logger.getLogger(PublisherClientAck.class);
     private int maxRetries = 30;
     private String hostname = "localhost";
     private int port = 4447;
-    private String queueNameJndi = "jms/queue/testQueue1";
+    private String topicNameJndi;
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
     private List<Message> listOfSentMessages = new ArrayList<Message>();
-    private MessageVerifier messageVerifier;
+    private List<FinalTestMessageVerifier> messageVerifiers;
     private Exception exception = null;
+    private String clientId;
+    private boolean stop = false;
     
     private int counter = 0;
     
@@ -42,17 +44,18 @@ public class ProducerClientAckHA extends Thread {
      * @param messages number of messages to send
      * @param messageBuilder message builder
      * @param maxRetries number of retries to send message after server fails
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param topicNameJndi set jndi name of the topic to send messages
      */
-    public ProducerClientAckHA(String hostname, int port, String queueNameJndi, int messages) {
+    public PublisherClientAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
-        this.queueNameJndi = queueNameJndi;
+        this.topicNameJndi = topicNameJndi;
+        this.clientId = clientId;
     }
     
     /**
-     * Starts end messages to server. This should be started as Thread - producer.start();
+     * Starts end messages to server. This should be started as Thread - publisher.start();
      * 
      */
     public void run() {
@@ -67,40 +70,45 @@ public class ProducerClientAckHA extends Thread {
             
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
+            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
             context = new InitialContext(env);
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
-            Queue queue = (Queue) context.lookup(getQueueNameJndi());
+            Topic topic = (Topic) context.lookup(getTopicNameJndi());
 
             con = cf.createConnection();
+            
+            con.setClientID(clientId);
 
             session = con.createSession(false, Session.CLIENT_ACKNOWLEDGE);
 
-            MessageProducer producer = session.createProducer(queue);
+            MessageProducer publisher = session.createProducer(topic);
 
             Message msg = null;
 
-            while (counter < getMessages()) {
+            while (counter < messages && !stop) {
 
                 msg = messageBuilder.createMessage(session);
                 // send message in while cycle
-                sendMessage(producer, msg);
+                sendMessage(publisher, msg);
                 
-                logger.info("Producer for node: " + getHostname() + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Publisher with clientId: " + clientId + " for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 
-            producer.close();
+            publisher.close();
             
-            if (messageVerifier != null)    {
-                messageVerifier.addSendMessages(listOfSentMessages);
+            if (messageVerifiers != null)    {
+                for (FinalTestMessageVerifier finalTestMessageVerifier : messageVerifiers)  {
+                     finalTestMessageVerifier.addSendMessages(listOfSentMessages);
+                }
+                
             }
 
         } catch (Exception e) {
-            setException(e);
-            logger.error("Producer got exception and ended:", e);
+            exception = e;
+            logger.error("Publisher got exception and ended:", e);
 
         } finally {
 
@@ -130,10 +138,10 @@ public class ProducerClientAckHA extends Thread {
      * send fails and exception is thrown it tries send again until max retry is
      * reached. Then throws new Exception.
      *
-     * @param producer
+     * @param publisher
      * @param msg
      */
-    private void sendMessage(MessageProducer producer, Message msg) throws Exception {
+    private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
         
         int numberOfRetries = 0;
         
@@ -141,9 +149,9 @@ public class ProducerClientAckHA extends Thread {
             
             try {
 
-                producer.send(msg);
+                publisher.send(msg);
                 
-                getListOfSentMessages().add(msg);
+                listOfSentMessages.add(msg);
                 
                 counter++;
                 
@@ -154,7 +162,7 @@ public class ProducerClientAckHA extends Thread {
             } catch (JMSException ex) {
 
                 try {
-                    logger.info("SEND RETRY - Producer for node: " + getHostname()
+                    logger.info("SEND RETRY - Publisher for node: " + hostname
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
                 } catch (JMSException e) {} // ignore 
@@ -164,12 +172,19 @@ public class ProducerClientAckHA extends Thread {
         }
         
         // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for producer for node: " + getHostname()
+        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + hostname
                 + ". Sent message with property count: " + counter
                 + ", messageId:" + msg.getJMSMessageID());
 
     }
 
+    /**
+     * Stop producer
+     */
+    public void stopSending()   {
+        this.stop = true;
+    }
+    
     /**
      * @return the hostname
      */
@@ -196,20 +211,6 @@ public class ProducerClientAckHA extends Thread {
      */
     public void setPort(int port) {
         this.port = port;
-    }
-
-    /**
-     * @return the queueNameJndi
-     */
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    /**
-     * @param queueNameJndi the queueNameJndi to set
-     */
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
     }
 
     /**
@@ -243,15 +244,15 @@ public class ProducerClientAckHA extends Thread {
     /**
      * @return the messageVerifier
      */
-    public MessageVerifier getMessageVerifier() {
-        return messageVerifier;
+    public List<FinalTestMessageVerifier> getMessageVerifiers() {
+        return messageVerifiers;
     }
 
     /**
      * @param messageVerifier the messageVerifier to set
      */
-    public void setMessageVerifier(MessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
+    public void setMessageVerifiers(List<FinalTestMessageVerifier> messageVerifier) {
+        this.messageVerifiers = messageVerifier;
     }
 
     /**
@@ -267,5 +268,20 @@ public class ProducerClientAckHA extends Thread {
     public void setException(Exception exception) {
         this.exception = exception;
     }
+
+    /**
+     * @return the topicNameJndi
+     */
+    public String getTopicNameJndi() {
+        return topicNameJndi;
+    }
+
+    /**
+     * @param topicNameJndi the topicNameJndi to set
+     */
+    public void setTopicNameJndi(String topicNameJndi) {
+        this.topicNameJndi = topicNameJndi;
+    }
 }
+
 

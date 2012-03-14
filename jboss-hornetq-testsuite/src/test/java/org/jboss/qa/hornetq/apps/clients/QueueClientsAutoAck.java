@@ -1,26 +1,25 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jboss.qa.hornetq.apps.clients;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
-import org.jboss.qa.hornetq.apps.impl.QueueTextMessageVerifier;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 
 /**
  *  This class starts producers and receivers on multiple queues. 
  * 
  * @author mnovak
  */
-public class StartManyClientsClientAck {
+public class QueueClientsAutoAck implements Clients {
     
-    private static final Logger logger = Logger.getLogger(StartManyClientsClientAck.class);
+    private static final Logger logger = Logger.getLogger(QueueClientsAutoAck.class);
 
-    private String hostname;
+    private String hostnameForProducers;
+    
+    private String hostnameForConsumers;
     
     private int jndiPort;
     
@@ -34,21 +33,22 @@ public class StartManyClientsClientAck {
     
     private int numberOfConsumersPerQueueu;
 
-    private List<ProducerClientAckHA> producers = new ArrayList<ProducerClientAckHA>();
+    private List<ProducerAutoAck> producers = new ArrayList<ProducerAutoAck>();
     
-    private List<ReceiverClientAckHA> receivers = new ArrayList<ReceiverClientAckHA>();
+    private List<ReceiverAutoAck> receivers = new ArrayList<ReceiverAutoAck>();
     
-    private HashMap<String,MessageVerifier> verifiers = new HashMap<String,MessageVerifier>();
+    private HashMap<String,FinalTestMessageVerifier> verifiers = new HashMap<String,FinalTestMessageVerifier>();
    
-    public StartManyClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu)  {
+    public QueueClientsAutoAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu)  {
         
         this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
     }
     
-    public StartManyClientsClientAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
+    public QueueClientsAutoAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
              int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages)  {
         
-        this.hostname = hostname;
+        this.hostnameForConsumers = hostname;
+        this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
         this.queueJndiNamePrefix = queueJndiNamePrefix;
         this.numberOfQueues = numberOfQueues;
@@ -61,22 +61,23 @@ public class StartManyClientsClientAck {
     /**
      * Creates clients and start them.
      */
+    @Override
     public void startClients() {
         
-        MessageVerifier queueTextMessageVerifier = null;
+        FinalTestMessageVerifier queueTextMessageVerifier = null;
         
         // create producers and receivers
         for (int destinationNumber = 0; destinationNumber < getNumberOfQueues(); destinationNumber++)  {
             
-            queueTextMessageVerifier = new QueueTextMessageVerifier();
+            queueTextMessageVerifier = new TextMessageVerifier();
             
             verifiers.put(getQueueJndiNamePrefix() + destinationNumber, queueTextMessageVerifier);
             
-            ProducerClientAckHA p = null;
+            ProducerAutoAck p = null;
             
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
                 
-                p = new ProducerClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
+                p = new ProducerAutoAck(getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
                 
                 p.setMessageVerifier(queueTextMessageVerifier);
                 
@@ -84,11 +85,11 @@ public class StartManyClientsClientAck {
                 
             }
             
-            ReceiverClientAckHA r = null;
+            ReceiverAutoAck r = null;
             
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
                 
-                r = new ReceiverClientAckHA(getHostname(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
+                r = new ReceiverAutoAck(getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
                 
                 r.setMessageVerifier(queueTextMessageVerifier);
                 
@@ -113,6 +114,7 @@ public class StartManyClientsClientAck {
      *      
      * @return true if all clients ended
      */
+    @Override
     public boolean isFinished() throws InterruptedException   {
         
         boolean isFinished = true;
@@ -141,20 +143,31 @@ public class StartManyClientsClientAck {
      * ended properly without exception.
      * 
      */
+    @Override
     public boolean evaluateResults() throws Exception   {
         
         boolean isOk = true;
         
+        logger.info("################################################################");
+        logger.info("Evaluate results for queue clients with auto acknowledge:");
+        logger.info("hostname for producers:" + hostnameForProducers);
+        logger.info("hostname for receivers:" + hostnameForConsumers);
+        logger.info("queueJndiPrefix:" + queueJndiNamePrefix);
+        logger.info("number of queues:" + numberOfQueues);
+        logger.info("number of producers per queue:" + numberOfProducersPerQueueu);
+        logger.info("number of receivers per queue:" + numberOfConsumersPerQueueu);
+        logger.info("################################################################");
+        
         // check clients if they got an exception
-        for (ProducerClientAckHA producer : producers)  {
+        for (ProducerAutoAck producer : producers)  {
             if (producer.getException() != null)    {
                 isOk = false;
-                logger.error("Receiver for host " + producer.getHostname() + " and queue " + producer.getQueueNameJndi() + 
+                logger.error("Producer for host " + producer.getHostname() + " and queue " + producer.getQueueNameJndi() + 
                         " got exception: " + producer.getException().getMessage());
             }
         }
-        // start receivers
-        for (ReceiverClientAckHA receiver : receivers)  {
+        
+        for (ReceiverAutoAck receiver : receivers)  {
             if (receiver.getException() != null)    {
                 isOk = false;
                 logger.error("Receiver for host " + receiver.getHostname() + " and queue " + receiver.getQueueNameJndi() + 
@@ -172,27 +185,26 @@ public class StartManyClientsClientAck {
             }
             logger.info("################################################################");
         }
-        return isOk;
         
+        // check exceptions
+        return isOk;
+    }
+    
+    /** 
+     * Stops all producers.
+     * 
+     */
+    @Override
+    public void stopClients()   {
+        for (ProducerAutoAck producer : producers)    {
+            producer.stopSending();
+        }
     }
     
     /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
      * @return the jndiPort
      */
+    @Override
     public int getJndiPort() {
         return jndiPort;
     }
@@ -200,6 +212,7 @@ public class StartManyClientsClientAck {
     /**
      * @param jndiPort the jndiPort to set
      */
+    @Override
     public void setJndiPort(int jndiPort) {
         this.jndiPort = jndiPort;
     }
@@ -214,13 +227,15 @@ public class StartManyClientsClientAck {
     /**
      * @param queueJndiNamePrefix the queueJndiNamePrefix to set
      */
-    public void setQueueJndiNamePrefix(String queueJndiNamePrefix) {
+    @Override
+    public void setDestinationJndiNamePrefix(String queueJndiNamePrefix) {
         this.queueJndiNamePrefix = queueJndiNamePrefix;
     }
 
     /**
      * @return the messages
      */
+    @Override
     public int getMessages() {
         return messages;
     }
@@ -228,6 +243,7 @@ public class StartManyClientsClientAck {
     /**
      * @param messages the messages to set
      */
+    @Override
     public void setMessages(int messages) {
         this.messages = messages;
     }
@@ -274,6 +290,42 @@ public class StartManyClientsClientAck {
         this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
     }
 
-   
-    
+    /**
+     * @return the hostnameForProducers
+     */
+    public String getHostnameForProducers() {
+        return hostnameForProducers;
+    }
+
+    /**
+     * @param hostnameForProducers the hostnameForProducers to set
+     */
+    public void setHostnameForProducers(String hostnameForProducers) {
+        this.hostnameForProducers = hostnameForProducers;
+    }
+
+    /**
+     * @return the hostnameForConsumers
+     */
+    public String getHostnameForConsumers() {
+        return hostnameForConsumers;
+    }
+
+    /**
+     * @param hostnameForConsumers the hostnameForConsumers to set
+     */
+    public void setHostnameForConsumers(String hostnameForConsumers) {
+        this.hostnameForConsumers = hostnameForConsumers;
+    }
+
+   public static void main(String[] args) throws InterruptedException  {
+        
+        QueueClientsAutoAck clients = 
+                new QueueClientsAutoAck("192.168.1.1", 4447, "jms/queue/testQueue", 2, 1, 2, 300);
+        clients.startClients();
+        while (!clients.isFinished()) {
+            Thread.sleep(1000);
+        }
+        
+    }
 }

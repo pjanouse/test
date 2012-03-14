@@ -8,8 +8,9 @@ import java.util.*;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 
 /**
  *  This class observers jms clients and store their sent and received messages.
@@ -18,18 +19,13 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAckHA;
  * 
  * @author mnovak@redhat.com
  */
-public class QueueTextMessageVerifier implements MessageVerifier {
+public class TextMessageVerifier implements FinalTestMessageVerifier {
         
-    private static final Logger logger = Logger.getLogger(QueueTextMessageVerifier.class);
+    private static final Logger logger = Logger.getLogger(TextMessageVerifier.class);
 
     private List<Message> sentMessages = new ArrayList<Message>();
     
     private List<Message> receivedMessages = new ArrayList<Message>();
-
-    @Override
-    public void verifyMessage(Message message) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     /** 
      * Returns true if all messages are ok = there are equal number of sent and received messages.
@@ -37,9 +33,16 @@ public class QueueTextMessageVerifier implements MessageVerifier {
      * @return true if there is equal number of sent and received messages
      * @throws Exception 
      */
+    @Override
     public boolean verifyMessages() throws JMSException {
         
         boolean isOk = true;
+        
+        if (sentMessages.size() != receivedMessages.size()) {
+            logger.error("There is different number of sent and received messages");
+            isOk = false;
+        }
+        
         // set of lost messages -- (sendMessages - receivedMessages) = lostMessages
         if (getLostMessages().size() != 0)  {
             logger.error("Lost message detected: " + getLostMessages());

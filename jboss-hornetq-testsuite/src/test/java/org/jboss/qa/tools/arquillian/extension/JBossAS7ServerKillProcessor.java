@@ -18,7 +18,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class.getName());
 
     // Kill sequence for CLI
-    private static String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --connect quit";
+    private static String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
 
     /**
      * @see {@link ServerKillProcessor#kill(org.jboss.arquillian.container.spi.Container)}
@@ -27,7 +27,13 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     public void kill(Container container) throws Exception {
         final int MAXIMAL_CHECKS = 120;
         log.info("Waiting for Byteman to kill server");
-
+        
+        String hostname = container.getContainerConfiguration().getContainerProperties().get("managementAddress");
+        if (hostname == null)   {
+            hostname = "127.0.0.1";
+        }
+        killSequence = killSequence.replace("[hostname]", hostname);
+        
         String jbossHome = System.getenv().get("JBOSS_HOME");
         if (jbossHome == null) {
             jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
@@ -58,7 +64,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         } while (checkCount++ < MAXIMAL_CHECKS);
 
         if (killed) {
-            log.info("jboss-as killed by byteman scirpt");
+            log.info("jboss-as killed by byteman script");
         } else {
             throw new RuntimeException("jboss-as not killed");
         }

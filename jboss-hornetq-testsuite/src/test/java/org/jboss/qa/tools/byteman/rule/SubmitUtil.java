@@ -30,13 +30,16 @@ import java.util.Arrays;
  * @version $Revision: $
  */
 public class SubmitUtil {
-
+    
+    public static String host = "localhost";
+    public static int port = 9091;
+    
     // Logger
     private static final Logger log = Logger.getLogger(SubmitUtil.class);
 
     public static void install(String key, String script) {
         try {
-            Submit submit = new Submit();
+            Submit submit = new Submit(host, port);
             submit.addScripts(Arrays.asList(new ScriptText(key, script)));
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -34,13 +34,25 @@ public class HornetQTestCase {
     protected static final String CONTAINER1 = "node-1";
 
     // IP address for container 1
-    protected static String CONTAINER1_IP = "127.0.0.1";
+    protected static String CONTAINER1_IP = System.getProperty("MYTESTIP_1");
 
     // Arquillian container name
     protected static final String CONTAINER2 = "node-2";
 
     // IP address for container 2
-    protected static String CONTAINER2_IP = "127.0.0.2";
+    protected static String CONTAINER2_IP = System.getProperty("MYTESTIP_2");
+    
+    // Arquillian container name
+    protected static final String CONTAINER3 = "node-3";
+
+    // IP address for container 3
+    protected static String CONTAINER3_IP = System.getProperty("MYTESTIP_3");
+    
+    // Arquillian container name
+    protected static final String CONTAINER4 = "node-4";
+
+    // IP address for container 4
+    protected static String CONTAINER4_IP = System.getProperty("MYTESTIP_4");
 
     // Name of the connection factory in JNDI
     protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
@@ -50,6 +62,9 @@ public class HornetQTestCase {
 
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
+    
+    // Multicast address 
+    protected static final String MULTICAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
 
     // Journal directory for first live/backup pair or first node in cluster
     protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "/tmp/hornetq-journal-A";
@@ -68,6 +83,14 @@ public class HornetQTestCase {
         if (System.getProperty("MYTESTIP_2") != null) {
             CONTAINER2_IP = System.getProperty("MYTESTIP_2");
             log.info(String.format("Setting CONTAINER2_IP='%s'", CONTAINER2_IP));
+        }
+        if (System.getProperty("MYTESTIP_3") != null) {
+            CONTAINER3_IP = System.getProperty("MYTESTIP_3");
+            log.info(String.format("Setting CONTAINER3_IP='%s'", CONTAINER3_IP));
+        }
+        if (System.getProperty("MYTESTIP_4") != null) {
+            CONTAINER4_IP = System.getProperty("MYTESTIP_4");
+            log.info(String.format("Setting CONTAINER4_IP='%s'", CONTAINER4_IP));
         }
     }
 
@@ -179,7 +202,8 @@ public class HornetQTestCase {
     protected boolean deleteDataFolderForJBoss2() {
         return deleteDataFolder(System.getProperty("JBOSS_HOME_2"));
     }
-
+    
+    
     // TODO implement methods for getting client of required type, ack-mode etc.
 
 }

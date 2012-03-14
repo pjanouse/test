@@ -9,5 +9,4 @@ public class ServerExtension implements LoadableExtension {
     public void register(ExtensionBuilder builder) {
         builder.service(ServerKillProcessor.class, JBossAS7ServerKillProcessor.class);
     }
-
 }

@@ -14,7 +14,7 @@
 
         <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
         <netty.version>3.2.6.Final</netty.version>
-        <hornetq.version>2.2.11.Final</hornetq.version>
+        <hornetq.version>2.2.13.Final</hornetq.version>
 
         <arquillian.version>1.0.0.CR7</arquillian.version>
         <arquillian.container.version>7.1.0.Final</arquillian.container.version>
@@ -50,8 +50,12 @@
                         </BYTEMAN_SUBMIT_JAR>
                         <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
+                        <JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>
+                        <JBOSS_HOME_4>${env.JBOSS_HOME_4}</JBOSS_HOME_4>
                         <MYTESTIP_1>${env.MYTESTIP_1}</MYTESTIP_1>
                         <MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
+                        <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
+                        <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

@@ -34,27 +34,54 @@ public class RuleInstaller {
 
     public static final String CLASS_KEY_PREFIX = "Class:";
     public static final String METHOD_KEY_PREFIX = "Method:";
-
+    
     /**
      * This will install rule which is described in annotation of caller method.
      *
      * @param testClass class with test
      */
     public static void installRule(Class testClass) {
+        installRule(testClass, "localhost", 9091);
+    }
+    /**
+     * This will install rule which is described in annotation of caller method.
+     *
+     * @param testClass class with test
+     * @param host hostname where byteman listen to
+     * @param port port where byteman listen to
+     */
+    public static void installRule(Class testClass, String host, int port) {
+        
+        SubmitUtil.host = host;
+        SubmitUtil.port = port;
+        
         RuleInstaller ruleInstaller = new RuleInstaller();
         Throwable t = new Throwable();
         StackTraceElement[] elements = t.getStackTrace();
+        String callerMethodName = null;
         boolean installed = false;
         for (int level = 1; level < elements.length; level++) {
             try {
-                String callerMethodName = elements[level].getMethodName();
+                callerMethodName = elements[level].getMethodName();
                 log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
                 ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
                 installed = true;
                 break;
             } catch (Exception ex) {
-                // Ignore it
+                
+                // this means that method has parameters -> testClass.getMethod(...) thrown exception
+                // problem is that we don't know parameters here
+                // we need another way how to get the method
+                // so try to get all methods from test class and compare it with names from stacktrace
+                // and try to find byteman rules
+                Method[] testClassMethods = testClass.getMethods();
+                for (int i = 0; i < testClassMethods.length; i++) {
+                    if (callerMethodName.equalsIgnoreCase(testClassMethods[i].getName())) {
+                        ruleInstaller.installMethod(testClassMethods[i]);
+                    }
+                }
             }
+            
         }
         if (!installed) {
             log.error("Cannot find corresponding annotations on stack trace methods");

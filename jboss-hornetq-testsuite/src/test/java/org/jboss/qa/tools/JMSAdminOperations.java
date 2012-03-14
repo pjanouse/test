@@ -1,5 +1,6 @@
 package org.jboss.qa.tools;
 
+import java.io.File;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
@@ -70,8 +71,10 @@ public final class JMSAdminOperations {
      * @param jndiName  JNDI queue name
      */
     public void createQueue(String queueName, String jndiName) {
-        createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, true);
+        createQueue(queueName, jndiName, true);
     }
+    
+    
 
     /**
      * Creates queue
@@ -81,7 +84,19 @@ public final class JMSAdminOperations {
      * @param durable   is queue durable
      */
     public void createQueue(String queueName, String jndiName, boolean durable) {
-        createJmsDestination(DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
+        createQueue("default", queueName, jndiName, durable);
+    }
+    
+    /**
+     * Creates queue
+     *
+     * @param serverName name of the hornetq server
+     * @param queueName queue name
+     * @param jndiName  JNDI queue name
+     * @param durable   is queue durable
+     */
+    public void createQueue(String serverName, String queueName, String jndiName, boolean durable) {
+        createJmsDestination(serverName, DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
     }
 
     /**
@@ -91,7 +106,17 @@ public final class JMSAdminOperations {
      * @param jndiName  JNDI queue name
      */
     public void createTopic(String topicName, String jndiName) {
-        createJmsDestination(DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
+        createTopic("default", topicName, jndiName);
+    }
+    
+    /**
+     * Creates topic
+     *
+     * @param topicName queue name
+     * @param jndiName  JNDI queue name
+     */
+    public void createTopic(String serverName, String topicName, String jndiName) {
+        createJmsDestination(serverName, DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
     }
 
     /**
@@ -194,13 +219,51 @@ public final class JMSAdminOperations {
     /**
      * Disables security on HornetQ
      */
-    public void disableSecurity() {
+    public void disableSecurity()   {
+        disableSecurity("default");
+    }
+    
+    /**
+     * Disables security on HornetQ
+     */
+    public void disableSecurity(String serverName) {
         final ModelNode disableSecurity = new ModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
         disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         disableSecurity.get("name").set("security-enabled");
         disableSecurity.get("value").set(Boolean.FALSE);
+        try {
+            this.applyUpdate(disableSecurity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Adds security attribute on HornetQ
+     * 
+     * @param value set to false to disable security for hornetq
+     * 
+     */
+    public void addSecurityEnabled(boolean value)   {
+        addSecurityEnabled("default", false);
+    }
+    
+    /**
+     * Adds security attribute on HornetQ
+     * 
+     * @param serverName set name of the hornetq server
+     * @param value set to false to disable security for hornetq
+     * 
+     */
+    public void addSecurityEnabled(String serverName, boolean value)   {
+        final ModelNode disableSecurity = new ModelNode();
+        disableSecurity.get(ClientConstants.OP).set("add");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        disableSecurity.get("security-enabled").set(value);
+        
         try {
             this.applyUpdate(disableSecurity);
         } catch (Exception e) {
@@ -262,12 +325,12 @@ public final class JMSAdminOperations {
      * @param jndiName        JNDI name for destination
      * @param durable         Is durable destination
      */
-    private void createJmsDestination(String destinationType, String destinationName, String jndiName, boolean durable) {
+    private void createJmsDestination(String serverName, String destinationType, String destinationName, String jndiName, boolean durable) {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
         ModelNode createJmsQueueOperation = new ModelNode();
         createJmsQueueOperation.get(ClientConstants.OP).set(ClientConstants.ADD);
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         createJmsQueueOperation.get("entries").add(jndiName);
         createJmsQueueOperation.get("entries").add("java:jboss/exported" + externalSuffix + jndiName);
@@ -321,17 +384,28 @@ public final class JMSAdminOperations {
         }
         return result;
     }
-
+    
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *
      * @param persistenceEnabled - true for persist messages
+     * 
      */
-    public void setPersistenceEnabled(boolean persistenceEnabled) {
+    public void setPersistenceEnabled(boolean persistenceEnabled)   {
+        setPersistenceEnabled("default", persistenceEnabled);
+    }
+
+    /**
+     * Sets persistence-enabled attribute in servers configuration.
+     *
+     * @param serverName sets name of the hornetq server to be changed
+     * @param persistenceEnabled - true for persist messages
+     */
+    public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         removeJmsQueue.get("name").set("persistence-enabled");
         removeJmsQueue.get("value").set(persistenceEnabled);
         try {
@@ -340,17 +414,57 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Adds persistence-enabled attribute in servers configuration.
+     *
+     * @param persistenceEnabled - true for persist messages
+     * 
+     */
+    public void addPersistenceEnabled(boolean persistenceEnabled)   {
+        setPersistenceEnabled("default", persistenceEnabled);
+    }
 
+    /**
+     * Adds persistence-enabled attribute in servers configuration.
+     *
+     * @param serverName sets name of the hornetq server to be changed
+     * @param persistenceEnabled - true for persist messages
+     */
+    public void addPersistenceEnabled(String serverName, boolean persistenceEnabled) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("persistence-enabled").set(persistenceEnabled);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Sets clustered attribute.
      *
      * @param clustered set true to allow server to create cluster
      */
     public void setClustered(boolean clustered) {
+        setClustered("default", clustered);
+    }
+    
+    /**
+     * Sets clustered attribute.
+     * 
+     * @param serverName sets name of the hornetq server to be changed
+     * @param clustered set true to allow server to create cluster
+     */
+    public void setClustered(String serverName, boolean clustered) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("clustered");
         model.get("value").set(clustered);
         try {
@@ -361,15 +475,56 @@ public final class JMSAdminOperations {
     }
 
     /**
+     * Adds clustered attribute.
+     *
+     * @param clustered set true to allow server to create cluster
+     */
+    public void addClustered(boolean clustered) {
+        setClustered("default", clustered);
+    }
+    
+    /**
+     * Adds clustered attribute.
+     * 
+     * @param serverName sets name of the hornetq server to be changed
+     * @param clustered set true to allow server to create cluster
+     */
+    public void addClustered(String serverName, boolean clustered) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("clustered").set(clustered);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    
+    /**
      * Set this to true if this server shares journal with other server (with live of backup)
      *
      * @param sharedStore share journal
      */
     public void setSharedStore(boolean sharedStore) {
+        setSharedStore("default", sharedStore);
+    }
+    
+    /**
+     * Set this to true if this server shares journal with other server (with live of backup)
+     *
+     * @param sharedStore share journal
+     * @param serverName hornetq server name
+     * 
+     */
+    public void setSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("shared-store");
         model.get("value").set(sharedStore);
 
@@ -379,17 +534,58 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-
+    
+    /**
+     * Adds attribute for sharing journal.
+     *
+     * @param sharedStore share journal
+     */
+    public void addSharedStore(boolean sharedStore) {
+        addSharedStore("default", sharedStore);
+    }
+    
+    /**
+     * Adds attribute for sharing journal.
+     *
+     * @param sharedStore shared journal
+     * @param serverName hornetq server name
+     * 
+     */
+    public void addSharedStore(String serverName, boolean sharedStore) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("shared-store").set(sharedStore);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Allow jms clients to reconnect from backup to live when live comes alive.
      *
      * @param allowFailback
      */
     public void setAllowFailback(boolean allowFailback) {
+        setAllowFailback("default", allowFailback);
+    }
+    
+    
+    /**
+     * Allow jms clients to reconnect from backup to live when live comes alive.
+     *
+     * @param allowFailback
+     * @param serverName name of the hornetq server
+     */
+    public void setAllowFailback(String serverName, boolean allowFailback) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("allow-failback");
         model.get("value").set(allowFailback);
 
@@ -400,16 +596,26 @@ public final class JMSAdminOperations {
         }
     }
 
-    /*
+    /**
      * Can be "NIO" or "AIO"
      *
      * @param "NIO" or "AIO"
      */
     public void setJournalType(String journalType) {
+        setJournalType("default", journalType);
+    }
+    
+    /**
+     * Can be "NIO" or "AIO"
+     * 
+     * @param serverName set name of hornetq server
+     * @param journalType can be "NIO" or "AIO"
+     */
+    public void setJournalType(String serverName, String journalType) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("journal-type");
         model.get("value").set(journalType);
 
@@ -421,17 +627,56 @@ public final class JMSAdminOperations {
     }
 
     /**
+     * Adds journal-type attribute.
+     *
+     * @param "NIO" or "AIO"
+     */
+    public void addJournalType(String journalType) {
+        addJournalType("default", journalType);
+    }
+    
+    /**
+     * Adds journal-type attribute.
+     * 
+     * @param serverName set name of hornetq server
+     * @param journalType can be "NIO" or "AIO"
+     */
+    public void addJournalType(String serverName, String journalType) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("journal-type").set(journalType);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+     /**
      * The directory to store the journal files in.
      *
      * @param path set absolute path
      */
     public void setJournalDirectory(String path) {
+        setJournalDirectory("default", path);
+    }
+    
+    /**
+     * The directory to store the journal files in.
+     *
+     * @param serverName set name of hornetq server
+     * @param path set absolute path
+     */
+    public void setJournalDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
-        model.get("path").set(path);
+        model.get("path").set(new File(path, "journal").getAbsolutePath());
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -445,12 +690,22 @@ public final class JMSAdminOperations {
      * @param path set absolute path
      */
     public void setPagingDirectory(String path) {
+        setPagingDirectory("default", path);
+    }
+    
+    /**
+     * The directory to store paged messages in.
+     *
+     * @param serverName set name of the server
+     * @param path set absolute path
+     */
+    public void setPagingDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("path").set(path);
+        model.get("path").set(new File(path, "paging").getAbsolutePath());
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -458,18 +713,29 @@ public final class JMSAdminOperations {
         }
     }
 
+    
     /**
      * The directory in which to store large messages.
      *
      * @param path set absolute path
      */
     public void setLargeMessagesDirectory(String path) {
+        setLargeMessagesDirectory("default", path);
+    }
+    
+    /**
+     * The directory in which to store large messages.
+     *
+     * @param serverName set name of hornetq server
+     * @param path set absolute path
+     */
+    public void setLargeMessagesDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
-        model.get("path").set(path);
+        model.get("path").set(new File(path, "large-messages").getAbsolutePath());
 
         try {
             this.applyUpdate(model);
@@ -484,13 +750,24 @@ public final class JMSAdminOperations {
      * @param path set absolute path
      */
     public void setBindingsDirectory(String path) {
-
+        setBindingsDirectory("default", path);
+    }
+    
+    /**
+     * The directory in which to store the persisted bindings.
+     *
+     * @param serverName set name of hornetq server
+     * @param path set absolute path
+     */
+    public void setBindingsDirectory(String serverName, String path) {
+        
+        
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
-        model.get("path").set(path);
+        model.get("path").set(new File(path, "bindings").getAbsolutePath());
 
         try {
             this.applyUpdate(model);
@@ -499,6 +776,7 @@ public final class JMSAdminOperations {
         }
     }
 
+    
     /**
      * A broadcast group is the means by which a server broadcasts connectors over the network.
      * A connector defines a way in which a client (or other server) can make connections to the server.
@@ -515,11 +793,31 @@ public final class JMSAdminOperations {
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
                                   String groupAddress, int groupPort, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
+        setBroadCastGroup("default", name, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod, connectorName, backupConnectorName);
+    }
+    
+    /**
+     * A broadcast group is the means by which a server broadcasts connectors over the network.
+     * A connector defines a way in which a client (or other server) can make connections to the server.
+     *
+     * @param serverName set name of hornetq server
+     * @param name                a unique name for the broadcast group - mandatory.
+     * @param localBindAddress    local bind address that the datagram socket is bound to. The default value is the wildcard IP address chosen by the kernel
+     * @param localBindPort       local port to which the datagram socket is bound to.
+     * @param groupAddress        multicast address to which the data will be broadcast - mandatory.
+     * @param groupPort           UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
+     * @param connectorName       A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
+     */
+    public void setBroadCastGroup(String serverName, String name, String localBindAddress, int localBindPort,
+                                  String groupAddress, int groupPort, long broadCastPeriod,
+                                  String connectorName, String backupConnectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(localBindAddress)) {
@@ -566,10 +864,25 @@ public final class JMSAdminOperations {
      */
     public void setDiscoveryGroup(String name, String localBindAddress,
                                   String groupAddress, int groupPort, long refreshTimeout) {
+        setDiscoveryGroup("default", name, localBindAddress, groupAddress, groupPort, refreshTimeout);
+    }
+    
+    /**
+     * Discovery group defines how connector information is received from a multicast address.
+     *
+     * @param serverName    Set name of hornetq server
+     * @param name             A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this local address.
+     * @param groupAddress     Multicast IP address of the group to listen on - mandatory.
+     * @param groupPort        UDP port of the multicast group - mandatory
+     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     */
+    public void setDiscoveryGroup(String serverName, String name, String localBindAddress,
+                                  String groupAddress, int groupPort, long refreshTimeout) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(localBindAddress)) {
@@ -610,11 +923,30 @@ public final class JMSAdminOperations {
     public void setClusterConnections(String name, String address,
                                       String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        setClusterConnections("default", name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
+    }
+    
+    /**
+     * Sets cluster configuration.
+     *
+     * @param serverName Set name of hornetq server.
+     * @param name                   Name of the cluster group - like "failover-cluster"
+     * @param address                Name of address this cluster connection applies to.
+     * @param discoveryGroupRef      Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval          Period (in ms) between successive retries.
+     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName          Name of connector to use for live connection.
+     */
+    public void setClusterConnections(String serverName, String name, String address,
+                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
+                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
@@ -631,6 +963,37 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
 
+    }
+    
+    /**
+     * Sets size of the journal file. 
+     * 
+     * @param serverName name of the hornetq server
+     * @param sizeInBytes size of the journal file in bytes
+     */
+    public void setJournalFileSize(long sizeInBytes)    {
+        setJournalFileSize("default", sizeInBytes);
+    }
+    
+    /**
+     * Sets size of the journal file. 
+     * 
+     * @param serverName name of the hornetq server
+     * @param sizeInBytes size of the journal file in bytes
+     */
+    public void setJournalFileSize(String serverName, long sizeInBytes)    {
+     
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("journal-file-size");
+        model.get("value").set(sizeInBytes);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -798,15 +1161,25 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * Is this server bakcup?
+     * Sets backup attribute.
      *
      * @param isBackup
      */
     public void setBackup(boolean isBackup) {
+        setBackup("default", isBackup);
+    }
+    
+    /**
+     * Sets backup attribute.
+     *
+     * @param isBackup
+     * @param serverName name of the hornetq server
+     */
+    public void setBackup(String serverName, boolean isBackup) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("backup");
         model.get("value").set(isBackup);
 
@@ -817,6 +1190,35 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * Adds backup attribute.
+     *
+     * @param isBackup
+     */
+    public void addBackup(boolean isBackup) {
+        setBackup("default", isBackup);
+    }
+    
+    /**
+     * Adds backup attribute.
+     *
+     * @param isBackup
+     * @param serverName name of the hornetq server
+     */
+    public void addBackup(String serverName, boolean isBackup) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("backup").set(isBackup);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Removes address settings
      *
@@ -1077,7 +1479,7 @@ public final class JMSAdminOperations {
     /**
      * Remove remote connector
      *
-     * @param name bridge name
+     * @param name name of the remote connector
      */
     public void removeRemoteConnector(String name) {
         ModelNode model = new ModelNode();
@@ -1095,16 +1497,162 @@ public final class JMSAdminOperations {
     /**
      * Creates remote connector
      *
-     * @param name   bridge name
+     * @param name name of the remote connector
      * @param params source queue
      */
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
+        createRemoteConnector("default", name, socketBinding, params);
+    }
+    
+    /**
+     * Creates remote connector
+     *
+     * @param serverName set name of hornetq server
+     * @param name name of the remote connector
+     * @param params params
+     */
+    public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
         model.get("socket-binding").set(socketBinding);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("param").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    
+    /**
+     * Creates remote connector
+     *
+     * @param serverName set name of hornetq server
+     * @param name name of the remote connector
+     * @param params params
+     */
+    public void createSocketBinding(String socketBindingName, int port) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("port").set(port);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Creates in-vm connector
+     *
+     * @param name  name of the remote connetor
+     * @param serverId set server id
+     * @param params params for connector
+     */
+    public void createInVmConnector(String name, int serverId, Map<String, String> params) {
+        createInVmConnector("default", name, serverId, params);
+    }
+        
+    /**
+     * Creates in-vm connector
+     *
+     * @param serverName set name of hornetq server
+     * @param name   name of the remote connector
+     * @param serverId set server id
+     * @param params params for connector
+     */
+    public void createInVmConnector(String serverName, String name, int serverId, Map<String, String> params) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("in-vm-connector", name);
+        model.get("server-id").set(serverId);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("param").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    
+    /**
+     * Creates remote acceptor
+     *
+     * @param name   name of the remote acceptor
+     * @param params source queue
+     */
+    public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
+        createRemoteAcceptor("default", name, socketBinding, params);
+    }
+    
+    /**
+     * Creates remote acceptor
+     *
+     * @param serverName set name of hornetq server
+     * @param name   name of the remote acceptor
+     * @param params params
+     */
+    public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
+        model.get("socket-binding").set(socketBinding);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("param").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Creates in-vm acceptor
+     *
+     * @param name   name of the connector
+     * @param serverId set server id
+     * @param params params for connector
+     */
+    public void createInVmAcceptor(String name, int serverId, Map<String, String> params) {
+        createInVmAcceptor("default", name, serverId, params);
+    }
+    
+    /**
+     * Creates in-vm acceptor
+     *
+     * @param serverName set name of hornetq server
+     * @param name   name of the connector
+     * @param serverId set server id
+     * @param params params for connector
+     */
+    public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("in-vm-acceptor", name);
+        model.get("server-id").set(serverId);
         if (params != null) {
             for (String key : params.keySet()) {
                 model.get("param").add(key, params.get(key));
@@ -1202,6 +1750,25 @@ public final class JMSAdminOperations {
         return empty;
     }
 
+    /** 
+     * Adds new messaging subsystem/new hornetq server to configuration
+     * 
+     * @param serverName name of the new hornetq server
+     */
+    public void addMessagingSubsystem(String serverName) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Exception
      */

@@ -4,99 +4,91 @@ import java.util.*;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import org.apache.log4j.Logger;
-import javax.jms.Queue;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 /**
- * Simple receiver with client acknowledge session. ABLE to failover.
+ * Simple subscriber with client acknowledge session. ABLE to failover.
  *
  * @author mnovak
  */
-public class ReceiverClientAckHA extends Thread {
+public class SubscriberClientAck extends Thread {
 
-    private static final Logger logger = Logger.getLogger(ReceiverClientAckHA.class);
+    private static final Logger logger = Logger.getLogger(SubscriberClientAck.class);
     private int maxRetries;
     private String hostname;
     private int port;
-    private String queueNameJndi = "jms/queue/testQueue1";
+    private String topicNameJndi;
     private long receiveTimeOut;
     private int ackAfter;
-    private MessageVerifier messageVerifier;
+    private FinalTestMessageVerifier messageVerifier;
     private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
+    private String subscriberName;
+    private String clientId;
+    private Context context;
+    private ConnectionFactory cf;
+    private Connection conn;
+    private Session session;
+    private Topic topic;
+    private TopicSubscriber subscriber = null;
 
     /**
-     * Creates a receiver to queue with client acknowledge.
-     * 
+     * Creates a subscriber to topic with client acknowledge.
+     *
      * @param hostname hostname
      * @param port jndi port
-     * @param queueJndiName jndi name of the queue    
+     * @param topicNameJndi jndi name of the topic
+     * @param subscriberName name of the subscriber
      */
-    public ReceiverClientAckHA(String hostname, int port, String queueJndiName) {
+    public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
         
-        this(hostname, port, queueJndiName, 30000, 10, 30);
+        this(hostname, port, topicNameJndi, 30000, 10, 30, clientId, subscriberName);
         
     }
     
     /**
-     * Creates a receiver to queue with client acknowledge.
+     * Creates a subscriber to topic with client acknowledge.
      * 
      * @param hostname hostname
      * @param port jndi port
-     * @param queueJndiName jndi name of the queue
+     * @param topicNameJndi jndi name of the topic
      * @param receiveTimeOut how long to wait to receive message
      * @param ackAfter send ack after how many messages
      * @param maxRetries how many times to retry receive before giving up
+     * @param subscriberName name of the subscriber
      */
-    public ReceiverClientAckHA(String hostname, int port, String queueJndiName, long receiveTimeOut,
-            int ackAfter, int maxRetries) {
+    public SubscriberClientAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
+            int ackAfter, int maxRetries, String clientId, String subscriberName) {
         
         this.hostname = hostname;
         this.port = port;
-        this.queueNameJndi = queueJndiName;
+        this.topicNameJndi = topicNameJndi;
         this.receiveTimeOut = receiveTimeOut;
         this.ackAfter = ackAfter;
         this.maxRetries = maxRetries;
-        
+        this.clientId = clientId;
+        this.subscriberName = subscriberName;
     }
 
     @Override
     public void run() {
 
-        Context context = null;
-        ConnectionFactory cf = null;
-        Connection conn = null;
-        Session session = null;
-        Queue queue = null;
-
         try {
-
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
-            context = new InitialContext(env);
-
-            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-
-            conn = cf.createConnection();
-
-            conn.start();
-
-            queue = (Queue) context.lookup(queueNameJndi);
-
-            session = conn.createSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
-
-            MessageConsumer receiver = session.createConsumer(queue);
+            
+            if (cf == null) {
+                subscribe();
+            }
 
             Message message = null;
             
             Message lastMessage = null;
             
-            while ((message = receiveMessage(receiver)) != null) {
+            while ((message = receiveMessage(subscriber)) != null) {
                 
                 listOfReceivedMessagesToBeAcked.add(message);
                 
@@ -105,18 +97,20 @@ public class ReceiverClientAckHA extends Thread {
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
                 } else { // i don't want to ack now
-                    logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
+                    logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
                 
-                // hold information about last message so we can ack it when null is received = queue empty
+                // hold information about last message so we can ack it when null is received = topic empty
                 lastMessage = message;
             }
             
-            acknowledgeMessage(lastMessage);
+            if (lastMessage != null)    {
+                acknowledgeMessage(lastMessage);
+            }
 
-            logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
+            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
                     +". Received NULL - number of received messages: " + count);
             
             if (messageVerifier != null)    {
@@ -129,12 +123,19 @@ public class ReceiverClientAckHA extends Thread {
         } catch (Exception ex) {
             logger.error("Exception was thrown during receiving messages:", ex);
             exception = ex;
-            throw new RuntimeException("Fatal exception was thrown in receiver. Receiver for node: " + getHostname());
+            throw new RuntimeException("Fatal exception was thrown in subscriber. Subscriber for node: " + getHostname());
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (JMSException ex) {
+                    // ignore
+                }
+            }
+            if (context != null)    {
+                try {
+                    context.close();
+                } catch (Exception ex)    {
                     // ignore
                 }
             }
@@ -153,13 +154,13 @@ public class ReceiverClientAckHA extends Thread {
 
             message.acknowledge();
             
-            logger.info("Receiver for node: " + getHostname() + ". Received message - count: "
+            logger.info("Subscriber for node: " + getHostname() + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
             
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
 
         } catch (Exception ex) {
-            logger.error("Exception thrown during acknowledge. Receiver for node: " + getHostname() + ". Received message - count: "
+            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: " + hostname + ". Received message - count: "
                     + count + ", messageId:" + message.getJMSMessageID());
             // all unacknowledge messges will be received again
             count = count - ackAfter;
@@ -167,17 +168,18 @@ public class ReceiverClientAckHA extends Thread {
         
         listOfReceivedMessagesToBeAcked.clear();
     }
+    
     /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
-     * consumer.receiver(timeout) throw JMSException maxRetries's times then throw Exception above.
+     * subscriber.subscriber(timeout) throw JMSException maxRetries's times then throw Exception above.
      * 
-     * @param consumer consumer message consumer
+     * @param subscriber subscriber message subscriber
      * @return message or null
      * @throws Exception when maxRetries was reached
      * 
      */
-    public Message receiveMessage(MessageConsumer consumer) throws Exception {
+    public Message receiveMessage(TopicSubscriber subscriber) throws Exception {
         
         Message msg = null;
         int numberOfRetries = 0;
@@ -187,16 +189,17 @@ public class ReceiverClientAckHA extends Thread {
             
             try {
                 
-                msg = consumer.receive(receiveTimeOut);
+                msg = subscriber.receive(receiveTimeOut);
                 return msg;
                 
             } catch (JMSException ex)   {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (count + 1));
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1) 
+                        + "ex: " + ex.getMessage());
             }
         }
        
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + getHostname());
+        throw new Exception("FAILURE - MaxRetry reached for subscriber Subscriber: " + subscriberName + " for node: " + hostname);
     }
     
     /**
@@ -242,30 +245,16 @@ public class ReceiverClientAckHA extends Thread {
     }
 
     /**
-     * @return the queueNameJndi
-     */
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    /**
-     * @param queueNameJndi the queueNameJndi to set
-     */
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    /**
      * @return the messageVerifier
      */
-    public MessageVerifier getMessageVerifier() {
+    public FinalTestMessageVerifier getMessageVerifier() {
         return messageVerifier;
     }
 
     /**
      * @param messageVerifier the messageVerifier to set
      */
-    public void setMessageVerifier(MessageVerifier messageVerifier) {
+    public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
         this.messageVerifier = messageVerifier;
     }
 
@@ -297,4 +286,75 @@ public class ReceiverClientAckHA extends Thread {
         this.exception = exception;
     }
 
+    /**
+     * @return the topicNameJndi
+     */
+    public String getTopicNameJndi() {
+        return topicNameJndi;
+    }
+
+    /**
+     * @param topicNameJndi the topicNameJndi to set
+     */
+    public void setTopicNameJndi(String topicNameJndi) {
+        this.topicNameJndi = topicNameJndi;
+    }
+
+    /**
+     * @return the subscriberName
+     */
+    public String getSubscriberName() {
+        return subscriberName;
+    }
+
+    /**
+     * @param subscriberName the subscriberName to set
+     */
+    public void setSubscriberName(String subscriberName) {
+        this.subscriberName = subscriberName;
+    }
+    
+    /**
+     * I don't want to have synchronization between publishers and subscribers.
+     * 
+     */
+    public void subscribe() {
+
+        try {
+
+            final Properties env = new Properties();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
+            context = new InitialContext(env);
+
+            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+
+            conn = cf.createConnection();
+
+            conn.setClientID(clientId);
+
+            conn.start();
+
+            topic = (Topic) context.lookup(getTopicNameJndi());
+
+            session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+
+            subscriber = session.createDurableSubscriber(topic, subscriberName);
+
+        } catch (Exception e) {
+            
+            logger.error("Exception thrown during subsribing.", e);
+            exception = e;
+            
+        }
+    }
+    
+    public static void main(String[] args) throws InterruptedException, Exception {
+
+        SubscriberClientAck client =
+                new SubscriberClientAck("192.168.1.1", 4447, "jms/topic/testTopic0", "subscriberClientId-jms/topic/testTopic0-0",
+                "subscriber1");
+        client.start();
+        client.join();
+    }
 }
