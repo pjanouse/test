@@ -366,9 +366,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
         jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
-        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         controller.stop(containerName);
