@@ -67,10 +67,10 @@ public class HornetQTestCase {
     protected static final String MULTICAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
 
     // Journal directory for first live/backup pair or first node in cluster
-    protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "/tmp/hornetq-journal-A";
+    protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A";
 
     // Journal directory for second live/backup pair or second node in cluster
-    protected static final String JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "/tmp/hornetq-journal-B";
+    protected static final String JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-B";
 
     @ArquillianResource
     protected ContainerController controller;
@@ -203,7 +203,4 @@ public class HornetQTestCase {
         return deleteDataFolder(System.getProperty("JBOSS_HOME_2"));
     }
     
-    
-    // TODO implement methods for getting client of required type, ack-mode etc.
-
 }
