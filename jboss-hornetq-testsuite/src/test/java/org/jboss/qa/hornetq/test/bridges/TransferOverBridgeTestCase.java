@@ -10,6 +10,9 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.byteman.annotation.BMRule;
+import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +32,7 @@ import static junit.framework.Assert.assertTrue;
  * @author pslavice@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigAfterTest
 public class TransferOverBridgeTestCase extends HornetQTestCase {
 
     // Logger
@@ -42,8 +46,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     public void stopAllServers() {
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
-        deleteDataFolderForJBoss1();
-        deleteDataFolderForJBoss2();
     }
 
     /**
@@ -228,6 +230,90 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.stop(CONTAINER2);
     }
 
+    /**
+     * Kills source server several times during sending messages
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @BMRules(
+            {@BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeAcknowledge",
+                    action = "createCounter(\"counter\")"),
+                    @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                            targetMethod = "storeAcknowledge",
+                            action = "incrementCounter(\"counter\");"
+                                    + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+                    @BMRule(name = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                            targetMethod = "storeAcknowledge",
+                            condition = "readCounter(\"counter\")>10",
+                            action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+    @RunAsClient
+    public void killSourceServerTest() throws InterruptedException {
+        final String TEST_QUEUE = "dummyQueue";
+        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final String TEST_QUEUE_OUT = "dummyQueueOut";
+        final String TEST_QUEUE_OUT_JNDI = "/queue/dummyQueueOut";
+        final int messages = 100;
+
+        // Start servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
+
+        // Create queue
+        jmsAdminContainer1.cleanupQueue(TEST_QUEUE);
+        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer2.cleanupQueue(TEST_QUEUE_OUT);
+        jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
+
+        jmsAdminContainer1.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteConnector("bridge-connector");
+        jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+
+        // install rule to first server
+        //RuleInstaller.installRule(this.getClass());
+
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        client1.sendMessages(TEST_QUEUE_JNDI);
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        assertEquals(messages, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
+        client2.receiveMessages(TEST_QUEUE_OUT_JNDI);
+        assertEquals(messages, client2.getReceivedMessages());
+
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+    }
+
     //============================================================================================================
     //============================================================================================================
     // Private methods
@@ -242,8 +328,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * @param messageVerifier instance of the messages verifier
      */
     private void testLogic(int messages, MessageBuilder messageBuilder, MessageVerifier messageVerifier) {
-        final String TEST_QUEUE = "dummyQueue";
-        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final String TEST_QUEUE_IN = "dummyQueueIn";
+        final String TEST_QUEUE_IN_JNDI = "/queue/dummyQueueIn";
+        final String TEST_QUEUE_OUT = "dummyQueueOut";
+        final String TEST_QUEUE_OUT_JNDI = "/queue/dummyQueueOut";
 
         // Start servers
         controller.start(CONTAINER1);
@@ -254,10 +342,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
 
         // Create queue
-        jmsAdminContainer1.cleanupQueue(TEST_QUEUE);
-        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminContainer2.cleanupQueue(TEST_QUEUE);
-        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer1.cleanupQueue(TEST_QUEUE_IN);
+        jmsAdminContainer1.createQueue(TEST_QUEUE_IN, TEST_QUEUE_IN_JNDI);
+        jmsAdminContainer2.cleanupQueue(TEST_QUEUE_OUT);
+        jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
 
         jmsAdminContainer1.removeRemoteConnector("bridge-connector");
         jmsAdminContainer1.removeBridge("myBridge");
@@ -272,29 +360,30 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.stop(CONTAINER1);
         controller.start(CONTAINER1);
 
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         if (messageBuilder != null) {
             client1.setMessageBuilder(messageBuilder);
         }
-        client1.sendMessages(TEST_QUEUE_JNDI);
+        client1.sendMessages(TEST_QUEUE_IN_JNDI);
 
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             // Ignore it
         }
+
         // Receive messages from the output node
         SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         if (messageVerifier != null) {
             client2.setMessageVerifier(messageVerifier);
         }
-        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(messages, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
+        client2.receiveMessages(TEST_QUEUE_OUT_JNDI);
         assertEquals(messages, client2.getReceivedMessages());
-
-        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
         controller.stop(CONTAINER1);
