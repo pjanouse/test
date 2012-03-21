@@ -101,6 +101,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * @param consumersCount      count of consumers used in tests
      * @param receiveTimeout      receive timeout for consumers
      * @param messageBuilder      implementation of {@link MessageBuilder} used for test
+     * @param maxSizeBytes        max size in bytes for address configurations
+     * @param pageSizeBytes       page size in bytes for address configurations
      */
     private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
                            int receiveTimeout, MessageBuilder messageBuilder,
@@ -110,7 +112,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         final String ADDRESS = "jms.topic." + TOPIC;
 
         controller.start(CONTAINER1);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);

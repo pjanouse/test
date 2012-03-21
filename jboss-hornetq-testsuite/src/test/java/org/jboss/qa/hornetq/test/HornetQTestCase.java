@@ -17,11 +17,10 @@ import java.util.Properties;
  * Parent class for all HornetQ test cases.
  * <p/>
  * How to use this class:
- *  - class contains two properties with name of defined containers
- *    <code>CONTAINER1</code> and <code>CONTAINER2</code>
- *  - class contains two properties with IP addresses used in test
- *    <code>CONTAINER1_IP</code> and <code>CONTAINER2_IP</code>
- *
+ * - class contains two properties with name of defined containers
+ * <code>CONTAINER1</code> and <code>CONTAINER2</code>
+ * - class contains two properties with IP addresses used in test
+ * <code>CONTAINER1_IP</code> and <code>CONTAINER2_IP</code>
  *
  * @author pslavice@redhat.com
  */
@@ -34,25 +33,25 @@ public class HornetQTestCase {
     protected static final String CONTAINER1 = "node-1";
 
     // IP address for container 1
-    protected static String CONTAINER1_IP = System.getProperty("MYTESTIP_1");
+    protected static String CONTAINER1_IP;
 
     // Arquillian container name
     protected static final String CONTAINER2 = "node-2";
 
     // IP address for container 2
-    protected static String CONTAINER2_IP = System.getProperty("MYTESTIP_2");
-    
+    protected static String CONTAINER2_IP;
+
     // Arquillian container name
     protected static final String CONTAINER3 = "node-3";
 
     // IP address for container 3
-    protected static String CONTAINER3_IP = System.getProperty("MYTESTIP_3");
-    
+    protected static String CONTAINER3_IP;
+
     // Arquillian container name
     protected static final String CONTAINER4 = "node-4";
 
     // IP address for container 4
-    protected static String CONTAINER4_IP = System.getProperty("MYTESTIP_4");
+    protected static String CONTAINER4_IP;
 
     // Name of the connection factory in JNDI
     protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
@@ -62,15 +61,20 @@ public class HornetQTestCase {
 
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
-    
-    // Multicast address 
-    protected static final String MULTICAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
+
+    // Ports for Byteman
+    protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
+
+    protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
+
+    // Multi-cast address
+    protected static final String MULTICAST_ADDRESS;
 
     // Journal directory for first live/backup pair or first node in cluster
-    protected static final String JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A";
+    protected static final String JOURNAL_DIRECTORY_A;
 
     // Journal directory for second live/backup pair or second node in cluster
-    protected static final String JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-B";
+    protected static final String JOURNAL_DIRECTORY_B;
 
     @ArquillianResource
     protected ContainerController controller;
@@ -92,6 +96,9 @@ public class HornetQTestCase {
             CONTAINER4_IP = System.getProperty("MYTESTIP_4");
             log.info(String.format("Setting CONTAINER4_IP='%s'", CONTAINER4_IP));
         }
+        MULTICAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
+        JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A";
+        JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-B";
     }
 
     /**
@@ -202,5 +209,5 @@ public class HornetQTestCase {
     protected boolean deleteDataFolderForJBoss2() {
         return deleteDataFolder(System.getProperty("JBOSS_HOME_2"));
     }
-    
+
 }

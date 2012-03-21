@@ -9,7 +9,6 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.security.auth.callback.CallbackHandler;
 import java.util.Properties;
 
 /**
@@ -95,6 +94,9 @@ public class SimpleJMSClient {
         Context context = null;
         Connection connection = null;
         Session session = null;
+        if (this.messageBuilder == null) {
+            this.messageBuilder = new ByteMessageBuilder();
+        }
         try {
             context = getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arquillian xmlns="http://jboss.com/arquillian" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.jboss.org/arquillian-1.0 http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+    <defaultProtocol type="Servlet 3.0"/>
+    <group qualifier="cluster">
+        <container qualifier="node-1" default="true" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_1}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_1}:8586,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_1}
+                    -Djboss.bind.address.management=${MYTESTIP_1}
+                </property>
+                <property name="serverConfig">standalone-full-ha.xml</property>
+                <property name="startupTimeoutInSeconds">60</property>
+                <property name="managementAddress" >${MYTESTIP_1}</property>
+            </configuration>
+        </container>
+
+        <container qualifier="node-2" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_2}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_2}:8686,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_2}
+                    -Djboss.bind.address.management=${MYTESTIP_2}
+                </property>
+                <property name="serverConfig">standalone-full-ha.xml</property>
+                <property name="startupTimeoutInSeconds">60</property>
+                <property name="managementAddress" >${MYTESTIP_2}</property>
+            </configuration>
+        </container>
+        
+        <container qualifier="node-3" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_3}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9291
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_3}:8686,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_3}
+                    -Djboss.bind.address.management=${MYTESTIP_3}
+                </property>
+                <property name="serverConfig">standalone-full-ha.xml</property>
+                <property name="startupTimeoutInSeconds">60</property>
+                <property name="managementAddress" >${MYTESTIP_3}</property>
+            </configuration>
+        </container>
+        
+        <container qualifier="node-4" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_4}</property>
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                    -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
+                    -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9391
+                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
+                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_4}:8686,server=y,suspend=n
+                    -Djboss.bind.address=${MYTESTIP_4}
+                    -Djboss.bind.address.management=${MYTESTIP_4}
+                </property>
+                <property name="serverConfig">standalone-full-ha.xml</property>
+                <property name="startupTimeoutInSeconds">60</property>
+                <property name="managementAddress" >${MYTESTIP_4}</property>
+            </configuration>
+        </container>
+        
+    </group>
+</arquillian>
+

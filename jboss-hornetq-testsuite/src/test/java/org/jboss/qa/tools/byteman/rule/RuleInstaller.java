@@ -34,7 +34,7 @@ public class RuleInstaller {
 
     public static final String CLASS_KEY_PREFIX = "Class:";
     public static final String METHOD_KEY_PREFIX = "Method:";
-    
+
     /**
      * This will install rule which is described in annotation of caller method.
      *
@@ -43,18 +43,19 @@ public class RuleInstaller {
     public static void installRule(Class testClass) {
         installRule(testClass, "localhost", 9091);
     }
+
     /**
      * This will install rule which is described in annotation of caller method.
      *
      * @param testClass class with test
-     * @param host hostname where byteman listen to
-     * @param port port where byteman listen to
+     * @param host      hostname where byteman listen to
+     * @param port      port where byteman listen to
      */
     public static void installRule(Class testClass, String host, int port) {
-        
+
         SubmitUtil.host = host;
         SubmitUtil.port = port;
-        
+
         RuleInstaller ruleInstaller = new RuleInstaller();
         Throwable t = new Throwable();
         StackTraceElement[] elements = t.getStackTrace();
@@ -68,7 +69,7 @@ public class RuleInstaller {
                 installed = true;
                 break;
             } catch (Exception ex) {
-                
+
                 // this means that method has parameters -> testClass.getMethod(...) thrown exception
                 // problem is that we don't know parameters here
                 // we need another way how to get the method
@@ -81,7 +82,7 @@ public class RuleInstaller {
                     }
                 }
             }
-            
+
         }
         if (!installed) {
             log.error("Cannot find corresponding annotations on stack trace methods");

@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -39,6 +40,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
         controller.stop(CONTAINER1);
+        deleteDataFolderForJBoss1();
     }
 
     /**
@@ -48,6 +50,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     public void dummySendReceiveTest() throws InterruptedException {
         final String MY_QUEUE = "dummyQueue";
         final String MY_QUEUE_JNDI = "/queue/dummyQueue";
@@ -57,12 +60,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
 
-        SimpleJMSClient client = new SimpleJMSClient("localhost", 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client = new SimpleJMSClient(CONTAINER1_IP, 4447, MESSAGES, Session.AUTO_ACKNOWLEDGE, false);
         client.sendMessages(MY_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringSend());
         assertEquals(MESSAGES, client.getSentMessages());
@@ -95,6 +97,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -114,6 +117,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -135,6 +139,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -154,6 +159,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -174,6 +180,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -186,9 +193,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -200,6 +206,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -213,9 +220,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -227,6 +233,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -240,9 +247,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -260,6 +266,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill before do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -279,6 +286,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -299,6 +307,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill before do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -311,9 +320,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -325,6 +333,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -338,9 +347,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -358,6 +366,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules({
             @BMRule(name = "Kill before ack is written in journal",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -375,9 +384,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -389,6 +397,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigAfterTest
     @BMRules(
             @BMRule(name = "Kill after acknowledge()",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
@@ -402,9 +411,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
     }
@@ -443,11 +451,10 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations();
-        jmsAdminOperations.cleanupQueue(MY_QUEUE);
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
 
-        SimpleJMSClient client = new SimpleJMSClient("localhost", 4447, 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient(CONTAINER1_IP, 4447, 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before sending message ...");
