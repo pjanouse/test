@@ -102,56 +102,19 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void startTargetServerLaterTest() throws InterruptedException {
-        final String TEST_QUEUE = "dummyQueue";
-        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
-        final int messages = 100;
+        testLogicForTargetServerLaterStart(null);
+    }
 
-        // Start servers
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
-
-        // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
-        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
-
-        // Create queue
-        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
-        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-
-        controller.stop(CONTAINER1);
-        controller.start(CONTAINER1);
-
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
-
-        // Send messages into input node
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
-        client1.sendMessages(TEST_QUEUE_JNDI);
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            // Ignore it
-        }
-        controller.start(CONTAINER2);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            // Ignore it
-        }
-
-        // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
-        client2.receiveMessages(TEST_QUEUE_JNDI);
-        assertEquals(messages, client2.getReceivedMessages());
-
-        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
-        jmsAdminContainer1.close();
-        jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+    /**
+     * Starts target server later - large messages
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigAfterTest
+    public void startTargetServerLaterWithLargeMessagesTest() throws InterruptedException {
+        testLogicForTargetServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -163,59 +126,19 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void startSourceServerLaterTest() throws InterruptedException {
-        final String TEST_QUEUE = "dummyQueue";
-        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
-        final int messages = 100;
+        testLogicForSourceServerLaterStart(null);
+    }
 
-        // Start servers
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
-
-        // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
-        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
-
-        // Create queue
-        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
-        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-
-        controller.stop(CONTAINER1);
-        controller.start(CONTAINER1);
-
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
-
-        controller.stop(CONTAINER1);
-        controller.start(CONTAINER1);
-
-        // Send messages into input node
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
-        client1.sendMessages(TEST_QUEUE_JNDI);
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            // Ignore it
-        }
-        controller.start(CONTAINER2);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            // Ignore it
-        }
-
-        // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
-        client2.receiveMessages(TEST_QUEUE_JNDI);
-        assertEquals(messages, client2.getReceivedMessages());
-
-        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
-        jmsAdminContainer1.close();
-        jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+    /**
+     * Starts source server later - large message
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigAfterTest
+    public void startSourceServerLaterWithLargeMessagesTest() throws InterruptedException {
+        testLogicForSourceServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -498,4 +421,117 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
     }
+
+    /**
+     * Implementation of the basic test scenario where target server is started later
+     *
+     * @param messageBuilder instance of the message messageBuilder
+     */
+    private void testLogicForSourceServerLaterStart(MessageBuilder messageBuilder) {
+        final String TEST_QUEUE = "dummyQueue";
+        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final int messages = 100;
+
+        // Start servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
+
+        // Create queue
+        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
+        client1.sendMessages(TEST_QUEUE_JNDI);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(messages, client2.getReceivedMessages());
+
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+    }
+
+    /**
+     * Implementation of the basic test scenario where target server is started later
+     *
+     * @param messageBuilder instance of the message messageBuilder
+     */
+    private void testLogicForTargetServerLaterStart(MessageBuilder messageBuilder) {
+        final String TEST_QUEUE = "dummyQueue";
+        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final int messages = 100;
+
+        // Start servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
+
+        // Create queue
+        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        // Send messages into input node
+        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
+        client1.sendMessages(TEST_QUEUE_JNDI);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+        controller.start(CONTAINER2);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // Ignore it
+        }
+
+        // Receive messages from the output node
+        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        client2.receiveMessages(TEST_QUEUE_JNDI);
+        assertEquals(messages, client2.getReceivedMessages());
+
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+    }
+
+
 }
