@@ -271,7 +271,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                             targetMethod = "commit",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
-                                    "createCounter(\"counter\");" +
                                     "killJVM();")
             })
     @RunAsClient
@@ -334,7 +333,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                             targetMethod = "commit",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
-                                    "createCounter(\"counter\");" +
                                     "killJVM();")
             })
     @RunAsClient

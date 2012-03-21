@@ -17,48 +17,45 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     // Logger
     private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class.getName());
 
-    // Kill sequence for CLI
-    private static String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
-
     /**
      * @see {@link ServerKillProcessor#kill(org.jboss.arquillian.container.spi.Container)}
      */
     @Override
     public void kill(Container container) throws Exception {
+        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
         final int MAXIMAL_CHECKS = 120;
-        log.info("Waiting for Byteman to kill server");
-        
+
+        log.info("Waiting. Server will be killed by an external process ...");
+
         String hostname = container.getContainerConfiguration().getContainerProperties().get("managementAddress");
-        if (hostname == null)   {
+        if (hostname == null) {
             hostname = "127.0.0.1";
         }
-        killSequence = killSequence.replace("[hostname]", hostname);
-        
-        String jbossHome = System.getenv().get("JBOSS_HOME");
+        String jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
         if (jbossHome == null) {
-            jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
+            jbossHome = System.getenv().get("JBOSS_HOME");
+            if (jbossHome == null) {
+                throw new RuntimeException("Cannot get JBoss home folder");
+            }
         }
-        killSequence = killSequence.replace("[jbossHome]", jbossHome);
-
-        String suffix;
         String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("windows")) {
-            suffix = "bat";
-        } else {
-            suffix = "sh";
-        }
+        String suffix = (os.contains("windows")) ? "bat" : "sh";
+
+        // Prepare kill sequence
+        String killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+        killSequence = killSequence.replace("[jbossHome]", jbossHome);
         killSequence = killSequence.replace("[suffix]", suffix);
-        log.info("Kill sequence for server: " + killSequence);
+        log.info(String.format("Kill sequence for server: '%s'", killSequence));
+
         int checkCount = 0;
         boolean killed = false;
         do {
-            if (checkJBossAlive()) {
-                int checkDurableTime = 10;
-                Thread.sleep(checkDurableTime * 50);
-                log.info("JBossAS is still alive ...");
+            if (checkJBossAlive(killSequence)) {
+                Thread.sleep(250);
+                log.info(String.format("JBossAS is still alive ... check %s/%s", checkCount, MAXIMAL_CHECKS));
             } else {
                 killed = true;
-                log.info("JBossAS is dead ...");
+                log.info("JBossAS was killed ...");
                 break;
             }
         } while (checkCount++ < MAXIMAL_CHECKS);
@@ -73,10 +70,11 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     /**
      * Checks if AS is alive
      *
+     * @param killSequence External command used for checking if server is alive or not
      * @return true if as is alive
      * @throws Exception if something goes wrong
      */
-    private boolean checkJBossAlive() throws Exception {
+    private boolean checkJBossAlive(String killSequence) throws Exception {
         Process p = Runtime.getRuntime().exec(killSequence);
         p.waitFor();
         InputStream out = p.getInputStream();
