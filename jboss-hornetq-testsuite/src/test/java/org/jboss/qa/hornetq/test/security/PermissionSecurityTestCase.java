@@ -5,85 +5,226 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import javax.jms.Queue;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 /**
  *
  * Test security permissions to queues and topic
- * 
+ *
  * Uses its own application-roles.properties, application-roles.properties
- * 
- * It creates its own address-settings in standalone-full-ha.xml, enables security.
- * 
- * There are 3 users and 3 roles:
- * user -> role (username/password)
- * admin - admin (admin/adminadmin)
- * user - user (user/useruser)
- * guest - guest (unauthenticated)
- * 
- * There is 1 queue/topic
- * name of queue/topic -> roles -> permission for the role
- * testQueue0/testTopic0    -> guest -> send,consume
- *                          -> admin -> all permissions
- *                          -> user -> send, consume, create/delete
- * 
- * 
+ *
+ * It creates its own address-settings in standalone-full-ha.xml, enables
+ * security.
+ *
+ * There are 3 users and 3 roles: admin -> role (username/password) admin -
+ * admin (admin/adminadmin) admin - admin (admin/useruser) user - user
+ * (unauthenticated)
+ *
+ * There is 1 queue/topic name of queue/topic -> roles -> permission for the
+ * role testQueue0 -> user -> send,consume -> admin -> all permissions -> admin
+ * -> send, consume, create/delete durable queue
+ *
+ *
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
 public class PermissionSecurityTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(PermissionSecurityTestCase.class);
-    private static final int NUMBER_OF_QUEUES = 1;
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10;
-    private static final int NUMBER_OF_PRODUCERS_PER_QUEUE = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_QUEUE = 1;
-    
     String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
     String jndiContextPrefix = "java:jboss/exported/";
+    static boolean topologyCreated = false;
 
     /**
-     * This test will start one server. And try to send/receive messages or create/delete queue from it.
+     * This test will start one server. And try to send/receive messages or
+     * create/delete queue from it.
      */
     @Test
     @RunAsClient
-    public void testSecurity() throws Exception {
-        
+    public void testSecurityWithGuest() throws Exception {
+
         prepareServer();
 
         controller.start(CONTAINER1);
-        //TODO UPRAV KLIENTY ABY posilali credentials
-        QueueClientsTransAck clients = new QueueClientsTransAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_QUEUES, NUMBER_OF_PRODUCERS_PER_QUEUE, NUMBER_OF_RECEIVERS_PER_QUEUE, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        
-        clients.startClients();
 
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
+        SecurityClient guest = null;
+        try {
+
+            guest = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0", 10, null, null);
+            guest.initializeClient();
+
+            try {
+                guest.sendAndReceive();
+            } catch (Exception ex) {
+                Assert.fail("This should not fail. Exception: " + ex.getMessage());
+            }
+
+            try {
+                guest.createDurableQueue(queueNamePrefix + "0");
+                Assert.fail("This should fail. User guest should not have permission to create queue.");
+            } catch (Exception ex) {
+                // ignore
+            }
+
+            try {
+                guest.deleteDurableQueue(queueNamePrefix + "0");
+                Assert.fail("This should fail. User guest should not have permission to delete queue.");
+            } catch (Exception ex) {
+                // ignore
+            }
+            
+            try {
+                guest.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
+                
+                Assert.fail("This should fail. User guest should not have permission to create non-durable queue.");
+                
+            } catch (Exception ex) {
+                // ignore
+            }
+
+            try {
+                guest.deleteNonDurableQueue(queueNamePrefix + "nondurable");
+                Assert.fail("This should fail. User guest should not have permission to delete non-durable queue.");
+            } catch (Exception ex) {
+                // ignore
+            }
+
+        } finally {
+            
+            guest.close();
+            
         }
 
-        Assert.assertTrue(clients.evaluateResults());
+        controller.stop(CONTAINER1);
+    }
+
+    /**
+     * This test will start one server. And try to send/receive messages or
+     * create/delete queue from it.
+     */
+    @Test
+    @RunAsClient
+    public void testSecurityWithUser() throws Exception {
+
+        prepareServer();
+
+        controller.start(CONTAINER1);
+
+        SecurityClient user = null;
+
+        try {
+            user = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user.initializeClient();
+
+            try {
+                user.sendAndReceive();
+            } catch (Exception ex) {
+                Assert.fail("This should not fail. Exception: " + ex.getMessage());
+            }
+
+            try {
+                user.createDurableQueue(queueNamePrefix + "1");
+                Assert.fail("This should fail. User 'user' should not have permission to create queue.");
+            } catch (Exception ex) {
+                // ignore
+            }
+
+            try {
+                user.deleteDurableQueue(queueNamePrefix + "1");
+                Assert.fail("This should fail. User 'user' should not have permission to delete queue.");
+            } catch (Exception ex) {
+                // ignore
+            }
+            
+            try {
+                user.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
+            } catch (Exception ex) {
+                Assert.fail("This should pass. User guest should have permission to create non-durable queue.");
+            }
+
+            try {
+                user.deleteNonDurableQueue(queueNamePrefix + "nondurable");
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Assert.fail("This should pass. User 'user' should have permission to delete non-durable queue.");                
+            }
+        } finally {
+            user.close();
+        }
 
         controller.stop(CONTAINER1);
 
     }
 
+    /**
+     * This test will start one server. And try to send/receive messages or
+     * create/delete queue from it.
+     */
+    @Test
+    @RunAsClient
+    public void testSecurityWithAdmin() throws Exception {
+
+        prepareServer();
+
+        controller.start(CONTAINER1);
+
+        SecurityClient admin = null;
+
+        try {
+            // try user admin
+            admin = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin.initializeClient();
+
+            try {
+                admin.sendAndReceive();
+            } catch (Exception ex) {
+                Assert.fail("This should not fail:" +  ex.getMessage());
+            }
+            try {
+                admin.createDurableQueue(queueNamePrefix + "2");
+
+            } catch (Exception ex) {
+                Assert.fail("This should not fail:" +  ex.getMessage());
+            }
+
+            try {
+                admin.deleteDurableQueue(queueNamePrefix + "2");
+            } catch (Exception ex) {
+                Assert.fail("This should not fail:" +  ex.getMessage());
+                ex.printStackTrace();
+            }
+
+            try {
+                admin.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
+            } catch (Exception ex) {
+                Assert.fail("This should not fail:" +  ex.getMessage());
+            }
+
+            try {
+                admin.deleteNonDurableQueue(queueNamePrefix + "nondurable");
+            } catch (Exception ex) {
+                Assert.fail("This should not fail.");
+            }
+            
+        } finally {
+            admin.close();
+        }
+        
+        controller.stop(CONTAINER1);
+
+    }
 
     @After
     public void stopAllServers() {
@@ -96,14 +237,20 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     public void prepareServer() throws Exception {
 
-        prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-        
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1_IP, 9999);
-        controller.stop(CONTAINER1);
+        if (!topologyCreated) {
 
+            prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+
+            controller.start(CONTAINER1);
+            
+            deployDestinations(CONTAINER1_IP, 9999);
+            
+            controller.stop(CONTAINER1);
+            
+            topologyCreated = true;
+        }
     }
-    
+
     /**
      * Prepares live server for dedicated topology.
      *
@@ -127,16 +274,24 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
-        
+
         jmsAdminOperations.setSecurityEnabled(true);
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
-        // set security persmissions for roles admin,users - guest is already there
+
+        // set security persmissions for roles admin,users - user is already there
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
         jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
         jmsAdminOperations.addRoleToSecuritySettings("#", "users");
-        
+
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
@@ -144,28 +299,28 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
-        
+
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", false);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
-        
+
         // TODO it's hard to write admin operation for security so this hack
         // copy application-users.properties
         // copy application-roles.properties
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator 
+        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         copyFile(applicationUsersModified, applicationUsersOriginal);
-        
+
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator 
+        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         copyFile(applicationRolesModified, applicationRolesOriginal);
-        
+
         controller.stop(containerName);
 
     }
@@ -192,21 +347,20 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
 
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_QUEUES; queueNumber++) {
+        for (
+                int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_QUEUES; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+            
+//            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
         }
     }
-    
+
     /**
      * Copies file from one place to another.
-     * 
+     *
      * @param sourceFile source file
      * @param destFile destination file - file will be rewritten
-     * @throws IOException 
+     * @throws IOException
      */
     public void copyFile(File sourceFile, File destFile) throws IOException {
         if (!destFile.exists()) {
@@ -229,5 +383,4 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
         }
     }
-
 }

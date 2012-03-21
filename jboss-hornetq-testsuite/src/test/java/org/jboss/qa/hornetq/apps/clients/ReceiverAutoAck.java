@@ -26,6 +26,9 @@ public class ReceiverAutoAck extends Thread {
     private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
     private int count = 0;
     private Exception exception = null;
+    private boolean securityEnabled = false;
+    private String userName;
+    private String password;
 
     /**
      * Creates a receiver to queue with auto acknowledge.
@@ -79,8 +82,8 @@ public class ReceiverAutoAck extends Thread {
 
             cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
-            conn = cf.createConnection();
-
+            conn = getConnection(cf);
+            
             conn.start();
 
             queue = (Queue) context.lookup(queueNameJndi);
@@ -272,5 +275,65 @@ public class ReceiverAutoAck extends Thread {
         receiver.start();
         
         receiver.join();
+    }
+
+    /**
+     * Returns connection.
+     * 
+     * @param cf
+     * @return
+     * @throws JMSException 
+     */
+    private Connection getConnection(ConnectionFactory cf) throws JMSException {
+        
+        // if there is username and password and security enabled then use it
+        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null)   {
+                return cf.createConnection(getUserName(), getPassword());
+            
+        }
+        // else it's guest user or security disabled
+        return cf.createConnection();
+    }
+
+    /**
+     * @return the securityEnabled
+     */
+    public boolean isSecurityEnabled() {
+        return securityEnabled;
+    }
+
+    /**
+     * @param securityEnabled the securityEnabled to set
+     */
+    public void setSecurityEnabled(boolean securityEnabled) {
+        this.securityEnabled = securityEnabled;
+    }
+
+    /**
+     * @return the userName
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * @param userName the userName to set
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

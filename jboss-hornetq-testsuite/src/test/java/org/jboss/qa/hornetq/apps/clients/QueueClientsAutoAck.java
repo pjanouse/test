@@ -38,6 +38,12 @@ public class QueueClientsAutoAck implements Clients {
     private List<ReceiverAutoAck> receivers = new ArrayList<ReceiverAutoAck>();
     
     private HashMap<String,FinalTestMessageVerifier> verifiers = new HashMap<String,FinalTestMessageVerifier>();
+    
+    private boolean securityEnabled = false;
+    
+    private String username = null;
+    
+    private String password = null;
    
     public QueueClientsAutoAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu)  {
         
@@ -81,6 +87,12 @@ public class QueueClientsAutoAck implements Clients {
                 
                 p.setMessageVerifier(queueTextMessageVerifier);
                 
+                if (isSecurityEnabled())    {
+                    p.setSecurityEnabled(true);
+                    p.setUserName(getUsername());
+                    p.setPassword(getPassword());
+                }
+                
                 producers.add(p);
                 
             }
@@ -92,6 +104,12 @@ public class QueueClientsAutoAck implements Clients {
                 r = new ReceiverAutoAck(getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
                 
                 r.setMessageVerifier(queueTextMessageVerifier);
+                
+                if (isSecurityEnabled())    {
+                    r.setSecurityEnabled(true);
+                    r.setUserName(getUsername());
+                    r.setPassword(getPassword());
+                }
                 
                 receivers.add(r);
             }
@@ -318,6 +336,49 @@ public class QueueClientsAutoAck implements Clients {
         this.hostnameForConsumers = hostnameForConsumers;
     }
 
+    /**
+     * @return the securityEnabled
+     */
+    public boolean isSecurityEnabled() {
+        return securityEnabled;
+    }
+
+    /**
+     * @param securityEnabled the securityEnabled to set
+     */
+    public void setSecurityEnabled(boolean securityEnabled) {
+        this.securityEnabled = securityEnabled;
+    }
+
+    /**
+     * @return the username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * @param username the username to set
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    
    public static void main(String[] args) throws InterruptedException  {
         
         QueueClientsAutoAck clients = 
@@ -328,4 +389,5 @@ public class QueueClientsAutoAck implements Clients {
         }
         
     }
+
 }
