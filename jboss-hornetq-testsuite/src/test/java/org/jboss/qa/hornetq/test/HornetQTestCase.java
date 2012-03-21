@@ -62,6 +62,11 @@ public class HornetQTestCase {
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
 
+    // Ports for Byteman
+    protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
+
+    protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
+
     // Multi-cast address
     protected static final String MULTICAST_ADDRESS;
 
