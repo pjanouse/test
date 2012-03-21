@@ -249,19 +249,40 @@ public final class JMSAdminOperations {
     }
 
     /**
+     * Sets security on HornetQ
+     */
+    public void setSecurityEnabled(boolean value) {
+        final ModelNode disableSecurity = new ModelNode();
+        disableSecurity.get(ClientConstants.OP).set("write-attribute");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        disableSecurity.get("name").set("security-enabled");
+        disableSecurity.get("value").set(value);
+        try {
+            this.applyUpdate(disableSecurity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
      * Adds security attribute on HornetQ
      *
      * @param value set to false to disable security for hornetq
      */
-    public void addSecurityEnabled(boolean value) {
-        addSecurityEnabled("default", false);
+    public void addSecurityEnabled(boolean value)   {
+        addSecurityEnabled("default", value);
     }
 
     /**
      * Adds security attribute on HornetQ
      *
      * @param serverName set name of the hornetq server
+<<<<<<< HEAD
+     * @param value set to false to disable security for hornetq
+=======
      * @param value      set to false to disable security for hornetq
+>>>>>>> a691d0e59ad875abda15d3799ac07cde86496741
      */
     public void addSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = new ModelNode();
@@ -301,7 +322,28 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-
+    
+    /**
+     * Adds role to security settings.
+     *
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
+     */
+    public void addRoleToSecuritySettings(String address, String role) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("security-setting", address);
+        model.get(ClientConstants.OP_ADDR).add("role", role);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Add JNDI name
      *
