@@ -481,7 +481,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     private void testLogicForTargetServerLaterStart(MessageBuilder messageBuilder) {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
-        final int messages = 100;
+        final int messages = 50;
 
         // Start servers
         controller.start(CONTAINER1);
@@ -516,7 +516,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
         controller.start(CONTAINER2);
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1 * 60 * 1000);
         } catch (InterruptedException e) {
             // Ignore it
         }
