@@ -84,12 +84,14 @@ public class ProducerClientAck extends Thread {
             Message msg = null;
 
             while (counter < messages && !stop) {
-
+                
                 msg = messageBuilder.createMessage(session);
+                msg.setIntProperty("count", counter);
+                
                 // send message in while cycle
                 sendMessage(producer, msg);
                 
-                logger.info("Producer for node: " + hostname + ". Sent message with property my counter: " + counter 
+                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter 
                         + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
 
             }
@@ -279,11 +281,25 @@ public class ProducerClientAck extends Thread {
     
     public static void main(String[] args) throws InterruptedException  {
         
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/testQueue0", 1000);
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/testQueue0", 10000);
         
         producer.start();
         
         producer.join();
+    }
+
+    /**
+     * @return the messageBuilder
+     */
+    public MessageBuilder getMessageBuilder() {
+        return messageBuilder;
+    }
+
+    /**
+     * @param messageBuilder the messageBuilder to set
+     */
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 }
 

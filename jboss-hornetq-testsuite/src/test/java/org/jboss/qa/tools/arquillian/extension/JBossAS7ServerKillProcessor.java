@@ -16,15 +16,16 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
     // Logger
     private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class.getName());
-
-    // Kill sequence for CLI
-    private static String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
-
+    
     /**
      * @see {@link ServerKillProcessor#kill(org.jboss.arquillian.container.spi.Container)}
      */
     @Override
     public void kill(Container container) throws Exception {
+        
+        // Kill sequence for CLI
+        String killSequence = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
+        
         final int MAXIMAL_CHECKS = 120;
         log.info("Waiting for Byteman to kill server");
         
@@ -52,13 +53,13 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         int checkCount = 0;
         boolean killed = false;
         do {
-            if (checkJBossAlive()) {
+            if (checkJBossAlive(killSequence)) {
                 int checkDurableTime = 10;
                 Thread.sleep(checkDurableTime * 50);
-                log.info("JBossAS is still alive ...");
+                log.info("JBossAS is still alive ..." + hostname);
             } else {
                 killed = true;
-                log.info("JBossAS is dead ...");
+                log.info("JBossAS is dead ..." + hostname);
                 break;
             }
         } while (checkCount++ < MAXIMAL_CHECKS);
@@ -76,7 +77,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
      * @return true if as is alive
      * @throws Exception if something goes wrong
      */
-    private boolean checkJBossAlive() throws Exception {
+    private boolean checkJBossAlive(String killSequence) throws Exception {
         Process p = Runtime.getRuntime().exec(killSequence);
         p.waitFor();
         InputStream out = p.getInputStream();

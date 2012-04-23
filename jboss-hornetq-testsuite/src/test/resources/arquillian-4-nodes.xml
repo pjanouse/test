@@ -7,7 +7,7 @@
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
@@ -15,6 +15,7 @@
                     -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_1}:8586,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
+                    -Djboss.messaging.group.address=${MCAST_ADDR}
                 </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -25,7 +26,7 @@
         <container qualifier="node-2" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
@@ -33,6 +34,7 @@
                     -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_2}:8686,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
+                    -Djboss.messaging.group.address=${MCAST_ADDR}
                 </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -43,7 +45,7 @@
         <container qualifier="node-3" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_3}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9291
@@ -51,6 +53,7 @@
                     -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_3}:8686,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
+                    -Djboss.messaging.group.address=${MCAST_ADDR}
                 </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -61,7 +64,7 @@
         <container qualifier="node-4" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_4}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9391
@@ -69,6 +72,7 @@
                     -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_4}:8686,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
+                    -Djboss.messaging.group.address=${MCAST_ADDR}
                 </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>

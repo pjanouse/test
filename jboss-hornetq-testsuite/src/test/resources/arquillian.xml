@@ -15,6 +15,7 @@
                     -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_1}:8586,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
+                    -Djboss.messaging.group.address=${MCAST_ADDR}
                 </property>
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>

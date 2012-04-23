@@ -66,6 +66,10 @@ public class HornetQTestCase {
     protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
 
     protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
+    
+    protected static final int BYTEMAN_CONTAINER3_PORT = 9291;
+   
+    protected static final int BYTEMAN_CONTAINER4_PORT = 9391;
 
     // Multi-cast address
     protected static final String MULTICAST_ADDRESS;

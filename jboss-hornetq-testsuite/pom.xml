@@ -56,6 +56,7 @@
                         <MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
                         <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
                         <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
+                        <MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

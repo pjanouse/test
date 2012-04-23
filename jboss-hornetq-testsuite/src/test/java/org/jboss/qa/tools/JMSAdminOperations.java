@@ -223,6 +223,35 @@ public final class JMSAdminOperations {
         }
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
+    
+    /**
+     * Sets password for cluster user. 
+     * 
+     * @param password password
+     */
+    public void setClusterUserPassword(String password) {
+        setClusterUserPassword("default", password);
+    }
+    
+    /**
+     * Sets password for cluster user. 
+     * 
+     * @param password password
+     * @param serverName name of the hornetq server
+     */
+    public void setClusterUserPassword(String serverName, String password) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("cluster-password");
+        model.get("value").set(password);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Disables security on HornetQ
@@ -316,6 +345,33 @@ public final class JMSAdminOperations {
         model.get("name").set(permission);
         model.get("value").set(value);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets connector on pooled connection factory
+     *
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param connectorName name of the connector like "remote-connector"
+     */
+    public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        
+        model.get("name").set("connector");
+        ModelNode modelnew = new ModelNode();
+        modelnew.get(connectorName).clear();
+        model.get("value").set(modelnew);
+                
+        System.out.println(model.toString());
+                
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -720,7 +776,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
-        model.get("path").set(new File(path, "journal").getAbsolutePath());
+        model.get("path").set(path + File.separator + "journal");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -749,7 +805,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("path").set(new File(path, "paging").getAbsolutePath());
+        model.get("path").set(path + File.separator + "paging");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -779,7 +835,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
-        model.get("path").set(new File(path, "large-messages").getAbsolutePath());
+        model.get("path").set(path + File.separator + "large-messages");
 
         try {
             this.applyUpdate(model);
@@ -811,7 +867,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
-        model.get("path").set(new File(path, "bindings").getAbsolutePath());
+        model.get("path").set(path + File.separator + "bindings");
 
         try {
             this.applyUpdate(model);
@@ -896,7 +952,62 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * A broadcast group is the means by which a server broadcasts connectors over the network.
+     * A connector defines a way in which a client (or other server) can make connections to the server.
+     *
+     * @param name                a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
+     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
+     * @param connectorName       A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
+     */
+    public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
+                                  String connectorName, String backupConnectorName) {
+        setBroadCastGroup("default", name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
+    }
 
+    /**
+     * A broadcast group is the means by which a server broadcasts connectors over the network.
+     * A connector defines a way in which a client (or other server) can make connections to the server.
+     * @param serverName          set name of hornetq server
+     * @param name                a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
+     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
+     * @param connectorName       A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
+     */
+    public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
+                                  String connectorName, String backupConnectorName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
+
+        if (!isEmpty(messagingGroupSocketBindingName)) {
+            model.get("socket-binding").set(messagingGroupSocketBindingName);
+        }
+        
+        if (!isEmpty(broadCastPeriod)) {
+            model.get("broadcast-period").set(broadCastPeriod);
+        }
+
+        model.get("connectors").add(connectorName);
+
+        if (!isEmpty(backupConnectorName)) {
+            model.get("connectors").add(backupConnectorName);
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     /**
      * Discovery group defines how connector information is received from a multicast address.
      *
@@ -939,6 +1050,47 @@ public final class JMSAdminOperations {
 
         if (!isEmpty(groupPort)) {
             model.get("group-port").set(groupPort);
+        }
+
+        if (!isEmpty(refreshTimeout)) {
+            model.get("refresh-timeout").set(refreshTimeout);
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    
+    /**
+     * Discovery group defines how connector information is received from a multicast address.
+     *
+     * @param name             A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
+     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     */
+    public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
+        setDiscoveryGroup("default", name, messagingGroupSocketBindingName, refreshTimeout);
+    }
+    
+    /**
+     * Discovery group defines how connector information is received from a multicast address.
+     *
+     * @param serverName       Set name of hornetq server
+     * @param name             A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
+     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     */
+    public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
+
+        if (!isEmpty(messagingGroupSocketBindingName)) {
+            model.get("socket-binding").set(messagingGroupSocketBindingName);
         }
 
         if (!isEmpty(refreshTimeout)) {
@@ -1788,7 +1940,16 @@ public final class JMSAdminOperations {
      */
     private boolean isEmpty(Object attribute) {
         boolean empty = false;
-        if (attribute == null || "".equals(attribute)) {
+        
+        if (attribute == null)  {
+            return true;
+        }
+        
+        if ((attribute instanceof String) && ("".equals(attribute))) {
+            empty = true;
+        }
+        
+        if (attribute instanceof Integer && (Integer) attribute == Integer.MIN_VALUE)   {
             empty = true;
         }
         return empty;

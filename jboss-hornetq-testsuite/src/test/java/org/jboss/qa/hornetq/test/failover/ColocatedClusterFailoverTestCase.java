@@ -284,6 +284,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         controller.stop(CONTAINER2);
         
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
+        
+        deleteFolder(new File(JOURNAL_DIRECTORY_B));
 
     }
 

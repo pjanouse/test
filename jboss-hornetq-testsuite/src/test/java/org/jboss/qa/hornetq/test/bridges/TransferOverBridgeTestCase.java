@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.bridges;
 
+import java.rmi.RemoteException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -25,12 +26,19 @@ import javax.jms.TextMessage;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import org.jboss.qa.hornetq.apps.ControllableProxy;
+import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
+import org.jboss.qa.hornetq.apps.impl.SimpleProxyServer;
 
 /**
- * Basic tests for transfer messages over core-bridge
+ * Basic tests for transfer messages over core-bridge. Here is tested whether all messages
+ * are delivered if one source/target server is killed/shutdowned or when there are network
+ * problems.
  * <p/>
  *
  * @author pslavice@redhat.com
+ * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 public class TransferOverBridgeTestCase extends HornetQTestCase {
@@ -48,6 +56,18 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.stop(CONTAINER2);
         deleteDataFolderForJBoss1();
         deleteDataFolderForJBoss2();
+    }
+    
+    /**
+     * Normal message (not large message), byte message
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+//    @RestoreConfigAfterTest
+    public void normalMessagesNetworkDisconnectionTest() throws Exception {
+        testNetworkProblems(100, new ByteMessageBuilder(30), null);
     }
 
     /**
@@ -367,7 +387,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations(CONTAINER1_IP, 9999);
         JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
 
         // Create queue
@@ -417,6 +437,96 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer2.close();
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
+    }
+    
+    
+    
+    /**
+     * Implementation of the basic test scenario. Test network outage.
+     *
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
+     * @param messageVerifier instance of the messages verifier
+     */
+    private void testNetworkProblems(int messages, MessageBuilder messageBuilder, MessageVerifier messageVerifier) throws Exception {
+        final String TEST_QUEUE_IN = "dummyQueueIn0";
+        final String TEST_QUEUE_IN_JNDI_PREFIX = "jms/queue/dummyQueueIn";
+        final String TEST_QUEUE_IN_JNDI = TEST_QUEUE_IN_JNDI_PREFIX + "0";
+        final String TEST_QUEUE_OUT = "dummyQueueOut0";
+        final String TEST_QUEUE_OUT_JNDI_PREFIX = "jms/queue/dummyQueueOut";
+        final String TEST_QUEUE_OUT_JNDI = TEST_QUEUE_OUT_JNDI_PREFIX + "0";
+        final String proxyAddress = CONTAINER2_IP;
+        final int proxyPort = 56831;
+        
+        // Start servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // Create administration objects
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations(CONTAINER1_IP, 9999);
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
+
+        // Create queue
+        jmsAdminContainer1.cleanupQueue(TEST_QUEUE_IN);
+        jmsAdminContainer1.createQueue(TEST_QUEUE_IN, TEST_QUEUE_IN_JNDI);
+        jmsAdminContainer1.setClustered(false);
+        jmsAdminContainer1.disableSecurity();
+        jmsAdminContainer2.cleanupQueue(TEST_QUEUE_OUT);
+        jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
+        jmsAdminContainer2.setClustered(false);
+        jmsAdminContainer2.disableSecurity();
+        
+        jmsAdminContainer1.removeRemoteConnector("bridge-connector");
+        jmsAdminContainer1.removeBridge("myBridge");
+        jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
+
+         // initialize the proxy to listen on proxyAddress:proxyPort and set output to CONTAINER2_IP:5445
+        ControllableProxy controllableProxy = new SimpleProxyServer(proxyAddress, 5445, proxyPort);
+        controllableProxy.start();
+        
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+        
+        // direct remote socket to proxy
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", proxyAddress, proxyPort);
+        jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+
+        // Send messages into input node and read from output node
+        QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
+        clients.setHostnameForProducers(CONTAINER1_IP);
+        clients.setQueueJndiNamePrefixProducers(TEST_QUEUE_IN_JNDI_PREFIX);
+        clients.setHostnameForConsumers(CONTAINER2_IP);
+        clients.setQueueJndiNamePrefixConsumers(TEST_QUEUE_OUT_JNDI_PREFIX);
+         
+        clients.startClients();
+        log.info("Start producer and consumer.");
+        Thread.sleep(10000);
+        // disconnect proxy
+        log.info("Stopping proxy.");
+        controllableProxy.stop();
+        Thread.sleep(10000);
+        log.info("Starting proxy.");
+        controllableProxy.start();
+        Thread.sleep(20000);
+        clients.stopClients();
+        
+        while (!clients.isFinished())   {
+            Thread.sleep(1000);
+        }
+        
+        assertTrue("There are problems detected by clients. See log for more details.", clients.evaluateResults());
+        
+        jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+        
+        controllableProxy.stop();
     }
 
     /**

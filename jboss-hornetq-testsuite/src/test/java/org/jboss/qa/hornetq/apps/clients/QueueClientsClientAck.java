@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 
 /**
@@ -23,7 +24,11 @@ public class QueueClientsClientAck implements Clients {
     
     private int jndiPort;
     
-    private String queueJndiNamePrefix;    
+    private String queueJndiNamePrefix; 
+    
+    private String queueJndiNamePrefixProducers;
+    
+    private String queueJndiNamePrefixConsumers;
 
     private int messages;
     
@@ -32,6 +37,8 @@ public class QueueClientsClientAck implements Clients {
     private int numberOfProducersPerQueueu;
     
     private int numberOfConsumersPerQueueu;
+    
+    private MessageBuilder messageBuilder;
 
     private List<ProducerClientAck> producers = new ArrayList<ProducerClientAck>();
     
@@ -51,6 +58,8 @@ public class QueueClientsClientAck implements Clients {
         this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
         this.queueJndiNamePrefix = queueJndiNamePrefix;
+        this.queueJndiNamePrefixProducers = queueJndiNamePrefix;
+        this.queueJndiNamePrefixConsumers = queueJndiNamePrefix;
         this.numberOfQueues = numberOfQueues;
         this.numberOfProducersPerQueueu = numberOfProducersPerQueueu;
         this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
@@ -77,9 +86,11 @@ public class QueueClientsClientAck implements Clients {
             
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
                 
-                p = new ProducerClientAck(getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
+                p = new ProducerClientAck(getHostnameForProducers(), getJndiPort(), queueJndiNamePrefixProducers + destinationNumber, getMessages());
                 
                 p.setMessageVerifier(queueTextMessageVerifier);
+                
+                if (messageBuilder != null) p.setMessageBuilder(messageBuilder);
                 
                 producers.add(p);
                 
@@ -89,13 +100,12 @@ public class QueueClientsClientAck implements Clients {
             
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
                 
-                r = new ReceiverClientAck(getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
+                r = new ReceiverClientAck(getHostnameForConsumers(), getJndiPort(), queueJndiNamePrefixConsumers + destinationNumber);
                 
                 r.setMessageVerifier(queueTextMessageVerifier);
                 
                 receivers.add(r);
             }
-            
         }
         
         // start all clients - producers first
@@ -152,7 +162,8 @@ public class QueueClientsClientAck implements Clients {
         logger.info("Evaluate results for queue clients with client acknowledge:");
         logger.info("hostname for producers:" + hostnameForProducers);
         logger.info("hostname for receivers:" + hostnameForConsumers);
-        logger.info("queueJndiPrefix:" + queueJndiNamePrefix);
+        logger.info("queueJndiPrefixForProducers:" + queueJndiNamePrefixProducers);
+        logger.info("queueJndiPrefixForConsumers:" + queueJndiNamePrefixConsumers);
         logger.info("number of queues:" + numberOfQueues);
         logger.info("number of producers per queue:" + numberOfProducersPerQueueu);
         logger.info("number of receivers per queue:" + numberOfConsumersPerQueueu);
@@ -328,6 +339,48 @@ public class QueueClientsClientAck implements Clients {
         }
         clients.evaluateResults();
         
+    }
+
+    /**
+     * @return the queueJndiNamePrefixProducers
+     */
+    public String getQueueJndiNamePrefixProducers() {
+        return queueJndiNamePrefixProducers;
+    }
+
+    /**
+     * @param queueJndiNamePrefixProducers the queueJndiNamePrefixProducers to set
+     */
+    public void setQueueJndiNamePrefixProducers(String queueJndiNamePrefixProducers) {
+        this.queueJndiNamePrefixProducers = queueJndiNamePrefixProducers;
+    }
+
+    /**
+     * @return the queueJndiNamePrefixConsumers
+     */
+    public String getQueueJndiNamePrefixConsumers() {
+        return queueJndiNamePrefixConsumers;
+    }
+
+    /**
+     * @param queueJndiNamePrefixConsumers the queueJndiNamePrefixConsumers to set
+     */
+    public void setQueueJndiNamePrefixConsumers(String queueJndiNamePrefixConsumers) {
+        this.queueJndiNamePrefixConsumers = queueJndiNamePrefixConsumers;
+    }
+
+    /**
+     * @return the messageBuilder
+     */
+    public MessageBuilder getMessageBuilder() {
+        return messageBuilder;
+    }
+
+    /**
+     * @param messageBuilder the messageBuilder to set
+     */
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
     
 }

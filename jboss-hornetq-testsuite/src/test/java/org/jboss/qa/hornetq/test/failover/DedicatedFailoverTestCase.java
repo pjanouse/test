@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@RestoreConfigAfterTest
+//@RestoreConfigAfterTest
 public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
@@ -82,7 +82,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         @BMRule(name = "Kill server when a number of messages were received",
         targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
         targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>1000",
+        condition = "readCounter(\"counter\")>333",
         action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
 
@@ -100,6 +100,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.startClients();
         
         controller.kill(CONTAINER1);
+        
+        logger.info("Wait some time to give chance backup to come alive and clients to failover");
         Thread.sleep(10000); // give some time to clients to failover
 
         if (failback)   {
@@ -321,12 +323,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
-
+        
         controller.start(containerName);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
@@ -345,10 +346,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -379,6 +380,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
+
         
         int udpGroupPort = 9875;
 
@@ -406,10 +409,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -421,7 +424,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);

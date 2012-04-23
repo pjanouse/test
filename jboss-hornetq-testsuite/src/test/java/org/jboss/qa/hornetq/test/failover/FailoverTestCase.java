@@ -35,6 +35,7 @@ public class FailoverTestCase extends HornetQTestCase {
     
     @ArquillianResource
     private Deployer deployer;
+    
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";

@@ -194,9 +194,7 @@ public class ClusterTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        String udpGroupAddress = "231.8.8.8";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
+        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
@@ -219,10 +217,10 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, udpGroupAddress, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, udpGroupAddress, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -235,13 +233,15 @@ public class ClusterTestCase extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
-        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         controller.stop(containerName);
 
     }
+    
+    
 
     @Before
     @After
