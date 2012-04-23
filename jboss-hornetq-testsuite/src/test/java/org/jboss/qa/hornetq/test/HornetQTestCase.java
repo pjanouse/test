@@ -24,7 +24,7 @@ import java.util.Properties;
  *
  * @author pslavice@redhat.com
  */
-public class HornetQTestCase {
+public class HornetQTestCase implements ContextProvider {
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
@@ -106,37 +106,6 @@ public class HornetQTestCase {
     }
 
     /**
-     * Cleanups resources
-     *
-     * @param context    initial context
-     * @param connection connection to JMS server
-     * @param session    JMS session
-     */
-    protected void cleanupResources(Context context, Connection connection, Session session) {
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException e) {
-                // Ignore it
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException e) {
-                // Ignore it
-            }
-        }
-        if (context != null) {
-            try {
-                context.close();
-            } catch (NamingException e) {
-                // Ignore it
-            }
-        }
-    }
-
-    /**
      * Returns context
      *
      * @param hostName target hostname with JNDI service
@@ -152,13 +121,24 @@ public class HornetQTestCase {
     }
 
     /**
-     * Returns context
-     *
-     * @return instance of {@link Context}
-     * @throws NamingException if a naming exception is encountered
+     * @see org.jboss.qa.hornetq.test.ContextProvider#getContext()
      */
-    protected Context getContext() throws NamingException {
+    public Context getContext() throws NamingException {
         return getContext(HOST_NAME_JNDI, PORT_JNDI);
+    }
+
+    /**
+     * @see org.jboss.qa.hornetq.test.ContextProvider#getContextContainer1()
+     */
+    public Context getContextContainer1() throws NamingException {
+        return getContext(CONTAINER1_IP, PORT_JNDI);
+    }
+
+    /**
+     * @see org.jboss.qa.hornetq.test.ContextProvider#getContextContainer2()
+     */
+    public Context getContextContainer2() throws NamingException {
+        return getContext(CONTAINER2_IP, PORT_JNDI);
     }
 
     /**

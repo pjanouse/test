@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.HighLoadProducerWithSemaphores;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.test.JMSTools;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.junit.After;
 import org.junit.Before;
@@ -164,7 +165,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
             log.error(e.getMessage(), e);
             fail(e.getMessage());
         } finally {
-            cleanupResources(context, connection, session);
+            JMSTools.cleanupResources(context, connection, session);
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
 
