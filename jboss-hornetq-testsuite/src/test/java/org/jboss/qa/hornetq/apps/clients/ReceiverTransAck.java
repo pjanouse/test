@@ -71,8 +71,8 @@ public class ReceiverTransAck extends Thread {
 
         Context context = null;
         ConnectionFactory cf = null;
-        XAConnection conn = null;
-        XASession session = null;
+        Connection conn = null;
+        Session session = null;
         Queue queue = null;
 
         try {
@@ -84,13 +84,13 @@ public class ReceiverTransAck extends Thread {
 
             cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
-            conn = (XAConnection) cf.createConnection();
+            conn = (Connection) cf.createConnection();
 
             conn.start();
 
             queue = (Queue) context.lookup(queueNameJndi);
 
-            session = (XASession) conn.createSession(true, Session.SESSION_TRANSACTED);
+            session = (Session) conn.createSession(true, Session.SESSION_TRANSACTED);
             
             MessageConsumer receiver = session.createConsumer(queue);
 

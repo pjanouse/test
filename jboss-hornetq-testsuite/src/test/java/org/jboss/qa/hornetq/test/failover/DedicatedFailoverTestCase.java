@@ -298,7 +298,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.stop(CONTAINER2);
         
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
+        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
+                + "standalone" + File.separator + JOURNAL_DIRECTORY_A));
 
     }
 
