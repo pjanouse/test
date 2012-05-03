@@ -72,7 +72,8 @@ public class ProducerClientAck extends Thread {
             context = new InitialContext(env);
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-
+            
+            logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
             con = cf.createConnection();
@@ -281,7 +282,7 @@ public class ProducerClientAck extends Thread {
     
     public static void main(String[] args) throws InterruptedException  {
         
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/testQueue0", 10000);
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10000);
         
         producer.start();
         

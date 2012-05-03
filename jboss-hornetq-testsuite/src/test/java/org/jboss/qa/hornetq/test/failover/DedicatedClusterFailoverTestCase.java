@@ -32,7 +32,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 2;
     private static final int BYTEMAN_PORT = 9091;
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
@@ -79,7 +79,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         @BMRule(name = "Kill server when a number of messages were received",
         targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
         targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>1000",
+        condition = "readCounter(\"counter\")>333",
         action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
 
@@ -329,8 +329,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
+        String messagingGroupSocketBindingName = "messaging-group";
+
 
         controller.start(containerName);
 
@@ -350,10 +350,10 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
-
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -384,10 +384,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-
-        int udpGroupPort = 9875;
-
-        int broadcastBindingPort = 56880;
+        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
@@ -411,10 +408,10 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);

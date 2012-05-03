@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -58,7 +59,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         
     }
     
-    
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -92,6 +92,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
         
+        Thread.sleep(10000); // give some time to clients to failover
+        
         // install rule to first server
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
 
@@ -114,9 +116,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.info("failback - Stop backup server");
             logger.info("########################################");
             controller.stop(CONTAINER2);
-            Thread.sleep(5000); // give some time to clients to do failback
         }
         
+        Thread.sleep(2000);
         clients.stopClients();
         
         while (!clients.isFinished()) {
@@ -165,6 +167,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false);
     }
@@ -174,6 +177,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverClientAckQueue() throws Exception {
         
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -184,6 +188,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -193,6 +198,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true);
     }
@@ -202,6 +208,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -211,6 +218,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -220,6 +228,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
@@ -229,6 +238,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -238,6 +248,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -247,6 +258,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
     }
@@ -256,6 +268,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -265,6 +278,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -363,6 +377,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        
+        jmsAdminOperations.close();
+        
         controller.stop(containerName);
 
     }
@@ -382,19 +399,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        
-        int udpGroupPort = 9875;
-
-        int broadcastBindingPort = 56880;
-
         controller.start(containerName);
+        
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
 
-        jmsAdminOperations.setJmxDomainName("org.hornetq.backup");
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
@@ -428,6 +440,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        
+        jmsAdminOperations.close();
 
         controller.stop(containerName);
     }
@@ -461,5 +475,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
+        
+        jmsAdminOperations.close();
     }
 }

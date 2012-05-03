@@ -1,2 +1,3 @@
 org.jboss.qa.tools.arquillian.extension.ServerExtension
 org.jboss.qa.tools.arquillian.extension.RestoreConfigRemoteExtension
+org.jboss.qa.tools.arquillian.extension.CleanUpAfterTestExtension

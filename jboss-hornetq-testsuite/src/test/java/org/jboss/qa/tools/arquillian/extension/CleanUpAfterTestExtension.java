@@ -1,4 +1,3 @@
-
 package org.jboss.qa.tools.arquillian.extension;
 
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
@@ -8,10 +7,10 @@ import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
  * 
  * @author mnovak
  */
-public class RestoreConfigRemoteExtension implements RemoteLoadableExtension{
+public class CleanUpAfterTestExtension implements RemoteLoadableExtension{
 
     @Override
     public void register(ExtensionBuilder builder) {
-        builder.observer(RestoreConfig.class);
+        builder.observer(CleanUp.class);
     }
 }

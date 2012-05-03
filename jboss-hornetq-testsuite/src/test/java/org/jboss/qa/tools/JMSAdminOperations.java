@@ -1233,6 +1233,7 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
 
     /**
      * Sets ha attribute.

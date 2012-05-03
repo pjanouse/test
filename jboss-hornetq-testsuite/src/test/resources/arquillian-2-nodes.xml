@@ -12,11 +12,11 @@
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
-                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_1}:8586,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
-                </property>
+                    -Djboss.default.multicast.address=${MCAST_ADDR}
+                </property><!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress">${MYTESTIP_1}</property>
@@ -31,11 +31,11 @@
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
-                    -Xrunjdwp:transport=dt_socket,address=${MYTESTIP_2}:8686,server=y,suspend=n
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
-                </property>
+                    -Djboss.default.multicast.address=${MCAST_ADDR}
+                </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress">${MYTESTIP_2}</property>

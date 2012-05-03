@@ -65,9 +65,21 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-//    @RestoreConfigAfterTest
+    @RestoreConfigAfterTest
     public void normalMessagesNetworkDisconnectionTest() throws Exception {
-        testNetworkProblems(100, new ByteMessageBuilder(30), null);
+        testNetworkProblems(new ByteMessageBuilder(30), null);
+    }
+    
+    /**
+     * Large message, byte message
+     *
+     * @throws InterruptedException if something is wrong
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigAfterTest
+    public void largeByteMessagesNetworkDisconnectionTest() throws Exception {
+        testNetworkProblems(new ByteMessageBuilder(1024 * 1024), null);
     }
 
     /**
@@ -91,7 +103,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void largeByteMessagesTest() throws InterruptedException {
-        testLogic(10, new ByteMessageBuilder(1024), null);
+        testLogic(10, new ByteMessageBuilder(1024 * 1024), null);
     }
 
     /**
@@ -369,7 +381,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * @param messageBuilder  instance of the message builder
      * @param messageVerifier instance of the messages verifier
      */
-    private void testNetworkProblems(int messages, MessageBuilder messageBuilder, MessageVerifier messageVerifier) throws Exception {
+    private void testNetworkProblems(MessageBuilder messageBuilder, MessageVerifier messageVerifier) throws Exception {
         final String TEST_QUEUE_IN = "dummyQueueIn0";
         final String TEST_QUEUE_IN_JNDI_PREFIX = "jms/queue/dummyQueueIn";
         final String TEST_QUEUE_IN_JNDI = TEST_QUEUE_IN_JNDI_PREFIX + "0";
@@ -472,8 +484,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
-        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP);
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations(CONTAINER1_IP, 9999);
+        JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
 
         // Create queue
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
@@ -547,7 +559,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations(CONTAINER1_IP, 9999);
         JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
 
         // Create queue
@@ -598,7 +610,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations();
+        JMSAdminOperations jmsAdminContainer1 = new JMSAdminOperations(CONTAINER1_IP, 9999);
         JMSAdminOperations jmsAdminContainer2 = new JMSAdminOperations(CONTAINER2_IP, 9999);
 
         // Create queue

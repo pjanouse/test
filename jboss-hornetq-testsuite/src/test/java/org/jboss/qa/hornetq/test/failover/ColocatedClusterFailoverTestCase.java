@@ -329,8 +329,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
+        String messagingGroupSocketBindingName = "messaging-group";
+
 
         controller.start(containerName);
 
@@ -350,10 +350,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -391,8 +391,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
         int socketBindingPort = 5446;
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
+        String messagingGroupSocketBindingName = "messaging-group";
+
 
         controller.start(containerName);
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(ipAddress, 9999);
@@ -416,8 +416,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
         jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
 
-        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, ipAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
-        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, ipAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");

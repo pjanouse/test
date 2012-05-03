@@ -64,7 +64,6 @@ public class QueueClientsClientAck implements Clients {
         this.numberOfProducersPerQueueu = numberOfProducersPerQueueu;
         this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
         this.messages = numberOfMessages;
-        
     }
     
     /**

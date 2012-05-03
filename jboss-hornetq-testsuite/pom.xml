@@ -14,10 +14,11 @@
 
         <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
         <netty.version>3.2.6.Final</netty.version>
-        <hornetq.version>2.2.13.Final</hornetq.version>
+        <hornetq.version>2.2.16.Final</hornetq.version>
 
-        <arquillian.version>1.0.0.CR7</arquillian.version>
-        <arquillian.container.version>7.1.0.Final</arquillian.container.version>
+        <arquillian.version>1.0.0.Final</arquillian.version>
+        <arquillian.container.version>7.1.1.Final</arquillian.container.version>
+<!--        <arquillian.container.version>7.1.2.Final-SNAPSHOT</arquillian.container.version>-->
         <version.byteman>2.0.0</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -65,6 +66,7 @@
 
     <dependencies>
         <!-- JavaEE 6.0 APIs -->
+        
         <dependency>
             <groupId>org.jboss.spec</groupId>
             <artifactId>jboss-javaee-6.0</artifactId>
@@ -97,12 +99,7 @@
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${version.log4j}</version>
-            <scope>test</scope>
-        </dependency>
+        
         <dependency>
             <groupId>org.jboss.naming</groupId>
             <artifactId>jnp-client</artifactId>
@@ -135,6 +132,7 @@
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-jms-client</artifactId>
             <version>${hornetq.version}</version>
+          
         </dependency>
 
         <dependency>
@@ -142,8 +140,29 @@
             <artifactId>xalan</artifactId>
             <version>${xalan.version}</version>
             <scope>test</scope>
+           
         </dependency>
-       
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${version.log4j}</version>
+            <scope>test</scope>
+        </dependency>
+<!--        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.10</version>
+        </dependency>                
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.5.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.10</version>
+        </dependency>-->
     </dependencies>
 
     <repositories>

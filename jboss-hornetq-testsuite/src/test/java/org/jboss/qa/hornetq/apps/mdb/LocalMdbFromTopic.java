@@ -20,9 +20,10 @@ import org.apache.log4j.Logger;
 
 /**
  *
- * A LocalMdb used for lodh tests.
+ * A LocalMdbFromTopic used for lodh tests.
  *
- * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
+ * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue". This mdb is used 
+ * in ClusterTestCase. Don't change it!!!
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
  * @author <a href="mnovak@redhat.com">Miroslav Novak</a>
@@ -30,11 +31,13 @@ import org.apache.log4j.Logger;
  */
 @MessageDriven(name = "mdb",
 activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
+    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
+    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InTopic"),
+    @ActivationConfigProperty(propertyName = "SubscriptionDurability", propertyValue = "Durable")
+})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class LocalMdb implements MessageDrivenBean, MessageListener {
+public class LocalMdbFromTopic implements MessageDrivenBean, MessageListener {
     
     @Resource(mappedName = "java:/JmsXA")
     private static ConnectionFactory cf;
@@ -46,10 +49,10 @@ public class LocalMdb implements MessageDrivenBean, MessageListener {
 //    private static Queue queue;
 
     private static final long serialVersionUID = 2770941392406343837L;
-    private static final Logger log = Logger.getLogger(LocalMdb.class.getName());
+    private static final Logger log = Logger.getLogger(LocalMdbFromTopic.class.getName());
     private MessageDrivenContext context = null;
     
-    public LocalMdb() {
+    public LocalMdbFromTopic() {
         super();
     }
 
@@ -76,7 +79,7 @@ public class LocalMdb implements MessageDrivenBean, MessageListener {
             long time = System.currentTimeMillis();
             int counter = 0;
             try {
-                counter = message.getIntProperty("count");
+                counter = message.getIntProperty("counter");
             } catch (Exception e) {
                 log.log(Level.ERROR, e.getMessage(), e);
             }

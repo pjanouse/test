@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.remote.jca;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -18,6 +18,8 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
+import org.jboss.qa.hornetq.test.ContextProvider;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.shrinkwrap.api.Archive;
@@ -37,32 +39,28 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
+ * This is modified lodh 2 test case which is testing remote jca in cluster and
+ * have remote inqueue and outqueue.
  *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class LodhFailoverTestCase extends HornetQTestCase {
+public class RemoteJcaTestCase extends HornetQTestCase {
 
     @ArquillianResource
     private Deployer deployer;
-    private static final Logger logger = Logger.getLogger(LodhFailoverTestCase.class);
-    private static final int NUMBER_OF_DESTINATIONS = 5;
+    private static final Logger logger = Logger.getLogger(RemoteJcaTestCase.class);
+    private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
-    // multicast address for cluster A
-    private String broadcastAddressA = "231.10.20.31";
-    // multicast address for cluster A
-    private String broadcastAddressB = "232.10.20.32";
     // queue to send messages in 
     static String inQueueName = "InQueue";
-    static String inQueue = "jms/queue/" + inQueueName;
-    static String inQueueFullJndiName = "java:/" + inQueue;
-    
+    static String inQueueJndiName = "jms/queue/" + inQueueName;
+    static String inQueueFullJndiName = "java:/" + inQueueJndiName;
     // queue for receive messages out
     static String outQueueName = "OutQueue";
-    static String outQueue = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueue;
-    
+    static String outQueueJndiName = "jms/queue/" + outQueueName;
+    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
@@ -72,125 +70,35 @@ public class LodhFailoverTestCase extends HornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
-    public static Archive getDeployment1() {
-
-        return createDeployment();
-
+    public static Archive getDeployment1() throws Exception {
+        
+        File propertyFile = new File("mdb1.properties");
+        PrintWriter writer = new PrintWriter(propertyFile);
+        writer.println("remote-jms-server=" + CONTAINER1_IP);
+        writer.close();
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+        
     }
 
     @Deployment(managed = false, testable = false, name = "mdb2")
     @TargetsContainer(CONTAINER4)
-    public static Archive getDeployment2() {
-
-        return createDeployment();
-    }
-    
-    /**
-     * This mdb reads messages from remote InQueue
-     *
-     * @return
-     */
-    private static JavaArchive createDeployment() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb.jar");
-        mdbJar.addClass(MdbWithRemoteOutQueueToContaniner1.class);
+    public static Archive getDeployment2() throws Exception {
+        
+        File propertyFile = new File("mdb2.properties");
+        PrintWriter writer = new PrintWriter(propertyFile);
+        writer.println("remote-jms-server=" + CONTAINER3_IP);
+        writer.close();
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
 
-    
-    private static JavaArchive createLodh1Deployment(String mdbName, String fullJndiInQueueName, String fullJndiOutQueueName)   {
-        
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbName);
-        
-        mdbJar.addClass(LocalMdbFromQueue.class);
-        
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        
-        StringBuffer ejbXml = new StringBuffer();
-        
-        ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
-        ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
-        ejbXml.append("xmlns=\"http://java.sun.com/xml/ns/javaee\"\n");
-        ejbXml.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-        ejbXml.append("xmlns:c=\"urn:clustering:1.0\"\n");
-        ejbXml.append("xsi:schemaLocation=\"http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3-2_0.xsd http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd\"\n");
-        ejbXml.append("version=\"3.1\"\n");
-        ejbXml.append("impl-version=\"2.0\">\n");
-        ejbXml.append("<enterprise-beans>\n");
-        ejbXml.append("<message-driven>\n");
-        ejbXml.append("<ejb-name>" + mdbName + "</ejb-name>\n");
-        ejbXml.append("<ejb-class>org.jboss.qa.hornetq.apps.mdb.LocalMdb</ejb-class>\n");
-        ejbXml.append("<activation-config>\n");
-        ejbXml.append("<activation-config-property>\n");
-        ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>" + fullJndiInQueueName + "</activation-config-property-value>\n");
-        ejbXml.append("</activation-config-property>\n");
-        ejbXml.append("<activation-config-property>\n");
-        ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>javax.jms.Queue</activation-config-property-value>\n");
-        ejbXml.append("</activation-config-property>\n");
-        ejbXml.append("</activation-config>\n");
-        ejbXml.append("<resource-ref>\n");
-        ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>" + fullJndiOutQueueName + "</jndi-name>\n");
-        ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
-        ejbXml.append("<res-auth>Container</res-auth>\n");
-        ejbXml.append("</resource-ref>\n");
-        ejbXml.append("</message-driven>\n");
-        ejbXml.append("</enterprise-beans>\n");
-        ejbXml.append("</jboss:ejb-jar>\n");
-        ejbXml.append("\n");
-        
-        mdbJar.addAsManifestResource(new StringAsset(ejbXml.toString()), "jboss-ejb3.xml");
-//        try {
-//            PrintWriter writer = new PrintWriter("target/test-classes/org/jboss/qa/hornetq/apps/mdb/jboss-ejb3.xml");
-//            writer.println(ejbXml.toString());
-//        } catch (FileNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(LodhFailoverTestCase.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-        
-//        mdbJar.addAsManifestResource(LocalMdbFromQueue.class.getPackage(),"jboss-ejb3.xml", "jboss-ejb3.xml");
-        logger.info(ejbXml);                                
-        logger.info(mdbJar.toString(true));
-        
-        return mdbJar;
-        
-    }
-    @Deployment(managed = false, testable = false, name = "lodh0_mdb")
-    @TargetsContainer(CONTAINER1)
-    public static Archive getDeploymentForLodh0() {
-        
-        Archive archive = createLodh1Deployment("lodh0_mdb0", inQueueFullJndiName+"0", outQueueFullJndiName+"0");
-        
-        File target = new File("/tmp/mdb0.jar");
-        
-        archive.as(ZipExporter.class).exportTo(target, true);
-        
-        return archive;
-        
-    }
-//    @Deployment(managed = false, testable = false, name = "lodh1_mdb")
-//    @TargetsContainer(CONTAINER1)
-//    public static Archive getDeploymentForLodh1() {
-//        return createLodh1Deployment("lodh1_mdb1", inQueueFullJndiName+"1", outQueueFullJndiName+"1");
-//    }
-//    @Deployment(managed = false, testable = false, name = "lodh2_mdb")
-//    @TargetsContainer(CONTAINER1)
-//    public static Archive getDeploymentForLodh2() {
-//        return createLodh1Deployment("lodh1_mdb2", inQueueFullJndiName+"2", outQueueFullJndiName+"2");
-//    }
-//    @Deployment(managed = false, testable = false, name = "lodh3_mdb")
-//    @TargetsContainer(CONTAINER1)
-//    public static Archive getDeploymentForLodh3() {
-//        return createLodh1Deployment("lodh1_mdb3", inQueueFullJndiName+"3", outQueueFullJndiName+"3");
-//    }
-//    @Deployment(managed = false, testable = false, name = "lodh4_mdb")
-//    @TargetsContainer(CONTAINER1)
-//    public static Archive getDeploymentForLodh4() {
-//        return createLodh1Deployment("lodh1_mdb4", inQueueFullJndiName+"4", outQueueFullJndiName+"4");
-//    }
-    
     /**
      * @param acknowledge acknowledge type
      * @param failback whether to test failback
@@ -200,7 +108,7 @@ public class LodhFailoverTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    public void testFailover() throws Exception {
+    public void testRemoteJcaInCluster() throws Exception {
 
         prepareRemoteJcaTopology();
         // cluster A
@@ -213,36 +121,40 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
         deployer.deploy("mdb2");
 
-        ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerClientAck producer2 = new ProducerClientAck(CONTAINER3_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer2 = new ProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
         producer2.start();
-        
-        // killer sequence
-        
-        producer1.join();
-        producer2.join();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 1000, 10, 10);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 1000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 10000, 10, 10);
 
         receiver1.start();
         receiver2.start();
-        
+
+        // Wait 20s to send and receive some messages
+        Thread.sleep(20000);
+
+        producer1.stopSending();
+        producer2.stopSending();
+        producer1.join();
+        producer2.join();
+
         receiver1.join();
         receiver2.join();
 
-        Assert.assertEquals(2 * NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size()
-                + receiver2.getListOfReceivedMessages().size());
-
-        controller.stop(CONTAINER1);
+        Assert.assertEquals("There is different number of sent and received messages.", 
+                producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
 
         controller.stop(CONTAINER2);
+        controller.stop(CONTAINER4);
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER3);
 
     }
-    
-    
+
     /**
      * @param acknowledge acknowledge type
      * @param failback whether to test failback
@@ -252,41 +164,41 @@ public class LodhFailoverTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    public void testKillWithMdbLodh1() throws Exception {
-        // we use only the first server
+    public void testRemoteJca() throws Exception {
+
         prepareRemoteJcaTopology();
-        
+        // cluster A
         controller.start(CONTAINER1);
-//        deployer.undeploy("lodh1_mdb");
-        deployer.deploy("lodh0_mdb");
-//        deployer.deploy("lodh1_mdb");
-//        deployer.deploy("lodh2_mdb");
-//        deployer.deploy("lodh3_mdb");
-//        deployer.deploy("lodh4_mdb");
-//        
-        QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, inQueue, NUMBER_OF_DESTINATIONS, 1, 1, NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        // cluster B
+        controller.start(CONTAINER2);
         
-        clients.setQueueJndiNamePrefixProducers(inQueue);
-                
-        clients.setQueueJndiNamePrefixConsumers(outQueue);
+        deployer.deploy("mdb1");
         
-        clients.startClients();
+        ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         
-        Thread.sleep(10000);
+        producer1.start();
         
-        clients.stopClients();
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
         
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
+        receiver1.start();
         
-        Assert.assertTrue("There are problems detected by jms clients. See log for more details", 
-                clients.evaluateResults());
+        // Wait 20s to send and receive some messages
+        Thread.sleep(20000);
+
+        producer1.stopSending();
+        producer1.join();
         
+        receiver1.join();
+        
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());;
+
+        controller.stop(CONTAINER2);
         controller.stop(CONTAINER1);
 
     }
-
+    
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
@@ -297,14 +209,15 @@ public class LodhFailoverTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
-
         controller.stop(CONTAINER2);
+        controller.stop(CONTAINER4);
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER3);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
     }
-    
+
     /**
      * Prepare two servers in simple dedecated topology.
      *
@@ -315,9 +228,7 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         if (!topologyCreated) {
             prepareJmsServer(CONTAINER1, CONTAINER1_IP);
             prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
-            
-            System.setProperty("SERVER_WITH_OUTBOUND_QUEUE", CONTAINER1_IP);
-            
+
             prepareJmsServer(CONTAINER3, CONTAINER3_IP);
             prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
 
@@ -349,14 +260,11 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
-        int udpGroupPort = 9875;
+        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
 
@@ -365,17 +273,17 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, Integer.MIN_VALUE, broadcastAddressA, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, broadcastAddressA, udpGroupPort, 10000);
-
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
+        jmsAdminOperations.close();
         controller.stop(containerName);
 
     }
@@ -393,14 +301,11 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
-        int udpGroupPort = 9875;
+        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
 
@@ -409,11 +314,11 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, Integer.MIN_VALUE, broadcastAddressB, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, broadcastAddressB, udpGroupPort, 10000);
-
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
@@ -423,7 +328,7 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
-
+        jmsAdminOperations.close();
         controller.stop(containerName);
     }
 
@@ -478,18 +383,12 @@ public class LodhFailoverTestCase extends HornetQTestCase {
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }
+
+        jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
         
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, inQueueName + queueNumber, inQueue + queueNumber, true);
-        }
-        
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, outQueueName + queueNumber, outQueue + queueNumber, true);
-        }
-        
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
+
+        jmsAdminOperations.close();
     }
 
     /**

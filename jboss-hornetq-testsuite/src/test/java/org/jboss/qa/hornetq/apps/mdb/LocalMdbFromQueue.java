@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
 import java.util.Properties;
+import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -19,9 +20,10 @@ import org.apache.log4j.Logger;
 
 /**
  *
- * A Mdb used for lodh tests.
+ * A LocalMdbFromQueue used for lodh tests.
  *
- * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
+ * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue". This mdb is used 
+ * in ClusterTestCase. Don't change it!!!
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
  * @author <a href="mnovak@redhat.com">Miroslav Novak</a>
@@ -30,17 +32,25 @@ import org.apache.log4j.Logger;
 @MessageDriven(name = "mdb",
 activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "/jms/queue/InQueue")})
+    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class Mdb implements MessageDrivenBean, MessageListener {
+public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
     
+    @Resource(mappedName = "java:/JmsXA")
+    private static ConnectionFactory cf;
+    
+    @Resource(name = "java:/jms/queue/OutQueue")
+    private static Queue queue;
+    
+//    @Resource(name = "queue/OutQueue")
+//    private static Queue queue;
+
     private static final long serialVersionUID = 2770941392406343837L;
-    private static final Logger log = Logger.getLogger(Mdb.class.getName());
+    private static final Logger log = Logger.getLogger(LocalMdbFromQueue.class.getName());
     private MessageDrivenContext context = null;
-    private String hostname = "192.168.1.1";
     
-    public Mdb() {
+    public LocalMdbFromQueue() {
         super();
     }
 
@@ -62,7 +72,6 @@ public class Mdb implements MessageDrivenBean, MessageListener {
         InitialContext ctxRemote = null;
         Connection con = null;
         Session session = null;
-        Queue queue = null;
 
         try {
             long time = System.currentTimeMillis();
@@ -75,29 +84,11 @@ public class Mdb implements MessageDrivenBean, MessageListener {
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
             log.log(Level.INFO, " Start of message:" + messageInfo);
 
-            for (int i = 0; i < (5 + 5 * Math.random()); i++) {
-                try {
-                    Thread.sleep((int) (10 + 10 * Math.random()));
-                } catch (InterruptedException ex) {
-                }
-            }
-
-            ctx = new InitialContext();
-            
-            // i want connection factory configured here
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
             con = cf.createConnection();
-
-            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
             
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
-            
-            ctxRemote = new InitialContext(env);
-            queue = (Queue) ctxRemote.lookup("jms/queue/OutQueue");
-
             con.start();
+            
+            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
             MessageProducer sender = session.createProducer(queue);
@@ -106,10 +97,12 @@ public class Mdb implements MessageDrivenBean, MessageListener {
             sender.send(newMessage);
 
             log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            
         } catch (Exception t) {
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
             this.context.setRollbackOnly();
+            
         } finally {
             if (session != null) {
                 try {

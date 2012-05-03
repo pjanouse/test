@@ -5,30 +5,26 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
 import java.util.Map;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
-import org.jboss.arquillian.container.spi.event.container.BeforeStart;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.After;
 import org.jboss.arquillian.test.spi.event.suite.AfterClass;
 import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
-import org.jboss.arquillian.test.spi.event.suite.TestEvent;
-import org.jboss.as.arquillian.container.managed.ManagedContainerConfiguration;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 
 /**
- * Saves configuration before test class and then restore after each test.
+ * Saves configuration before test class and then restores after each test which is annotated by @RestoreConfigAfterTest
  *
  * @author mnovak@redhat.com
  */
 public class RestoreConfig {
     
-        private static final Logger logger = Logger.getLogger(RestoreConfig.class);
-
+    private static final Logger logger = Logger.getLogger(RestoreConfig.class);
     
     /**
      * Backups configuration of all containers.

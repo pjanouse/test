@@ -1,17 +1,13 @@
 package org.jboss.qa.hornetq.test;
 
-import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.arquillian.test.api.ArquillianResource;
-
-import javax.jms.Connection;
-import javax.jms.JMSException;
-import javax.jms.Session;
+import java.io.File;
+import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.io.File;
-import java.util.Properties;
+import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.arquillian.test.api.ArquillianResource;
 
 /**
  * Parent class for all HornetQ test cases.
