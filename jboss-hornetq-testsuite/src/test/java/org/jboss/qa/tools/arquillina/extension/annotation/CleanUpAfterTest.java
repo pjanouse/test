@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * 
- * Annotation for restoring configuration.
+ * Annotation for deleting data, tmp, log directory after test
  * 
  * @author mnovak@redhat.com
  * 

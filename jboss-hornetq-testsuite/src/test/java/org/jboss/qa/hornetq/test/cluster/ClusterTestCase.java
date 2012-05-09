@@ -16,6 +16,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -77,9 +78,10 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+//    @CleanUpAfterTest
     public void clusterTest() throws Exception {
 
-        prepareServers();
+//        prepareServers();
         
         controller.start(CONTAINER2);
 
@@ -110,9 +112,10 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+//    @CleanUpAfterTest
     public void clusterTestWithMdbOnQueue() throws Exception {
 
-        prepareServers();
+//        prepareServers();
         
         controller.start(CONTAINER2);
 
@@ -158,6 +161,7 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+//    @CleanUpAfterTest
     public void clusterTestWithMdbOnTopic() throws Exception {
 
         prepareServers();
@@ -256,8 +260,8 @@ public class ClusterTestCase extends HornetQTestCase {
     @Before
     public void prepareServers() {
         if (!topologyCreated) {
-            prepareServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-            prepareServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_B);
+            prepareServer(CONTAINER1, CONTAINER1_IP);
+            prepareServer(CONTAINER2, CONTAINER2_IP);
 
             // deploy destinations 
             controller.start(CONTAINER1);
@@ -314,7 +318,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * @param bindingAddress says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareServer(String containerName, String bindingAddress, String journalDirectory) {
+    private void prepareServer(String containerName, String bindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -334,10 +338,10 @@ public class ClusterTestCase extends HornetQTestCase {
 //        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setBindingsDirectory(journalDirectory);
-        jmsAdminOperations.setPagingDirectory(journalDirectory);
-        jmsAdminOperations.setJournalDirectory(journalDirectory);
-        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+//        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+//        jmsAdminOperations.setPagingDirectory(journalDirectory);
+//        jmsAdminOperations.setJournalDirectory(journalDirectory);
+//        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);

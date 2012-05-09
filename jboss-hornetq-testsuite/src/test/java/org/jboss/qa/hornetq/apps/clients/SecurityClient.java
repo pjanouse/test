@@ -39,8 +39,8 @@ public class SecurityClient {
     private int counter = 0;
     private boolean stop = false;
     private boolean securityEnabled = true;
-    private String username;
-    private String password;
+    private String username = null;
+    private String password = null;
     Context context = null;
     ConnectionFactory cf = null;
     Connection con = null;
@@ -83,10 +83,10 @@ public class SecurityClient {
         context = new InitialContext(env);
 
         cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-
-        queue = (Queue) context.lookup(queueNameJndi);
-
+        
         con = getConnection();
+        
+        queue = (Queue) context.lookup(queueNameJndi);
 
         session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -308,6 +308,7 @@ public class SecurityClient {
 
         // if there is username and password and security enabled then use it
         if (securityEnabled && username != null && !"".equals(username) && password != null) {
+            System.out.println("username: " + username + ", pass: " + password);
             return cf.createConnection(username, password);
         }
         // else it's guest user or security disabled
@@ -358,7 +359,7 @@ public class SecurityClient {
 
     public static void main(String[] args) throws Exception {
 
-        SecurityClient producer = new SecurityClient("192.168.1.1", 4447, "jms/queue/testQueue0", 100, "user", "useruser");
+        SecurityClient producer = new SecurityClient("192.168.1.1", 4447, "jms/queue/testQueue0", 100, "pepa", "minobe");
 
         producer.initializeClient();
 

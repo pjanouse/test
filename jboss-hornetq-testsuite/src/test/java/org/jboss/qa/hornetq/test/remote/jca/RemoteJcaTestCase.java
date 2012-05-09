@@ -133,8 +133,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver1.start();
         receiver2.start();
 
-        // Wait 20s to send and receive some messages
-        Thread.sleep(20000);
+        // Wait to send and receive some messages
+        Thread.sleep(12 * 60 * 60 * 1000);
 
         producer1.stopSending();
         producer2.stopSending();
@@ -183,8 +183,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         
         receiver1.start();
         
-        // Wait 20s to send and receive some messages
-        Thread.sleep(20000);
+        // Wait to send and receive some messages
+        Thread.sleep(60000);
 
         producer1.stopSending();
         producer1.join();
@@ -213,8 +213,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.stop(CONTAINER4);
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER3);
-
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
     }
 

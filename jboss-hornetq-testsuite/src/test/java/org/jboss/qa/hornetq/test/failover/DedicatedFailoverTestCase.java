@@ -118,7 +118,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             controller.stop(CONTAINER2);
         }
         
-        Thread.sleep(2000);
+        Thread.sleep(5000);
         clients.stopClients();
         
         while (!clients.isFinished()) {

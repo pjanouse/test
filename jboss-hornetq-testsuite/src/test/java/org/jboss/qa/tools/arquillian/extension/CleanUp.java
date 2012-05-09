@@ -16,7 +16,7 @@ import org.jboss.arquillian.test.spi.event.suite.AfterClass;
 import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
 
 /**
- * Saves configuration before test class and then restores after each test which is annotated by @CleanUp
+ * Removed tmp, data, log directory after each test which is annotated by @CleanUpAfterTest
  *
  * @author mnovak@redhat.com
  */
