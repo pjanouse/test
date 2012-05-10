@@ -7,7 +7,7 @@
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
@@ -26,7 +26,7 @@
         <container qualifier="node-2" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true
+                <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191

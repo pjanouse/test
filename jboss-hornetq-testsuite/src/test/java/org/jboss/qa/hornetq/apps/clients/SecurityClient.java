@@ -80,6 +80,9 @@ public class SecurityClient {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
         env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
+//        env.put(Context.SECURITY_PRINCIPAL, "guest");
+//        env.put(Context.SECURITY_CREDENTIALS, "guest");
+        
         context = new InitialContext(env);
 
         cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
@@ -359,11 +362,11 @@ public class SecurityClient {
 
     public static void main(String[] args) throws Exception {
 
-        SecurityClient producer = new SecurityClient("192.168.1.1", 4447, "jms/queue/testQueue0", 100, "pepa", "minobe");
+        SecurityClient producer = new SecurityClient("127.0.0.1", 4447, "jms/queue/testQueue0", 100, null, null);
 
         producer.initializeClient();
 
-//        producer.sendAndReceive();
+        producer.sendAndReceive();
 
 //        producer.createDurableQueue("testQueue0");
 //        producer.deleteDurableQueue("testQueue0");
