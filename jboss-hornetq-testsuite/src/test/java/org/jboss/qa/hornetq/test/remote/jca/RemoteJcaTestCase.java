@@ -22,6 +22,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.ContextProvider;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.Assignable;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -108,6 +109,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
+    @CleanUpAfterTest
     public void testRemoteJcaInCluster() throws Exception {
 
         prepareRemoteJcaTopology();
@@ -134,7 +136,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver2.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(12 * 60 * 60 * 1000);
+        Thread.sleep(3 * 60 * 1000);
 
         producer1.stopSending();
         producer2.stopSending();
@@ -147,7 +149,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages.", 
                 producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
                 receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
-
+        
+        deployer.undeploy("mdb1");
+        deployer.undeploy("mdb2");
         controller.stop(CONTAINER2);
         controller.stop(CONTAINER4);
         controller.stop(CONTAINER1);
@@ -164,6 +168,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
+    @CleanUpAfterTest
     public void testRemoteJca() throws Exception {
 
         prepareRemoteJcaTopology();
@@ -184,7 +189,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver1.start();
         
         // Wait to send and receive some messages
-        Thread.sleep(60000);
+        Thread.sleep(3 * 60 * 1000);
 
         producer1.stopSending();
         producer1.join();
@@ -193,7 +198,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());;
-
+                
+        deployer.undeploy("mdb1");
         controller.stop(CONTAINER2);
         controller.stop(CONTAINER1);
 
@@ -266,7 +272,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setClustered(true);
 
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
@@ -307,7 +312,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setClustered(true);
 
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 

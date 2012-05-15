@@ -54,7 +54,8 @@ public class CleanUp {
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "tmp"));
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "log"));
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data"));
-                
+                deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data" + fileSeparator + (System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A")));
+                deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data" + fileSeparator + (System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-A")));
             }
         }
     }
