@@ -138,7 +138,7 @@ public class SoakTestCase extends HornetQTestCase {
         producerToInQueue2.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(10 * 60 * 1000);
+        Thread.sleep(12 * 60 * 60 * 1000);
 
         producerToInQueue1.stopSending();
         producerToInQueue2.stopSending();
