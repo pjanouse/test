@@ -345,7 +345,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
@@ -403,7 +402,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity(backupServerName);
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, true);
-        jmsAdminOperations.setJournalType(backupServerName, "NIO");
         jmsAdminOperations.setJournalFileSize(backupServerName, 10240);
         jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectoryPath);

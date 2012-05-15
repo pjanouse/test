@@ -1748,6 +1748,74 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Set multicast address for socket binding
+     *
+     * @param serverName set name of hornetq server
+     * @param name       name of the remote connector
+     * @param params     params
+     */
+    public void removeSocketBinding(String socketBindingName) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+       
+ //socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Add multicast address for socket binding
+     *  
+     * @param socketBindingName name of the socket binding
+     * @param multicastAddress  
+     * @param multicastPort 
+     */
+    public void addSocketBinding(String socketBindingName, String multicastAddress, int multicastPort) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("name").set("multicast-address");
+        model.get("value").set(multicastAddress);
+        model.get("name").set("multicast-port");
+        model.get("value").set(multicastPort);
+ 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Set multicast address for socket binding
+     *
+     * @param serverName set name of hornetq server
+     * @param name       name of the remote connector
+     * @param params     params
+     */
+    public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-atrribute");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("name").set("multicast-address");
+        model.get("value").set(multicastAddress);
+        model.toString();
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Creates in-vm connector
@@ -1877,6 +1945,7 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             logger.error(e);
         }
+        
     }
 
     /**
@@ -1968,6 +2037,17 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void reload() {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("reload");
+        
         try {
             this.applyUpdate(model);
         } catch (Exception e) {

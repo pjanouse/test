@@ -17,20 +17,23 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
  * 
  * Simple sender with client acknowledge session. Able to fail over.
  * 
+ * This producer does not remember all the send messages, just message id. This is for 
+ * memory reasons.
+ * 
  * This class extends Thread class and should be started as a thread using start().
  * 
  * @author mnovak
  */
-public class ProducerClientAck extends Thread {
+public class SoakProducerClientAck extends Thread {
 
-    private static final Logger logger = Logger.getLogger(ProducerClientAck.class);
+    private static final Logger logger = Logger.getLogger(SoakProducerClientAck.class);
     private int maxRetries = 30;
     private String hostname = "localhost";
     private int port = 4447;
     private String queueNameJndi = "jms/queue/testQueue1";
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Message> listOfSentMessages = new ArrayList<Message>();
+    private List<String> listOfSentMessages = new ArrayList<String>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
@@ -46,7 +49,7 @@ public class ProducerClientAck extends Thread {
      * @param maxRetries number of retries to send message after server fails
      * @param queueNameJndi set jndi name of the queue to send messages
      */
-    public ProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
+    public SoakProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -93,17 +96,14 @@ public class ProducerClientAck extends Thread {
                 // send message in while cycle
                 sendMessage(producer, msg);
                 
-                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter 
+                if (counter % 1000 == 0)    {
+                    logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter 
                         + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
-
+                }
             }
 
             producer.close();
             
-            if (messageVerifier != null)    {
-                messageVerifier.addSendMessages(listOfSentMessages);
-            }
-
         } catch (Exception e) {
             exception = e;
             logger.error("Producer got exception and ended:", e);
@@ -149,7 +149,7 @@ public class ProducerClientAck extends Thread {
 
                 producer.send(msg);
                 
-                listOfSentMessages.add(msg);
+                listOfSentMessages.add(msg.getJMSMessageID());
                 
                 counter++;
                 
@@ -240,16 +240,18 @@ public class ProducerClientAck extends Thread {
     }
 
     /**
+     * List of messageIds.
+     * 
      * @return the listOfSentMessages
      */
-    public List<Message> getListOfSentMessages() {
+    public List<String> getListOfSentMessages() {
         return listOfSentMessages;
     }
 
     /**
      * @param listOfSentMessages the listOfSentMessages to set
      */
-    public void setListOfSentMessages(List<Message> listOfSentMessages) {
+    public void setListOfSentMessages(List<String> listOfSentMessages) {
         this.listOfSentMessages = listOfSentMessages;
     }
 
@@ -283,8 +285,8 @@ public class ProducerClientAck extends Thread {
     
     public static void main(String[] args) throws InterruptedException  {
         
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10000);
-//        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
+        SoakProducerClientAck producer = new SoakProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10000);
+//        SoakProducerClientAck producer = new SoakProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
         producer.setMessageBuilder(new MixMessageBuilder(1024*1024));
         producer.start();
         

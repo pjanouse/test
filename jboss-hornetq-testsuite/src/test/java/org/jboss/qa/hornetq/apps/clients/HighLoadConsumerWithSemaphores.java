@@ -71,12 +71,14 @@ public class HighLoadConsumerWithSemaphores extends HighLoadClientWithSemaphores
                     log.info(String.format("Starting to consume for '%s' - '%s'", this.topic, this.getName()));
                 }
                 Message msg = subscriber.receive(this.receiveTimeout);
+                if (counter % 100 == 0) log.info(String.format("Consumwer for topic '%s' - with name '%s' received message: '%s'", 
+                        this.topic, this.getName(), counter));
                 if (msg == null) {
                     log.info(String.format("Cannot get message in specified timeout '%s' - '%s'", this.topic, this.getName()));
                     continueWithConsuming = false;
                 } else {
                     counter++;
-                    if (msg.getIntProperty(ATTR_MSG_COUNTER) != counter) {
+                    if (msg.propertyExists(ATTR_MSG_COUNTER) && msg.getIntProperty(ATTR_MSG_COUNTER) != counter) {
                         if (invalidOrderCounter < 10) {
                             int actualProp = msg.getIntProperty(ATTR_MSG_COUNTER);
                             log.warn(String.format("Invalid messages order. Expected: %s, received %s '%s' - '%s'",
@@ -99,6 +101,7 @@ public class HighLoadConsumerWithSemaphores extends HighLoadClientWithSemaphores
             session.commit();
         } catch (Exception e) {
             log.error(String.format("Exception in consumer " + this.getName() + " : " + e.getMessage()));
+            e.printStackTrace();
         } finally {
             if (this.releaseSemaphore != null) {
                 this.releaseSemaphore.release();
@@ -119,7 +122,7 @@ public class HighLoadConsumerWithSemaphores extends HighLoadClientWithSemaphores
             }
         }
         this.stopped = true;
-        log.info(String.format("Stopping consumer for '%s' - '%s' sent messages %s", this.getName(), this.topic, getReceivedMessages()));
+        log.info(String.format("Stopping consumer for '%s' - '%s' received messages %s", this.getName(), this.topic, getReceivedMessages()));
     }
 
     /**

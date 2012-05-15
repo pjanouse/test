@@ -33,9 +33,10 @@ import junit.framework.Assert;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 
 /**
- * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B reteadly.
+ * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B repeatedly.
  * 
  * Topology - 
  * container1 - source server
@@ -69,10 +70,8 @@ public class Lodh4TestCase extends HornetQTestCase {
     public void stopAllServers() {
         controller.stop(CONTAINER1);
         controller.stop(CONTAINER2);
-        // delete all data folders
-        for (int i = 1; i <=4; i++) {
-            deleteFolder(new File(System.getProperty("JBOSS_HOME_" + i) + "/standalone/data"));
-        }
+        controller.stop(CONTAINER3);
+        controller.stop(CONTAINER4);
     }
 
     /**
@@ -89,6 +88,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     })
     @RunAsClient
     @Test
+    @CleanUpAfterTest
     public void normalMessagesTest() throws Exception {
         testLogic(new ByteMessageBuilder(30));
     }
@@ -107,6 +107,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     })
     @RunAsClient
     @Test
+    @CleanUpAfterTest
     public void largeByteMessagesTest() throws Exception {
         testLogic(new ByteMessageBuilder(1024 * 1024));
     }

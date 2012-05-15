@@ -345,7 +345,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
@@ -404,7 +403,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
