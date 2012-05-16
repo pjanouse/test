@@ -24,8 +24,8 @@ public class SoakReceiverClientAck extends Thread {
     private String queueNameJndi = "jms/queue/testQueue0";
     private long receiveTimeOut;
     private int ackAfter;
-    private List<String> listOfReceivedMessages = new ArrayList<String>();;
-    private List<String> listOfReceivedMessagesToBeAcked = new ArrayList<String>();
+//    private List<String> listOfReceivedMessages = new ArrayList<String>();;
+//    private List<String> listOfReceivedMessagesToBeAcked = new ArrayList<String>();
     private int count = 0;
     private Exception exception = null;
 
@@ -98,7 +98,7 @@ public class SoakReceiverClientAck extends Thread {
             
             while ((message = receiveMessage(receiver)) != null) {
                 
-                listOfReceivedMessagesToBeAcked.add(message.getJMSMessageID());
+//                listOfReceivedMessagesToBeAcked.add(message.getJMSMessageID());
                 
                 count++;
 //                Thread.sleep(20);
@@ -163,7 +163,7 @@ public class SoakReceiverClientAck extends Thread {
                             + count + ", message-counter: " + message.getStringProperty("counter") 
                             + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
             
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+//            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
 
         } catch (Exception ex) {
             logger.error("Exception thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
@@ -173,7 +173,7 @@ public class SoakReceiverClientAck extends Thread {
             count = count - ackAfter;
         }
         
-        listOfReceivedMessagesToBeAcked.clear();
+//        listOfReceivedMessagesToBeAcked.clear();
     }
     /**
      * Tries to receive message from server in specified timeout. If server crashes
@@ -263,19 +263,19 @@ public class SoakReceiverClientAck extends Thread {
         this.queueNameJndi = queueNameJndi;
     }
 
-    /**
-     * @return the listOfReceivedMessages
-     */
-    public List<String> getListOfReceivedMessages() {
-        return listOfReceivedMessages;
-    }
-
-    /**
-     * @param listOfReceivedMessages the listOfReceivedMessages to set
-     */
-    public void setListOfReceivedMessages(List<String> listOfReceivedMessages) {
-        this.listOfReceivedMessages = listOfReceivedMessages;
-    }
+//    /**
+//     * @return the listOfReceivedMessages
+//     */
+//    public List<String> getListOfReceivedMessages() {
+//        return listOfReceivedMessages;
+//    }
+//
+//    /**
+//     * @param listOfReceivedMessages the listOfReceivedMessages to set
+//     */
+//    public void setListOfReceivedMessages(List<String> listOfReceivedMessages) {
+//        this.listOfReceivedMessages = listOfReceivedMessages;
+//    }
 
     /**
      * @return the exception

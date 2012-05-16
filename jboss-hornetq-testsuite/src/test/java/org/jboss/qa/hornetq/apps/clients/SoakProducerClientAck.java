@@ -33,7 +33,7 @@ public class SoakProducerClientAck extends Thread {
     private String queueNameJndi = "jms/queue/testQueue1";
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<String> listOfSentMessages = new ArrayList<String>();
+//    private List<String> listOfSentMessages = new ArrayList<String>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
@@ -149,7 +149,7 @@ public class SoakProducerClientAck extends Thread {
 
                 producer.send(msg);
                 
-                listOfSentMessages.add(msg.getJMSMessageID());
+//                listOfSentMessages.add(msg.getJMSMessageID());
                 
                 counter++;
                 
@@ -239,21 +239,21 @@ public class SoakProducerClientAck extends Thread {
         this.messages = messages;
     }
 
-    /**
-     * List of messageIds.
-     * 
-     * @return the listOfSentMessages
-     */
-    public List<String> getListOfSentMessages() {
-        return listOfSentMessages;
-    }
-
-    /**
-     * @param listOfSentMessages the listOfSentMessages to set
-     */
-    public void setListOfSentMessages(List<String> listOfSentMessages) {
-        this.listOfSentMessages = listOfSentMessages;
-    }
+//    /**
+//     * List of messageIds.
+//     * 
+//     * @return the listOfSentMessages
+//     */
+//    public List<String> getListOfSentMessages() {
+//        return listOfSentMessages;
+//    }
+//
+//    /**
+//     * @param listOfSentMessages the listOfSentMessages to set
+//     */
+//    public void setListOfSentMessages(List<String> listOfSentMessages) {
+//        this.listOfSentMessages = listOfSentMessages;
+//    }
 
     /**
      * @return the messageVerifier
