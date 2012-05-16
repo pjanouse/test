@@ -88,16 +88,16 @@ public class SoakProducerClientAck extends Thread {
 
             Message msg = null;
 
-            while (counter < messages && !stop) {
+            while (getCounter() < messages && !stop) {
                 
                 msg = messageBuilder.createMessage(session);
-                msg.setIntProperty("count", counter);
+                msg.setIntProperty("count", getCounter());
                 
                 // send message in while cycle
                 sendMessage(producer, msg);
                 
-                if (counter % 1000 == 0)    {
-                    logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter 
+                if (getCounter() % 1000 == 0)    {
+                    logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter() 
                         + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
                 }
             }
@@ -151,7 +151,7 @@ public class SoakProducerClientAck extends Thread {
                 
 //                listOfSentMessages.add(msg.getJMSMessageID());
                 
-                counter++;
+                setCounter(getCounter() + 1);
                 
                 numberOfRetries = 0;
 
@@ -161,7 +161,7 @@ public class SoakProducerClientAck extends Thread {
 
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname
-                            + ". Sent message with property count: " + counter
+                            + ". Sent message with property count: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
                 } catch (JMSException e) {} // ignore 
 
@@ -171,7 +171,7 @@ public class SoakProducerClientAck extends Thread {
         
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for producer for node: " + hostname
-                + ". Sent message with property count: " + counter
+                + ". Sent message with property count: " + getCounter()
                 + ", messageId:" + msg.getJMSMessageID());
 
     }
@@ -305,6 +305,20 @@ public class SoakProducerClientAck extends Thread {
      */
     public void setMessageBuilder(MessageBuilder messageBuilder) {
         this.messageBuilder = messageBuilder;
+    }
+
+    /**
+     * @return the counter
+     */
+    public int getCounter() {
+        return counter;
+    }
+
+    /**
+     * @param counter the counter to set
+     */
+    public void setCounter(int counter) {
+        this.counter = counter;
     }
 }
 

@@ -145,10 +145,10 @@ public class SoakTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         producerToInQueue2.join();
         
-        logger.info("Producer for host " + producerToInQueue1.getHostname() + " and queue " + producerToInQueue1.getQueueNameJndi()
-                + " got: " + producerToInQueue1.getListOfSentMessages().size() + " messages");
-        logger.info("Producer for host " + producerToInQueue2.getHostname() + " and queue " + producerToInQueue2.getQueueNameJndi()
-                + " got: " + producerToInQueue2.getListOfSentMessages().size() + " messages");
+//        logger.info("Producer for host " + producerToInQueue1.getHostname() + " and queue " + producerToInQueue1.getQueueNameJndi()
+//                + " got: " + producerToInQueue1.getListOfSentMessages().size() + " messages");
+//        logger.info("Producer for host " + producerToInQueue2.getHostname() + " and queue " + producerToInQueue2.getQueueNameJndi()
+//                + " got: " + producerToInQueue2.getListOfSentMessages().size() + " messages");
         
         for (HighLoadConsumerWithSemaphores consumer : consumers) {
             consumer.join();
@@ -156,8 +156,8 @@ public class SoakTestCase extends HornetQTestCase {
         }
 
         for (int i = 0; i < consumers.length; i++) {
-            if (consumers[i].getReceivedMessages() != (producerToInQueue1.getListOfSentMessages().size() 
-                    + producerToInQueue2.getListOfSentMessages().size())) {
+            if (consumers[i].getReceivedMessages() != (producerToInQueue1.getCounter()
+                    + producerToInQueue2.getCounter())) {
                 Assert.fail(String.format("Receiver #%s did not received defined count of messages", i));
             }
         }
@@ -188,7 +188,7 @@ public class SoakTestCase extends HornetQTestCase {
     }
 
     /**
-     * Prepare two servers in simple dedecated topology.
+     * Prepare two servers in simple dedicated topology.
      *
      * @throws Exception
      */
