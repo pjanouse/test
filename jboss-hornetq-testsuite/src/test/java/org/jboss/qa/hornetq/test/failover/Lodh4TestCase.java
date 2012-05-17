@@ -109,7 +109,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @Test
     @CleanUpAfterTest
     public void largeByteMessagesTest() throws Exception {
-        testLogic(new ByteMessageBuilder(1024 * 1024));
+        testLogic(new ByteMessageBuilder(300 * 1024));
     }
 
     /**
@@ -146,7 +146,7 @@ public class Lodh4TestCase extends HornetQTestCase {
        
         // kill sequence
         List<Integer> killSequenceList = new ArrayList<Integer>();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             Random r = new Random();
             int nodeId = 0;
             while (nodeId <= 0 || nodeId > 5) {

@@ -100,7 +100,7 @@ public class SoakReceiverClientAck extends Thread {
                 
 //                listOfReceivedMessagesToBeAcked.add(message.getJMSMessageID());
                 
-                count++;
+                setCount(count + 1);
 //                Thread.sleep(20);
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
@@ -170,7 +170,7 @@ public class SoakReceiverClientAck extends Thread {
                     + count + ", messageId:" + message.getJMSMessageID());
             // all unacknowledge messges will be received again
             ex.printStackTrace();
-            count = count - ackAfter;
+            setCount(count - ackAfter);
         }
         
 //        listOfReceivedMessagesToBeAcked.clear();
@@ -298,6 +298,20 @@ public class SoakReceiverClientAck extends Thread {
         receiver.start();
         
         receiver.join();
+    }
+
+    /**
+     * @return the count
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * @param count the count to set
+     */
+    public void setCount(int count) {
+        this.count = count;
     }
 
 }
