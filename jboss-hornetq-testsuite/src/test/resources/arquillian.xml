@@ -14,6 +14,7 @@
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
+                    -Djboss.bind.address.unsecure=${MYTESTIP_1}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR}
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->

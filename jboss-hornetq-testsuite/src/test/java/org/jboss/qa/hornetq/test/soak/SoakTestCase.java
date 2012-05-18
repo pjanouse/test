@@ -127,7 +127,6 @@ public class SoakTestCase extends HornetQTestCase {
         for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; i++) {
             consumers[i].start();
         }
-        
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
