@@ -6,6 +6,8 @@ import java.util.logging.Level;
 import javax.jms.Message;
 import javax.jms.Session;
 import junit.framework.Assert;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -33,6 +35,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.formatter.Formatter;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.util.loading.MyClassLoaderClassLoaderSource;
 import org.junit.After;
 import org.junit.Before;
@@ -98,6 +101,49 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
+    }
+    
+    @Deployment(managed = false, testable = false, name = "killServlet")
+    @TargetsContainer(CONTAINER1)
+    public static WebArchive getDeploymentKilServlet() throws Exception {
+        
+        final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, "killServlet.jar");
+        String webXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> "
+                + "<web-app version=\"2.5\" xmlns=\"http://java.sun.com/xml/ns/javaee\" "
+                + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                + "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee "
+                + "http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\">"
+                + "<servlet><servlet-name>KillServlet</servlet-name>"
+                + "<servlet-class>KillServlet</servlet-class></servlet>"
+                + "<servlet-mapping><servlet-name>KillServlet</servlet-name>"
+                + "<url-pattern>/KillServlet</url-pattern>"
+                + "</servlet-mapping><session-config>"
+                + "</web-app>";
+        killerServlet.addAsWebInfResource(new StringAsset(webXml), "web.xml");
+        
+        String jbossWebXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+            "<jboss-web>" +
+            "<context-root>/KillServlet</context-root>" +
+            "</jboss-web>";
+        killerServlet.addAsWebInfResource(new StringAsset(jbossWebXml), "jboss-web.xml");
+        
+        logger.info(killerServlet.toString(true));
+        return killerServlet;
+    }
+    
+    @Test
+    @RunAsClient
+    public void testKillServlet() throws InterruptedException  {
+        controller.start(CONTAINER1);
+        
+        deployer.deploy("killServlet");
+        
+        System.out.println("Kill server");
+        HttpGet httpget = new HttpGet(CONTAINER1_IP + ":8080/KillServlet/KillServlet1?op=kill");
+        Thread.sleep(50000);
+        
+        
+        controller.stop(CONTAINER1);
     }
 
     /**

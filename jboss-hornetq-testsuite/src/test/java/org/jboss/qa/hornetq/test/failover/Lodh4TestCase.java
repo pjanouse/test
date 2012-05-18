@@ -128,11 +128,13 @@ public class Lodh4TestCase extends HornetQTestCase {
     private void testLogic(MessageBuilder messageBuilder) throws Exception {
         
         prepareServers();
-        
-        controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        controller.start(CONTAINER3);
         controller.start(CONTAINER4);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER3);
+        
+        // give some time to server4 to really start
+        Thread.sleep(3000);
         
         QueueClientsClientAck clientsA1 = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES, 1, 1, NUMBER_OF_MESSAGES_PER_PRODUCER);
         
@@ -146,7 +148,7 @@ public class Lodh4TestCase extends HornetQTestCase {
        
         // kill sequence
         List<Integer> killSequenceList = new ArrayList<Integer>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             Random r = new Random();
             int nodeId = 0;
             while (nodeId <= 0 || nodeId > 5) {

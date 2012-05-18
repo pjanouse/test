@@ -1,5 +1,4 @@
 package org.jboss.qa.hornetq.apps.servlets;
-
 import javax.annotation.Resource;
 import javax.jms.*;
 import javax.servlet.ServletException;
@@ -43,62 +42,6 @@ public class KillerServlet extends HttpServlet {
 
 
     /**
-     * Sends messages into the defined queue
-     * @param connection
-     * @param queueIn
-     * @param out
-     * @param count
-     * @throws Exception
-     */
-    protected static void send(Connection connection, Queue queueIn, PrintWriter out, Integer count) throws Exception {
-        Session session = null;
-        MessageProducer sender = null;
-        final String correlation = String.valueOf(System.currentTimeMillis());
-        try {
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            sender = session.createProducer(queueIn);
-            sender.setDeliveryMode(DeliveryMode.PERSISTENT);
-            for (int i = 0; i < count; i++) {
-                StringBuilder messageOut = new StringBuilder("XARecovery");
-                messageOut.append(">>>");
-                for (int size = 0; size < Math.random() * 512; size++) {
-                    messageOut.append("1234567890");
-                }
-                messageOut.append("<<<");
-                if (i == (count - 1)) {
-                    messageOut.append(" Last Message.");
-                }
-                messageOut.append(" #" + correlation + " $" + i);
-                TextMessage msg = session.createTextMessage(messageOut.toString());
-                msg.setLongProperty("messageSize", messageOut.length());
-                msg.setIntProperty("messageIndex", i);
-                sender.send(msg);
-                log.info("Message count: " + i + " was send");
-            }
-        } finally {
-            try {
-                if (sender != null)
-                    try {
-                        sender.close();
-                    } catch (Exception e) {
-                        log.log(Level.SEVERE, e.getMessage(), e);
-                    }
-            } finally {
-                if (session != null) {
-                    try {
-                     session.close();
-                    } catch (Exception e) {
-                        log.log(Level.SEVERE, e.getMessage(), e);
-                    }
-                }
-            }
-        }
-    }
-
-    
-    
-
-    /**
      * Process requests
      * @param request
      * @param response
@@ -111,14 +54,14 @@ public class KillerServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         String op = request.getParameter("op");
-        
+        out.println("op is: " + op );
         try {
             
             if (op != null) {
                 if (op.equals("kill")) {
                     killServer();
-                } else if (op.equals("ping")) {
-                    throw new UnsupportedOperationException("Operation: " + op + " is not supoported.");
+                } else {
+                    out.println("Operation: " + op + " is not supoported.");
                 }
             }
         } catch (Exception e) {

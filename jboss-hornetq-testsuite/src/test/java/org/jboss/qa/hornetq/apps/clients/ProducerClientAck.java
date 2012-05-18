@@ -283,7 +283,7 @@ public class ProducerClientAck extends Thread {
     
     public static void main(String[] args) throws InterruptedException  {
         
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10000);
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.4", 4447, "queue/OutQueue4", 10000);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
         producer.setMessageBuilder(new MixMessageBuilder(1024*1024));
         producer.start();

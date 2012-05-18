@@ -75,7 +75,7 @@ public class ReceiverClientAck extends Thread {
         Queue queue = null;
 
         try {
-
+            logger.info("Receiver to queue: " + queueNameJndi + " and host: " + hostname + ":" + port + " starts.");
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
             env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
@@ -133,7 +133,9 @@ public class ReceiverClientAck extends Thread {
         } catch (Exception ex) {
             logger.error("Exception was thrown during receiving messages:", ex);
             exception = ex;
-            throw new RuntimeException("Fatal exception was thrown in receiver. Receiver for node: " + hostname);
+            ex.printStackTrace();
+            throw new RuntimeException("Fatal exception was thrown in receiver. Receiver for node: " + hostname, ex);
+            
         } finally {
             if (conn != null) {
                 try {
@@ -312,7 +314,7 @@ public class ReceiverClientAck extends Thread {
     
      public static void main(String[] args) throws InterruptedException  {
         
-        ReceiverClientAck receiver = new ReceiverClientAck("192.168.1.1", 4447, "jms/queue/OutQueue", 1000, 10, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck("192.168.1.4", 4447, "queue/OutQueue4", 1000, 10, 10);
         
         receiver.start();
         
