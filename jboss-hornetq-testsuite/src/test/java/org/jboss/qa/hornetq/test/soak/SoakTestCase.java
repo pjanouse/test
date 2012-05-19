@@ -191,8 +191,11 @@ public class SoakTestCase extends HornetQTestCase {
 
         int totalCountOfMessages = (producerToInQueue1.getCounter() + producerToInQueue2.getCounter());
         logger.info(String.format("Test sent %s messages (all producers)", totalCountOfMessages));
+
         for (HighLoadConsumerWithSemaphores consumer : consumers) {
             logger.info("Subscriber - " + consumer.getName() + " = " + consumer.getReceivedMessages() + " messages");
+        }
+        for (HighLoadConsumerWithSemaphores consumer : consumers) {
             if (consumer.getReceivedMessages() != totalCountOfMessages) {
                 Assert.fail(String.format("Receiver %s did not received all messages", consumer.getName()));
             }

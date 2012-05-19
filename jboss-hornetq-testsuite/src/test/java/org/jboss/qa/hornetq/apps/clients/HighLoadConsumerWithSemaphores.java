@@ -71,8 +71,10 @@ public class HighLoadConsumerWithSemaphores extends HighLoadClientWithSemaphores
                     log.info(String.format("Starting to consume for '%s' - '%s'", this.topic, this.getName()));
                 }
                 Message msg = subscriber.receive(this.receiveTimeout);
-                if (counter % 100 == 0) log.info(String.format("Consumwer for topic '%s' - with name '%s' received message: '%s'", 
-                        this.topic, this.getName(), counter));
+                if (counter % 100 == 0) {
+                    log.info(String.format("Consumer for topic '%s' - with name '%s' received message: '%s'",
+                            this.topic, this.getName(), counter));
+                }
                 if (msg == null) {
                     log.info(String.format("Cannot get message in specified timeout '%s' - '%s'", this.topic, this.getName()));
                     continueWithConsuming = false;
