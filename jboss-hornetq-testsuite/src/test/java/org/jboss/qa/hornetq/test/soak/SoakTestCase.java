@@ -80,6 +80,9 @@ public class SoakTestCase extends HornetQTestCase {
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
+    // TODO stupid temporary solution - whole logic of producers with gap will be moved into separate class
+    private Semaphore[] semaphores;
+
     /**
      * Creates deployment for Container 3 - server with MDB
      *
@@ -168,6 +171,10 @@ public class SoakTestCase extends HornetQTestCase {
 
         producerToInQueue1.stopSending();
         producerToInQueue2.stopSending();
+        // release all locks
+        for (Semaphore semaphore : this.semaphores) {
+            semaphore.release();
+        }
         producerToInQueue1.join();
         producerToInQueue2.join();
 
@@ -433,7 +440,6 @@ public class SoakTestCase extends HornetQTestCase {
                                                                      int consumersCount, int receiveTimeout) {
 
         HighLoadConsumerWithSemaphores[] consumers;
-        Semaphore[] semaphores;
         semaphores = new Semaphore[consumersCount];
         consumers = new HighLoadConsumerWithSemaphores[consumersCount];
 
