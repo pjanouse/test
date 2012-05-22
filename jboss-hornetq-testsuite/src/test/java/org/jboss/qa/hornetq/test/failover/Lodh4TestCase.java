@@ -1,38 +1,29 @@
 //TODO do check of journal files
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.jboss.qa.tools.byteman.rule.RuleInstaller;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import junit.framework.Assert;
-
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import org.hornetq.jms.client.HornetQQueue;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 
 /**
@@ -88,7 +79,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     })
     @RunAsClient
     @Test
-    @CleanUpAfterTest
+//    @CleanUpAfterTest
     public void normalMessagesTest() throws Exception {
         testLogic(new ByteMessageBuilder(30));
     }
@@ -107,11 +98,27 @@ public class Lodh4TestCase extends HornetQTestCase {
     })
     @RunAsClient
     @Test
-    @CleanUpAfterTest
+//    @CleanUpAfterTest
     public void largeByteMessagesTest() throws Exception {
-        testLogic(new ByteMessageBuilder(300 * 1024));
+        List<String> killSequence = new ArrayList<String>();
+        killSequence.add(CONTAINER2);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        testLogicLargeMessages(new ByteMessageBuilder(300 * 1024), killSequence);
     }
-
+    
+    @Test
+//    @CleanUpAfterTest
+    public void mixMessagesTest() throws Exception {
+        List<String> killSequence = new ArrayList<String>();
+        killSequence.add(CONTAINER2);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence);
+    }
+    
     /**
      * Implementation of the basic test scenario:
      * 1. Start cluster A and B
@@ -126,6 +133,28 @@ public class Lodh4TestCase extends HornetQTestCase {
      * @param messageVerifier instance of the messages verifier
      */
     private void testLogic(MessageBuilder messageBuilder) throws Exception {
+        List<String> killSequence = new ArrayList<String>();
+        killSequence.add(CONTAINER2);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER3);
+        testLogic(messageBuilder, killSequence);
+    }
+    
+    /**
+     * Implementation of the basic test scenario:
+     * 1. Start cluster A and B
+     * 2. Start producers on A1, A2
+     * 3. Start consumers on B1, B2
+     * 4. Kill sequence - it's random
+     * 5. Stop producers
+     * 6. Evaluate results
+     *
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
+     * @param messageVerifier instance of the messages verifier
+     */
+    private void testLogic(MessageBuilder messageBuilder, List<String> killSequence) throws Exception {
         
         prepareServers();
         controller.start(CONTAINER2);
@@ -146,21 +175,8 @@ public class Lodh4TestCase extends HornetQTestCase {
         
         Thread.sleep(10000);
        
-        // kill sequence
-        List<Integer> killSequenceList = new ArrayList<Integer>();
-        for (int i = 0; i < 5; i++) {
-            Random r = new Random();
-            int nodeId = 0;
-            while (nodeId <= 0 || nodeId > 5) {
-                nodeId = r.nextInt(5);
-            }
-            log.info("##################################");
-            log.info("Kill and restart server:" + nodeId);
-            killSequenceList.add(nodeId);
-            killAndStartContainer(nodeId);
-            log.info("##################################");
-        }
-
+        executeKillSequence(killSequence, 20000);
+        
         clientsA1.stopClients();
 
         while (!clientsA1.isFinished()) {
@@ -171,61 +187,87 @@ public class Lodh4TestCase extends HornetQTestCase {
         controller.stop(CONTAINER2);
         controller.stop(CONTAINER3);
         controller.stop(CONTAINER4);
-        
-        log.info("##################################");
-        StringBuilder killSequence = new StringBuilder();
-        killSequence.append("Print kill sequence:[");
-        for (int i = 0; i < killSequenceList.size(); i++)  {
-            if (i + 1 == killSequenceList.size())  {
-                killSequence.append(killSequenceList.get(i));
-            } else {
-                killSequence.append(killSequenceList.get(i) + ", ");
-            }
-        }
-        killSequence.append("]\n");
-        log.info(killSequence);
-        log.info("##################################");
-        
+               
         assertTrue("There are problems detected by clients. Check logs for more info. Look for: 'Print kill sequence', " +
                 "'Kill and restart server', 'Killing server', 'Evaluate results for queue clients with client acknowledge'."
                 , clientsA1.evaluateResults());
         
     }
-
+    
     /**
-     * Kills and starts container.
-     * 
-     * @param  nodeId node id of the node
-     * 
+     * Implementation of the basic test scenario:
+     * 1. Start cluster A and B
+     * 2. Start producers on A1, A2
+     * 3. Start consumers on B1, B2
+     * 4. Kill sequence - it's random
+     * 5. Stop producers
+     * 6. Evaluate results
+     *
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
+     * @param messageVerifier instance of the messages verifier
      */
-    private void killAndStartContainer(int nodeId) throws Exception    {
-        switch (nodeId) {
-            case 1:  killAndRestart(CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
-                     break;
-            case 2:  killAndRestart(CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT);
-                     break;
-            case 3:  killAndRestart(CONTAINER3, CONTAINER3_IP, BYTEMAN_CONTAINER3_PORT);
-                     break;
-            case 4:  killAndRestart(CONTAINER4, CONTAINER4_IP, BYTEMAN_CONTAINER4_PORT);
-                     break;
-            default: throw new Exception("Such a node id does not exist. Wrong value: " + nodeId);
+    private void testLogicLargeMessages(MessageBuilder messageBuilder, List<String> killSequence) throws Exception {
+        
+        prepareServers();
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER4);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER3);
+        
+        // give some time to server4 to really start
+        Thread.sleep(3000);
+        
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName+0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer1.setMessageBuilder(messageBuilder);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER4_IP, 4447, relativeJndiOutQueueName+0, 10000, 10, 10);
+        
+        log.info("Start producer and receiver.");
+        producer1.start();
+        receiver1.start();
+        
+        // Wait to send and receive some messages
+        Thread.sleep(30 * 1000);
+
+        executeKillSequence(killSequence, 20000);
+        
+        producer1.stopSending();
+        producer1.join();
+        receiver1.join();
+        
+        log.info("Number of sent messages: " + producer1.getCounter());
+        log.info("Number of received messages: " + receiver1.getCount());
+                
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getCounter(),
+                receiver1.getCount());
+       
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER2);
+        controller.stop(CONTAINER3);
+        controller.stop(CONTAINER4);
+        
+    }
+    
+    /**
+     * Executes kill sequence.
+     * 
+     * @param killSequence map Contanier -> ContainerIP
+     * @param timeBetweenKills time between subsequent kills (in milliseconds)
+     */
+    private void executeKillSequence(List<String> killSequence, long timeBetweenKills) throws InterruptedException {
+        
+        for (String containerName : killSequence) {
+            Thread.sleep(timeBetweenKills);
+            killServer(containerName);
+            Thread.sleep(3000);
+            controller.kill(containerName);
+            log.info("Start server: " + containerName);
+            controller.start(containerName);
+            log.info("Server: " + containerName + " -- STARTED");
         }
     }
-    
-    /**
-     * Kills and starts container.
-     * 
-     * @param containerName name of the container from arquillian...xml
-     * @param containerIpAdress containers ip address - where byteman ageng listens
-     * @param bytemanPort port where byteman agent listens
-     */
-    private void killAndRestart(String containerName, String containerIpAdress, int bytemanPort) throws Exception   {
-        RuleInstaller.installRule(this.getClass(), containerIpAdress, bytemanPort);
-        controller.kill(containerName);
-        Thread.sleep(10000);
-        controller.start(containerName);
-    }
-    
+
     /**
      * Prepares servers.
      * 
@@ -271,12 +313,11 @@ public class Lodh4TestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
         
         String udpGroupAddress = "231.43.21.36";
-        int udpGroupPort = 9875;
-
+        
         controller.start(containerName);
-
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
@@ -287,10 +328,10 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, Integer.MIN_VALUE, udpGroupAddress, udpGroupPort, 2000, connectorName, "");
-
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, udpGroupAddress, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -308,10 +349,15 @@ public class Lodh4TestCase extends HornetQTestCase {
         
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServerIpAddress, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminOperations.setIdCacheSize(500000);
+        jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
+        jmsAdminOperations.close();
         
         controller.stop(containerName);
         controller.start(containerName);
         
+        jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
         }
@@ -333,9 +379,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        
-        String udpGroupAddress = "231.13.21.86";
-        int udpGroupPort = 9875;
+        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
@@ -349,10 +393,10 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, null, Integer.MIN_VALUE, udpGroupAddress, udpGroupPort, 2000, connectorName, "");
-
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, null, udpGroupAddress, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -362,7 +406,8 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
+        
+        jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.disableSecurity();
 
         jmsAdminOperations.removeAddressSettings("#");

@@ -31,7 +31,7 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
  * @author <a href="mnovak@redhat.com">Miroslav Novak</a>
  * @version $Revision: 1.1 $
  */
-@MessageDriven(name = "mdb",
+@MessageDriven(name = "mdb2",
 activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
     @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})

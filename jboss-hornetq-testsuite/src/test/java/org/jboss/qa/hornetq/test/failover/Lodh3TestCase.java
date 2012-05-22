@@ -33,12 +33,12 @@ import org.junit.runner.RunWith;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class Lodh2TestCase extends HornetQTestCase {
+public class Lodh3TestCase extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
+    private static final Logger logger = Logger.getLogger(Lodh3TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -90,16 +90,16 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    public void testLodh2() throws Exception {
+    public void testLodh3() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER4);
         killSequence.add(CONTAINER4);
         killSequence.add(CONTAINER4);
         killSequence.add(CONTAINER4);
         testRemoteJcaInCluster(killSequence);
     }
     
+
     /**
      *
      * @throws Exception
@@ -111,38 +111,38 @@ public class Lodh2TestCase extends HornetQTestCase {
         // cluster A
         controller.start(CONTAINER1);
         controller.start(CONTAINER3);
-        // cluster B
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER4);
         
-        deployer.deploy("mdb1");
-        deployer.deploy("mdb2");
-
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producer2 = new SoakProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        
         producer1.setMessageBuilder(new MixMessageBuilder());
         producer2.setMessageBuilder(new MixMessageBuilder());
         
         producer1.start();
         producer2.start();
+        
+        producer1.join();
+        producer2.join();
+        
+        logger.info("Deploying mdbs.");
+        // cluster B
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER4);
+        deployer.deploy("mdb2");
+        deployer.deploy("mdb1");
+        logger.info("Mdbs DEPLOYED.");
+        
+        // Wait to send and receive some messages
+        Thread.sleep(30 * 1000);
 
+        ///executeKillSequence(killSequence, 20000);
+        
+        logger.info("Start receivers from jms servers.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
         SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 10000, 10, 10);
 
         receiver1.start();
         receiver2.start();
         
-        executeKillSequence(killSequence, 20000);
-        
-        // Wait to send and receive some messages
-        Thread.sleep(60 * 1000);
-
-        producer1.stopSending();
-        producer2.stopSending();
-        producer1.join();
-        producer2.join();
-
         receiver1.join();
         receiver2.join();
         
@@ -218,6 +218,14 @@ public class Lodh2TestCase extends HornetQTestCase {
             prepareJmsServer(CONTAINER3, CONTAINER3_IP);
             prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
 
+            controller.start(CONTAINER1);
+            deployDestinations(CONTAINER1_IP, 9999);
+            controller.stop(CONTAINER1);
+
+            controller.start(CONTAINER3);
+            deployDestinations(CONTAINER3_IP, 9999);
+            controller.stop(CONTAINER3);
+
             copyApplicationPropertiesFiles();
 
             topologyCreated = true;
@@ -239,7 +247,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String messagingGroupSocketBindingName = "messaging-group";
-        String multicastAddress = "236.12.73.26";
+        String multicastAddress = "236.12.13.22";
 
         controller.start(containerName);
 
@@ -262,8 +270,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-        jmsAdminOperations.close();
         
+        jmsAdminOperations.close();
         controller.stop(containerName);
         controller.start(containerName);
         jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
@@ -273,7 +281,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         
         jmsAdminOperations.close();
         controller.stop(containerName);
-
+        
     }
 
     /**

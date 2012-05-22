@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Servlet is used to kill server. Or do other stuff with the server.
+ * @author mnovak
+ */
 public class KillerServlet extends HttpServlet {
 
     // Logger
@@ -59,7 +63,7 @@ public class KillerServlet extends HttpServlet {
             
             if (op != null) {
                 if (op.equals("kill")) {
-                    killServer();
+                    killServer(out);
                 } else {
                     out.println("Operation: " + op + " is not supoported.");
                 }
@@ -72,7 +76,7 @@ public class KillerServlet extends HttpServlet {
         }
     }
 
-    private void killServer() throws IOException {
+    private void killServer(PrintWriter out) throws IOException {
         
         String jvmName = ManagementFactory.getRuntimeMXBean().getName();
         int index = jvmName.indexOf('@');
@@ -88,7 +92,11 @@ public class KillerServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             // ignore
         }
+        
+        out.println("Killing server");
+        
         log.info("pid of the proccess is : " + pid);
+        
         Runtime.getRuntime().exec("kill -9 " + pid);
     }
 }

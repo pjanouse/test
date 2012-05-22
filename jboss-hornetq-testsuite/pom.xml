@@ -149,12 +149,7 @@
             <version>${version.log4j}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient</artifactId>
-    <version>${httpclient.version}</version>
-    <scope>compile</scope>
-  </dependency>
+       
 <!--        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

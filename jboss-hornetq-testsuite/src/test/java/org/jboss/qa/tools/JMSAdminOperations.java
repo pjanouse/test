@@ -517,6 +517,34 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Sets id-cache-size attribute in servers configuration.
+     *
+     * @param numberOfIds - number of ids to remember
+     */
+    public void setIdCacheSize(long numberOfIds) {
+        setIdCacheSize("default", numberOfIds);  
+    }
+    /**
+     * Sets id-cache-size attribute in servers configuration.
+     *
+     * @param serverName         sets name of the hornetq server to be changed
+     * @param numberOfIds - number of ids to remember
+     */
+    public void setIdCacheSize(String serverName, long numberOfIds) {
+        final ModelNode removeJmsQueue = new ModelNode();
+        removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        removeJmsQueue.get("name").set("id-cache-size");
+        removeJmsQueue.get("value").set(numberOfIds);
+        try {
+            this.applyUpdate(removeJmsQueue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Adds persistence-enabled attribute in servers configuration.
@@ -1664,6 +1692,7 @@ public final class JMSAdminOperations {
         if (forwardingAddress != null) {
             model.get("forwarding-address").set(forwardingAddress);
         }
+        model.get("use-duplicate-detection").set(true);
         model.get("reconnect-attempts").set(reconnectAttempts);
         model.get("static-connectors").add(staticConnector);
         try {
@@ -1729,7 +1758,7 @@ public final class JMSAdminOperations {
 
 
     /**
-     * Creates remote connector
+     * Creates socket binding.
      *
      * @param serverName set name of hornetq server
      * @param name       name of the remote connector
@@ -1741,6 +1770,30 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
         model.get("port").set(port);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Creates socket binding.
+     *
+     * @param serverName set name of hornetq server
+     * @param name       name of the remote connector
+     * @param params     params
+     */
+    public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
+            int multicastPort) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("interface").set(defaultInterface);
+        model.get("multicast-address").set(multicastAddress);
+        model.get("multicast-port").set(multicastPort);
 
         try {
             this.applyUpdate(model);
@@ -1809,7 +1862,7 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
         model.get("name").set("multicast-address");
         model.get("value").set(multicastAddress);
-        model.toString();
+        System.out.println(model.toString());
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
