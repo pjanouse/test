@@ -282,6 +282,14 @@ public class PublisherClientAck extends Thread {
     public void setTopicNameJndi(String topicNameJndi) {
         this.topicNameJndi = topicNameJndi;
     }
+
+	public MessageBuilder getMessageBuilder() {
+		return messageBuilder;
+	}
+
+	public void setMessageBuilder(MessageBuilder messageBuilder) {
+		this.messageBuilder = messageBuilder;
+	}
 }
 
 
