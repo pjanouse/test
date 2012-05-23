@@ -121,8 +121,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producer2 = new SoakProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         
-        producer1.setMessageBuilder(new MixMessageBuilder());
-        producer2.setMessageBuilder(new MixMessageBuilder());
+        producer1.setMessageBuilder(new MixMessageBuilder(1024 * 200));
+        producer2.setMessageBuilder(new MixMessageBuilder(1024 * 200));
         
         producer1.start();
         producer2.start();

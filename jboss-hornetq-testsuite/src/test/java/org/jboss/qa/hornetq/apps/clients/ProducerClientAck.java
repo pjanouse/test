@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.apps.clients;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -10,15 +12,17 @@ import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
- * 
+ *
  * Simple sender with client acknowledge session. Able to fail over.
- * 
- * This class extends Thread class and should be started as a thread using start().
- * 
+ *
+ * This class extends Thread class and should be started as a thread using
+ * start().
+ *
  * @author mnovak
  */
 public class ProducerClientAck extends Thread {
@@ -34,11 +38,10 @@ public class ProducerClientAck extends Thread {
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
-    
     private int counter = 0;
-    
+
     /**
-     * 
+     *
      * @param hostname hostname
      * @param port port
      * @param messages number of messages to send
@@ -52,10 +55,11 @@ public class ProducerClientAck extends Thread {
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
     }
-    
+
     /**
-     * Starts end messages to server. This should be started as Thread - producer.start();
-     * 
+     * Starts end messages to server. This should be started as Thread -
+     * producer.start();
+     *
      */
     public void run() {
 
@@ -66,14 +70,14 @@ public class ProducerClientAck extends Thread {
         Session session = null;
 
         try {
-            
+
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
             env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
             context = new InitialContext(env);
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-            
+
             logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
@@ -86,21 +90,21 @@ public class ProducerClientAck extends Thread {
             Message msg = null;
 
             while (counter < messages && !stop) {
-                
+
                 msg = messageBuilder.createMessage(session);
                 msg.setIntProperty("count", counter);
-                
+
                 // send message in while cycle
                 sendMessage(producer, msg);
-                
-                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter 
+
+                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter
                         + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
 
             }
 
             producer.close();
-            
-            if (messageVerifier != null)    {
+
+            if (messageVerifier != null) {
                 messageVerifier.addSendMessages(listOfSentMessages);
             }
 
@@ -140,19 +144,19 @@ public class ProducerClientAck extends Thread {
      * @param msg
      */
     private void sendMessage(MessageProducer producer, Message msg) throws Exception {
-        
+
         int numberOfRetries = 0;
-        
+
         while (numberOfRetries < maxRetries) {
-            
+
             try {
 
                 producer.send(msg);
-                
+
                 listOfSentMessages.add(msg);
-                
+
                 counter++;
-                
+
                 numberOfRetries = 0;
 
                 return;
@@ -163,12 +167,13 @@ public class ProducerClientAck extends Thread {
                     logger.info("SEND RETRY - Producer for node: " + hostname
                             + ". Sent message with property count: " + counter
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException e) {} // ignore 
+                } catch (JMSException e) {
+                } // ignore 
 
                 numberOfRetries++;
             }
         }
-        
+
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for producer for node: " + hostname
                 + ". Sent message with property count: " + counter
@@ -179,10 +184,10 @@ public class ProducerClientAck extends Thread {
     /**
      * Stop producer
      */
-    public void stopSending()  {
+    public void stopSending() {
         this.stop = true;
     }
-    
+
     /**
      * @return the hostname
      */
@@ -280,14 +285,14 @@ public class ProducerClientAck extends Thread {
     public void setException(Exception exception) {
         this.exception = exception;
     }
-    
-    public static void main(String[] args) throws InterruptedException  {
-        
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.4", 4447, "queue/OutQueue4", 10000);
+
+    public static void main(String[] args) throws InterruptedException {
+
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 1);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
-        producer.setMessageBuilder(new MixMessageBuilder(1024*1024));
+        producer.setMessageBuilder(new MessageBuilderForInfo());
         producer.start();
-        
+
         producer.join();
     }
 
@@ -306,3 +311,14 @@ public class ProducerClientAck extends Thread {
     }
 }
 
+class MessageBuilderForInfo implements MessageBuilder {
+
+    private Random r = new Random();
+
+    @Override
+    public Message createMessage(Session session) throws Exception {
+        long randomLong = r.nextLong();
+        return session.createObjectMessage(new MessageInfo("name",
+                "cool-address"));
+    }
+}

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.Connection;
@@ -43,6 +44,8 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
     @Resource(name = "java:/jms/queue/OutQueue")
     private static Queue queue;
     
+    public static AtomicInteger globalCounter = new AtomicInteger();
+    
 //    @Resource(name = "queue/OutQueue")
 //    private static Queue queue;
 
@@ -82,7 +85,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
                 log.log(Level.ERROR, e.getMessage(), e);
             }
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-            log.log(Level.INFO, " Start of message:" + messageInfo);
+            log.log(Level.INFO, " Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
 
             con = cf.createConnection();
             

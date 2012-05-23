@@ -304,7 +304,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Prepare two servers in simple dedecated topology.
+     * Prepare two servers in simple dedicated topology.
      *
      * @throws Exception
      */
