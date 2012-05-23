@@ -4,3 +4,8 @@
 **/*.iws
 **/sd.xml
 jboss-hornetq-testsuite/log
+.classpath
+.project
+.settings
+test-suite.log*
+
