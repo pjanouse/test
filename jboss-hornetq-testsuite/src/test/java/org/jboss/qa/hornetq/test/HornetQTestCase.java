@@ -114,7 +114,7 @@ public class HornetQTestCase implements ContextProvider {
      * @see org.jboss.qa.hornetq.test.ContextProvider#getContext()
      */
     public Context getContext() throws NamingException {
-        return getContext(HOST_NAME_JNDI, PORT_JNDI);
+        return getContext(CONTAINER1_IP, PORT_JNDI);
     }
 
     /**
