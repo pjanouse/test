@@ -13,8 +13,6 @@ import javax.jms.Session;
  */
 public class ByteMessageBuilder implements MessageBuilder {
 
-    public static final String MESSAGE_COUNTER_PROPERTY = "counter";
-
     // Counter for messages
     private int counter;
 
