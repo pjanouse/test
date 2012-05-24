@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -45,9 +46,6 @@ public class Lodh1TestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
-    
-    static boolean topologyCreated = false;
-    
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER1)
@@ -111,6 +109,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void testKill() throws Exception  {
         testLodh(false);
     }
@@ -118,6 +117,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void testShutDown() throws Exception  {
         testLodh(true);
     }
@@ -225,14 +225,7 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-
-        if (!topologyCreated) {
-            
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
-            
-            topologyCreated = true;
-        }
-
+        prepareJmsServer(CONTAINER1, CONTAINER1_IP);
     }
 
     /**

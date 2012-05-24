@@ -3,28 +3,24 @@ package org.jboss.qa.hornetq.test.failover;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import junit.framework.Assert;
+import static junit.framework.Assert.assertTrue;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static junit.framework.Assert.assertTrue;
-import org.hornetq.jms.client.HornetQQueue;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
@@ -70,6 +66,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void normalMessagesKillTest() throws Exception {
         testLogic(new ByteMessageBuilder(30));
     }
@@ -82,6 +79,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void normalMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -99,6 +97,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void largeByteMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -116,6 +115,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void largeByteMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -127,6 +127,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void mixMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -138,6 +139,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     public void mixMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -300,8 +302,7 @@ public class Lodh4TestCase extends HornetQTestCase {
      * in cluster B.
      */
     public void prepareServers() {
-        log.info("topology created: " + topologyCreated);
-        if (!topologyCreated) {
+        
             prepareSourceServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
             prepareSourceServer(CONTAINER3, CONTAINER3_IP, CONTAINER4_IP);
             prepareTargetServer(CONTAINER2, CONTAINER2_IP);
@@ -320,8 +321,7 @@ public class Lodh4TestCase extends HornetQTestCase {
             controller.start(CONTAINER4);
             deployDestinations(CONTAINER4_IP, 9999, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
             controller.stop(CONTAINER4);
-            topologyCreated = true;
-        }
+
     }
 
     /**

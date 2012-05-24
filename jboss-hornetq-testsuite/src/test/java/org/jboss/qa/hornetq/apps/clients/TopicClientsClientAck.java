@@ -1,10 +1,9 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.jboss.qa.hornetq.apps.Clients;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 

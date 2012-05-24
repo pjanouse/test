@@ -26,9 +26,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 //@RestoreConfigAfterTest
-public class DedicatedFailoverTestCase extends HornetQTestCase {
+public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
+    private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
