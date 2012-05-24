@@ -2,10 +2,7 @@ package org.jboss.qa.hornetq.apps.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
@@ -67,7 +64,6 @@ public class DbUtilServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         String op = request.getParameter("op");
-        out.println("op is: " + op );
         try {
             
             if (op != null) {
@@ -75,6 +71,8 @@ public class DbUtilServlet extends HttpServlet {
                     deleteAll(out);
                 } else if (op.equals("countAll")) {
                     countAll(out);
+                } else if (op.equals("insertRecord")) {
+                    insertRecord(out);
                 } else {
                     out.println("Operation: " + op + " is not supoported.");
                 }
@@ -92,10 +90,41 @@ public class DbUtilServlet extends HttpServlet {
         Connection connection = null;
         
         try {
+            
             connection = getConnection();
             PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
             int deleted = ps.executeUpdate();
             out.println("Deleted records :" + deleted);
+            ps.close();
+            connection.commit();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException ex) {}
+            }
+        }
+    }
+    
+    public void insertRecord(PrintWriter out) {
+        
+        Connection connection = null;
+        
+        try {
+            connection = getConnection();
+            int counter =5;
+            
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGEINFO"
+                    + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
+            ps.setString(1, "myid");
+            ps.setString(2, "name");
+            ps.setString(3, "address");
+            out.println("sql: " + ps.toString());
+            ps.executeUpdate();
+            
             ps.close();
 
         } catch (Exception e) {
@@ -130,6 +159,7 @@ public class DbUtilServlet extends HttpServlet {
             rs.close();
             out.println("Records in DB :" + result);
             ps.close();
+            connection.commit();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -8,6 +8,8 @@ import java.sql.*;
 import javax.sql.DataSource;
 import java.util.Properties;
 import java.util.Random;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.jms.Message;
 import javax.jms.Session;
@@ -27,6 +29,7 @@ import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.test.HttpRequest;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -46,23 +49,13 @@ import org.junit.runner.RunWith;
 public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
-    private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
-    
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
-    
-    // queue for receive messages out
-    static String outQueueHornetQName = "OutQueue";
-    static String outQueueRelativeJndiName = "jms/queue/" + outQueueHornetQName;
-    
     static boolean topologyCreated = false;
-    
-    String jndiContextPrefix = "java:jboss/exported/";
 
-    
     /**
      * This mdb reads messages from remote InQueue
      *
@@ -76,14 +69,14 @@ public class Lodh5TestCase extends HornetQTestCase {
         mdbJar.addClass(MessageInfo.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-         File target = new File("/tmp/mdbtodb.jar");
+        File target = new File("/tmp/mdbtodb.jar");
         if (target.exists()) {
             target.delete();
         }
         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
- 
+
     /**
      * @param acknowledge acknowledge type
      * @param failback whether to test failback
@@ -93,37 +86,28 @@ public class Lodh5TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    public void testFailover() throws Exception {
+    public void testFail() throws Exception {
 
         prepareServer();
-        
+
         controller.start(CONTAINER1);
+
+        deleteRecords();
+        countRecords();
         
+        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer.setMessageBuilder(new MessageBuilderForInfo());
+        producer.start();
+        producer.join();
+
         deployer.deploy("mdbToDb");
 
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        
-        producer.setMessageBuilder(new MessageBuilder() {
-            
-            private Random r = new Random();
-            
-            @Override
-            public Message createMessage(Session session) throws Exception {
-                return session.createObjectMessage(new MessageInfo("name-" + r.nextInt(),
-                        "cool-address" + r.nextLong()));
-            }
-        });
-        
-        producer.start();
+        countRecords();
 
-        producer.stopSending();
-        
-        producer.join();
-        
         controller.stop(CONTAINER1);
 
     }
-    
+
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
@@ -133,13 +117,11 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() throws Exception {
-        
+
         controller.stop(CONTAINER1);
 
     }
-    
-    
-    
+
     /**
      * Prepare two servers in simple dedicated topology.
      *
@@ -151,7 +133,6 @@ public class Lodh5TestCase extends HornetQTestCase {
             prepareJmsServer(CONTAINER1, CONTAINER1_IP);
             topologyCreated = true;
         }
-
     }
 
     /**
@@ -173,19 +154,19 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-       
+
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
         controller.stop(containerName);
 
     }
-    
+
     @Deployment(managed = false, testable = false, name = "dbUtilServlet")
     @TargetsContainer(CONTAINER1)
-    public static WebArchive createKillerServlet() {
+    public static WebArchive createDbUtilServlet() {
 
         final WebArchive dbUtilServlet = ShrinkWrap.create(WebArchive.class, "dbUtilServlet.war");
         StringBuilder webXml = new StringBuilder();
@@ -220,5 +201,52 @@ public class Lodh5TestCase extends HornetQTestCase {
         dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
 
         return dbUtilServlet;
+    }
+
+    public int countRecords() throws Exception {
+        deployer.deploy("dbUtilServlet");
+        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 10, TimeUnit.SECONDS);
+        deployer.undeploy("dbUtilServlet");
+
+        logger.info("Response is: " + response);
+                
+        StringTokenizer st = new StringTokenizer(response, ":");
+        int numberOfRecords = -1;
+        while (st.hasMoreTokens())  {
+            if (st.nextToken().contains("Records in DB")) {
+                numberOfRecords = Integer.valueOf(st.nextToken().trim());
+            }
+        }
+        logger.info("Number of records " + numberOfRecords);
+        return numberOfRecords;
+    }
+
+//    public int insertRecords() throws Exception {
+//        deployer.deploy("dbUtilServlet");
+//        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=insertRecord", 10, TimeUnit.SECONDS);
+//        deployer.undeploy("dbUtilServlet");
+//
+//        logger.info("Response is: " + response);
+//
+//        return 0;
+//    }
+
+    public void deleteRecords() throws Exception {
+        deployer.deploy("dbUtilServlet");
+        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 10, TimeUnit.SECONDS);
+        deployer.undeploy("dbUtilServlet");
+        logger.info("Response is: " + response);
+    }
+}
+
+class MessageBuilderForInfo implements MessageBuilder {
+
+    private Random r = new Random();
+
+    @Override
+    public Message createMessage(Session session) throws Exception {
+        long randomLong = r.nextLong();
+        return session.createObjectMessage(new MessageInfo("name"+randomLong,
+                "cool-address"+randomLong));
     }
 }

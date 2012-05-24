@@ -62,10 +62,10 @@ public class SimpleMdbToDb implements MessageListener {
         try {
 
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
-            log.info("messageInfo " + messageInfo.getName() + ", counter: " + counter.incrementAndGet());
-            processMessageInfo(messageInfo);
-            countAll();
-
+            int count = counter.incrementAndGet();
+            log.info("messageInfo " + messageInfo.getName() + ", counter: " + count);
+            processMessageInfo(messageInfo, count);
+            
         } catch (JMSException jmse) {
             jmse.printStackTrace();
             context.setRollbackOnly();
@@ -76,13 +76,14 @@ public class SimpleMdbToDb implements MessageListener {
     }
 
     // This method would use JPA in the real world to persist the data
-    private void processMessageInfo(MessageInfo messageInfo) throws SQLException {
-        String sql = "INSERT INTO MessageInfo VALUES (" + counter + ", " + messageInfo.getName() + ", " + messageInfo.getAddress() + ");";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-        log.info(sql);
-        preparedStatement.executeUpdate();
-        preparedStatement.close();
+    private void processMessageInfo(MessageInfo messageInfo, int count) throws SQLException {
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGEINFO"
+                    + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
+            ps.setString(1, String.valueOf(count));
+            ps.setString(2, messageInfo.getName() + count);
+            ps.setString(3, messageInfo.getAddress() + count);
+            ps.executeUpdate();
+            ps.close();
     }
 
     public long countAll() {

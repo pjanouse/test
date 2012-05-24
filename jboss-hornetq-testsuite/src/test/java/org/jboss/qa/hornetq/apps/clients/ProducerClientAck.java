@@ -288,9 +288,9 @@ public class ProducerClientAck extends Thread {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 1);
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 100);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
-        producer.setMessageBuilder(new MessageBuilderForInfo());
+//        producer.setMessageBuilder(new MessageBuilderForInfo());
         producer.start();
 
         producer.join();
@@ -308,17 +308,5 @@ public class ProducerClientAck extends Thread {
      */
     public void setMessageBuilder(MessageBuilder messageBuilder) {
         this.messageBuilder = messageBuilder;
-    }
-}
-
-class MessageBuilderForInfo implements MessageBuilder {
-
-    private Random r = new Random();
-
-    @Override
-    public Message createMessage(Session session) throws Exception {
-        long randomLong = r.nextLong();
-        return session.createObjectMessage(new MessageInfo("name",
-                "cool-address"));
     }
 }
