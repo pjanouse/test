@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 import javax.ejb.*;
 import javax.jms.Connection;
@@ -19,7 +18,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
 
 /**
  *

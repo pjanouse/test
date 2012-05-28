@@ -160,7 +160,7 @@ public class PublisherClientAck extends Thread {
                 return;
 
             } catch (JMSException ex) {
-
+                ex.printStackTrace();
                 try {
                     logger.info("SEND RETRY - Publisher for node: " + hostname
                             + ". Sent message with property count: " + counter

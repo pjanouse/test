@@ -1,6 +1,9 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import javax.jms.Message;
 import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
@@ -33,7 +36,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     private static final int BYTEMAN_PORT = 9091;
   
     static boolean topologyCreated = false;
@@ -42,8 +45,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
-    String jndiContextPrefix = "java:jboss/exported/";
-    
+   
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -127,6 +129,199 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
+        controller.stop(CONTAINER1);
+
+        controller.stop(CONTAINER2);
+
+    }
+    
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     * 
+     * @param acknowledge acknowledge type
+     * @param failback whether to test failback
+     * @param topic whether to test with topics
+     * 
+     * @throws Exception 
+     */
+    @BMRules({
+        @BMRule(name = "Setup counter for PostOfficeImpl",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        action = "createCounter(\"counter\")"),
+        @BMRule(name = "Info messages and counter for PostOfficeImpl",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        action = "incrementCounter(\"counter\");"
+        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+        @BMRule(name = "Kill server when a number of messages were received",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        condition = "readCounter(\"counter\")>333",
+        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+    @Test
+    @RunAsClient
+    public void testClientFailover() throws Exception {
+        
+        boolean failback = true;
+        
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+        
+        Thread.sleep(10000); // give some time to clients to failover
+        
+        // install rule to first server
+        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+
+        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
+        s.subscribe();
+        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 1000000, "clientid0");
+        p.start();
+        
+        Thread.sleep(5000);
+        
+        controller.kill(CONTAINER1);
+        
+        logger.info("Wait some time to give chance backup to come alive and clients to failover");
+        Thread.sleep(10000); // give some time to clients to failover
+
+        if (failback)   {
+            logger.info("########################################");
+            logger.info("failback - Start live server again ");
+            logger.info("########################################");
+            controller.start(CONTAINER1);
+            Thread.sleep(10000); // give it some time 
+            logger.info("########################################");
+            logger.info("failback - Stop backup server");
+            logger.info("########################################");
+            controller.stop(CONTAINER2);
+        }
+        
+        Thread.sleep(5000);
+        p.stopSending();
+        p.join();
+        
+        s.start();
+        s.join();
+        
+        logger.info("Publisher: " + p.getListOfSentMessages().size());
+        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
+        
+        Set<String> set = new HashSet<String>();
+        for (Message message : p.getListOfSentMessages()) {
+            set.add(message.getJMSMessageID());
+        }
+        for (Message message : s.getListOfReceivedMessages())   {
+            if (!set.remove(message.getJMSMessageID()))  {
+                logger.info("This is duplicated message: " + message.getJMSMessageID());
+            }
+        }
+        
+        logger.info("List of lost messages in the set - so lost messages");
+        for (String st : set)    {
+            logger.info("Lost message : " + st);
+        }
+        
+        controller.stop(CONTAINER1);
+
+        controller.stop(CONTAINER2);
+
+    }
+    
+    
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     * 
+     * @param acknowledge acknowledge type
+     * @param failback whether to test failback
+     * @param topic whether to test with topics
+     * 
+     * @throws Exception 
+     */
+    @BMRules({
+        @BMRule(name = "Setup counter for PostOfficeImpl",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        action = "createCounter(\"counter\")"),
+        @BMRule(name = "Info messages and counter for PostOfficeImpl",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        action = "incrementCounter(\"counter\");"
+        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+        @BMRule(name = "Kill server when a number of messages were received",
+        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+        targetMethod = "processRoute",
+        condition = "readCounter(\"counter\")>333",
+        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+    @Test
+    @RunAsClient
+    public void testClientFailoverSubscriber() throws Exception {
+        
+        boolean failback = true;
+        
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+        
+        Thread.sleep(10000); // give some time to clients to failover
+        
+        // install rule to first server
+        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+
+        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
+        s.subscribe();
+        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 70000, "clientid0");
+        p.start();
+        p.join();
+        s.start();
+        
+        Thread.sleep(5000);
+        
+        controller.kill(CONTAINER1);
+        
+        logger.info("Wait some time to give chance backup to come alive and clients to failover");
+        Thread.sleep(10000); // give some time to clients to failover
+
+        if (failback)   {
+            logger.info("########################################");
+            logger.info("failback - Start live server again ");
+            logger.info("########################################");
+            controller.start(CONTAINER1);
+            Thread.sleep(10000); // give it some time 
+            logger.info("########################################");
+            logger.info("failback - Stop backup server");
+            logger.info("########################################");
+            controller.stop(CONTAINER2);
+        }
+        
+        
+        s.join();
+        
+        logger.info("Publisher: " + p.getListOfSentMessages().size());
+        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
+        
+        Set<String> set = new HashSet<String>();
+        for (Message message : p.getListOfSentMessages()) {
+            set.add(message.getJMSMessageID());
+        }
+        for (Message message : s.getListOfReceivedMessages())   {
+            if (!set.remove(message.getJMSMessageID()))  {
+                logger.info("This is duplicated message: " + message.getJMSMessageID());
+            }
+        }
+        
+        logger.info("List of lost messages in the set - so lost messages");
+        for (String st : set)    {
+            logger.info("Lost message : " + st);
+        }
+        
         controller.stop(CONTAINER1);
 
         controller.stop(CONTAINER2);
@@ -276,7 +471,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+//    @CleanUpAfterTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -296,8 +491,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.stop(CONTAINER2);
         
-        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
-                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
+//        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
+//                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
 
     }
 
@@ -466,11 +661,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }
 
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
         
         jmsAdminOperations.close();

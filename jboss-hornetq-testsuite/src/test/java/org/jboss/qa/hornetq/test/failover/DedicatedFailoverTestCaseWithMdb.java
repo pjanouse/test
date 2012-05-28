@@ -1,330 +1,192 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.File;
-import javax.jms.Session;
+import java.io.*;
+import java.nio.channels.FileChannel;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.Deployer;
+import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.Clients;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.jboss.qa.tools.byteman.rule.RuleInstaller;
+import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
+ * This is modified failover with mdb test case which is testing remote jca.
  *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-//@RestoreConfigAfterTest
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
-    private static final int NUMBER_OF_DESTINATIONS = 1;
+    private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
-    private static final int BYTEMAN_PORT = 9091;
-  
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
+    // queue to send messages in 
+    static String inQueueName = "InQueue";
+    static String inQueueJndiName = "jms/queue/" + inQueueName;
+    static String inQueueFullJndiName = "java:/" + inQueueJndiName;
+    // queue for receive messages out
+    static String outQueueName = "OutQueue";
+    static String outQueueJndiName = "jms/queue/" + outQueueName;
+    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreated = false;
     
-    String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
-    String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
-    String jndiContextPrefix = "java:jboss/exported/";
-    
-    /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     * 
-     * @param acknowledge acknowledge type
-     * @param failback whether to test fail back
-     * 
-     * @throws Exception 
-     */
-    public void testFailover(int acknowledge, boolean failback) throws Exception {
+
+    @Deployment(managed = false, testable = false, name = "mdb1")
+    @TargetsContainer(CONTAINER3)
+    public static Archive getDeployment1() throws Exception {
         
-        testFailover(acknowledge, failback, false);
-        
+        File propertyFile = new File("mdb1.properties");
+        PrintWriter writer = new PrintWriter(propertyFile);
+        writer.println("remote-jms-server=" + CONTAINER1_IP);
+        writer.close();
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        return mdbJar;        
     }
-    
+
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     * 
      * @param acknowledge acknowledge type
      * @param failback whether to test failback
      * @param topic whether to test with topics
-     * 
-     * @throws Exception 
-     */
-    @BMRules({
-        @BMRule(name = "Setup counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "createCounter(\"counter\")"),
-        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "incrementCounter(\"counter\");"
-        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-        @BMRule(name = "Kill server when a number of messages were received",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>333",
-        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-    public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
-
-        prepareSimpleDedicatedTopology();
-
-        controller.start(CONTAINER2);
-
-        controller.start(CONTAINER1);
-        
-        Thread.sleep(10000); // give some time to clients to failover
-        
-        // install rule to first server
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
-
-        Clients clients = createClients(acknowledge, topic);
-
-        clients.startClients();
-        
-        controller.kill(CONTAINER1);
-        
-        logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(10000); // give some time to clients to failover
-
-        if (failback)   {
-            logger.info("########################################");
-            logger.info("failback - Start live server again ");
-            logger.info("########################################");
-            controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
-            controller.stop(CONTAINER2);
-        }
-        
-        Thread.sleep(5000);
-        clients.stopClients();
-        
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
-        
-        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
-
-        controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-
-    }
-    
-    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception  {
-        
-        Clients clients = null;
-        
-        if (topic) {
-            if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else {
-                throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
-            }
-        } else {
-            if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            } else {
-                throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
-            }
-        }
-        
-        return clients;
-    }
-    
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailoverAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false);
-    }
-
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    public void testFailoverClientAckQueue() throws Exception {
-        
-        testFailover(Session.CLIENT_ACKNOWLEDGE, false);
-    }
-
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailoverTransAckQueue() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, false);
-    }
-    
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailbackAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true);
-    }
-
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    public void testFailbackClientAckQueue() throws Exception {
-        testFailover(Session.CLIENT_ACKNOWLEDGE, true);
-    }
-
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailbackTransAckQueue() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, true);
-    }
-    
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailoverAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
-    }
-    
-    /**
-     * Start simple failover test with client acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailoverClientAckTopic() throws Exception {
-        testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
-    }
-    
-    /**
-     * Start simple failover test with transaction acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailoverTransAckTopic() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, false, true);
-    }
-    
-    /**
-     * Start simple failback test with auto acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailbackAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
-    }
-    
-    /**
-     * Start simple failback test with client acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailbackClientAckTopic() throws Exception {
-        testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
-    }
-    
-    /**
-     * Start simple failback test with transaction acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest
-    public void testFailbackTransAckTopic() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, true, true);
-    }
-
-    
-
-    /**
-     * Be sure that both of the servers are stopped before and after the test.
-     * Delete also the journal directory.
-     * 
-     * @throws Exception 
-     */
-    @Before @After
-    public void stopAllServers() throws Exception {
-
-        controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-        
-        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
-                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
-
-    }
-
-    /**
-     * Prepare two servers in simple dedicated topology.
      *
      * @throws Exception
      */
-    public void prepareSimpleDedicatedTopology() throws Exception {
+    @RunAsClient
+    @Test
+    public void testRemoteJca() throws Exception {
+
+        prepareRemoteJcaTopology();
+        // start live-backup servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
+        producerToInQueue1.start();
+        
+        controller.start(CONTAINER3);
+        // start mdb server
+        deployer.deploy("mdb1");
+        
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
+        receiver1.start();
+        receiver1.join();
+        
+        logger.info("Producer: " + producerToInQueue1.getCounter());
+        logger.info("Receiver: " + receiver1.getCount());
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getCounter(), receiver1.getCount());
+                
+        deployer.undeploy("mdb1");
+        controller.stop(CONTAINER3);
+        controller.stop(CONTAINER2);
+        controller.stop(CONTAINER1);
+
+    }
+    
+    /**
+     * Be sure that both of the servers are stopped before and after the test.
+     * Delete also the journal directory.
+     *
+     * @throws Exception
+     */
+    @Before
+    @After
+    public void stopAllServers() throws Exception {
+
+        controller.stop(CONTAINER2);
+        controller.stop(CONTAINER4);
+        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER3);
+
+    }
+
+    /**
+     * Prepare two servers in simple dedecated topology.
+     *
+     * @throws Exception
+     */
+    public void prepareRemoteJcaTopology() throws Exception {
 
         if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
+            
+            prepareMdbServer(CONTAINER3, CONTAINER3_IP, CONTAINER1_IP);
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1_IP, 9999);
             controller.stop(CONTAINER1);
+            copyApplicationPropertiesFiles();
 
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2_IP, 9999);
-            controller.stop(CONTAINER2);
-            
             topologyCreated = true;
         }
 
     }
 
+    /**
+     * Prepares mdb server for remote jca topology.
+     *
+     * @param containerName Name of the container - defined in arquillian.xml
+     *
+     */
+    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String remoteConnectorName = "netty-remote";
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        controller.start(containerName);
+
+        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+
+        jmsAdminOperations.setClustered(true);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+        jmsAdminOperations.close();
+        controller.stop(containerName);
+    }
+    
     /**
      * Prepares live server for dedicated topology.
      *
@@ -444,6 +306,32 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
+     * Copy application-users/roles.properties to all standalone/configurations
+     *
+     * TODO - change config by cli console
+     */
+    private void copyApplicationPropertiesFiles() throws IOException {
+
+        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+
+        File applicationUsersOriginal = null;
+        File applicationRolesOriginal = null;
+        for (int i = 1; i < 5; i++) {
+
+            // copy application-users.properties
+            applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
+                    + "configuration" + File.separator + "application-users.properties");
+            // copy application-roles.properties
+            applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
+                    + "configuration" + File.separator + "application-roles.properties");
+
+            copyFile(applicationUsersModified, applicationUsersOriginal);
+            copyFile(applicationRolesModified, applicationRolesOriginal);
+        }
+    }
+
+    /**
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
@@ -465,14 +353,38 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
 
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
-        }
+        jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
         
         jmsAdminOperations.close();
+    }
+
+    /**
+     * Copies file from one place to another.
+     *
+     * @param sourceFile source file
+     * @param destFile destination file - file will be rewritten
+     * @throws IOException
+     */
+    private void copyFile(File sourceFile, File destFile) throws IOException {
+        if (!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        } finally {
+            if (source != null) {
+                source.close();
+            }
+            if (destination != null) {
+                destination.close();
+            }
+        }
     }
 }

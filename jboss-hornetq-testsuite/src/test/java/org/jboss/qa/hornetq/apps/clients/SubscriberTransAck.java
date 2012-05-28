@@ -1,14 +1,13 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-
 import org.apache.log4j.Logger;
-import javax.jms.Topic;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -140,7 +139,7 @@ public class SubscriberTransAck extends Thread {
      * @throws JMSException  
      * 
      */
-    public void commitSession(Session session) throws JMSException {
+    public void commitSession(Session session)  {
         try {
 
             session.commit();
@@ -149,15 +148,21 @@ public class SubscriberTransAck extends Thread {
                             + count  + " SENT COMMIT");
             
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
-
-        } catch (Exception ex) {
+            
+        } catch (JMSException ex) {
             logger.error("Exception thrown during commit. Subscriber for node: " + getHostname() + ". Received message - count: "
-                    + count);
+                    + count, ex);
             // all uncommited messges will be received again
-            count = count - commitAfter;
+            count = count - listOfReceivedMessagesToBeCommited.size();
+//        } catch (JMSException ex) {
+//            logger.error("Calling COMMIT failed but transaction rollback exception was NOT thrown so messages were commited - Subscriber for node: " + getHostname()
+//                            + ". Operation will not be retried.", ex);
+//            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+        } finally {
+            listOfReceivedMessagesToBeCommited.clear();
         }
         
-        listOfReceivedMessagesToBeCommited.clear();
+        
     }
     
     /**

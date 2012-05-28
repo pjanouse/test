@@ -7,6 +7,7 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -313,21 +314,27 @@ public class PublisherTransAck extends Thread {
                 
                 session.commit();
                 
+                logger.info("COMMIT - Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter); 
+                
                 listOfSentMessages.addAll(listOfMessagesToBeCommited);
                 
                 listOfMessagesToBeCommited.clear();
                 
                 return;
                 
-            } catch (JMSException ex) {
-                // if rollbackException then send all messages again and try commit
+            } catch (TransactionRolledBackException ex) {
+                logger.error("COMMIT Failed - Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter + " doing RollBack and retrying send", ex);
+
                 counter = counter - listOfMessagesToBeCommited.size();
                 numberOfRetries++;
-                logger.info("COMMIT Failed - Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter);                
+                               
                 resendMessages(publisher);
+            } catch (JMSException ex) {
+                logger.error("COMMIT Failed but transaction rollback exception was NOT thrown - Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter + ". Operation will not be retried.", ex);
             }
-            
         }
             // maxretry reached then throw exception above 
             throw new Exception("FAILURE in COMMIT - MaxRetry reached for publisher for node: " + getHostname()
@@ -343,16 +350,47 @@ public class PublisherTransAck extends Thread {
     private void resendMessages(MessageProducer publisher) throws Exception {
         
         // there can be problem during resending messages so we need to know which messages were resend
-        List<Message> messagesToBeResend = new ArrayList<Message>(listOfMessagesToBeCommited);
-        
-        listOfMessagesToBeCommited.clear();
-        
-        for (Message msg : messagesToBeResend)  {
+        for (Message msg : listOfMessagesToBeCommited)  {
             
-            sendMessage(publisher, msg);
+            resendMessage(publisher, msg);
             
         }
+    }
+    
+    private void resendMessage(MessageProducer publisher, Message msg) throws Exception {
         
+        int numberOfRetries = 0;
+        
+        while (numberOfRetries < maxRetries) {
+            
+            try {
+               
+                publisher.send(msg);
+                
+                counter++;
+                
+                logger.info("Publisher resent message for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
+                
+                numberOfRetries = 0;
+
+                return;
+
+            } catch (JMSException ex) {
+
+                try {
+                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter
+                            + ", messageId:" + msg.getJMSMessageID());
+                } catch (JMSException e) {} // ignore 
+
+                numberOfRetries++;
+            }
+        }
+        
+        // this is an error - here we should never be because max retrie expired
+        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
+                + ". During SEND (not commit) of message with property count: " + counter
+                + ", messageId:" + msg.getJMSMessageID());
     }
     
     /**

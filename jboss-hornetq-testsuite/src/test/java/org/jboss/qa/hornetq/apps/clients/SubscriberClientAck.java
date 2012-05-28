@@ -160,13 +160,15 @@ public class SubscriberClientAck extends Thread {
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
 
         } catch (Exception ex) {
-            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: " + hostname + ". Received message - count: "
+            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: " 
+                    + hostname + ". Received message - count: "
                     + count + ", messageId:" + message.getJMSMessageID());
             // all unacknowledge messges will be received again
-            count = count - ackAfter;
-        }
+            count = count - listOfReceivedMessagesToBeAcked.size();
+        } finally {
         
-        listOfReceivedMessagesToBeAcked.clear();
+            listOfReceivedMessagesToBeAcked.clear();
+        }
     }
     
     /**
