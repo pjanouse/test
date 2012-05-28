@@ -149,15 +149,17 @@ public class SubscriberTransAck extends Thread {
             
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
             
-        } catch (JMSException ex) {
-            logger.error("Exception thrown during commit. Subscriber for node: " + getHostname() + ". Received message - count: "
-                    + count, ex);
+        } catch (TransactionRolledBackException ex) {
+            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() +". Subscriber for node: " + hostname 
+                    + ". Received message - count: " + count + ", retrying receive", ex);
             // all uncommited messges will be received again
             count = count - listOfReceivedMessagesToBeCommited.size();
-//        } catch (JMSException ex) {
-//            logger.error("Calling COMMIT failed but transaction rollback exception was NOT thrown so messages were commited - Subscriber for node: " + getHostname()
-//                            + ". Operation will not be retried.", ex);
-//            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+            
+        } catch(JMSException ex)    {
+            logger.error(" Subscriber - JMSException thrown during commit: " + ex.getMessage() +". Subscriber for node: " + hostname 
+                    + ". Received message - count: " + count + ", messages will be received again. Supposed to be commited.", ex);
+            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+            
         } finally {
             listOfReceivedMessagesToBeCommited.clear();
         }
@@ -190,7 +192,7 @@ public class SubscriberTransAck extends Thread {
                 
             } catch (JMSException ex)   {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1));
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1), ex);
             }
         }
        

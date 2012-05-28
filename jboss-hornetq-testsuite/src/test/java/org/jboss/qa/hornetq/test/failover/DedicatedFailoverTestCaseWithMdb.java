@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
-    private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
     // queue to send messages in 
@@ -73,12 +72,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    public void testRemoteJca() throws Exception {
+    public void testFailoverWithRemoteJca() throws Exception {
 
         prepareRemoteJcaTopology();
         // start live-backup servers
         controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+//        controller.start(CONTAINER2);
         
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
@@ -158,12 +157,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
         String messagingGroupSocketBindingName = "messaging-group";
-
+        String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
 
-        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setClustered(false);
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
@@ -182,7 +181,14 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, remoteConnectorName);
+        
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        
         jmsAdminOperations.close();
         controller.stop(containerName);
     }

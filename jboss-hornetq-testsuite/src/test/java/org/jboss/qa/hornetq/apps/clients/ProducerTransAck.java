@@ -334,13 +334,18 @@ public class ProducerTransAck extends Thread {
                 
                 return;
                 
-            } catch (JMSException ex) {
+            } catch (TransactionRolledBackException ex) {
                 // if rollbackException then send all messages again and try commit
                 counter = counter - listOfMessagesToBeCommited.size();
                 numberOfRetries++;
                 logger.info("COMMIT Failed - Producer for node: " + hostname
                             + ". Sent message with property count: " + counter);                
                 resendMessages(producer);
+            
+            } catch (JMSException ex) {
+                logger.error("COMMIT Failed but transaction rollback exception was NOT thrown - Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter + ". Operation will not be retried.", ex);
+                return;
             }
             
         }

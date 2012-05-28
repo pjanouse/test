@@ -1,14 +1,13 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-
 import org.apache.log4j.Logger;
-import javax.jms.Queue;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -172,9 +171,9 @@ public class ReceiverClientAck extends Thread {
             
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
 
-        } catch (Exception ex) {
+        } catch (TransactionRolledBackException ex) {
             logger.error("Exception thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID());
+                    + count + ", messageId:" + message.getJMSMessageID(), ex);
             // all unacknowledge messges will be received again
             ex.printStackTrace();
             count = count - ackAfter;

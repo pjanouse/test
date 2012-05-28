@@ -165,13 +165,16 @@ public class ReceiverTransAck extends Thread {
             
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            logger.error(" Receiver - COMMIT FAILED - Exception thrown during commit: " + ex.getMessage() +". Receiver for node: " + hostname 
-                    + ". Received message - count: " + counter);
+        } catch (TransactionRolledBackException ex) {
+            logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() +". Receiver for node: " + hostname 
+                    + ". Received message - count: " + counter + ", retrying receive", ex);
             // all uncommited messges will be received again
-            counter = counter - commitAfter;
-            session.rollback();
+            counter = counter - listOfReceivedMessagesToBeCommited.size();
+            
+        } catch(JMSException ex)    {
+            logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() +". Receiver for node: " + hostname 
+                    + ". Received message - count: " + counter + ", messages will be received again. Supposed to be commited.", ex);
+            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
             
         } finally {
             listOfReceivedMessagesToBeCommited.clear();

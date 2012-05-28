@@ -1,10 +1,8 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -12,8 +10,6 @@ import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MessageInfo;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
@@ -166,7 +162,7 @@ public class ProducerClientAck extends Thread {
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname
                             + ". Sent message with property count: " + counter
-                            + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
+                            + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID(), ex);
                 } catch (JMSException e) {
                 } // ignore 
 

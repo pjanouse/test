@@ -1285,6 +1285,29 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Sets ha attribute.
+     *
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
+    public void setHaForPooledConnectionFactory(String connectionFactoryName, boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("ha");
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Whether or not messages are acknowledged synchronously.
@@ -1299,6 +1322,26 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("block-on-acknowledge");
+        model.get("value").set(value);
+
+        applyUpdateWithRetry(model, 50);
+
+    }
+    
+    /**
+     * Whether or not messages are acknowledged synchronously.
+     *
+     * @param connectionFactoryName
+     * @param value                 default false, should be true for fail-over scenarios
+     */
+    public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
 
@@ -1324,6 +1367,25 @@ public final class JMSAdminOperations {
 
         applyUpdateWithRetry(model, 50);
     }
+    
+    /**
+     * The time (in ms) to retry a connection after failing.
+     *
+     * @param connectionFactoryName
+     * @param value
+     */
+    public void setRetryIntervalForPooledConnectionFactory(String connectionFactoryName, long value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("retry-interval");
+        model.get("value").set(value);
+
+        applyUpdateWithRetry(model, 50);
+    }
 
     /**
      * Multiplier to apply to successive retry intervals.
@@ -1338,6 +1400,26 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("retry-interval-multiplier");
+        model.get("value").set(value);
+
+        applyUpdateWithRetry(model, 50);
+
+    }
+    
+    /**
+     * Multiplier to apply to successive retry intervals.
+     *
+     * @param connectionFactoryName
+     * @param value                 1.0 by default
+     */
+    public void setRetryIntervalMultiplierForPooledConnectionFactory(String connectionFactoryName, double value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
 
@@ -1359,6 +1441,27 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("reconnect-attempts");
+        model.get("value").set(value);
+        applyUpdateWithRetry(model, 50);
+
+    }
+    
+    /**
+     * How many times should client retry connection when connection is lost. This should be -1
+     * if failover is required.
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("reconnect-attempts");
         model.get("value").set(value);

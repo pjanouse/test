@@ -135,199 +135,104 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
     
-    /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     * 
-     * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     * 
-     * @throws Exception 
-     */
-    @BMRules({
-        @BMRule(name = "Setup counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "createCounter(\"counter\")"),
-        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "incrementCounter(\"counter\");"
-        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-        @BMRule(name = "Kill server when a number of messages were received",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>333",
-        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-    @Test
-    @RunAsClient
-    public void testClientFailover() throws Exception {
-        
-        boolean failback = true;
-        
-        prepareSimpleDedicatedTopology();
-
-        controller.start(CONTAINER2);
-
-        controller.start(CONTAINER1);
-        
-        Thread.sleep(10000); // give some time to clients to failover
-        
-        // install rule to first server
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
-
-        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
-        s.subscribe();
-        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 1000000, "clientid0");
-        p.start();
-        
-        Thread.sleep(5000);
-        
-        controller.kill(CONTAINER1);
-        
-        logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(10000); // give some time to clients to failover
-
-        if (failback)   {
-            logger.info("########################################");
-            logger.info("failback - Start live server again ");
-            logger.info("########################################");
-            controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
-            controller.stop(CONTAINER2);
-        }
-        
-        Thread.sleep(5000);
-        p.stopSending();
-        p.join();
-        
-        s.start();
-        s.join();
-        
-        logger.info("Publisher: " + p.getListOfSentMessages().size());
-        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
-        
-        Set<String> set = new HashSet<String>();
-        for (Message message : p.getListOfSentMessages()) {
-            set.add(message.getJMSMessageID());
-        }
-        for (Message message : s.getListOfReceivedMessages())   {
-            if (!set.remove(message.getJMSMessageID()))  {
-                logger.info("This is duplicated message: " + message.getJMSMessageID());
-            }
-        }
-        
-        logger.info("List of lost messages in the set - so lost messages");
-        for (String st : set)    {
-            logger.info("Lost message : " + st);
-        }
-        
-        controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-
-    }
+//    /**
+//     * This test will start two servers in dedicated topology - no cluster. Sent
+//     * some messages to first Receive messages from the second one
+//     * 
+//     * @param acknowledge acknowledge type
+//     * @param failback whether to test failback
+//     * @param topic whether to test with topics
+//     * 
+//     * @throws Exception 
+//     */
+//    @BMRules({
+//        @BMRule(name = "Setup counter for PostOfficeImpl",
+//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+//        targetMethod = "processRoute",
+//        action = "createCounter(\"counter\")"),
+//        @BMRule(name = "Info messages and counter for PostOfficeImpl",
+//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+//        targetMethod = "processRoute",
+//        action = "incrementCounter(\"counter\");"
+//        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+//        @BMRule(name = "Kill server when a number of messages were received",
+//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+//        targetMethod = "processRoute",
+//        condition = "readCounter(\"counter\")>333",
+//        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+//    @Test
+//    @RunAsClient
+//    public void testClientFailover() throws Exception {
+//        
+//        boolean failback = true;
+//        
+//        prepareSimpleDedicatedTopology();
+//
+//        controller.start(CONTAINER2);
+//
+//        controller.start(CONTAINER1);
+//        
+//        Thread.sleep(10000); // give some time to clients to failover
+//        
+//        // install rule to first server
+//        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+//
+//        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
+//        s.subscribe();
+//        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 1000000, "clientid0");
+//        p.start();
+//        
+//        Thread.sleep(5000);
+//        
+//        controller.kill(CONTAINER1);
+//        
+//        logger.info("Wait some time to give chance backup to come alive and clients to failover");
+//        Thread.sleep(10000); // give some time to clients to failover
+//
+//        if (failback)   {
+//            logger.info("########################################");
+//            logger.info("failback - Start live server again ");
+//            logger.info("########################################");
+//            controller.start(CONTAINER1);
+//            Thread.sleep(10000); // give it some time 
+//            logger.info("########################################");
+//            logger.info("failback - Stop backup server");
+//            logger.info("########################################");
+//            controller.stop(CONTAINER2);
+//        }
+//        
+//        Thread.sleep(5000);
+//        p.stopSending();
+//        p.join();
+//        
+//        s.start();
+//        s.join();
+//        
+//        logger.info("Publisher: " + p.getListOfSentMessages().size());
+//        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
+//        
+//        Set<String> set = new HashSet<String>();
+//        for (Message message : p.getListOfSentMessages()) {
+//            set.add(message.getJMSMessageID());
+//        }
+//        for (Message message : s.getListOfReceivedMessages())   {
+//            if (!set.remove(message.getJMSMessageID()))  {
+//                logger.info("This is duplicated message: " + message.getJMSMessageID());
+//            }
+//        }
+//        
+//        logger.info("List of lost messages in the set - so lost messages");
+//        for (String st : set)    {
+//            logger.info("Lost message : " + st);
+//        }
+//        
+//        controller.stop(CONTAINER1);
+//
+//        controller.stop(CONTAINER2);
+//
+//    }
     
-    
-    /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     * 
-     * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     * 
-     * @throws Exception 
-     */
-    @BMRules({
-        @BMRule(name = "Setup counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "createCounter(\"counter\")"),
-        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "incrementCounter(\"counter\");"
-        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-        @BMRule(name = "Kill server when a number of messages were received",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>333",
-        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-    @Test
-    @RunAsClient
-    public void testClientFailoverSubscriber() throws Exception {
-        
-        boolean failback = true;
-        
-        prepareSimpleDedicatedTopology();
-
-        controller.start(CONTAINER2);
-
-        controller.start(CONTAINER1);
-        
-        Thread.sleep(10000); // give some time to clients to failover
-        
-        // install rule to first server
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
-
-        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
-        s.subscribe();
-        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 70000, "clientid0");
-        p.start();
-        p.join();
-        s.start();
-        
-        Thread.sleep(5000);
-        
-        controller.kill(CONTAINER1);
-        
-        logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(10000); // give some time to clients to failover
-
-        if (failback)   {
-            logger.info("########################################");
-            logger.info("failback - Start live server again ");
-            logger.info("########################################");
-            controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
-            controller.stop(CONTAINER2);
-        }
-        
-        
-        s.join();
-        
-        logger.info("Publisher: " + p.getListOfSentMessages().size());
-        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
-        
-        Set<String> set = new HashSet<String>();
-        for (Message message : p.getListOfSentMessages()) {
-            set.add(message.getJMSMessageID());
-        }
-        for (Message message : s.getListOfReceivedMessages())   {
-            if (!set.remove(message.getJMSMessageID()))  {
-                logger.info("This is duplicated message: " + message.getJMSMessageID());
-            }
-        }
-        
-        logger.info("List of lost messages in the set - so lost messages");
-        for (String st : set)    {
-            logger.info("Lost message : " + st);
-        }
-        
-        controller.stop(CONTAINER1);
-
-        controller.stop(CONTAINER2);
-
-    }
-    
+  
     private Clients createClients(int acknowledgeMode, boolean topic) throws Exception  {
         
         Clients clients = null;
@@ -471,7 +376,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-//    @CleanUpAfterTest
+    @CleanUpAfterTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
