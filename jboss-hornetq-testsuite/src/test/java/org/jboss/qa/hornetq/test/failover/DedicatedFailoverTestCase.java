@@ -1,9 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import javax.jms.Message;
 import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
@@ -14,7 +10,6 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
