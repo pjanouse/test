@@ -6,3 +6,8 @@
 **/mdb*.properties
 jboss-hornetq-testsuite/log
 **/*.log
+.classpath
+.project
+.settings
+test-suite.log*
+

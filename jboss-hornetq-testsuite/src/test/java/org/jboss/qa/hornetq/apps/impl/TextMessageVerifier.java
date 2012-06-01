@@ -9,8 +9,6 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 
 /**
  *  This class observers jms clients and store their sent and received messages.
