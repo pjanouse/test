@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -368,6 +369,35 @@ public final class JMSAdminOperations {
         model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         modelnew.get(connectorName).clear();
+        model.get("value").set(modelnew);
+                
+        System.out.println(model.toString());
+                
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets connector on pooled connection factory
+     *
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param connectorName name of the connector like "remote-connector"
+     */
+    public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        
+        model.get("name").set("connector");
+        ModelNode modelnew = new ModelNode();
+        for (String connectorName : connectorNames) {
+            modelnew.get(connectorName).clear();
+        }
         model.get("value").set(modelnew);
                 
         System.out.println(model.toString());

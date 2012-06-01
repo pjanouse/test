@@ -29,7 +29,7 @@ public class ProducerTransAck extends Thread {
     private int port = 4447;
     private String queueNameJndi = "jms/queue/testQueue0";
     private int messages = 1000;
-    private int commitAfter = 100;
+    private int commitAfter = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
     private List<Message> listOfSentMessages = new ArrayList<Message>();
     private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();

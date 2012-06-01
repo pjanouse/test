@@ -121,9 +121,14 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
                 } catch (InterruptedException ex) {
                 }
             }
-
+            
+            if (cf == null) {
+                ctx = new InitialContext();
+                cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
+            }
+            
             con = cf.createConnection();
-
+            
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             con.start();

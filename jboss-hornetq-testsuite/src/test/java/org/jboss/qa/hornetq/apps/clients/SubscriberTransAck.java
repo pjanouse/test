@@ -139,7 +139,7 @@ public class SubscriberTransAck extends Thread {
      * @throws JMSException  
      * 
      */
-    public void commitSession(Session session)  {
+    public void commitSession(Session session) throws Exception  {
         try {
 
             session.commit();
@@ -150,15 +150,16 @@ public class SubscriberTransAck extends Thread {
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
             
         } catch (TransactionRolledBackException ex) {
-            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() +". Subscriber for node: " + hostname 
+            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() 
+                    +". Subscriber for node: " + hostname 
                     + ". Received message - count: " + count + ", retrying receive", ex);
             // all uncommited messges will be received again
             count = count - listOfReceivedMessagesToBeCommited.size();
             
         } catch(JMSException ex)    {
-            logger.error(" Subscriber - JMSException thrown during commit: " + ex.getMessage() +". Subscriber for node: " + hostname 
-                    + ". Received message - count: " + count + ", messages will be received again. Supposed to be commited.", ex);
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+            throw new Exception("Subscriber got JMSException during commit and has underterministic result."
+                    + " Node: " + hostname + 
+                    ". Received message - count: " + count + ", messages will be received again. Supposed to be commited.", ex);
             
         } finally {
             listOfReceivedMessagesToBeCommited.clear();

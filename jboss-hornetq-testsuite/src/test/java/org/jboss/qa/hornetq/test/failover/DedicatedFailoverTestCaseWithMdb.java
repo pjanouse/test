@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.test.failover;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -36,7 +38,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 3000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -46,12 +48,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     static String outQueueJndiName = "jms/queue/" + outQueueName;
     static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreated = false;
-    
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
     public static Archive getDeployment1() throws Exception {
-        
+
         File propertyFile = new File("mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER1_IP);
@@ -60,7 +61,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        return mdbJar;        
+        return mdbJar;
     }
 
     /**
@@ -77,32 +78,38 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         prepareRemoteJcaTopology();
         // start live-backup servers
         controller.start(CONTAINER1);
-//        controller.start(CONTAINER2);
-        
+        controller.start(CONTAINER2);
+
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
         producerToInQueue1.start();
-        
+        producerToInQueue1.join();
+
         controller.start(CONTAINER3);
         // start mdb server
         deployer.deploy("mdb1");
         
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 100000, 100, 10);
         receiver1.start();
+        
+        Thread.sleep(30000);
+        
+        killServer(CONTAINER1);
+        
         receiver1.join();
         
         logger.info("Producer: " + producerToInQueue1.getCounter());
         logger.info("Receiver: " + receiver1.getCount());
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getCounter(), receiver1.getCount());
-                
+
         deployer.undeploy("mdb1");
         controller.stop(CONTAINER3);
         controller.stop(CONTAINER2);
         controller.stop(CONTAINER1);
 
     }
-    
+
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
@@ -130,7 +137,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
-            
+
             prepareMdbServer(CONTAINER3, CONTAINER3_IP, CONTAINER1_IP);
 
             controller.start(CONTAINER1);
@@ -156,6 +163,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
+        String remoteConnectorBackupName = "netty-remote-backup";
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
@@ -180,19 +188,24 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, remoteConnectorName);
-        
+        jmsAdminOperations.createRemoteConnector(remoteConnectorBackupName, "messaging-remote-backup", null);
+        List<String> connecotrList = new ArrayList();
+        connecotrList.add(remoteConnectorName);
+        connecotrList.add(remoteConnectorBackupName);        
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connecotrList);
+
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
-        
+
         jmsAdminOperations.close();
         controller.stop(containerName);
     }
-    
+
     /**
      * Prepares live server for dedicated topology.
      *
@@ -208,7 +221,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        
+
         controller.start(containerName);
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
@@ -243,9 +256,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.close();
-        
+
         controller.stop(containerName);
 
     }
@@ -266,7 +279,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
-        
+
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
@@ -305,7 +318,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -361,7 +374,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
-        
+
         jmsAdminOperations.close();
     }
 

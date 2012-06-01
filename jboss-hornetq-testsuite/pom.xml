@@ -67,7 +67,6 @@
 
     <dependencies>
         <!-- JavaEE 6.0 APIs -->
-        
         <dependency>
             <groupId>org.jboss.spec</groupId>
             <artifactId>jboss-javaee-6.0</artifactId>
@@ -164,6 +163,13 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.10</version>
         </dependency>-->
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjts</artifactId>
+            <version>4.16.4.Final</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <repositories>

@@ -195,22 +195,30 @@ public class HornetQTestCase implements ContextProvider {
         log.info("Killing server: " + ContainerName);
         try {
             if (CONTAINER1.equals(ContainerName)) {
-                deployer.undeploy("killerServlet1");
+                try {
+                    deployer.undeploy("killerServlet1");
+                } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet1");
                 HttpRequest.get("http://" + CONTAINER1_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
 //                controller.kill(CONTAINER1);
             } else if (CONTAINER2.equals(ContainerName)) {
-                deployer.undeploy("killerServlet2");
+                try {
+                    deployer.undeploy("killerServlet2");
+                } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet2");
                 HttpRequest.get("http://" + CONTAINER2_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
 //                controller.kill(CONTAINER2);
             } else if (CONTAINER3.equals(ContainerName)) {
-                deployer.undeploy("killerServlet3");
+                try {
+                    deployer.undeploy("killerServlet3");
+                } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet3");
                 HttpRequest.get("http://" + CONTAINER3_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
 //                controller.kill(CONTAINER3);
             } else if (CONTAINER4.equals(ContainerName)) {
-                deployer.undeploy("killerServlet4");
+                try {
+                    deployer.undeploy("killerServlet4");
+                } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet4");
                 HttpRequest.get("http://" + CONTAINER4_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
 //                controller.kill(CONTAINER4);
@@ -219,8 +227,9 @@ public class HornetQTestCase implements ContextProvider {
                         + "It can't be deployed");
             }
         } catch (Exception ex) {
-            // ignore
-            //ex.printStackTrace();
+            
+            log.error("Using killer servlet failed: ", ex);
+            
         } finally {
             log.info("Server: " + ContainerName + " -- KILLED");
         }

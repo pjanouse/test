@@ -143,7 +143,7 @@ public class SoakTestCase extends HornetQTestCase {
         deployer.deploy("mdb2");
 
         // start subscribers with gap
-        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(CONTAINER2_IP, 5000, NUMBER_OF_SUBSCRIBERS, 10000);
+        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(CONTAINER2_IP, 50, NUMBER_OF_SUBSCRIBERS, 10000);
         for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; i++) {
             consumers[i].start();
         }
@@ -157,7 +157,8 @@ public class SoakTestCase extends HornetQTestCase {
         producerToInQueue2.start();
 
         // Wait to send and receive some messages
-        int testDuration = 12 * 60 * 60 * 1000;
+//        int testDuration = 12 * 60 * 60 * 1000;
+        int testDuration = 5 * 60 * 1000;
         String systemPropTestDuration = System.getProperty(SYSTEM_PROPERTY_TEST_DURATION);
         if (systemPropTestDuration != null && systemPropTestDuration.trim().length() > 0) {
             try {

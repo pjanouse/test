@@ -38,7 +38,7 @@ public class ReceiverClientAck extends Thread {
      */
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
         
-        this(hostname, port, queueJndiName, 30000, 10, 30);
+        this(hostname, port, queueJndiName, 30000, 1000, 30);
         
     }
     

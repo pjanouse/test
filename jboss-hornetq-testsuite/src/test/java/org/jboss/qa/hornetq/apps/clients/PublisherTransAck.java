@@ -332,9 +332,11 @@ public class PublisherTransAck extends Thread {
                                
                 resendMessages(publisher);
             } catch (JMSException ex) {
-                logger.error("COMMIT Failed but transaction rollback exception was NOT thrown - Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter + ". Operation will not be retried.", ex);
-                return;
+                throw new Exception("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
+                        + "is not able to determine whether commit was successful and ended with underterministic result. "
+                        + "Publisher for node: " + getHostname()
+                        + ". Sent message with property count: " + counter 
+                        + ". Operation will not be retried.", ex);
             }
         }
             // maxretry reached then throw exception above 

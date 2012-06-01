@@ -40,7 +40,7 @@ public class ReceiverTransAck extends Thread {
      */
     public ReceiverTransAck(String hostname, int port, String queueJndiName) {
         
-        this(hostname, port, queueJndiName, 30000, 10, 5);
+        this(hostname, port, queueJndiName, 30000, 1000, 5);
         
     }
     

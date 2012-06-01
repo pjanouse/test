@@ -57,16 +57,16 @@ public class TopicClientsTransAck implements Clients {
         FinalTestMessageVerifier verifier = null;
 
         // create publishers and subscribers
-        for (int destinationNumber = 0; destinationNumber < getNumberOfTopics(); destinationNumber++) {
+        for (int destinationNumber = 0; destinationNumber < numberOfTopics; destinationNumber++) {
 
             SubscriberTransAck subscriber = null;
             
             topicTextMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
             
-            for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
+            for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
                 
                 subscriber = new SubscriberTransAck(getHostnameForSubscribers(), getJndiPort(), 
-                        getDestionationJndiNamePrefix() + destinationNumber,
+                        getDestionationJndiNamePrefix() + destinationNumber, 30000, 1000, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
