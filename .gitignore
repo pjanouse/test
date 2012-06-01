@@ -3,4 +3,6 @@
 **/*.ipr
 **/*.iws
 **/sd.xml
+**/mdb*.properties
 jboss-hornetq-testsuite/log
+**/*.log
