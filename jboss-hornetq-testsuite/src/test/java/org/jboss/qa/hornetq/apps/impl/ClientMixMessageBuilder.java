@@ -19,8 +19,8 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     private int counter = 0;
 	
 	private enum MessageType {
-		BYTE, TEXT, OBJECT, MAP,
-		LARGE_BYTE, LARGE_TEXT, LARGE_OBJECT, LARGE_MAP
+		BYTE, TEXT, OBJECT, MAP, STREAM,
+		LARGE_BYTE, LARGE_TEXT, LARGE_OBJECT, LARGE_MAP, STREAM_LARGE 
 	}
 	
 	// Content for Object and Text messages
@@ -117,45 +117,49 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     	switch (whichProcess) {
     		case BYTE:
                 message = session.createBytesMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((BytesMessage) message).writeBytes(data);
     			break;
     		case TEXT:
                 message = session.createTextMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((TextMessage) message).setText(content);
     			break;
     		case OBJECT:
                 message = session.createObjectMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((ObjectMessage)message).setObject(content);
     			break;
     		case MAP:
     			message = session.createMapMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 fillMapMessage(message, sizeNormalMsg);
     			break;
     		case LARGE_BYTE:
                 message = session.createBytesMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((BytesMessage) message).writeBytes(dataLarge);
+    			break;
+    		case STREAM: /* self-defining stream of primitive values */
+    			message = session.createStreamMessage();
+    			((StreamMessage) message).writeInt(42);
+    			((StreamMessage) message).writeString(content);
+    			break;
+    		case STREAM_LARGE:
+    			message = session.createStreamMessage();
+    			((StreamMessage) message).writeInt(42);
+    			((StreamMessage) message).writeString(contentLarge);
     			break;
     		case LARGE_TEXT:
                 message = session.createTextMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((TextMessage) message).setText(contentLarge);    			
     			break;
     		case LARGE_OBJECT:
                 message = session.createObjectMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 ((ObjectMessage)message).setObject(contentLarge);
     			break;
     		case LARGE_MAP:
     			message = session.createMapMessage();
-                message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
                 fillMapMessage(message, sizeLargeMsg);
     			break;	
     	}
+    	
+    	message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
         log.info("Sending message " + whichProcess.toString() + " with counter " + this.counter);
         return message;
     }
