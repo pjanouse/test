@@ -1,30 +1,21 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.channels.FileChannel;
-import java.sql.*;
-import javax.sql.DataSource;
-import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import javax.jms.Message;
 import javax.jms.Session;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
@@ -50,7 +41,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -94,15 +85,28 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         deleteRecords();
         countRecords();
-        
+
         ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer.setMessageBuilder(new MessageBuilderForInfo());
+        producer.setMessageBuilder(new InfoMessageBuilder());
         producer.start();
         producer.join();
 
         deployer.deploy("mdbToDb");
 
-        countRecords();
+        Thread.sleep(30000);
+
+        for (int i = 0; i < 3; i++) {
+            killServer(CONTAINER1);
+            controller.kill(CONTAINER1);
+            controller.start(CONTAINER1);
+            Thread.sleep(60000);
+        }
+
+        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER) {
+            Thread.sleep(5000);
+        }
+
+        Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         controller.stop(CONTAINER1);
 
@@ -146,6 +150,13 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
+        File oracleModuleDir = new File("src/test/resources/org/jboss/hornetq/configuration/modules/oracle");
+        logger.info("source: " + oracleModuleDir.getAbsolutePath());
+        File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
+                + "com" + File.separator + "oracle");
+        logger.info("target: " + targetDir.getAbsolutePath());
+        copyFolder(oracleModuleDir, targetDir);
+
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -154,6 +165,14 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
 
         jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
+        jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, true, "oracle", "TRANSACTION_READ_COMMITTED",
+                "oracle.jdbc.xa.client.OracleXADataSource", false, true);
+        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
+        jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
+        jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
+
+
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -204,20 +223,27 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     public int countRecords() throws Exception {
-        deployer.deploy("dbUtilServlet");
-        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 10, TimeUnit.SECONDS);
-        deployer.undeploy("dbUtilServlet");
-
-        logger.info("Response is: " + response);
-                
-        StringTokenizer st = new StringTokenizer(response, ":");
         int numberOfRecords = -1;
-        while (st.hasMoreTokens())  {
-            if (st.nextToken().contains("Records in DB")) {
-                numberOfRecords = Integer.valueOf(st.nextToken().trim());
+        try {
+            deployer.deploy("dbUtilServlet");
+
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 10, TimeUnit.SECONDS);
+            deployer.undeploy("dbUtilServlet");
+
+            logger.info("Response is: " + response);
+
+            StringTokenizer st = new StringTokenizer(response, ":");
+
+            while (st.hasMoreTokens()) {
+                if (st.nextToken().contains("Records in DB")) {
+                    numberOfRecords = Integer.valueOf(st.nextToken().trim());
+                }
             }
+            logger.info("Number of records " + numberOfRecords);
+        } finally {
+            deployer.undeploy("dbUtilServlet");
         }
-        logger.info("Number of records " + numberOfRecords);
+
         return numberOfRecords;
     }
 
@@ -230,23 +256,57 @@ public class Lodh5TestCase extends HornetQTestCase {
 //
 //        return 0;
 //    }
-
     public void deleteRecords() throws Exception {
-        deployer.deploy("dbUtilServlet");
-        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 10, TimeUnit.SECONDS);
-        deployer.undeploy("dbUtilServlet");
-        logger.info("Response is: " + response);
+        try {
+            deployer.deploy("dbUtilServlet");
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 10, TimeUnit.SECONDS);
+
+            logger.info("Response is: " + response);
+        } finally {
+            deployer.undeploy("dbUtilServlet");
+        }
     }
-}
 
-class MessageBuilderForInfo implements MessageBuilder {
+    public static void copyFolder(File src, File dest)
+            throws IOException {
 
-    private Random r = new Random();
+        if (src.isDirectory()) {
 
-    @Override
-    public Message createMessage(Session session) throws Exception {
-        long randomLong = r.nextLong();
-        return session.createObjectMessage(new MessageInfo("name"+randomLong,
-                "cool-address"+randomLong));
+            //if directory not exists, create it
+            if (!dest.exists()) {
+                dest.mkdir();
+                System.out.println("Directory copied from "
+                        + src + "  to " + dest);
+            }
+
+            //list all the directory contents
+            String files[] = src.list();
+
+            for (String file : files) {
+                //construct the src and dest file structure
+                File srcFile = new File(src, file);
+                File destFile = new File(dest, file);
+                //recursive copy
+                copyFolder(srcFile, destFile);
+            }
+
+        } else {
+            //if file, then copy it
+            //Use bytes stream to support all file types
+            InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dest);
+
+            byte[] buffer = new byte[1024];
+
+            int length;
+            //copy the file content in bytes 
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+
+            in.close();
+            out.close();
+            System.out.println("File copied from " + src + " to " + dest);
+        }
     }
 }

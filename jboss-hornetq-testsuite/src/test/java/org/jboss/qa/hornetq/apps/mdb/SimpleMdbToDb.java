@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -35,17 +36,19 @@ public class SimpleMdbToDb implements MessageListener {
     private MessageDrivenContext context;
 
     @Resource(name = "lodhDb", mappedName = "java:/jdbc/lodhDS")
+//    @Resource(name = "lodhDb", mappedName = "java:/jdbc/mysqlDS")
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     @PostConstruct
     public void initialize() {
-        try {
-            connection = dataSource.getConnection();
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
+//        try {
+//            connection = dataSource.getConnection();
+////            connection.setAutoCommit(false);
+//        } catch (SQLException sqle) {
+//            sqle.printStackTrace();
+//        }
     }
 
     @PreDestroy
@@ -58,13 +61,14 @@ public class SimpleMdbToDb implements MessageListener {
         }
     }
 
+    @Override
     public void onMessage(Message message) {
         try {
-
+            connection = dataSource.getConnection();
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
             int count = counter.incrementAndGet();
             log.info("messageInfo " + messageInfo.getName() + ", counter: " + count);
-            processMessageInfo(messageInfo, count);
+            processMessageInfo(message, messageInfo, count);
             
         } catch (JMSException jmse) {
             jmse.printStackTrace();
@@ -72,38 +76,26 @@ public class SimpleMdbToDb implements MessageListener {
         } catch (SQLException sqle) {
             sqle.printStackTrace();
             context.setRollbackOnly();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                    connection = null;
+                } catch (SQLException ex) {
+                }
+            }
         }
     }
 
     // This method would use JPA in the real world to persist the data
-    private void processMessageInfo(MessageInfo messageInfo, int count) throws SQLException {
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGEINFO"
+    private void processMessageInfo(Message message, MessageInfo messageInfo, int count) throws SQLException, JMSException {
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
                     + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
-            ps.setString(1, String.valueOf(count));
+            ps.setString(1, message.getJMSMessageID());
             ps.setString(2, messageInfo.getName() + count);
             ps.setString(3, messageInfo.getAddress() + count);
             ps.executeUpdate();
             ps.close();
+            
     }
-
-    public long countAll() {
-        long result = 0;
-        try {
-            log.info("Count all record in database:" + result);
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT COUNT(*) FROM MessageInfo");
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                result = rs.getLong(1);
-            }
-            rs.close();
-            log.info("Records in DB :" + result);
-            ps.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
 }

@@ -92,11 +92,28 @@ public class DbUtilServlet extends HttpServlet {
         try {
             
             connection = getConnection();
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
-            int deleted = ps.executeUpdate();
-            out.println("Deleted records :" + deleted);
+//            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
+            String sql = "DROP TABLE MESSAGE_INFO2 PURGE";
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement(sql);
+            ps.executeUpdate();
             ps.close();
-            connection.commit();
+            log.info("Table deleted - sql command: " + sql);
+        } catch (java.sql.SQLSyntaxErrorException ex)   {
+            out.println(ex.getMessage());
+            ex.printStackTrace();
+        } catch (SQLException ex )  {
+            ex.printStackTrace();
+            out.println(ex.getMessage());
+        }
+        
+        try {
+            
+            String sql = "create table MESSAGE_INFO2 (MESSAGE_ID VARCHAR(50) primary key, MESSAGE_NAME VARCHAR(50), MESSAGE_ADDRESS VARCHAR(50))";
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement(sql);
+            ps.executeUpdate();
+            ps.close();
+            log.info("SQL command: " + sql + " executed.");
+//            connection.commit();
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,7 +134,7 @@ public class DbUtilServlet extends HttpServlet {
             connection = getConnection();
             int counter =5;
             
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGEINFO"
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
                     + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
             ps.setString(1, "myid");
             ps.setString(2, "name");
@@ -151,7 +168,7 @@ public class DbUtilServlet extends HttpServlet {
         try {
             
             connection = getConnection();
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT COUNT(*) FROM MessageInfo");
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT COUNT(*) FROM MESSAGE_INFO2");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 result = rs.getLong(1);
@@ -159,7 +176,7 @@ public class DbUtilServlet extends HttpServlet {
             rs.close();
             out.println("Records in DB :" + result);
             ps.close();
-            connection.commit();
+//            connection.commit();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -140,7 +140,7 @@ public class XAConsumerTransAck extends Thread {
         }
     }
 
-    private void receiveMessagesInXATransaction(XAResource xaRes, MessageConsumer consumer) {
+    private void receiveMessagesInXATransaction(XAResource xaRes, MessageConsumer consumer) throws Exception {
 
         int numberOfRetries = 0;
 
@@ -205,10 +205,14 @@ public class XAConsumerTransAck extends Thread {
                     try {
                         Thread.sleep(4000);
                         txMgr.commit();
+                    } catch (javax.transaction.RollbackException e)  {
+                        
+                        return;
+                        
                     } catch (Exception e)  {
                         numberOfRetries++;
                         logger.info("Try to commit again: " + numberOfRetries);
-                        logger.error(ex);
+                        logger.error("Exception:", ex);
                     }
                 }
                 

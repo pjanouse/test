@@ -1,8 +1,5 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple;
-import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionSynchronizationRegistryImple;
-import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -11,11 +8,9 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.transaction.*;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hornetq.core.transaction.impl.XidImpl;
 import org.hornetq.utils.UUIDGenerator;
@@ -23,12 +18,11 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 /**
  *
- * Simple sender with transaction acknowledge session. Able to fail over.
  *
  * This class extends Thread class and should be started as a thread using
  * start().
  *
- * @author mnovak
+ * @author mnovak@redhat.com
  */
 public class XAConsumer extends Thread {
 
@@ -83,10 +77,6 @@ public class XAConsumer extends Thread {
             context = new InitialContext(env);
 
             queue = (Queue) context.lookup("jms/queue/testQueue0");
-
-            System.setProperty(JTAEnvironmentBean.class.getSimpleName() + "." + "transactionManagerClassName", TransactionManagerImple.class.getName());
-            System.setProperty(JTAEnvironmentBean.class.getSimpleName() + "." + "transactionSynchronizationRegistryClassName", TransactionSynchronizationRegistryImple.class.getName());
-
             
             XAConnectionFactory cf = (XAConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
             
@@ -132,7 +122,7 @@ public class XAConsumer extends Thread {
         }
     }
 
-    private void receiveMessagesInXATransaction(MessageConsumer consumer, XASession xaSession) throws JMSException, XAException, InterruptedException {
+    private void receiveMessagesInXATransaction(MessageConsumer consumer, XASession xaSession) throws Exception {
         
         XAResource xaRes = xaSession.getXAResource();
         
@@ -163,9 +153,7 @@ public class XAConsumer extends Thread {
 
             xaRes.end(xid, XAResource.TMSUCCESS);
 
-            xaRes.prepare(xid);
-
-            xaRes.commit(xid, false);
+            xaRes.commit(xid, true);
          
             if (message == null) {
                 stop = true;
@@ -175,7 +163,7 @@ public class XAConsumer extends Thread {
             
             logger.error("Exception: ", ex);
             
-            recover(xid, xaSession);
+            tryCommitAgain(xid, xaRes);
             
         } finally {
             
@@ -283,25 +271,31 @@ public class XAConsumer extends Thread {
         consumer.join();
     }
 
-    private void recover(Xid xid, XASession xaSession) throws JMSException, XAException, InterruptedException {
+    private void tryCommitAgain(Xid xid, XAResource xaRes) throws Exception {
+        
         int numberOfTries = 0;
         while (numberOfTries < maxRetries) {
             try {
                 
                 Thread.sleep(3000);
 
-                XAResource xaRes = xaSession.getXAResource();
-        
                 xaRes.commit(xid, false);
                 
+                return;
+                
             } catch (XAException ex)    {
+                
                 numberOfTries++;
-                logger.error("Exception during commit try: " + numberOfTries, ex);
+                if (ex.errorCode == XAException.XAER_NOTA)  {
+                    return;
+                } else if (ex.errorCode == XAException.XA_RETRY)    {
+                    System.out.println("Exception during commit, try: " + numberOfTries);
+                    ex.printStackTrace();
+                }
+                
             }
         }
-        
-        
-        
+        throw new Exception("Retrying commit failed. MaxRetries: " + maxRetries + " Stopping consumer.");
     }
 
 }

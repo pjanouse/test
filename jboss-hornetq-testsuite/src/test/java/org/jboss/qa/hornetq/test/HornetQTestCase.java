@@ -200,6 +200,8 @@ public class HornetQTestCase implements ContextProvider {
                 } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet1");
                 HttpRequest.get("http://" + CONTAINER1_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+                Thread.sleep(3000);
+                controller.kill(CONTAINER1);
 //                controller.kill(CONTAINER1);
             } else if (CONTAINER2.equals(ContainerName)) {
                 try {
@@ -207,6 +209,8 @@ public class HornetQTestCase implements ContextProvider {
                 } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet2");
                 HttpRequest.get("http://" + CONTAINER2_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+                Thread.sleep(3000);
+                controller.kill(CONTAINER2);
 //                controller.kill(CONTAINER2);
             } else if (CONTAINER3.equals(ContainerName)) {
                 try {
@@ -214,6 +218,8 @@ public class HornetQTestCase implements ContextProvider {
                 } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet3");
                 HttpRequest.get("http://" + CONTAINER3_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+                Thread.sleep(3000);
+                controller.kill(CONTAINER3);
 //                controller.kill(CONTAINER3);
             } else if (CONTAINER4.equals(ContainerName)) {
                 try {
@@ -221,6 +227,8 @@ public class HornetQTestCase implements ContextProvider {
                 } catch (Exception ex)  {} // ignore
                 deployer.deploy("killerServlet4");
                 HttpRequest.get("http://" + CONTAINER4_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+                Thread.sleep(3000);
+                controller.kill(CONTAINER4);
 //                controller.kill(CONTAINER4);
             } else {
                 throw new RuntimeException("Name of the container: " + ContainerName + " for killerServlet is not known. "

@@ -10,6 +10,7 @@ import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 /**
@@ -284,9 +285,10 @@ public class ProducerClientAck extends Thread {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 100);
+        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
+        producer.setMessageBuilder(new InfoMessageBuilder());
         producer.start();
 
         producer.join();

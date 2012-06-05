@@ -121,6 +121,7 @@ public final class JMSAdminOperations {
     /**
      * Creates topic
      *
+     * @param serverName 
      * @param topicName queue name
      * @param jndiName  JNDI queue name
      */
@@ -263,6 +264,7 @@ public final class JMSAdminOperations {
 
     /**
      * Disables security on HornetQ
+     * @param serverName 
      */
     public void disableSecurity(String serverName) {
         final ModelNode disableSecurity = new ModelNode();
@@ -280,6 +282,7 @@ public final class JMSAdminOperations {
 
     /**
      * Sets security on HornetQ
+     * @param value 
      */
     public void setSecurityEnabled(boolean value) {
         final ModelNode disableSecurity = new ModelNode();
@@ -311,8 +314,6 @@ public final class JMSAdminOperations {
 <<<<<<< HEAD
      * @param value set to false to disable security for hornetq
 =======
-     * @param value      set to false to disable security for hornetq
->>>>>>> a691d0e59ad875abda15d3799ac07cde86496741
      */
     public void addSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = new ModelNode();
@@ -384,7 +385,7 @@ public final class JMSAdminOperations {
      * Sets connector on pooled connection factory
      *
      * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
-     * @param connectorName name of the connector like "remote-connector"
+     * @param connectorNames 
      */
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
         final ModelNode model = new ModelNode();
@@ -757,7 +758,7 @@ public final class JMSAdminOperations {
     /**
      * Can be "NIO" or "AIO"
      *
-     * @param "NIO" or "AIO"
+     * @param journalType 
      */
     public void setJournalType(String journalType) {
         setJournalType("default", journalType);
@@ -787,7 +788,7 @@ public final class JMSAdminOperations {
     /**
      * Adds journal-type attribute.
      *
-     * @param "NIO" or "AIO"
+     * @param journalType 
      */
     public void addJournalType(String journalType) {
         addJournalType("default", journalType);
@@ -934,7 +935,87 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * XA datasource.
+     *
+     * @param jndi_name 
+     * @param poolName 
+     * @param enabled
+     * @param useJavaContext
+     * @param useCCM
+     * @param driverName
+     * @param transactionIsolation  
+     */
+    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
+            boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
+            boolean isSameRmOverride, boolean noTxSeparatePool) {
 
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+        model.get("jndi-name").set(jndi_name);
+        model.get("use-java-context").set(useJavaContext);
+        model.get("use-ccm").set(useCCM);
+        model.get("driver-name").set(driverName);
+        
+        model.get("transaction-isolation").set(transactionIsolation);
+        model.get("xa-datasource-class").set(xaDatasourceClass);
+        model.get("no-tx-separate-pool").set(noTxSeparatePool);
+        model.get("same-rm-override").set(isSameRmOverride);
+       
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Add XA datasource property.
+     * @param poolName
+     * @param propertyName 
+     * @param value  
+     */
+    public void addXADatasourceProperty(String poolName, String propertyName, String value) {
+        
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+        model.get(ClientConstants.OP_ADDR).add("xa-datasource-properties", propertyName);
+        model.get("value").set(value);
+       
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+    }
+    
+    /**
+     * Add driver.
+     */
+    public void createJDBCDriver(String driverName, String moduleName, String driverClass, String xaDatasourceClass) {
+        
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        model.get(ClientConstants.OP_ADDR).add("jdbc-driver", driverName);
+        model.get("driver-name").set(driverName);
+        model.get("driver-module-name").set(moduleName);
+        model.get("driver-class-name").set(driverClass);
+        model.get("driver-xa-datasource-class-name").set(xaDatasourceClass);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+    }
+    
     /**
      * A broadcast group is the means by which a server broadcasts connectors over the network.
      * A connector defines a way in which a client (or other server) can make connections to the server.
@@ -1222,7 +1303,6 @@ public final class JMSAdminOperations {
     /**
      * Sets size of the journal file.
      *
-     * @param serverName  name of the hornetq server
      * @param sizeInBytes size of the journal file in bytes
      */
     public void setJournalFileSize(long sizeInBytes) {
@@ -1857,6 +1937,7 @@ public final class JMSAdminOperations {
      * Creates remote connector
      *
      * @param name   name of the remote connector
+     * @param socketBinding 
      * @param params source queue
      */
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
@@ -1868,6 +1949,7 @@ public final class JMSAdminOperations {
      *
      * @param serverName set name of hornetq server
      * @param name       name of the remote connector
+     * @param socketBinding 
      * @param params     params
      */
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
@@ -1893,9 +1975,8 @@ public final class JMSAdminOperations {
     /**
      * Creates socket binding.
      *
-     * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param params     params
+     * @param socketBindingName 
+     * @param port 
      */
     public void createSocketBinding(String socketBindingName, int port) {
         ModelNode model = new ModelNode();
@@ -1914,9 +1995,10 @@ public final class JMSAdminOperations {
     /**
      * Creates socket binding.
      *
-     * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param params     params
+     * @param socketBindingName 
+     * @param defaultInterface
+     * @param multicastAddress
+     * @param multicastPort  
      */
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
             int multicastPort) {
@@ -1938,9 +2020,7 @@ public final class JMSAdminOperations {
     /**
      * Set multicast address for socket binding
      *
-     * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param params     params
+     * @param socketBindingName 
      */
     public void removeSocketBinding(String socketBindingName) {
         ModelNode model = new ModelNode();
@@ -1984,9 +2064,8 @@ public final class JMSAdminOperations {
     /**
      * Set multicast address for socket binding
      *
-     * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param params     params
+     * @param socketBindingName 
+     * @param multicastAddress 
      */
     public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
         ModelNode model = new ModelNode();
@@ -2046,6 +2125,7 @@ public final class JMSAdminOperations {
      * Creates remote acceptor
      *
      * @param name   name of the remote acceptor
+     * @param socketBinding 
      * @param params source queue
      */
     public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
@@ -2057,6 +2137,7 @@ public final class JMSAdminOperations {
      *
      * @param serverName set name of hornetq server
      * @param name       name of the remote acceptor
+     * @param socketBinding 
      * @param params     params
      */
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
@@ -2138,6 +2219,8 @@ public final class JMSAdminOperations {
      * Adds outbound socket binding
      *
      * @param name remote socket binding name
+     * @param host 
+     * @param port  
      */
     public void addRemoteSocketBinding(String name, String host, int port) {
         ModelNode model = new ModelNode();
@@ -2230,6 +2313,9 @@ public final class JMSAdminOperations {
         }
     }
 
+    /**
+     * 
+     */
     public void reload() {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
