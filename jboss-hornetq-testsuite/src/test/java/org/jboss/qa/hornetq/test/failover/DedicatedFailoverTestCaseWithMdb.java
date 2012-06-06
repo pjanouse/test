@@ -15,6 +15,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteInQueueAndLocalOutQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
@@ -22,6 +23,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -38,29 +40,33 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 3000;
-    // queue to send messages in 
-    static String inQueueName = "InQueue";
-    static String inQueueJndiName = "jms/queue/" + inQueueName;
-    static String inQueueFullJndiName = "java:/" + inQueueJndiName;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    
+    // Queue to send messages in 
+    String inQueueName = "InQueue";
+    String inQueueJndiName = "jms/queue/" + inQueueName;
+    String inQueueFullJndiName = "java:/" + inQueueJndiName;
     // queue for receive messages out
-    static String outQueueName = "OutQueue";
-    static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
-    static boolean topologyCreated = false;
+    String outQueueName = "OutQueue";
+    String outQueueJndiName = "jms/queue/" + outQueueName;
+    String outQueueFullJndiName = "java:/" + outQueueJndiName;
+    boolean topologyCreated = false;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
     public static Archive getDeployment1() throws Exception {
 
-        File propertyFile = new File("mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
-        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addClasses(MdbWithRemoteInQueueAndLocalOutQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
+        
+        //      Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -89,10 +95,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start mdb server
         deployer.deploy("mdb1");
         
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 100000, 100, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 200000, 100, 10);
         receiver1.start();
         
-        Thread.sleep(30000);
+        Thread.sleep(15000);
         
         killServer(CONTAINER1);
         
@@ -136,13 +142,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+            
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
             prepareMdbServer(CONTAINER3, CONTAINER3_IP, CONTAINER1_IP);
 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
-            controller.stop(CONTAINER1);
             copyApplicationPropertiesFiles();
 
             topologyCreated = true;
@@ -171,7 +175,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
 
         jmsAdminOperations.setClustered(false);
-
+        
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
@@ -188,12 +194,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5445);
+//        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.createRemoteConnector(remoteConnectorBackupName, "messaging-remote-backup", null);
+//        jmsAdminOperations.createRemoteConnector(remoteConnectorBackupName, "messaging-remote-backup", null);
         List<String> connecotrList = new ArrayList();
         connecotrList.add(remoteConnectorName);
-        connecotrList.add(remoteConnectorBackupName);        
+//        connecotrList.add(remoteConnectorBackupName);        
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connecotrList);
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
@@ -228,6 +234,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
+
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -350,33 +358,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         }
     }
 
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
-     */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
-     * @param serverName server name of the hornetq server
-     *
-     */
-    private void deployDestinations(String hostname, int port, String serverName) {
-
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
-
-        jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
-
-        jmsAdminOperations.close();
-    }
 
     /**
      * Copies file from one place to another.

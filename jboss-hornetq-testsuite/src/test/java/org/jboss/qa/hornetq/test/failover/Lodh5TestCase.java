@@ -96,6 +96,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         Thread.sleep(30000);
 
         for (int i = 0; i < 3; i++) {
+            
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
             controller.start(CONTAINER1);
