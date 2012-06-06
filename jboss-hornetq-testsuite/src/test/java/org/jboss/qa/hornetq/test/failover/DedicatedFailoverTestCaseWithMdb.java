@@ -40,7 +40,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
     
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -95,7 +95,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start mdb server
         deployer.deploy("mdb1");
         
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 200000, 100, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 30000, 100, 10);
         receiver1.start();
         
         Thread.sleep(15000);
@@ -167,7 +167,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
-        String remoteConnectorBackupName = "netty-remote-backup";
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
@@ -194,12 +193,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
-//        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-//        jmsAdminOperations.createRemoteConnector(remoteConnectorBackupName, "messaging-remote-backup", null);
         List<String> connecotrList = new ArrayList();
         connecotrList.add(remoteConnectorName);
-//        connecotrList.add(remoteConnectorBackupName);        
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connecotrList);
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
@@ -207,7 +203,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
-
+        
+        jmsAdminOperations.createPooledConnectionFactory("ra-connection-factory", "java:/jmsXALocal", "netty");
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory("ra-connection-factory", connectorName);
+        
         jmsAdminOperations.close();
         controller.stop(containerName);
     }

@@ -47,10 +47,10 @@ public class MdbWithRemoteInQueueAndLocalOutQueue implements MessageDrivenBean, 
     static {
         try {
            
-//            ctx = new InitialContext();
+            ctx = new InitialContext();
             // i want connection factory configured here
-//            cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
-//            queue = (Queue) ctx.lookup("jms/queue/OutQueue");
+            cf = (ConnectionFactory) ctx.lookup("java:/jmsXALocal");
+            queue = (Queue) ctx.lookup("jms/queue/OutQueue");
             
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -99,29 +99,17 @@ public class MdbWithRemoteInQueueAndLocalOutQueue implements MessageDrivenBean, 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
             log.log(Level.INFO, " Start of message:" + messageInfo);
 
-//            for (int i = 0; i < (5 + 5 * Math.random()); i++) {
-//                try {
-//                    Thread.sleep((int) (10 + 10 * Math.random()));
-//                } catch (InterruptedException ex) {
-//                }
-//            }
-//            
-//            if (cf == null) {
-//                ctx = new InitialContext();
-//                cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
-//            }
-//            
-//            con = cf.createConnection();
-//            
-//            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
-//
-//            con.start();
-//
-//            String text = message.getJMSMessageID() + " processed by: " + hashCode();
-//            MessageProducer sender = session.createProducer(queue);
-//            TextMessage newMessage = session.createTextMessage(text);
-//            newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
-//            sender.send(newMessage);
+            con = cf.createConnection();
+            
+            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            con.start();
+
+            String text = message.getJMSMessageID() + " processed by: " + hashCode();
+            MessageProducer sender = session.createProducer(queue);
+            TextMessage newMessage = session.createTextMessage(text);
+            newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
+            sender.send(newMessage);
 
             log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
             
