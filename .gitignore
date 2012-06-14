@@ -10,4 +10,5 @@ jboss-hornetq-testsuite/log
 .project
 .settings
 test-suite.log*
-
+**/ObjectStore*
+**/PutObjectStoreDirHere*

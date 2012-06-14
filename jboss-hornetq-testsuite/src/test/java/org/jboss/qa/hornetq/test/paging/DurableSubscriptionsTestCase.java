@@ -79,7 +79,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     public void largeByteMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
-        testLogic(5000, 500, 10, 10000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 5000, 10, 10000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
     }
 
     /**
@@ -91,7 +91,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     public void largeTextMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
-        testLogic(5000, 500, 10, 10000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 5000, 10, 10000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
     }
 
     /**
