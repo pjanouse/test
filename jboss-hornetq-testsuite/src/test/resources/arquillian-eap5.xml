@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arquillian xmlns="http://jboss.com/arquillian">
+    <group qualifier="cluster">
+        <defaultProtocol type="Servlet 3.0" />
+        <container qualifier="node-1" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_1}</property>
+                <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
+                    -Dorg.jboss.resolver.warning=true
+                    -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -Dsun.lang.ClassLoader.allowArraySyntax=true
+                    -b ${MYTESTIP_1}
+                </property>
+                <property name="startupTimeoutInSeconds">60</property>
+            </configuration>
+        </container>
+    </group>
+</arquillian>
+
