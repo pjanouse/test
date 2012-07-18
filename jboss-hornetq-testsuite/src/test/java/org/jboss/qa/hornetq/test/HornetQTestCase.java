@@ -1,11 +1,5 @@
 package org.jboss.qa.hornetq.test;
 
-import java.io.File;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -15,8 +9,14 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.File;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parent class for all HornetQ test cases.
@@ -35,45 +35,57 @@ public class HornetQTestCase implements ContextProvider {
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
-    // Arquillian container name
+
+    // Containers IDs
     protected static final String CONTAINER1 = "node-1";
-    // IP address for container 1
-    protected static String CONTAINER1_IP;
-    // Arquillian container name
     protected static final String CONTAINER2 = "node-2";
-    // IP address for container 2
-    protected static String CONTAINER2_IP;
-    // Arquillian container name
     protected static final String CONTAINER3 = "node-3";
-    // IP address for container 3
-    protected static String CONTAINER3_IP;
-    // Arquillian container name
     protected static final String CONTAINER4 = "node-4";
-    // IP address for container 4
+
+    // IP address for containers
+    protected static String CONTAINER1_IP;
+    protected static String CONTAINER2_IP;
+    protected static String CONTAINER3_IP;
     protected static String CONTAINER4_IP;
+
     // Name of the connection factory in JNDI
     protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
-    // Host for remote JNDI
-    protected static final String HOST_NAME_JNDI = "localhost";
+
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
+
     // Ports for Byteman
     protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
     protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
-    protected static final int BYTEMAN_CONTAINER3_PORT = 9291;
-    protected static final int BYTEMAN_CONTAINER4_PORT = 9391;
+
     // Multi-cast address
-    protected static final String MULTICAST_ADDRESS;
+    protected static final String MCAST_ADDRESS;
     // Journal directory for first live/backup pair or first node in cluster
     protected static final String JOURNAL_DIRECTORY_A;
     // Journal directory for second live/backup pair or second node in cluster
     protected static final String JOURNAL_DIRECTORY_B;
+
     @ArquillianResource
     protected ContainerController controller;
+
     @ArquillianResource
     protected Deployer deployer;
 
+    // Defined deployments - killer servlet which kills server
+    // Artifact is not deployed on the server automatically, it is necessary to deploy it manually
+    protected static final String SERVLET_KILLER_1 = "killerServlet1";
+    protected static final String SERVLET_KILLER_2 = "killerServlet2";
+    protected static final String SERVLET_KILLER_3 = "killerServlet3";
+    protected static final String SERVLET_KILLER_4 = "killerServlet4";
+
     static {
+        // Path to the journal
+        String tmpJournalA = System.getProperty("JOURNAL_DIRECTORY_A");
+        JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
+        String tmpJournalB = System.getProperty("JOURNAL_DIRECTORY_B");
+        JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
+
+        // IP addresses for the servers
         if (System.getProperty("MYTESTIP_1") != null) {
             CONTAINER1_IP = System.getProperty("MYTESTIP_1");
             log.info(String.format("Setting CONTAINER1_IP='%s'", CONTAINER1_IP));
@@ -90,16 +102,14 @@ public class HornetQTestCase implements ContextProvider {
             CONTAINER4_IP = System.getProperty("MYTESTIP_4");
             log.info(String.format("Setting CONTAINER4_IP='%s'", CONTAINER4_IP));
         }
-        MULTICAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
-        JOURNAL_DIRECTORY_A = System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A";
-        JOURNAL_DIRECTORY_B = System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-B";
+        MCAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
     }
 
     /**
      * Returns context
      *
      * @param hostName target hostname with JNDI service
-     * @param port port on the target service
+     * @param port     port on the target service
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
      */
@@ -142,11 +152,9 @@ public class HornetQTestCase implements ContextProvider {
         boolean successful = true;
         if (path.exists()) {
             File[] files = path.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    successful = successful && deleteFolder(files[i]);
-                } else {
-                    successful = successful && files[i].delete();
+            if (files != null) {
+                for (File file : files) {
+                    successful = successful && ((file.isDirectory()) ? deleteFolder(file) : file.delete());
                 }
             }
         }
@@ -185,122 +193,146 @@ public class HornetQTestCase implements ContextProvider {
     }
 
     /**
-     * Kills server using killer servlet. This just kill server and does not do 
-     * anything else. It doesn't call controller.kill(contanerName).
-     * @param ContainerName
-     * @param ContainerIpAddress
+     * Kills server using killer servlet. This just kill server and does not do
+     * anything else. It doesn't call controller.kill
+     *
+     * @param ContainerName container name which should be killed
      */
     protected void killServer(String ContainerName) {
-
         log.info("Killing server: " + ContainerName);
         try {
             if (CONTAINER1.equals(ContainerName)) {
-                try {
-                    deployer.undeploy("killerServlet1");
-                } catch (Exception ex)  {} // ignore
-                deployer.deploy("killerServlet1");
-                HttpRequest.get("http://" + CONTAINER1_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
-                Thread.sleep(3000);
-                controller.kill(CONTAINER1);
-//                controller.kill(CONTAINER1);
+                killServer(CONTAINER1, SERVLET_KILLER_1, CONTAINER1_IP);
             } else if (CONTAINER2.equals(ContainerName)) {
-                try {
-                    deployer.undeploy("killerServlet2");
-                } catch (Exception ex)  {} // ignore
-                deployer.deploy("killerServlet2");
-                HttpRequest.get("http://" + CONTAINER2_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
-                Thread.sleep(3000);
-                controller.kill(CONTAINER2);
-//                controller.kill(CONTAINER2);
+                killServer(CONTAINER2, SERVLET_KILLER_2, CONTAINER2_IP);
             } else if (CONTAINER3.equals(ContainerName)) {
-                try {
-                    deployer.undeploy("killerServlet3");
-                } catch (Exception ex)  {} // ignore
-                deployer.deploy("killerServlet3");
-                HttpRequest.get("http://" + CONTAINER3_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
-                Thread.sleep(3000);
-                controller.kill(CONTAINER3);
-//                controller.kill(CONTAINER3);
+                killServer(CONTAINER3, SERVLET_KILLER_3, CONTAINER3_IP);
             } else if (CONTAINER4.equals(ContainerName)) {
-                try {
-                    deployer.undeploy("killerServlet4");
-                } catch (Exception ex)  {} // ignore
-                deployer.deploy("killerServlet4");
-                HttpRequest.get("http://" + CONTAINER4_IP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
-                Thread.sleep(3000);
-                controller.kill(CONTAINER4);
-//                controller.kill(CONTAINER4);
+                killServer(CONTAINER4, SERVLET_KILLER_4, CONTAINER4_IP);
             } else {
-                throw new RuntimeException("Name of the container: " + ContainerName + " for killerServlet is not known. "
-                        + "It can't be deployed");
+                throw new RuntimeException(
+                        String.format("Name of the container %s for is not known. It can't be used", ContainerName));
             }
         } catch (Exception ex) {
-            
             log.error("Using killer servlet failed: ", ex);
-            
         } finally {
             log.info("Server: " + ContainerName + " -- KILLED");
         }
     }
 
-    @Deployment(managed = false, testable = false, name = "killerServlet1")
+    /**
+     * Kills server using killer servlet. This just kill server and does not do
+     * anything else. It doesn't call controller.kill
+     *
+     * @param container         name of the container which will be killed
+     * @param killerServletName name of the killer servlet - deployment name
+     * @param serverIP          ip address of the killed server
+     * @throws Exception if something goes wrong
+     */
+    public void killServer(String container, String killerServletName, String serverIP) throws Exception {
+        try {
+            deployer.undeploy(killerServletName);
+        } catch (Exception ex) {
+            log.debug("Killer servlet %s was not deployed and it ");
+        }
+        deployer.deploy(killerServletName);
+        HttpRequest.get("http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+        Thread.sleep(3000);
+        controller.kill(container);
+    }
+
+    /**
+     * Creates archive with the killer server
+     *
+     * @return archive
+     * @throws Exception if something is wrong
+     */
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_1)
     @TargetsContainer(CONTAINER1)
+    @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer1() throws Exception {
         return createKillerServlet();
     }
 
-    @Deployment(managed = false, testable = false, name = "killerServlet2")
+    /**
+     * Creates archive with the killer server
+     *
+     * @return archive
+     * @throws Exception if something is wrong
+     */
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_2)
     @TargetsContainer(CONTAINER2)
+    @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer2() throws Exception {
         return createKillerServlet();
     }
 
-    @Deployment(managed = false, testable = false, name = "killerServlet3")
+    /**
+     * Creates archive with the killer server
+     *
+     * @return archive
+     * @throws Exception if something is wrong
+     */
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_3)
     @TargetsContainer(CONTAINER3)
+    @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer3() throws Exception {
         return createKillerServlet();
     }
 
-    @Deployment(managed = false, testable = false, name = "killerServlet4")
+    /**
+     * Creates archive with the killer server
+     *
+     * @return archive
+     * @throws Exception if something is wrong
+     */
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_4)
     @TargetsContainer(CONTAINER4)
+    @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer4() throws Exception {
         return createKillerServlet();
     }
 
+    /**
+     * Prepares war artifact with the killer servlet used for killing server
+     *
+     * @return web archive
+     */
     private static WebArchive createKillerServlet() {
-
         final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, "killerServlet.war");
         StringBuilder webXml = new StringBuilder();
         webXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
         webXml.append("<web-app version=\"2.5\" xmlns=\"http://java.sun.com/xml/ns/javaee\" \n");
-        webXml.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n");
-        webXml.append("xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee \n");
-        webXml.append("http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\">\n");
-        webXml.append("<servlet><servlet-name>KillerServlet</servlet-name>\n");
-        webXml.append("<servlet-class>org.jboss.qa.hornetq.apps.servlets.KillerServlet</servlet-class></servlet>\n");
-        webXml.append("<servlet-mapping><servlet-name>KillerServlet</servlet-name>\n");
-        webXml.append("<url-pattern>/KillerServlet</url-pattern>\n");
-        webXml.append("</servlet-mapping>\n");
+        webXml.append("         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n");
+        webXml.append("         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee \n");
+        webXml.append("                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\">\n");
+        webXml.append(" <servlet>\n");
+        webXml.append("   <servlet-name>KillerServlet</servlet-name>\n");
+        webXml.append("   <servlet-class>org.jboss.qa.hornetq.apps.servlets.KillerServlet</servlet-class>\n");
+        webXml.append(" </servlet>\n");
+        webXml.append("\n");
+        webXml.append(" <servlet-mapping>\n");
+        webXml.append("   <servlet-name>KillerServlet</servlet-name>\n");
+        webXml.append("   <url-pattern>/KillerServlet</url-pattern>\n");
+        webXml.append(" </servlet-mapping>\n");
         webXml.append("</web-app>\n");
-        log.debug(webXml.toString());
-        killerServlet.addAsWebInfResource(new StringAsset(webXml.toString()), "web.xml");
+        webXml.append("\n");
 
         StringBuilder jbossWebXml = new StringBuilder();
         jbossWebXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n");
         jbossWebXml.append("<jboss-web> \n");
-        jbossWebXml.append("<context-root>/KillerServlet</context-root> \n");
+        jbossWebXml.append("  <context-root>/KillerServlet</context-root> \n");
         jbossWebXml.append("</jboss-web> \n");
-        log.debug(jbossWebXml.toString());
+        webXml.append("\n");
+
+        killerServlet.addAsWebInfResource(new StringAsset(webXml.toString()), "web.xml");
         killerServlet.addAsWebInfResource(new StringAsset(jbossWebXml.toString()), "jboss-web.xml");
         killerServlet.addClass(KillerServlet.class);
-        log.info(killerServlet.toString(true));
-//      Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/KillerServlet.war");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        killerServlet.as(ZipExporter.class).exportTo(target, true);
-
+        if (log.isTraceEnabled()) {
+            log.trace(webXml.toString());
+            log.trace(jbossWebXml.toString());
+            log.trace(killerServlet.toString(true));
+        }
         return killerServlet;
     }
 }

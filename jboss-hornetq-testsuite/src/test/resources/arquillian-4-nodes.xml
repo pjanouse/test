@@ -83,7 +83,6 @@
                 <property name="managementAddress" >${MYTESTIP_4}</property>
             </configuration>
         </container>
-        
     </group>
 </arquillian>
 

@@ -53,7 +53,7 @@ public final class JMSAdminOperations {
      * Constructor
      *
      * @param hostName host with the administration
-     * @param port     port where is administration available
+     * @param port port where is administration available
      */
     public JMSAdminOperations(final String hostName, final int port) {
         try {
@@ -79,19 +79,18 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     public void createQueue(String queueName, String jndiName) {
         createQueue(queueName, jndiName, true);
     }
 
-
     /**
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
-     * @param durable   is queue durable
+     * @param jndiName JNDI queue name
+     * @param durable is queue durable
      */
     public void createQueue(String queueName, String jndiName, boolean durable) {
         createQueue("default", queueName, jndiName, durable);
@@ -101,9 +100,9 @@ public final class JMSAdminOperations {
      * Creates queue
      *
      * @param serverName name of the hornetq server
-     * @param queueName  queue name
-     * @param jndiName   JNDI queue name
-     * @param durable    is queue durable
+     * @param queueName queue name
+     * @param jndiName JNDI queue name
+     * @param durable is queue durable
      */
     public void createQueue(String serverName, String queueName, String jndiName, boolean durable) {
         createJmsDestination(serverName, DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
@@ -113,7 +112,7 @@ public final class JMSAdminOperations {
      * Creates topic
      *
      * @param topicName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     public void createTopic(String topicName, String jndiName) {
         createTopic("default", topicName, jndiName);
@@ -122,9 +121,9 @@ public final class JMSAdminOperations {
     /**
      * Creates topic
      *
-     * @param serverName 
+     * @param serverName
      * @param topicName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     public void createTopic(String serverName, String topicName, String jndiName) {
         createJmsDestination(serverName, DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
@@ -152,7 +151,7 @@ public final class JMSAdminOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     public void addQueueJNDIName(String queueName, String jndiName) {
         addDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
@@ -226,19 +225,19 @@ public final class JMSAdminOperations {
         }
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
-    
+
     /**
-     * Sets password for cluster user. 
-     * 
+     * Sets password for cluster user.
+     *
      * @param password password
      */
     public void setClusterUserPassword(String password) {
         setClusterUserPassword("default", password);
     }
-    
+
     /**
-     * Sets password for cluster user. 
-     * 
+     * Sets password for cluster user.
+     *
      * @param password password
      * @param serverName name of the hornetq server
      */
@@ -265,7 +264,8 @@ public final class JMSAdminOperations {
 
     /**
      * Disables security on HornetQ
-     * @param serverName 
+     *
+     * @param serverName
      */
     public void disableSecurity(String serverName) {
         final ModelNode disableSecurity = new ModelNode();
@@ -283,7 +283,8 @@ public final class JMSAdminOperations {
 
     /**
      * Sets security on HornetQ
-     * @param value 
+     *
+     * @param value
      */
     public void setSecurityEnabled(boolean value) {
         final ModelNode disableSecurity = new ModelNode();
@@ -298,23 +299,21 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Adds security attribute on HornetQ
      *
      * @param value set to false to disable security for hornetq
      */
-    public void addSecurityEnabled(boolean value)   {
+    public void addSecurityEnabled(boolean value) {
         addSecurityEnabled("default", value);
     }
 
     /**
      * Adds security attribute on HornetQ
      *
-     * @param serverName set name of the hornetq server
-<<<<<<< HEAD
-     * @param value set to false to disable security for hornetq
-=======
+     * @param serverName set name of the hornetq server <<<<<<< HEAD
+     * @param value set to false to disable security for hornetq =======
      */
     public void addSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = new ModelNode();
@@ -333,10 +332,11 @@ public final class JMSAdminOperations {
     /**
      * Sets permission privileges to a given role.
      *
-     * @param address    address of the queue like '#' (for all queues)
-     * @param role       role of the user like 'guest'
-     * @param permission possible values {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
-     * @param value      true for enable permission
+     * @param address address of the queue like '#' (for all queues)
+     * @param role role of the user like 'guest'
+     * @param permission possible values
+     * {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value true for enable permission
      */
     public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
         final ModelNode model = new ModelNode();
@@ -354,11 +354,12 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Sets connector on pooled connection factory
      *
-     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param connectionFactoryName name of the pooled connection factory like
+     * "hornetq-ra"
      * @param connectorName name of the connector like "remote-connector"
      */
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
@@ -367,25 +368,27 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
-        
+
         model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         modelnew.get(connectorName).clear();
         model.get("value").set(modelnew);
-                
+
         System.out.println(model.toString());
-                
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * Sets connector on pooled connection factory
-     * transaction=xa, entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
-     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * Sets connector on pooled connection factory transaction=xa,
+     * entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
+     *
+     * @param connectionFactoryName name of the pooled connection factory like
+     * "hornetq-ra"
      * @param connectorName name of the connector like "remote-connector"
      */
     public void createPooledConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
@@ -394,30 +397,31 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
-        
+
         model.get("transaction").set("xa");
-        
+
         model.get("entries").add(jndiName);
-        
+
         model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         modelnew.get(connectorName).clear();
         model.get("value").set(modelnew);
-                
+
         System.out.println(model.toString());
-                
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Sets connector on pooled connection factory
      *
-     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
-     * @param connectorNames 
+     * @param connectionFactoryName name of the pooled connection factory like
+     * "hornetq-ra"
+     * @param connectorNames
      */
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
         final ModelNode model = new ModelNode();
@@ -425,28 +429,28 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
-        
+
         model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         for (String connectorName : connectorNames) {
             modelnew.get(connectorName).clear();
         }
         model.get("value").set(modelnew);
-                
+
         System.out.println(model.toString());
-                
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Adds role to security settings.
      *
-     * @param address    address of the queue like '#' (for all queues)
-     * @param role       role of the user like 'guest'
+     * @param address address of the queue like '#' (for all queues)
+     * @param role role of the user like 'guest'
      */
     public void addRoleToSecuritySettings(String address, String role) {
         final ModelNode model = new ModelNode();
@@ -455,20 +459,20 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("security-setting", address);
         model.get(ClientConstants.OP_ADDR).add("role", role);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Add JNDI name
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name
+     * @param jndiName JNDI name
      */
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
@@ -489,8 +493,8 @@ public final class JMSAdminOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name for destination
-     * @param durable         Is durable destination
+     * @param jndiName JNDI name for destination
+     * @param durable Is durable destination
      */
     private void createJmsDestination(String serverName, String destinationType, String destinationName, String jndiName, boolean durable) {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
@@ -544,7 +548,7 @@ public final class JMSAdminOperations {
      *
      * @param update instance of the update
      * @return instance of ModelNode
-     * @throws IOException                if something goes wrong
+     * @throws IOException if something goes wrong
      * @throws JMSAdminOperationException if something goes wrong
      * @see {@link ModelNode}
      */
@@ -575,7 +579,7 @@ public final class JMSAdminOperations {
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
@@ -591,19 +595,20 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Sets id-cache-size attribute in servers configuration.
      *
      * @param numberOfIds - number of ids to remember
      */
     public void setIdCacheSize(long numberOfIds) {
-        setIdCacheSize("default", numberOfIds);  
+        setIdCacheSize("default", numberOfIds);
     }
+
     /**
      * Sets id-cache-size attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param numberOfIds - number of ids to remember
      */
     public void setIdCacheSize(String serverName, long numberOfIds) {
@@ -632,7 +637,7 @@ public final class JMSAdminOperations {
     /**
      * Adds persistence-enabled attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
     public void addPersistenceEnabled(String serverName, boolean persistenceEnabled) {
@@ -662,7 +667,7 @@ public final class JMSAdminOperations {
      * Sets clustered attribute.
      *
      * @param serverName sets name of the hornetq server to be changed
-     * @param clustered  set true to allow server to create cluster
+     * @param clustered set true to allow server to create cluster
      */
     public void setClustered(String serverName, boolean clustered) {
         final ModelNode model = new ModelNode();
@@ -691,7 +696,7 @@ public final class JMSAdminOperations {
      * Adds clustered attribute.
      *
      * @param serverName sets name of the hornetq server to be changed
-     * @param clustered  set true to allow server to create cluster
+     * @param clustered set true to allow server to create cluster
      */
     public void addClustered(String serverName, boolean clustered) {
         final ModelNode model = new ModelNode();
@@ -707,9 +712,9 @@ public final class JMSAdminOperations {
         }
     }
 
-
     /**
-     * Set this to true if this server shares journal with other server (with live of backup)
+     * Set this to true if this server shares journal with other server (with
+     * live of backup)
      *
      * @param sharedStore share journal
      */
@@ -718,10 +723,11 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * Set this to true if this server shares journal with other server (with live of backup)
+     * Set this to true if this server shares journal with other server (with
+     * live of backup)
      *
      * @param sharedStore share journal
-     * @param serverName  hornetq server name
+     * @param serverName hornetq server name
      */
     public void setSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = new ModelNode();
@@ -751,7 +757,7 @@ public final class JMSAdminOperations {
      * Adds attribute for sharing journal.
      *
      * @param sharedStore shared journal
-     * @param serverName  hornetq server name
+     * @param serverName hornetq server name
      */
     public void addSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = new ModelNode();
@@ -776,12 +782,11 @@ public final class JMSAdminOperations {
         setAllowFailback("default", allowFailback);
     }
 
-
     /**
      * Allow jms clients to reconnect from backup to live when live comes alive.
      *
      * @param allowFailback
-     * @param serverName    name of the hornetq server
+     * @param serverName name of the hornetq server
      */
     public void setAllowFailback(String serverName, boolean allowFailback) {
         final ModelNode model = new ModelNode();
@@ -801,7 +806,7 @@ public final class JMSAdminOperations {
     /**
      * Can be "NIO" or "AIO"
      *
-     * @param journalType 
+     * @param journalType
      */
     public void setJournalType(String journalType) {
         setJournalType("default", journalType);
@@ -810,7 +815,7 @@ public final class JMSAdminOperations {
     /**
      * Can be "NIO" or "AIO"
      *
-     * @param serverName  set name of hornetq server
+     * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
     public void setJournalType(String serverName, String journalType) {
@@ -831,7 +836,7 @@ public final class JMSAdminOperations {
     /**
      * Adds journal-type attribute.
      *
-     * @param journalType 
+     * @param journalType
      */
     public void addJournalType(String journalType) {
         addJournalType("default", journalType);
@@ -840,7 +845,7 @@ public final class JMSAdminOperations {
     /**
      * Adds journal-type attribute.
      *
-     * @param serverName  set name of hornetq server
+     * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
     public void addJournalType(String serverName, String journalType) {
@@ -870,7 +875,7 @@ public final class JMSAdminOperations {
      * The directory to store the journal files in.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     public void setJournalDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
@@ -899,7 +904,7 @@ public final class JMSAdminOperations {
      * The directory to store paged messages in.
      *
      * @param serverName set name of the server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     public void setPagingDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
@@ -915,7 +920,6 @@ public final class JMSAdminOperations {
         }
     }
 
-
     /**
      * The directory in which to store large messages.
      *
@@ -929,7 +933,7 @@ public final class JMSAdminOperations {
      * The directory in which to store large messages.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     public void setLargeMessagesDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
@@ -959,7 +963,7 @@ public final class JMSAdminOperations {
      * The directory in which to store the persisted bindings.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     public void setBindingsDirectory(String serverName, String path) {
 
@@ -981,13 +985,13 @@ public final class JMSAdminOperations {
     /**
      * XA datasource.
      *
-     * @param jndi_name 
-     * @param poolName 
+     * @param jndi_name
+     * @param poolName
      * @param enabled
      * @param useJavaContext
      * @param useCCM
      * @param driverName
-     * @param transactionIsolation  
+     * @param transactionIsolation
      */
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
             boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
@@ -1001,47 +1005,48 @@ public final class JMSAdminOperations {
         model.get("use-java-context").set(useJavaContext);
         model.get("use-ccm").set(useCCM);
         model.get("driver-name").set(driverName);
-        
+
         model.get("transaction-isolation").set(transactionIsolation);
         model.get("xa-datasource-class").set(xaDatasourceClass);
         model.get("no-tx-separate-pool").set(noTxSeparatePool);
         model.get("same-rm-override").set(isSameRmOverride);
-       
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Add XA datasource property.
+     *
      * @param poolName
-     * @param propertyName 
-     * @param value  
+     * @param propertyName
+     * @param value
      */
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
-        
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
         model.get(ClientConstants.OP_ADDR).add("xa-datasource-properties", propertyName);
         model.get("value").set(value);
-       
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
     }
-    
+
     /**
      * Add driver.
      */
     public void createJDBCDriver(String driverName, String moduleName, String driverClass, String xaDatasourceClass) {
-        
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
@@ -1050,51 +1055,63 @@ public final class JMSAdminOperations {
         model.get("driver-module-name").set(moduleName);
         model.get("driver-class-name").set(driverClass);
         model.get("driver-xa-datasource-class-name").set(xaDatasourceClass);
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
     }
-    
+
     /**
-     * A broadcast group is the means by which a server broadcasts connectors over the network.
-     * A connector defines a way in which a client (or other server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors
+     * over the network. A connector defines a way in which a client (or other
+     * server) can make connections to the server.
      *
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param localBindAddress    local bind address that the datagram socket is bound to. The default value is the wildcard IP address chosen by the kernel
-     * @param localBindPort       local port to which the datagram socket is bound to.
-     * @param groupAddress        multicast address to which the data will be broadcast - mandatory.
-     * @param groupPort           UDP port number used for broadcasting - mandatory.
-     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be broadcasted.
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param localBindAddress local bind address that the datagram socket is
+     * bound to. The default value is the wildcard IP address chosen by the
+     * kernel
+     * @param localBindPort local port to which the datagram socket is bound to.
+     * @param groupAddress multicast address to which the data will be broadcast
+     * - mandatory.
+     * @param groupPort UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod period in milliseconds between consecutive
+     * broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be
+     * broadcasted.
      */
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
-                                  String groupAddress, int groupPort, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String groupAddress, int groupPort, long broadCastPeriod,
+            String connectorName, String backupConnectorName) {
         setBroadCastGroup("default", name, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod, connectorName, backupConnectorName);
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors over the network.
-     * A connector defines a way in which a client (or other server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors
+     * over the network. A connector defines a way in which a client (or other
+     * server) can make connections to the server.
      *
-     * @param serverName          set name of hornetq server
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param localBindAddress    local bind address that the datagram socket is bound to. The default value is the wildcard IP address chosen by the kernel
-     * @param localBindPort       local port to which the datagram socket is bound to.
-     * @param groupAddress        multicast address to which the data will be broadcast - mandatory.
-     * @param groupPort           UDP port number used for broadcasting - mandatory.
-     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be broadcasted.
+     * @param serverName set name of hornetq server
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param localBindAddress local bind address that the datagram socket is
+     * bound to. The default value is the wildcard IP address chosen by the
+     * kernel
+     * @param localBindPort local port to which the datagram socket is bound to.
+     * @param groupAddress multicast address to which the data will be broadcast
+     * - mandatory.
+     * @param groupPort UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod period in milliseconds between consecutive
+     * broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be
+     * broadcasted.
      */
     public void setBroadCastGroup(String serverName, String name, String localBindAddress, int localBindPort,
-                                  String groupAddress, int groupPort, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String groupAddress, int groupPort, long broadCastPeriod,
+            String connectorName, String backupConnectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1134,34 +1151,43 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * A broadcast group is the means by which a server broadcasts connectors over the network.
-     * A connector defines a way in which a client (or other server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors
+     * over the network. A connector defines a way in which a client (or other
+     * server) can make connections to the server.
      *
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
-     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be broadcasted.
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     * for broadcasting connectors
+     * @param broadCastPeriod period in milliseconds between consecutive
+     * broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be
+     * broadcasted.
      */
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String connectorName, String backupConnectorName) {
         setBroadCastGroup("default", name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors over the network.
-     * A connector defines a way in which a client (or other server) can make connections to the server.
-     * @param serverName          set name of hornetq server
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
-     * @param broadCastPeriod     period in milliseconds between consecutive broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be broadcasted.
+     * A broadcast group is the means by which a server broadcasts connectors
+     * over the network. A connector defines a way in which a client (or other
+     * server) can make connections to the server.
+     *
+     * @param serverName set name of hornetq server
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     * for broadcasting connectors
+     * @param broadCastPeriod period in milliseconds between consecutive
+     * broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be
+     * broadcasted.
      */
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String connectorName, String backupConnectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1172,7 +1198,7 @@ public final class JMSAdminOperations {
         if (!isEmpty(messagingGroupSocketBindingName)) {
             model.get("socket-binding").set(messagingGroupSocketBindingName);
         }
-        
+
         if (!isEmpty(broadCastPeriod)) {
             model.get("broadcast-period").set(broadCastPeriod);
         }
@@ -1189,33 +1215,43 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * Discovery group defines how connector information is received from a multicast address.
+     * Discovery group defines how connector information is received from a
+     * multicast address.
      *
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param localBindAddress The discovery group will be bound only to this local address.
-     * @param groupAddress     Multicast IP address of the group to listen on - mandatory.
-     * @param groupPort        UDP port of the multicast group - mandatory
-     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     * @param name A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this
+     * local address.
+     * @param groupAddress Multicast IP address of the group to listen on -
+     * mandatory.
+     * @param groupPort UDP port of the multicast group - mandatory
+     * @param refreshTimeout Period the discovery group waits after receiving
+     * the last broadcast from a particular server before removing that servers
+     * connector pair entry from its list.
      */
     public void setDiscoveryGroup(String name, String localBindAddress,
-                                  String groupAddress, int groupPort, long refreshTimeout) {
+            String groupAddress, int groupPort, long refreshTimeout) {
         setDiscoveryGroup("default", name, localBindAddress, groupAddress, groupPort, refreshTimeout);
     }
 
     /**
-     * Discovery group defines how connector information is received from a multicast address.
+     * Discovery group defines how connector information is received from a
+     * multicast address.
      *
-     * @param serverName       Set name of hornetq server
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param localBindAddress The discovery group will be bound only to this local address.
-     * @param groupAddress     Multicast IP address of the group to listen on - mandatory.
-     * @param groupPort        UDP port of the multicast group - mandatory
-     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     * @param serverName Set name of hornetq server
+     * @param name A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this
+     * local address.
+     * @param groupAddress Multicast IP address of the group to listen on -
+     * mandatory.
+     * @param groupPort UDP port of the multicast group - mandatory
+     * @param refreshTimeout Period the discovery group waits after receiving
+     * the last broadcast from a particular server before removing that servers
+     * connector pair entry from its list.
      */
     public void setDiscoveryGroup(String serverName, String name, String localBindAddress,
-                                  String groupAddress, int groupPort, long refreshTimeout) {
+            String groupAddress, int groupPort, long refreshTimeout) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -1244,25 +1280,33 @@ public final class JMSAdminOperations {
         }
 
     }
-    
+
     /**
-     * Discovery group defines how connector information is received from a multicast address.
+     * Discovery group defines how connector information is received from a
+     * multicast address.
      *
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
-     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     * @param name A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     * for accepting connectors from other servers
+     * @param refreshTimeout Period the discovery group waits after receiving
+     * the last broadcast from a particular server before removing that servers
+     * connector pair entry from its list.
      */
     public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
         setDiscoveryGroup("default", name, messagingGroupSocketBindingName, refreshTimeout);
     }
-    
+
     /**
-     * Discovery group defines how connector information is received from a multicast address.
+     * Discovery group defines how connector information is received from a
+     * multicast address.
      *
-     * @param serverName       Set name of hornetq server
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
-     * @param refreshTimeout   Period the discovery group waits after receiving the last broadcast from a particular server before removing that servers connector pair entry from its list.
+     * @param serverName Set name of hornetq server
+     * @param name A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     * for accepting connectors from other servers
+     * @param refreshTimeout Period the discovery group waits after receiving
+     * the last broadcast from a particular server before removing that servers
+     * connector pair entry from its list.
      */
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
         ModelNode model = new ModelNode();
@@ -1289,37 +1333,43 @@ public final class JMSAdminOperations {
     /**
      * Sets cluster configuration.
      *
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
-     * @param discoveryGroupRef      Name of discovery group used by this bridge.
-     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
-     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param name Name of the cluster group - like "failover-cluster"
+     * @param address Name of address this cluster connection applies to.
+     * @param discoveryGroupRef Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there
+     * are no matching consumers on target?
+     * @param maxHops Maximum number of hops cluster topology is propagated.
+     * Default is 1.
+     * @param retryInterval Period (in ms) between successive retries.
+     * @param useDuplicateDetection Should duplicate detection headers be
+     * inserted in forwarded messages?
+     * @param connectorName Name of connector to use for live connection.
      */
     public void setClusterConnections(String name, String address,
-                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
-                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
+            String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
+            long retryInterval, boolean useDuplicateDetection, String connectorName) {
         setClusterConnections("default", name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
     }
 
     /**
      * Sets cluster configuration.
      *
-     * @param serverName             Set name of hornetq server.
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
-     * @param discoveryGroupRef      Name of discovery group used by this bridge.
-     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
-     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param serverName Set name of hornetq server.
+     * @param name Name of the cluster group - like "failover-cluster"
+     * @param address Name of address this cluster connection applies to.
+     * @param discoveryGroupRef Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there
+     * are no matching consumers on target?
+     * @param maxHops Maximum number of hops cluster topology is propagated.
+     * Default is 1.
+     * @param retryInterval Period (in ms) between successive retries.
+     * @param useDuplicateDetection Should duplicate detection headers be
+     * inserted in forwarded messages?
+     * @param connectorName Name of connector to use for live connection.
      */
     public void setClusterConnections(String serverName, String name, String address,
-                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
-                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
+            String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
+            long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1447,7 +1497,7 @@ public final class JMSAdminOperations {
     /**
      * Sets size of the journal file.
      *
-     * @param serverName  name of the hornetq server
+     * @param serverName name of the hornetq server
      * @param sizeInBytes size of the journal file in bytes
      */
     public void setJournalFileSize(String serverName, long sizeInBytes) {
@@ -1466,7 +1516,8 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * How long (in ms) to wait after the last consumer is closed on a queue before redistributing messages.
+     * How long (in ms) to wait after the last consumer is closed on a queue
+     * before redistributing messages.
      *
      * @param delay in milliseconds
      */
@@ -1506,13 +1557,12 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
 
     /**
      * Sets ha attribute.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
 
@@ -1530,12 +1580,12 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Sets ha attribute.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
 
@@ -1626,7 +1676,7 @@ public final class JMSAdminOperations {
      * Whether or not messages are acknowledged synchronously.
      *
      * @param connectionFactoryName
-     * @param value                 default false, should be true for fail-over scenarios
+     * @param value default false, should be true for fail-over scenarios
      */
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
 
@@ -1641,12 +1691,12 @@ public final class JMSAdminOperations {
         applyUpdateWithRetry(model, 50);
 
     }
-    
+
     /**
      * Whether or not messages are acknowledged synchronously.
      *
      * @param connectionFactoryName
-     * @param value                 default false, should be true for fail-over scenarios
+     * @param value default false, should be true for fail-over scenarios
      */
     public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
@@ -1680,7 +1730,7 @@ public final class JMSAdminOperations {
 
         applyUpdateWithRetry(model, 50);
     }
-    
+
     /**
      * The time (in ms) to retry a connection after failing.
      *
@@ -1704,7 +1754,7 @@ public final class JMSAdminOperations {
      * Multiplier to apply to successive retry intervals.
      *
      * @param connectionFactoryName
-     * @param value                 1.0 by default
+     * @param value 1.0 by default
      */
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
 
@@ -1719,12 +1769,12 @@ public final class JMSAdminOperations {
         applyUpdateWithRetry(model, 50);
 
     }
-    
+
     /**
      * Multiplier to apply to successive retry intervals.
      *
      * @param connectionFactoryName
-     * @param value                 1.0 by default
+     * @param value 1.0 by default
      */
     public void setRetryIntervalMultiplierForPooledConnectionFactory(String connectionFactoryName, double value) {
 
@@ -1741,11 +1791,11 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * How many times should client retry connection when connection is lost. This should be -1
-     * if failover is required.
+     * How many times should client retry connection when connection is lost.
+     * This should be -1 if failover is required.
      *
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
-     * @param value                 value
+     * @param value value
      */
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
 
@@ -1760,13 +1810,13 @@ public final class JMSAdminOperations {
         applyUpdateWithRetry(model, 50);
 
     }
-    
+
     /**
-     * How many times should client retry connection when connection is lost. This should be -1
-     * if failover is required.
+     * How many times should client retry connection when connection is lost.
+     * This should be -1 if failover is required.
      *
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
-     * @param value                 value
+     * @param value value
      */
     public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
 
@@ -1885,15 +1935,17 @@ public final class JMSAdminOperations {
     /**
      * Adds address settings
      *
-     * @param address             address specification
-     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
-     * @param maxSizeBytes        The max bytes size
-     * @param redeliveryDelay     Defines how long to wait before attempting redelivery of a cancelled message
-     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any messages
-     * @param pageSizeBytes       The paging size
+     * @param address address specification
+     * @param addressFullPolicy address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes The max bytes size
+     * @param redeliveryDelay Defines how long to wait before attempting
+     * redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last
+     * consumer is closed on a queue before redistributing any messages
+     * @param pageSizeBytes The paging size
      */
     public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
-                                   long redistributionDelay, long pageSizeBytes) {
+            long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = new ModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -1918,8 +1970,9 @@ public final class JMSAdminOperations {
      * <p/>
      * Like: <loopback-address value="127.0.0.2" \>
      *
-     * @param interfaceName - name of the interface like "public" or "management"
-     * @param ipAddress     - ipAddress of the interface
+     * @param interfaceName - name of the interface like "public" or
+     * "management"
+     * @param ipAddress - ipAddress of the interface
      */
     public void setLoopBackAddressType(String interfaceName, String ipAddress) {
         ModelNode model = new ModelNode();
@@ -1953,8 +2006,9 @@ public final class JMSAdminOperations {
      * <p/>
      * Like: <inet-address value="127.0.0.2" \>
      *
-     * @param interfaceName - name of the interface like "public" or "management"
-     * @param ipAddress     - ipAddress of the interface
+     * @param interfaceName - name of the interface like "public" or
+     * "management"
+     * @param ipAddress - ipAddress of the interface
      */
     public void setInetAddress(String interfaceName, String ipAddress) {
         ModelNode model = new ModelNode();
@@ -2031,8 +2085,8 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * This method is hack! Somehow calling update model throw exception when it should not.
-     * For this reason try it more times until success.
+     * This method is hack! Somehow calling update model throw exception when it
+     * should not. For this reason try it more times until success.
      *
      * @param model model
      * @param retry how many times to retry
@@ -2053,7 +2107,8 @@ public final class JMSAdminOperations {
     /**
      * Sets logging level for console log - standard output.
      *
-     * @param level like "ALL", "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+     * @param level like "ALL",
+     * "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
      */
     public void setLoggingLevelForConsole(String level) {
 
@@ -2071,7 +2126,8 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * Removes defined bridge, method just logs exception it does not throws exception
+     * Removes defined bridge, method just logs exception it does not throws
+     * exception
      *
      * @param name Name of the bridge
      */
@@ -2091,14 +2147,14 @@ public final class JMSAdminOperations {
     /**
      * Creates new bridge
      *
-     * @param name              bridge name
-     * @param queueName         source queue
+     * @param name bridge name
+     * @param queueName source queue
      * @param forwardingAddress target address
      * @param reconnectAttempts reconnect attempts for bridge
-     * @param staticConnector   static connector
+     * @param staticConnector static connector
      */
     public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                             String staticConnector) {
+            String staticConnector) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -2135,12 +2191,12 @@ public final class JMSAdminOperations {
             logger.error(e);
         }
     }
-
+    
     /**
      * Creates remote connector
      *
-     * @param name   name of the remote connector
-     * @param socketBinding 
+     * @param name name of the remote connector
+     * @param socketBinding
      * @param params source queue
      */
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
@@ -2151,9 +2207,9 @@ public final class JMSAdminOperations {
      * Creates remote connector
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param socketBinding 
-     * @param params     params
+     * @param name name of the remote connector
+     * @param socketBinding
+     * @param params params
      */
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
@@ -2174,12 +2230,11 @@ public final class JMSAdminOperations {
         }
     }
 
-
     /**
      * Creates socket binding.
      *
-     * @param socketBindingName 
-     * @param port 
+     * @param socketBindingName
+     * @param port
      */
     public void createSocketBinding(String socketBindingName, int port) {
         ModelNode model = new ModelNode();
@@ -2194,14 +2249,14 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Creates socket binding.
      *
-     * @param socketBindingName 
+     * @param socketBindingName
      * @param defaultInterface
      * @param multicastAddress
-     * @param multicastPort  
+     * @param multicastPort
      */
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
             int multicastPort) {
@@ -2219,19 +2274,19 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Set multicast address for socket binding
      *
-     * @param socketBindingName 
+     * @param socketBindingName
      */
     public void removeSocketBinding(String socketBindingName) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
-       
- //socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
+
+        //socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
 
         try {
             this.applyUpdate(model);
@@ -2239,13 +2294,13 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Add multicast address for socket binding
-     *  
+     *
      * @param socketBindingName name of the socket binding
-     * @param multicastAddress  
-     * @param multicastPort 
+     * @param multicastAddress
+     * @param multicastPort
      */
     public void addSocketBinding(String socketBindingName, String multicastAddress, int multicastPort) {
         ModelNode model = new ModelNode();
@@ -2256,19 +2311,19 @@ public final class JMSAdminOperations {
         model.get("value").set(multicastAddress);
         model.get("name").set("multicast-port");
         model.get("value").set(multicastPort);
- 
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Set multicast address for socket binding
      *
-     * @param socketBindingName 
-     * @param multicastAddress 
+     * @param socketBindingName
+     * @param multicastAddress
      */
     public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
         ModelNode model = new ModelNode();
@@ -2288,9 +2343,9 @@ public final class JMSAdminOperations {
     /**
      * Creates in-vm connector
      *
-     * @param name     name of the remote connetor
+     * @param name name of the remote connetor
      * @param serverId set server id
-     * @param params   params for connector
+     * @param params params for connector
      */
     public void createInVmConnector(String name, int serverId, Map<String, String> params) {
         createInVmConnector("default", name, serverId, params);
@@ -2300,9 +2355,9 @@ public final class JMSAdminOperations {
      * Creates in-vm connector
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param serverId   set server id
-     * @param params     params for connector
+     * @param name name of the remote connector
+     * @param serverId set server id
+     * @param params params for connector
      */
     public void createInVmConnector(String serverName, String name, int serverId, Map<String, String> params) {
         ModelNode model = new ModelNode();
@@ -2323,12 +2378,11 @@ public final class JMSAdminOperations {
         }
     }
 
-
     /**
      * Creates remote acceptor
      *
-     * @param name   name of the remote acceptor
-     * @param socketBinding 
+     * @param name name of the remote acceptor
+     * @param socketBinding
      * @param params source queue
      */
     public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
@@ -2339,9 +2393,9 @@ public final class JMSAdminOperations {
      * Creates remote acceptor
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the remote acceptor
-     * @param socketBinding 
-     * @param params     params
+     * @param name name of the remote acceptor
+     * @param socketBinding
+     * @param params params
      */
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
@@ -2361,13 +2415,31 @@ public final class JMSAdminOperations {
             throw new RuntimeException(e);
         }
     }
+    
+         /**
+     * Remove remote acceptor
+     *
+     * @param name name of the remote acceptor
+     */
+    public void removeRemoteAcceptor(String name) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
 
     /**
      * Creates in-vm acceptor
      *
-     * @param name     name of the connector
+     * @param name name of the connector
      * @param serverId set server id
-     * @param params   params for connector
+     * @param params params for connector
      */
     public void createInVmAcceptor(String name, int serverId, Map<String, String> params) {
         createInVmAcceptor("default", name, serverId, params);
@@ -2377,9 +2449,9 @@ public final class JMSAdminOperations {
      * Creates in-vm acceptor
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the connector
-     * @param serverId   set server id
-     * @param params     params for connector
+     * @param name name of the connector
+     * @param serverId set server id
+     * @param params params for connector
      */
     public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
         ModelNode model = new ModelNode();
@@ -2415,15 +2487,15 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             logger.error(e);
         }
-        
+
     }
 
     /**
      * Adds outbound socket binding
      *
      * @param name remote socket binding name
-     * @param host 
-     * @param port  
+     * @param host
+     * @param port
      */
     public void addRemoteSocketBinding(String name, String host, int port) {
         ModelNode model = new ModelNode();
@@ -2443,7 +2515,7 @@ public final class JMSAdminOperations {
      * Adds new logging category.
      *
      * @param category like "org.hornetq"
-     * @param level    like DEBUG, WARN, FINE,...
+     * @param level like DEBUG, WARN, FINE,...
      */
     public void addLoggerCategory(String category, String level) {
 
@@ -2482,16 +2554,16 @@ public final class JMSAdminOperations {
      */
     private boolean isEmpty(Object attribute) {
         boolean empty = false;
-        
-        if (attribute == null)  {
+
+        if (attribute == null) {
             return true;
         }
-        
+
         if ((attribute instanceof String) && ("".equals(attribute))) {
             empty = true;
         }
-        
-        if (attribute instanceof Integer && (Integer) attribute == Integer.MIN_VALUE)   {
+
+        if (attribute instanceof Integer && (Integer) attribute == Integer.MIN_VALUE) {
             empty = true;
         }
         return empty;
@@ -2517,12 +2589,12 @@ public final class JMSAdminOperations {
     }
 
     /**
-     * 
+     *
      */
     public void reload() {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
-        
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {

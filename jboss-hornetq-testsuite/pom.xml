@@ -1,4 +1,3 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -17,8 +16,8 @@
         <hornetq.version>2.2.16.Final</hornetq.version>
 
         <arquillian.version>1.0.0.Final</arquillian.version>
-        <arquillian.container.version>7.1.1.Final</arquillian.container.version>
-<!--        <arquillian.container.version>7.1.2.Final-SNAPSHOT</arquillian.container.version>-->
+        <arquillian.eap6x.container.version>7.1.1.Final</arquillian.eap6x.container.version>
+        <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
         <version.byteman>2.0.0</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -86,12 +85,6 @@
             <version>${arquillian.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-arquillian-container-managed</artifactId>
-            <version>${arquillian.container.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -99,7 +92,7 @@
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.jboss.naming</groupId>
             <artifactId>jnp-client</artifactId>
@@ -121,7 +114,7 @@
         <dependency>
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
-            <version>${netty.version}</version> 
+            <version>${netty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hornetq</groupId>
@@ -139,7 +132,7 @@
             <artifactId>xalan</artifactId>
             <version>${xalan.version}</version>
             <scope>test</scope>
-           
+
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -147,22 +140,7 @@
             <version>${version.log4j}</version>
             <scope>test</scope>
         </dependency>
-       
-<!--        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.5.10</version>
-        </dependency>                
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.5.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.10</version>
-        </dependency>-->
+
         <dependency>
             <groupId>org.jboss.jbossts</groupId>
             <artifactId>jbossjts</artifactId>
@@ -170,10 +148,56 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-controller-client</artifactId>
+            <version>7.1.1.Final</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>eap5x</id>
+            <activation>
+                <property>
+                    <name>eap</name>
+                    <value>5x</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>eap6x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>6x</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <repositories>
-        <!-- added our jboss qa repository with old hornetq client jars -->
+        <!-- added our jboss qa repository with old HornetQ client jars -->
         <repository>
             <id>jboss-qa-releases</id>
             <name>JBoss QA Release Repository</name>
