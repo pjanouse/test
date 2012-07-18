@@ -262,8 +262,8 @@ public class ClientTestCase extends HornetQTestCase {
 	        	SoakProducerClientAck producer = producers.get(destinationNumber);
 	        	SoakReceiverClientAck receiver = receivers.get(destinationNumber);
 	        	
-		        log.infof("Producer %s sent % messages on destintion %s", producer, producer.getCounter(), destinationNumber);
-		        log.infof("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber);
+		        log.info(String.format("Producer %s sent % messages on destintion %s", producer, producer.getCounter(), destinationNumber));
+		        log.info(String.format("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber));
 	
 		        Assert.assertNotSame("The producer had to sent at least some message. Otherwise there is an error somewhere.", 
 		        		0, producer.getCounter());

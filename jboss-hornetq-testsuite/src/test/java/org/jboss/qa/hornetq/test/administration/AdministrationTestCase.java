@@ -5,12 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import javax.jms.Queue;
-import junit.framework.Assert;
+
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
 import org.junit.After;
@@ -97,10 +95,10 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteAcceptor("remote-acceptor", "messaging", null);
         
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MULTICAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MULTICAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MCAST_ADDRESS, udpGroupPort, 10000);
         
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
