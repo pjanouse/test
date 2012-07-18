@@ -453,12 +453,13 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
+        jmsAdminOperations.setJournalType("NIO");
 
         SimpleJMSClient client = new SimpleJMSClient(CONTAINER1_IP, 4447, 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass());
+            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
             try {
                 Thread.sleep(500);
             } catch (Exception e) {
@@ -479,7 +480,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(MY_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass());
+            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
             client.receiveMessages(MY_QUEUE_JNDI);
             controller.kill(CONTAINER1);
             controller.start(CONTAINER1);

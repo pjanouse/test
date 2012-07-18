@@ -82,23 +82,41 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         condition = "readCounter(\"counter\")>333",
         action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
-
+        testFailover(acknowledge, failback, topic, false);
+    }
+    
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     * 
+     * @param acknowledge acknowledge type
+     * @param failback whether to test failback
+     * @param topic whether to test with topics
+     * 
+     * @throws Exception 
+     */
+    public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+    
         prepareSimpleDedicatedTopology();
 
         controller.start(CONTAINER2);
 
         controller.start(CONTAINER1);
         
-        Thread.sleep(10000); // give some time to clients to failover
+        Thread.sleep(10000); 
         
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+        if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
 
         Clients clients = createClients(acknowledge, topic);
-
         clients.startClients();
         
-        controller.kill(CONTAINER1);
+        if (!shutdown) {
+            controller.kill(CONTAINER1);
+        } else {
+            Thread.sleep(15000);
+            controller.stop(CONTAINER1);
+        }
         
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
         Thread.sleep(10000); // give some time to clients to failover
@@ -256,6 +274,129 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         
         return clients;
     }
+    
+    /**
+     * Start simple failover test with auto_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailoverAutoAckQueueOnShutdown() throws Exception {
+        testFailover(Session.AUTO_ACKNOWLEDGE, false, false, true);
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    public void testFailoverClientAckQueueOnShutdown() throws Exception {
+        
+        testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailoverTransAckQueueOnShutdown() throws Exception {
+        testFailover(Session.SESSION_TRANSACTED, false, false, true);
+    }
+    
+    /**
+     * Start simple failover test with auto_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailbackAutoAckQueueOnShutdown() throws Exception {
+        testFailover(Session.AUTO_ACKNOWLEDGE, true, false, true);
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    public void testFailbackClientAckQueueOnShutdown() throws Exception {
+        testFailover(Session.CLIENT_ACKNOWLEDGE, true, false, true);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailbackTransAckQueueOnShutdown() throws Exception {
+        testFailover(Session.SESSION_TRANSACTED, true, false, true);
+    }
+    
+    /**
+     * Start simple failover test with auto_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailoverAutoAckTopicOnShutdown() throws Exception {
+        testFailover(Session.AUTO_ACKNOWLEDGE, false, true, true);
+    }
+    
+    /**
+     * Start simple failover test with client acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailoverClientAckTopicOnShutdown() throws Exception {
+        testFailover(Session.CLIENT_ACKNOWLEDGE, false, true, true);
+    }
+    
+    /**
+     * Start simple failover test with transaction acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailoverTransAckTopicOnShutdown() throws Exception {
+        testFailover(Session.SESSION_TRANSACTED, false, true, true);
+    }
+    
+    /**
+     * Start simple failback test with auto acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailbackAutoAckTopicOnShutdown() throws Exception {
+        testFailover(Session.AUTO_ACKNOWLEDGE, true, true, true);
+    }
+    
+    /**
+     * Start simple failback test with client acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailbackClientAckTopicOnShutdown() throws Exception {
+        testFailover(Session.CLIENT_ACKNOWLEDGE, true, true, true);
+    }
+    
+    /**
+     * Start simple failback test with transaction acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testFailbackTransAckTopicOnShutdown() throws Exception {
+        testFailover(Session.SESSION_TRANSACTED, true, true, true);
+    }
+    
+    ////////////////////////////////////////////////////////
+    // TEST KILL ////////////////////////
+    ////////////////////////////////////////////////////////
     
     /**
      * Start simple failover test with auto_ack on queues
@@ -442,6 +583,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
+        
+        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -466,6 +609,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -503,6 +647,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
+        
+        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -526,6 +672,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");

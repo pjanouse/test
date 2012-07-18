@@ -4,7 +4,7 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-package org.jboss.qa.hornetq.apps.impl;
+package org.jboss.qa.tools;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +15,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jboss.qa.hornetq.apps.ControllableProxy;
+import org.jboss.qa.tools.ControllableProxy;
 
 /**
  * A SimpleProxyServer.

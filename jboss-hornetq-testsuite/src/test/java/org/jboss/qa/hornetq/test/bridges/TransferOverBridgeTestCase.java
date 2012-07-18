@@ -1,13 +1,19 @@
 package org.jboss.qa.hornetq.test.bridges;
 
-import java.rmi.RemoteException;
+import javax.jms.Message;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import static junit.framework.Assert.*;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
+import org.jboss.qa.tools.SimpleProxyServer;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSAdminOperations;
@@ -19,17 +25,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import org.jboss.qa.hornetq.apps.ControllableProxy;
-import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
-import org.jboss.qa.hornetq.apps.impl.SimpleProxyServer;
 
 /**
  * Basic tests for transfer messages over core-bridge. Here is tested whether all messages

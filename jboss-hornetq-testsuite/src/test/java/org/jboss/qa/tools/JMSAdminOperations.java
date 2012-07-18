@@ -516,6 +516,17 @@ public final class JMSAdminOperations {
      * @param destinationName destination name
      */
     private void removeJmsDestination(String destinationType, String destinationName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove-messages");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("remove");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -1331,6 +1342,98 @@ public final class JMSAdminOperations {
         }
 
     }
+    
+    /**
+     * Sets reconnect attempts on cluster connection.
+     * 
+     * @param clusterGroupName name
+     * @param attempts number of retries (-1 for indenfitely)
+     * 
+     */
+    public void setReconnectAttemptsForClusterConnection(String clusterGroupName, int attempts) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
+
+        model.get("name").set("reconnect-attempts");
+        model.get("value").set(attempts);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }    
+    }
+
+    /**
+     * Sets connection ttl value.
+     * 
+     * @param serverName name of the server
+     * @param valueInMillis ttl
+     */
+    public void setConnectionTtlOverride(String serverName, long valueInMillis) {
+        
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+
+        model.get("name").set("connection-ttl-override");
+        model.get("value").set(valueInMillis);
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }    
+    }
+    
+    /**
+     * Sets cluster configuration.
+     *
+     * @param serverName             Set name of hornetq server.
+     * @param name                   Name of the cluster group - like "failover-cluster"
+     * @param address                Name of address this cluster connection applies to.
+     * @param discoveryGroupRef      Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval          Period (in ms) between successive retries.
+     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName          Name of connector to use for live connection.
+     */
+    public void setStaticClusterConnections(String serverName, String name, String address,
+                                      boolean forwardWhenNoConsumers, int maxHops,
+                                      long retryInterval, boolean useDuplicateDetection, 
+                                      String connectorName, String... remoteConnectors) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
+
+        model.get("cluster-connection-address").set(address);
+        model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
+        model.get("max-hops").set(maxHops);
+        model.get("retry-interval").set(retryInterval);
+        model.get("use-duplicate-detection").set(useDuplicateDetection);
+        model.get("connector-ref").set(connectorName);
+        
+        for (String remoteConnectorName : remoteConnectors) {
+            model.get("static-connectors").add(remoteConnectorName);
+        }
+        
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    
 
     /**
      * Sets size of the journal file.
@@ -1434,6 +1537,29 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
+    public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("failover-on-server-shutdown");
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets ha attribute.
+     *
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
     public void setHaForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1442,6 +1568,51 @@ public final class JMSAdminOperations {
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("ha");
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets failover-on-server-shutdown.
+     *
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
+    public void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("failover-on-server-shutdown");
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Sets failover-on-server-shutdown.
+     *
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
+    public void setFailoverOnShutdown(boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("failover-on-shutdown");
         model.get("value").set(value);
 
         try {
@@ -2101,7 +2272,7 @@ public final class JMSAdminOperations {
      */
     public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
         ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("write-atrribute");
+        model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
         model.get("name").set("multicast-address");
@@ -2359,6 +2530,9 @@ public final class JMSAdminOperations {
         }
     }
 
+    
+    
+
     /**
      * Exception
      */
@@ -2368,4 +2542,5 @@ public final class JMSAdminOperations {
             super(msg);
         }
     }
+      
 }

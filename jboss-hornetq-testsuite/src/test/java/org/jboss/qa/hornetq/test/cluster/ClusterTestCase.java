@@ -343,7 +343,6 @@ public class ClusterTestCase extends HornetQTestCase {
 //        jmsAdminOperations.setJournalDirectory(journalDirectory);
 //        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
-        jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 

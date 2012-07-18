@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
 activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
     @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InTopic"),
-    @ActivationConfigProperty(propertyName = "SubscriptionDurability", propertyValue = "Durable")
+        @ActivationConfigProperty(propertyName = "SubscriptionDurability", propertyValue = "Durable")
 })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)

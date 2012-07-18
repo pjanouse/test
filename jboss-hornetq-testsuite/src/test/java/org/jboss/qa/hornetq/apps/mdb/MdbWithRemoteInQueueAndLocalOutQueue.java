@@ -97,7 +97,7 @@ public class MdbWithRemoteInQueueAndLocalOutQueue implements MessageDrivenBean, 
                 log.log(Level.ERROR, e.getMessage(), e);
             }
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-            log.log(Level.INFO, " Start of message:" + messageInfo);
+//            log.log(Level.INFO, " Start of message:" + messageInfo);
 
             con = cf.createConnection();
             
