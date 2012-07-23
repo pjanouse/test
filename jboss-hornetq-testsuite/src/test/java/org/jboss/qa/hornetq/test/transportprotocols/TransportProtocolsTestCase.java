@@ -13,7 +13,9 @@ import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -123,7 +125,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     private void prepareServerForTCPTransport(String containerName, String bindingAddress, String journalType) {
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createQueue("default", inQueueNameForMdb, inQueueJndiNameForMdb, true);
@@ -144,7 +146,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("http-enabled", "true");
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createSocketBinding(socketBindingName, 7080);
@@ -195,7 +197,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         acceptorParams.put("trust-store-path", trustStoreNew.getAbsolutePath());
         acceptorParams.put("trust-store-password", "hornetqexample");
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.removeRemoteConnector("netty");

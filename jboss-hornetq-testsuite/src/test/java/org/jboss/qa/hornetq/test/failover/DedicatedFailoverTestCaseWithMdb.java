@@ -18,7 +18,9 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteInQueueAndLocalOutQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -161,7 +163,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
-            prepareMdbServer(CONTAINER3, CONTAINER3_IP, CONTAINER1_IP);
+            prepareMdbServer(CONTAINER3, CONTAINER1_IP);
 
             copyApplicationPropertiesFiles();
 
@@ -176,7 +178,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @param containerName Name of the container - defined in arquillian.xml
      *
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -187,7 +189,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(false);
         
@@ -250,7 +252,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -310,7 +312,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);

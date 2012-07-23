@@ -16,7 +16,9 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -212,18 +214,18 @@ public class Lodh3TestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
-            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER1);
+            prepareMdbServer(CONTAINER2, CONTAINER1_IP);
 
-            prepareJmsServer(CONTAINER3, CONTAINER3_IP);
-            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+            prepareJmsServer(CONTAINER3);
+            prepareMdbServer(CONTAINER4, CONTAINER3_IP);
 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
+            deployDestinations(CONTAINER1);
             controller.stop(CONTAINER1);
 
             controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3_IP, 9999);
+            deployDestinations(CONTAINER3);
             controller.stop(CONTAINER3);
 
             copyApplicationPropertiesFiles();
@@ -240,7 +242,7 @@ public class Lodh3TestCase extends HornetQTestCase {
      * @param bindingAddress says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
+    private void prepareJmsServer(String containerName) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -251,7 +253,7 @@ public class Lodh3TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -274,10 +276,10 @@ public class Lodh3TestCase extends HornetQTestCase {
         jmsAdminOperations.close();
         controller.stop(containerName);
         controller.start(containerName);
-        jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        jmsAdminOperations = JMSProvider.getInstance(containerName);
         
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", multicastAddress, 55874);
-        deployDestinations(bindingAddress, 9999);
+        deployDestinations(containerName);
         
         jmsAdminOperations.close();
         controller.stop(containerName);
@@ -290,7 +292,7 @@ public class Lodh3TestCase extends HornetQTestCase {
      * @param containerName Name of the container - defined in arquillian.xml
      *
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -301,7 +303,7 @@ public class Lodh3TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -359,8 +361,8 @@ public class Lodh3TestCase extends HornetQTestCase {
      * @param hostname ip address where to bind to managemant interface
      * @param port port of management interface - it should be 9999
      */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
     }
 
     /**
@@ -371,9 +373,9 @@ public class Lodh3TestCase extends HornetQTestCase {
      * @param serverName server name of the hornetq server
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName) {
+    private void deployDestinations(String containerName, String serverName) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

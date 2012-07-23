@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -31,6 +31,8 @@ import javax.naming.NamingException;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.Semaphore;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 
 /**
  * Complex SOAK test for HornetQ
@@ -233,11 +235,11 @@ public class SoakTestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
         if (!topologyCreated) {
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
+            deployDestinations(CONTAINER1);
             controller.stop(CONTAINER1);
 
             controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3_IP, 9999);
+            deployDestinations(CONTAINER3);
             controller.stop(CONTAINER3);
 
             prepareJmsServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
@@ -268,7 +270,7 @@ public class SoakTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -314,7 +316,7 @@ public class SoakTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -377,8 +379,8 @@ public class SoakTestCase extends HornetQTestCase {
      * @param hostname ip address where to bind to management interface
      * @param port     port of management interface - it should be 9999
      */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
     }
 
     /**
@@ -388,9 +390,9 @@ public class SoakTestCase extends HornetQTestCase {
      * @param port       port of management interface - it should be 9999
      * @param serverName server name of the HornetQ server
      */
-    private void deployDestinations(String hostname, int port, String serverName) {
+    private void deployDestinations(String containerName, String serverName) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

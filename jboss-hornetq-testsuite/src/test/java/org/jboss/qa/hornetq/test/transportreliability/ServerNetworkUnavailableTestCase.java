@@ -13,7 +13,9 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -281,10 +283,10 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
             // deploy destinations 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
+            deployDestinations(CONTAINER1);
             controller.stop(CONTAINER1);
             controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2_IP, 9999);
+            deployDestinations(CONTAINER2);
             controller.stop(CONTAINER2);
             topologyCreated = true;
         }
@@ -296,8 +298,8 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
      * @param hostname ip address where to bind to managemant interface
      * @param port port of management interface - it should be 9999
      */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
     }
 
     /**
@@ -308,9 +310,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
      * @param serverName server name of the hornetq server
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName) {
+    private void deployDestinations(String containerName, String serverName) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
@@ -341,7 +343,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 //        jmsAdminOperations.setLoopBackAddressType("public", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("unsecure", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("management", bindingAddress);

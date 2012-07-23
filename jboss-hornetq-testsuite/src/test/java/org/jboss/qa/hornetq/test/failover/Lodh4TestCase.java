@@ -15,7 +15,9 @@ import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Before;
@@ -310,16 +312,16 @@ public class Lodh4TestCase extends HornetQTestCase {
 
             // deploy destinations 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+            deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
             controller.stop(CONTAINER1);
             controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3_IP, 9999, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+            deployDestinations(CONTAINER3, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
             controller.stop(CONTAINER3);
             controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2_IP, 9999, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+            deployDestinations(CONTAINER2, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
             controller.stop(CONTAINER2);
             controller.start(CONTAINER4);
-            deployDestinations(CONTAINER4_IP, 9999, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+            deployDestinations(CONTAINER4, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
             controller.stop(CONTAINER4);
 
     }
@@ -344,7 +346,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         String udpGroupAddress = "231.43.21.36";
 
         controller.start(containerName);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -382,7 +384,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         controller.stop(containerName);
         controller.start(containerName);
 
-        jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
@@ -409,7 +411,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -456,10 +458,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      * @param numberOfQueues number of queue with the given queue name prefix
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName, String hornetqQueueNamePrefix,
+    private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
             String relativeJndiQueueNamePrefix, int numberOfQueues) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);

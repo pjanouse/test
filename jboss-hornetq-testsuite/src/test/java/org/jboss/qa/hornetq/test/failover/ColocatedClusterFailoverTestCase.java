@@ -9,7 +9,9 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -304,12 +306,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
             // deploy destinations 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
-            deployDestinations(CONTAINER1_IP, 9999, "backup");
+            deployDestinations(CONTAINER1);
+            deployDestinations(CONTAINER1, "backup");
             controller.stop(CONTAINER1);
             controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2_IP, 9999);
-            deployDestinations(CONTAINER2_IP, 9999, "backup");
+            deployDestinations(CONTAINER2);
+            deployDestinations(CONTAINER2, "backup");
             controller.stop(CONTAINER2);
             topologyCreated = true;
         }
@@ -334,7 +336,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -394,7 +396,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 
         controller.start(containerName);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(ipAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
@@ -430,8 +432,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param hostname ip address where to bind to managemant interface
      * @param port port of management interface - it should be 9999
      */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
     }
 
     /**
@@ -442,9 +444,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param serverName server name of the hornetq server
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName) {
+    private void deployDestinations(String containerName, String serverName) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);

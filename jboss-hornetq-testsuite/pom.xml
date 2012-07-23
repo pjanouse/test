@@ -1,3 +1,4 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -16,8 +17,8 @@
         <hornetq.version>2.2.16.Final</hornetq.version>
 
         <arquillian.version>1.0.0.Final</arquillian.version>
-        <arquillian.eap6x.container.version>7.1.1.Final</arquillian.eap6x.container.version>
-        <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
+        <arquillian.eap6x.container.version>7.1.2.Final-SNAPSHOT</arquillian.eap6x.container.version>
+        <arquillian.eap5x.container.version>1.0.0-SNAPSHOT</arquillian.eap5x.container.version>
         <version.byteman>2.0.0</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -97,6 +98,12 @@
             <groupId>org.jboss.naming</groupId>
             <artifactId>jnp-client</artifactId>
             <version>${version.jnp-client}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging-spi</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -148,13 +155,25 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
-
+        
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-controller-client</artifactId>
-            <version>7.1.1.Final</version>
+            <version>7.1.2.Final-SNAPSHOT</version>
             <scope>test</scope>
             <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jdom</groupId>
+            <artifactId>jdom</artifactId>
+            <version>2.0.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -170,9 +189,19 @@
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <artifactId>arquillian-jbossas-managed-6</artifactId>
                     <version>${arquillian.eap5x.container.version}</version>
-                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>5.1.2.GA-HornetQ-all</version>
+                    <type>pom</type>
                 </dependency>
             </dependencies>
         </profile>

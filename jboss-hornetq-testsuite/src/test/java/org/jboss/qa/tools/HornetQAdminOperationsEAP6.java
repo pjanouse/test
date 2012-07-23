@@ -1,72 +1,63 @@
 package org.jboss.qa.tools;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Map;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Basic administration operations for JMS subsystem
  * <p/>
- * TODO parametrize location of journal directory
- *
+ * 
  * @author jpai
  * @author mnovak@redhat.com
  * @author pslavice@redhat.com
  */
-public final class JMSAdminOperations {
+public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     // Logger
-    private static final Logger logger = Logger.getLogger(JMSAdminOperations.class);
+    private static final Logger logger = Logger.getLogger(HornetQAdminOperationsEAP6.class);
     // Definition for the queue
     private static final String DESTINATION_TYPE_QUEUE = "jms-queue";
     // Definition for the topics
     private static final String DESTINATION_TYPE_TOPIC = "jms-topic";
     // Instance of Model controller client
-    private final ModelControllerClient modelControllerClient;
+    private ModelControllerClient modelControllerClient;
+    
+    private String hostname;
+    
+    private int port;
 
     /**
      * Default constructor
      */
-    public JMSAdminOperations() {
-        this("localhost", 9999);
+    public HornetQAdminOperationsEAP6() {
+        
     }
 
     /**
      * Constructor
      *
-     * @param hostName host with the administration
      */
-    public JMSAdminOperations(final String hostName) {
-        this(hostName, 9999);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param hostName host with the administration
-     * @param port port where is administration available
-     */
-    public JMSAdminOperations(final String hostName, final int port) {
+    public void connect() {
         try {
-            InetAddress inetAddress = InetAddress.getByName(hostName);
+            InetAddress inetAddress = InetAddress.getByName(hostname);
             this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
         } catch (UnknownHostException e) {
-            throw new RuntimeException("Cannot create model controller client for host: " + hostName + " and port " + port, e);
+            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port " + port, e);
         }
     }
 
     /**
      * Closes connection
      */
+    @Override
     public void close() {
         try {
             modelControllerClient.close();
@@ -81,6 +72,7 @@ public final class JMSAdminOperations {
      * @param queueName queue name
      * @param jndiName JNDI queue name
      */
+    @Override
     public void createQueue(String queueName, String jndiName) {
         createQueue(queueName, jndiName, true);
     }
@@ -92,6 +84,7 @@ public final class JMSAdminOperations {
      * @param jndiName JNDI queue name
      * @param durable is queue durable
      */
+    @Override
     public void createQueue(String queueName, String jndiName, boolean durable) {
         createQueue("default", queueName, jndiName, durable);
     }
@@ -104,6 +97,7 @@ public final class JMSAdminOperations {
      * @param jndiName JNDI queue name
      * @param durable is queue durable
      */
+    @Override
     public void createQueue(String serverName, String queueName, String jndiName, boolean durable) {
         createJmsDestination(serverName, DESTINATION_TYPE_QUEUE, queueName, jndiName, durable);
     }
@@ -114,6 +108,7 @@ public final class JMSAdminOperations {
      * @param topicName queue name
      * @param jndiName JNDI queue name
      */
+    @Override
     public void createTopic(String topicName, String jndiName) {
         createTopic("default", topicName, jndiName);
     }
@@ -125,6 +120,7 @@ public final class JMSAdminOperations {
      * @param topicName queue name
      * @param jndiName JNDI queue name
      */
+    @Override
     public void createTopic(String serverName, String topicName, String jndiName) {
         createJmsDestination(serverName, DESTINATION_TYPE_TOPIC, topicName, jndiName, true);
     }
@@ -134,6 +130,7 @@ public final class JMSAdminOperations {
      *
      * @param queueName queue name
      */
+    @Override
     public void removeQueue(String queueName) {
         removeJmsDestination(DESTINATION_TYPE_QUEUE, queueName);
     }
@@ -143,6 +140,7 @@ public final class JMSAdminOperations {
      *
      * @param topicName queue name
      */
+    @Override
     public void removeTopic(String topicName) {
         removeJmsDestination(DESTINATION_TYPE_TOPIC, topicName);
     }
@@ -153,6 +151,7 @@ public final class JMSAdminOperations {
      * @param queueName queue name
      * @param jndiName new JNDI name for the queue
      */
+    @Override
     public void addQueueJNDIName(String queueName, String jndiName) {
         addDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
     }
@@ -162,6 +161,7 @@ public final class JMSAdminOperations {
      *
      * @param queueName queue name
      */
+    @Override
     public void cleanupQueue(String queueName) {
         try {
             removeMessagesFromQueue(queueName);
@@ -176,6 +176,7 @@ public final class JMSAdminOperations {
      *
      * @param topicName topic name
      */
+    @Override
     public void cleanupTopic(String topicName) {
         try {
             removeTopic(topicName);
@@ -190,6 +191,7 @@ public final class JMSAdminOperations {
      * @param queueName queue name
      * @return count of messages on queue
      */
+    @Override
     public long getCountOfMessagesOnQueue(String queueName) {
         final ModelNode countMessages = new ModelNode();
         countMessages.get(ClientConstants.OP).set("count-messages");
@@ -211,6 +213,7 @@ public final class JMSAdminOperations {
      * @param queueName queue name
      * @return count of removed messages from queue
      */
+    @Override
     public long removeMessagesFromQueue(String queueName) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-messages");
@@ -231,6 +234,7 @@ public final class JMSAdminOperations {
      *
      * @param password password
      */
+    @Override
     public void setClusterUserPassword(String password) {
         setClusterUserPassword("default", password);
     }
@@ -241,6 +245,7 @@ public final class JMSAdminOperations {
      * @param password password
      * @param serverName name of the hornetq server
      */
+    @Override
     public void setClusterUserPassword(String serverName, String password) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -258,6 +263,7 @@ public final class JMSAdminOperations {
     /**
      * Disables security on HornetQ
      */
+    @Override
     public void disableSecurity() {
         disableSecurity("default");
     }
@@ -267,6 +273,7 @@ public final class JMSAdminOperations {
      *
      * @param serverName
      */
+    @Override
     public void disableSecurity(String serverName) {
         final ModelNode disableSecurity = new ModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
@@ -286,6 +293,7 @@ public final class JMSAdminOperations {
      *
      * @param value
      */
+    @Override
     public void setSecurityEnabled(boolean value) {
         final ModelNode disableSecurity = new ModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
@@ -305,6 +313,7 @@ public final class JMSAdminOperations {
      *
      * @param value set to false to disable security for hornetq
      */
+    @Override
     public void addSecurityEnabled(boolean value) {
         addSecurityEnabled("default", value);
     }
@@ -315,6 +324,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of the hornetq server <<<<<<< HEAD
      * @param value set to false to disable security for hornetq =======
      */
+    @Override
     public void addSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = new ModelNode();
         disableSecurity.get(ClientConstants.OP).set("add");
@@ -338,6 +348,7 @@ public final class JMSAdminOperations {
      * {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
      * @param value true for enable permission
      */
+    @Override
     public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -362,6 +373,7 @@ public final class JMSAdminOperations {
      * "hornetq-ra"
      * @param connectorName name of the connector like "remote-connector"
      */
+    @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -391,6 +403,7 @@ public final class JMSAdminOperations {
      * "hornetq-ra"
      * @param connectorName name of the connector like "remote-connector"
      */
+    @Override
     public void createPooledConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -423,6 +436,7 @@ public final class JMSAdminOperations {
      * "hornetq-ra"
      * @param connectorNames
      */
+    @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -452,6 +466,7 @@ public final class JMSAdminOperations {
      * @param address address of the queue like '#' (for all queues)
      * @param role role of the user like 'guest'
      */
+    @Override
     public void addRoleToSecuritySettings(String address, String role) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -572,6 +587,7 @@ public final class JMSAdminOperations {
      *
      * @param persistenceEnabled - true for persist messages
      */
+    @Override
     public void setPersistenceEnabled(boolean persistenceEnabled) {
         setPersistenceEnabled("default", persistenceEnabled);
     }
@@ -582,6 +598,7 @@ public final class JMSAdminOperations {
      * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
+    @Override
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
@@ -601,6 +618,7 @@ public final class JMSAdminOperations {
      *
      * @param numberOfIds - number of ids to remember
      */
+    @Override
     public void setIdCacheSize(long numberOfIds) {
         setIdCacheSize("default", numberOfIds);
     }
@@ -611,6 +629,7 @@ public final class JMSAdminOperations {
      * @param serverName sets name of the hornetq server to be changed
      * @param numberOfIds - number of ids to remember
      */
+    @Override
     public void setIdCacheSize(String serverName, long numberOfIds) {
         final ModelNode removeJmsQueue = new ModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
@@ -630,6 +649,7 @@ public final class JMSAdminOperations {
      *
      * @param persistenceEnabled - true for persist messages
      */
+    @Override
     public void addPersistenceEnabled(boolean persistenceEnabled) {
         setPersistenceEnabled("default", persistenceEnabled);
     }
@@ -640,6 +660,7 @@ public final class JMSAdminOperations {
      * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
+    @Override
     public void addPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -659,6 +680,7 @@ public final class JMSAdminOperations {
      *
      * @param clustered set true to allow server to create cluster
      */
+    @Override
     public void setClustered(boolean clustered) {
         setClustered("default", clustered);
     }
@@ -669,6 +691,7 @@ public final class JMSAdminOperations {
      * @param serverName sets name of the hornetq server to be changed
      * @param clustered set true to allow server to create cluster
      */
+    @Override
     public void setClustered(String serverName, boolean clustered) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -688,6 +711,7 @@ public final class JMSAdminOperations {
      *
      * @param clustered set true to allow server to create cluster
      */
+    @Override
     public void addClustered(boolean clustered) {
         setClustered("default", clustered);
     }
@@ -698,6 +722,7 @@ public final class JMSAdminOperations {
      * @param serverName sets name of the hornetq server to be changed
      * @param clustered set true to allow server to create cluster
      */
+    @Override
     public void addClustered(String serverName, boolean clustered) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -718,6 +743,7 @@ public final class JMSAdminOperations {
      *
      * @param sharedStore share journal
      */
+    @Override
     public void setSharedStore(boolean sharedStore) {
         setSharedStore("default", sharedStore);
     }
@@ -729,6 +755,7 @@ public final class JMSAdminOperations {
      * @param sharedStore share journal
      * @param serverName hornetq server name
      */
+    @Override
     public void setSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -749,6 +776,7 @@ public final class JMSAdminOperations {
      *
      * @param sharedStore share journal
      */
+    @Override
     public void addSharedStore(boolean sharedStore) {
         addSharedStore("default", sharedStore);
     }
@@ -759,6 +787,7 @@ public final class JMSAdminOperations {
      * @param sharedStore shared journal
      * @param serverName hornetq server name
      */
+    @Override
     public void addSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -778,6 +807,7 @@ public final class JMSAdminOperations {
      *
      * @param allowFailback
      */
+    @Override
     public void setAllowFailback(boolean allowFailback) {
         setAllowFailback("default", allowFailback);
     }
@@ -788,6 +818,7 @@ public final class JMSAdminOperations {
      * @param allowFailback
      * @param serverName name of the hornetq server
      */
+    @Override
     public void setAllowFailback(String serverName, boolean allowFailback) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -808,6 +839,7 @@ public final class JMSAdminOperations {
      *
      * @param journalType
      */
+    @Override
     public void setJournalType(String journalType) {
         setJournalType("default", journalType);
     }
@@ -818,6 +850,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
+    @Override
     public void setJournalType(String serverName, String journalType) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -838,6 +871,7 @@ public final class JMSAdminOperations {
      *
      * @param journalType
      */
+    @Override
     public void addJournalType(String journalType) {
         addJournalType("default", journalType);
     }
@@ -848,6 +882,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
+    @Override
     public void addJournalType(String serverName, String journalType) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -867,6 +902,7 @@ public final class JMSAdminOperations {
      *
      * @param path set absolute path
      */
+    @Override
     public void setJournalDirectory(String path) {
         setJournalDirectory("default", path);
     }
@@ -877,6 +913,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of hornetq server
      * @param path set absolute path
      */
+    @Override
     public void setJournalDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -896,6 +933,7 @@ public final class JMSAdminOperations {
      *
      * @param path set absolute path
      */
+    @Override
     public void setPagingDirectory(String path) {
         setPagingDirectory("default", path);
     }
@@ -906,6 +944,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of the server
      * @param path set absolute path
      */
+    @Override
     public void setPagingDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -925,6 +964,7 @@ public final class JMSAdminOperations {
      *
      * @param path set absolute path
      */
+    @Override
     public void setLargeMessagesDirectory(String path) {
         setLargeMessagesDirectory("default", path);
     }
@@ -935,6 +975,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of hornetq server
      * @param path set absolute path
      */
+    @Override
     public void setLargeMessagesDirectory(String serverName, String path) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -955,6 +996,7 @@ public final class JMSAdminOperations {
      *
      * @param path set absolute path
      */
+    @Override
     public void setBindingsDirectory(String path) {
         setBindingsDirectory("default", path);
     }
@@ -965,6 +1007,7 @@ public final class JMSAdminOperations {
      * @param serverName set name of hornetq server
      * @param path set absolute path
      */
+    @Override
     public void setBindingsDirectory(String serverName, String path) {
 
 
@@ -993,6 +1036,7 @@ public final class JMSAdminOperations {
      * @param driverName
      * @param transactionIsolation
      */
+    @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
             boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
             boolean isSameRmOverride, boolean noTxSeparatePool) {
@@ -1025,6 +1069,7 @@ public final class JMSAdminOperations {
      * @param propertyName
      * @param value
      */
+    @Override
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
 
         final ModelNode model = new ModelNode();
@@ -1045,6 +1090,7 @@ public final class JMSAdminOperations {
     /**
      * Add driver.
      */
+    @Override
     public void createJDBCDriver(String driverName, String moduleName, String driverClass, String xaDatasourceClass) {
 
         final ModelNode model = new ModelNode();
@@ -1083,6 +1129,7 @@ public final class JMSAdminOperations {
      * @param backupConnectorName optional backup connector that will be
      * broadcasted.
      */
+    @Override
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
             String groupAddress, int groupPort, long broadCastPeriod,
             String connectorName, String backupConnectorName) {
@@ -1109,6 +1156,7 @@ public final class JMSAdminOperations {
      * @param backupConnectorName optional backup connector that will be
      * broadcasted.
      */
+    @Override
     public void setBroadCastGroup(String serverName, String name, String localBindAddress, int localBindPort,
             String groupAddress, int groupPort, long broadCastPeriod,
             String connectorName, String backupConnectorName) {
@@ -1166,6 +1214,7 @@ public final class JMSAdminOperations {
      * @param backupConnectorName optional backup connector that will be
      * broadcasted.
      */
+    @Override
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
             String connectorName, String backupConnectorName) {
         setBroadCastGroup("default", name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
@@ -1186,6 +1235,7 @@ public final class JMSAdminOperations {
      * @param backupConnectorName optional backup connector that will be
      * broadcasted.
      */
+    @Override
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
             String connectorName, String backupConnectorName) {
 
@@ -1230,6 +1280,7 @@ public final class JMSAdminOperations {
      * the last broadcast from a particular server before removing that servers
      * connector pair entry from its list.
      */
+    @Override
     public void setDiscoveryGroup(String name, String localBindAddress,
             String groupAddress, int groupPort, long refreshTimeout) {
         setDiscoveryGroup("default", name, localBindAddress, groupAddress, groupPort, refreshTimeout);
@@ -1250,6 +1301,7 @@ public final class JMSAdminOperations {
      * the last broadcast from a particular server before removing that servers
      * connector pair entry from its list.
      */
+    @Override
     public void setDiscoveryGroup(String serverName, String name, String localBindAddress,
             String groupAddress, int groupPort, long refreshTimeout) {
         ModelNode model = new ModelNode();
@@ -1292,6 +1344,7 @@ public final class JMSAdminOperations {
      * the last broadcast from a particular server before removing that servers
      * connector pair entry from its list.
      */
+    @Override
     public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
         setDiscoveryGroup("default", name, messagingGroupSocketBindingName, refreshTimeout);
     }
@@ -1308,6 +1361,7 @@ public final class JMSAdminOperations {
      * the last broadcast from a particular server before removing that servers
      * connector pair entry from its list.
      */
+    @Override
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1345,6 +1399,7 @@ public final class JMSAdminOperations {
      * inserted in forwarded messages?
      * @param connectorName Name of connector to use for live connection.
      */
+    @Override
     public void setClusterConnections(String name, String address,
             String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
             long retryInterval, boolean useDuplicateDetection, String connectorName) {
@@ -1367,6 +1422,7 @@ public final class JMSAdminOperations {
      * inserted in forwarded messages?
      * @param connectorName Name of connector to use for live connection.
      */
+    @Override
     public void setClusterConnections(String serverName, String name, String address,
             String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
             long retryInterval, boolean useDuplicateDetection, String connectorName) {
@@ -1400,6 +1456,7 @@ public final class JMSAdminOperations {
      * @param attempts number of retries (-1 for indenfitely)
      * 
      */
+    @Override
     public void setReconnectAttemptsForClusterConnection(String clusterGroupName, int attempts) {
         
         ModelNode model = new ModelNode();
@@ -1424,6 +1481,7 @@ public final class JMSAdminOperations {
      * @param serverName name of the server
      * @param valueInMillis ttl
      */
+    @Override
     public void setConnectionTtlOverride(String serverName, long valueInMillis) {
         
         ModelNode model = new ModelNode();
@@ -1454,6 +1512,7 @@ public final class JMSAdminOperations {
      * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
      * @param connectorName          Name of connector to use for live connection.
      */
+    @Override
     public void setStaticClusterConnections(String serverName, String name, String address,
                                       boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, 
@@ -1490,6 +1549,7 @@ public final class JMSAdminOperations {
      *
      * @param sizeInBytes size of the journal file in bytes
      */
+    @Override
     public void setJournalFileSize(long sizeInBytes) {
         setJournalFileSize("default", sizeInBytes);
     }
@@ -1500,6 +1560,7 @@ public final class JMSAdminOperations {
      * @param serverName name of the hornetq server
      * @param sizeInBytes size of the journal file in bytes
      */
+    @Override
     public void setJournalFileSize(String serverName, long sizeInBytes) {
 
         final ModelNode model = new ModelNode();
@@ -1521,6 +1582,7 @@ public final class JMSAdminOperations {
      *
      * @param delay in milliseconds
      */
+    @Override
     public void setRedistributionDelay(long delay) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -1542,6 +1604,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param newConnectionFactoryJndiName
      */
+    @Override
     public void addJndiBindingForConnectionFactory(String connectionFactoryName, String newConnectionFactoryJndiName) {
 
         ModelNode model = new ModelNode();
@@ -1564,6 +1627,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value true if connection factory supports ha.
      */
+    @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1587,6 +1651,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value true if connection factory supports ha.
      */
+    @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1610,6 +1675,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
+    @Override
     public void setHaForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1633,6 +1699,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
+    @Override
     public void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1656,6 +1723,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
+    @Override
     public void setFailoverOnShutdown(boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1678,6 +1746,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value default false, should be true for fail-over scenarios
      */
+    @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1698,6 +1767,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value default false, should be true for fail-over scenarios
      */
+    @Override
     public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
         ModelNode model = new ModelNode();
@@ -1718,6 +1788,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value
      */
+    @Override
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
 
         ModelNode model = new ModelNode();
@@ -1737,6 +1808,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value
      */
+    @Override
     public void setRetryIntervalForPooledConnectionFactory(String connectionFactoryName, long value) {
 
         ModelNode model = new ModelNode();
@@ -1756,6 +1828,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value 1.0 by default
      */
+    @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
 
         ModelNode model = new ModelNode();
@@ -1776,6 +1849,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName
      * @param value 1.0 by default
      */
+    @Override
     public void setRetryIntervalMultiplierForPooledConnectionFactory(String connectionFactoryName, double value) {
 
         ModelNode model = new ModelNode();
@@ -1797,6 +1871,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
      * @param value value
      */
+    @Override
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
 
         ModelNode model = new ModelNode();
@@ -1818,6 +1893,7 @@ public final class JMSAdminOperations {
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
      * @param value value
      */
+    @Override
     public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
 
         ModelNode model = new ModelNode();
@@ -1837,6 +1913,7 @@ public final class JMSAdminOperations {
      *
      * @param jmxDomainName
      */
+    @Override
     public void setJmxDomainName(String jmxDomainName) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -1856,6 +1933,7 @@ public final class JMSAdminOperations {
      *
      * @param isBackup
      */
+    @Override
     public void setBackup(boolean isBackup) {
         setBackup("default", isBackup);
     }
@@ -1866,6 +1944,7 @@ public final class JMSAdminOperations {
      * @param isBackup
      * @param serverName name of the hornetq server
      */
+    @Override
     public void setBackup(String serverName, boolean isBackup) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -1886,6 +1965,7 @@ public final class JMSAdminOperations {
      *
      * @param isBackup
      */
+    @Override
     public void addBackup(boolean isBackup) {
         setBackup("default", isBackup);
     }
@@ -1896,6 +1976,7 @@ public final class JMSAdminOperations {
      * @param isBackup
      * @param serverName name of the hornetq server
      */
+    @Override
     public void addBackup(String serverName, boolean isBackup) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -1915,6 +1996,7 @@ public final class JMSAdminOperations {
      *
      * @param address address specification
      */
+    @Override
     public void removeAddressSettings(String address) {
         try {
             ModelNode setAddressAttributes = new ModelNode();
@@ -1944,6 +2026,7 @@ public final class JMSAdminOperations {
      * consumer is closed on a queue before redistributing any messages
      * @param pageSizeBytes The paging size
      */
+    @Override
     public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
             long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = new ModelNode();
@@ -1974,6 +2057,7 @@ public final class JMSAdminOperations {
      * "management"
      * @param ipAddress - ipAddress of the interface
      */
+    @Override
     public void setLoopBackAddressType(String interfaceName, String ipAddress) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -2010,6 +2094,7 @@ public final class JMSAdminOperations {
      * "management"
      * @param ipAddress - ipAddress of the interface
      */
+    @Override
     public void setInetAddress(String interfaceName, String ipAddress) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -2029,6 +2114,7 @@ public final class JMSAdminOperations {
      *
      * @param nameOfTheBroadcastGroup name of the broadcast group
      */
+    @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2048,6 +2134,7 @@ public final class JMSAdminOperations {
      *
      * @param dggroup name of the discovery group
      */
+    @Override
     public void removeDiscoveryGroup(String dggroup) {
 
         ModelNode model = new ModelNode();
@@ -2069,6 +2156,7 @@ public final class JMSAdminOperations {
      *
      * @param clusterGroupName name of the discovery group
      */
+    @Override
     public void removeClusteringGroup(String clusterGroupName) {
 
         ModelNode model = new ModelNode();
@@ -2110,6 +2198,7 @@ public final class JMSAdminOperations {
      * @param level like "ALL",
      * "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
      */
+    @Override
     public void setLoggingLevelForConsole(String level) {
 
         ModelNode model = new ModelNode();
@@ -2131,6 +2220,7 @@ public final class JMSAdminOperations {
      *
      * @param name Name of the bridge
      */
+    @Override
     public void removeBridge(String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2153,6 +2243,7 @@ public final class JMSAdminOperations {
      * @param reconnectAttempts reconnect attempts for bridge
      * @param staticConnector static connector
      */
+    @Override
     public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
             String staticConnector) {
         ModelNode model = new ModelNode();
@@ -2179,6 +2270,7 @@ public final class JMSAdminOperations {
      *
      * @param name name of the remote connector
      */
+    @Override
     public void removeRemoteConnector(String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2199,6 +2291,7 @@ public final class JMSAdminOperations {
      * @param socketBinding
      * @param params source queue
      */
+    @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
         createRemoteConnector("default", name, socketBinding, params);
     }
@@ -2211,6 +2304,7 @@ public final class JMSAdminOperations {
      * @param socketBinding
      * @param params params
      */
+    @Override
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2236,6 +2330,7 @@ public final class JMSAdminOperations {
      * @param socketBindingName
      * @param port
      */
+    @Override
     public void createSocketBinding(String socketBindingName, int port) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2258,6 +2353,7 @@ public final class JMSAdminOperations {
      * @param multicastAddress
      * @param multicastPort
      */
+    @Override
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
             int multicastPort) {
         ModelNode model = new ModelNode();
@@ -2280,6 +2376,7 @@ public final class JMSAdminOperations {
      *
      * @param socketBindingName
      */
+    @Override
     public void removeSocketBinding(String socketBindingName) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2302,6 +2399,7 @@ public final class JMSAdminOperations {
      * @param multicastAddress
      * @param multicastPort
      */
+    @Override
     public void addSocketBinding(String socketBindingName, String multicastAddress, int multicastPort) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2325,6 +2423,7 @@ public final class JMSAdminOperations {
      * @param socketBindingName
      * @param multicastAddress
      */
+    @Override
     public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -2347,6 +2446,7 @@ public final class JMSAdminOperations {
      * @param serverId set server id
      * @param params params for connector
      */
+    @Override
     public void createInVmConnector(String name, int serverId, Map<String, String> params) {
         createInVmConnector("default", name, serverId, params);
     }
@@ -2359,6 +2459,7 @@ public final class JMSAdminOperations {
      * @param serverId set server id
      * @param params params for connector
      */
+    @Override
     public void createInVmConnector(String serverName, String name, int serverId, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2385,6 +2486,7 @@ public final class JMSAdminOperations {
      * @param socketBinding
      * @param params source queue
      */
+    @Override
     public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
         createRemoteAcceptor("default", name, socketBinding, params);
     }
@@ -2397,6 +2499,7 @@ public final class JMSAdminOperations {
      * @param socketBinding
      * @param params params
      */
+    @Override
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2421,6 +2524,7 @@ public final class JMSAdminOperations {
      *
      * @param name name of the remote acceptor
      */
+    @Override
     public void removeRemoteAcceptor(String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2441,6 +2545,7 @@ public final class JMSAdminOperations {
      * @param serverId set server id
      * @param params params for connector
      */
+    @Override
     public void createInVmAcceptor(String name, int serverId, Map<String, String> params) {
         createInVmAcceptor("default", name, serverId, params);
     }
@@ -2453,6 +2558,7 @@ public final class JMSAdminOperations {
      * @param serverId set server id
      * @param params params for connector
      */
+    @Override
     public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2477,6 +2583,7 @@ public final class JMSAdminOperations {
      *
      * @param name remote socket binding name
      */
+    @Override
     public void removeRemoteSocketBinding(String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -2497,6 +2604,7 @@ public final class JMSAdminOperations {
      * @param host
      * @param port
      */
+    @Override
     public void addRemoteSocketBinding(String name, String host, int port) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -2517,6 +2625,7 @@ public final class JMSAdminOperations {
      * @param category like "org.hornetq"
      * @param level like DEBUG, WARN, FINE,...
      */
+    @Override
     public void addLoggerCategory(String category, String level) {
 
         ModelNode model = new ModelNode();
@@ -2536,6 +2645,7 @@ public final class JMSAdminOperations {
     /**
      * Reloads server instance
      */
+    @Override
     public void reloadServer() {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
@@ -2574,6 +2684,7 @@ public final class JMSAdminOperations {
      *
      * @param serverName name of the new hornetq server
      */
+    @Override
     public void addMessagingSubsystem(String serverName) {
 
         ModelNode model = new ModelNode();
@@ -2591,6 +2702,7 @@ public final class JMSAdminOperations {
     /**
      *
      */
+    @Override
     public void reload() {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
@@ -2600,6 +2712,34 @@ public final class JMSAdminOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * @return the hostname
+     */
+    public String getHostname() {
+        return hostname;
+    }
+
+    /**
+     * @param hostname the hostname to set
+     */
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    /**
+     * @return the port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * @param port the port to set
+     */
+    public void setPort(int port) {
+        this.port = port;
     }
 
     

@@ -1,85 +1,119 @@
-package org.jboss.qa.hornetq.test.administration;
+package org.jboss.qa.hornetq.test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.JMSProvider;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
  *
- * Test administration console - cli
- * 
+ * Test security permissions to queues and topic
+ *
+ * Uses its own application-roles.properties, application-roles.properties
+ *
+ * It creates its own address-settings in standalone-full-ha.xml, enables
+ * security.
+ *
+ * There are 3 users and 3 roles: admin -> role (username/password) admin -
+ * admin (admin/adminadmin) admin - admin (admin/useruser) user - user
+ * (unauthenticated)
+ *
+ * There is 1 queue/topic name of queue/topic -> roles -> permission for the
+ * role testQueue0 -> user -> send,consume -> admin -> all permissions -> admin
+ * -> send, consume, create/delete durable queue
+ *
+ *
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
-public class AdministrationTestCase extends HornetQTestCase {
+public class SimpleTest extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(AdministrationTestCase.class);
-    
+    private static final Logger logger = Logger.getLogger(SimpleTest.class);
     String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
     String jndiContextPrefix = "java:jboss/exported/";
+    static boolean topologyCreated = false;
+
+    /**
+     * This test will start one server. And try to send/receive messages or
+     * create/delete queue from it.
+     */
+    @Test
+    @RunAsClient
+    public void test() throws Exception {
+
+//        prepareServer();
+
+        controller.start(CONTAINER1);
+        
+        JMSOperations jmsAdminOperations = new JMSProvider().getInstance(CONTAINER1);
+        jmsAdminOperations.addAddressSettings(CONTAINER1, queueNamePrefix, PORT_JNDI, PORT_JNDI, PORT_JNDI, PORT_JNDI);
+        jmsAdminOperations.createQueue("testQueue", "queue/testQueue");
+        jmsAdminOperations.createQueue("testTopic", "queue/testTopic");
+        jmsAdminOperations.setPersistenceEnabled(true);
+//        jmsAdminOperations.removeQueue("testQueue");
+//        jmsAdminOperations.removeTopic("testTopic");
+        
+        logger.info("mnovak: server was started and queue deployed");
+        Thread.sleep(100000);
+
+        controller.stop(CONTAINER1);
+    }
 
     @After
     public void stopAllServers() {
 
         controller.stop(CONTAINER1);
 
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
+    }
 
-    }
-    
-    @Test
-    @RunAsClient
-    public void testConfiguration() throws IOException {
-        configure(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-    }
+//    public void prepareServer() throws Exception {
+//
+//        if (!topologyCreated) {
+//
+//            prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+//
+//            controller.start(CONTAINER1);
+//            
+//            deployDestinations(CONTAINER1_IP, 9999);
+//            
+//            controller.stop(CONTAINER1);
+//            
+//            topologyCreated = true;
+//        }
+//    }
 
     /**
-     * Test all possible things. Failed operation simply throw RuntimeException
+     * Prepares live server for dedicated topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    public void configure(String containerName, String bindingAddress, String journalDirectory) throws IOException {
-        
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
-        String serverName = "default";
-        
+    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) throws IOException {
+
         controller.start(containerName);
         
-
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
-        
-        
-        jmsAdminOperations.setClustered(true);
-        
-        jmsAdminOperations.setSharedStore(true);
-        
+
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -88,32 +122,11 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
 
-        jmsAdminOperations.setSecurityEnabled(false);
+        jmsAdminOperations.setSecurityEnabled(true);
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        jmsAdminOperations.createInVmAcceptor("my-acceptor", 32, null);
-        jmsAdminOperations.createRemoteAcceptor("remote-acceptor", "messaging", null);
-        
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MCAST_ADDRESS, udpGroupPort, 10000);
-        
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER1_IP, 5445);
-        jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-        
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
@@ -154,17 +167,39 @@ public class AdministrationTestCase extends HornetQTestCase {
         File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         copyFile(applicationRolesModified, applicationRolesOriginal);
-        
-        for (int queueNumber = 0; queueNumber < 3; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < 3; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
-        }
 
         controller.stop(containerName);
 
+    }
+
+    /**
+     * Deploys destinations to server which is currently running.
+     *
+     * @param hostname ip address where to bind to managemant interface
+     * @param port port of management interface - it should be 9999
+     */
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
+    }
+
+    /**
+     * Deploys destinations to server which is currently running.
+     *
+     * @param hostname ip address where to bind to managemant interface
+     * @param port port of management interface - it should be 9999
+     * @param serverName server name of the hornetq server
+     *
+     */
+    private void deployDestinations(String containerName, String serverName) {
+
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+
+        for (
+                int queueNumber = 0; queueNumber < 3; queueNumber++) {
+            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+            
+//            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
+        }
     }
 
     /**

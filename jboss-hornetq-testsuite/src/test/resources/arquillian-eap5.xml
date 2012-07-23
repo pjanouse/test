@@ -2,15 +2,61 @@
 <arquillian xmlns="http://jboss.com/arquillian">
     <group qualifier="cluster">
         <defaultProtocol type="Servlet 3.0" />
-        <container qualifier="node-1" default="false" mode="manual">
+        <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
+                <property name="bindAddress">${MYTESTIP_1}</property>
+                <property name="rmiPort">1099</property>
+                <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
+                    -Dorg.jboss.resolver.warning=true
+                    -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -Dsun.lang.ClassLoader.allowArraySyntax=true                    
+                </property>
+                <property name="profileName">default</property>
+                <property name="startupTimeoutInSeconds">120</property>
+            </configuration>
+        </container>
+        <container qualifier="node-2" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_2}</property>
+                <property name="bindAddress">${MYTESTIP_2}</property>
+                <property name="rmiPort">1099</property>
                 <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
                     -Dsun.lang.ClassLoader.allowArraySyntax=true
-                    -b ${MYTESTIP_1}
+                    -b ${MYTESTIP_2}
                 </property>
+                <property name="profileName">default</property>
+                <property name="startupTimeoutInSeconds">60</property>
+            </configuration>
+        </container>
+        <container qualifier="node-3" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_3}</property>
+                <property name="bindAddress">${MYTESTIP_3}</property>
+                <property name="rmiPort">1099</property>
+                <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
+                    -Dorg.jboss.resolver.warning=true
+                    -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -Dsun.lang.ClassLoader.allowArraySyntax=true
+                    -b ${MYTESTIP_3}
+                </property>
+                <property name="profileName">default</property>
+                <property name="startupTimeoutInSeconds">60</property>
+            </configuration>
+        </container><container qualifier="node-4" default="false" mode="manual">
+            <configuration>
+                <property name="jbossHome">${JBOSS_HOME_4}</property>
+                <property name="bindAddress">${MYTESTIP_4}</property>
+                <property name="rmiPort">1099</property>
+                <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
+                    -Dorg.jboss.resolver.warning=true
+                    -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
+                    -Dsun.lang.ClassLoader.allowArraySyntax=true
+                    -b ${MYTESTIP_4}
+                </property>
+                <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">60</property>
             </configuration>
         </container>

@@ -11,10 +11,7 @@ import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.ControllableProxy;
-import org.jboss.qa.tools.JMSAdminOperations;
-import org.jboss.qa.tools.MulticastProxy;
-import org.jboss.qa.tools.SimpleProxyServer;
+import org.jboss.qa.tools.*;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Before;
@@ -250,10 +247,10 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
            
             // deploy destinations 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
+            deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
             controller.stop(CONTAINER1);
             controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2_IP, 9999, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
+            deployDestinations(CONTAINER2, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
             controller.stop(CONTAINER2);
            
     }
@@ -277,7 +274,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         String connectorName = "netty";
         
         controller.start(containerName);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -336,10 +333,10 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * @param numberOfQueues number of queue with the given queue name prefix
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName, String hornetqQueueNamePrefix,
+    private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
             String relativeJndiQueueNamePrefix, int numberOfQueues) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);

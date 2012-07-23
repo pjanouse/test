@@ -1,5 +1,11 @@
 package org.jboss.qa.hornetq.test;
 
+import java.io.File;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -7,16 +13,12 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
+import org.jboss.qa.tools.ConfigurationLoader;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import java.io.File;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Parent class for all HornetQ test cases.
@@ -32,45 +34,38 @@ import java.util.concurrent.TimeUnit;
  * @author pslavice@redhat.com
  */
 public class HornetQTestCase implements ContextProvider {
-
+    
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
-
     // Containers IDs
-    protected static final String CONTAINER1 = "node-1";
-    protected static final String CONTAINER2 = "node-2";
-    protected static final String CONTAINER3 = "node-3";
-    protected static final String CONTAINER4 = "node-4";
-
+    protected static final String CONTAINER1 = ConfigurationLoader.CONTAINER1;
+    protected static final String CONTAINER2 = ConfigurationLoader.CONTAINER2;
+    protected static final String CONTAINER3 = ConfigurationLoader.CONTAINER3;
+    protected static final String CONTAINER4 = ConfigurationLoader.CONTAINER4;
+    
     // IP address for containers
-    protected static String CONTAINER1_IP;
-    protected static String CONTAINER2_IP;
-    protected static String CONTAINER3_IP;
-    protected static String CONTAINER4_IP;
-
+    protected static String CONTAINER1_IP = ConfigurationLoader.CONTAINER1_IP;
+    protected static String CONTAINER2_IP = ConfigurationLoader.CONTAINER2_IP;
+    protected static String CONTAINER3_IP = ConfigurationLoader.CONTAINER3_IP;
+    protected static String CONTAINER4_IP = ConfigurationLoader.CONTAINER4_IP;
+    
     // Name of the connection factory in JNDI
     protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
-
     // Port for remote JNDI
     protected static final int PORT_JNDI = 4447;
-
     // Ports for Byteman
     protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
     protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
-
     // Multi-cast address
     protected static final String MCAST_ADDRESS;
     // Journal directory for first live/backup pair or first node in cluster
     protected static final String JOURNAL_DIRECTORY_A;
     // Journal directory for second live/backup pair or second node in cluster
     protected static final String JOURNAL_DIRECTORY_B;
-
     @ArquillianResource
     protected ContainerController controller;
-
     @ArquillianResource
     protected Deployer deployer;
-
     // Defined deployments - killer servlet which kills server
     // Artifact is not deployed on the server automatically, it is necessary to deploy it manually
     protected static final String SERVLET_KILLER_1 = "killerServlet1";
@@ -80,36 +75,18 @@ public class HornetQTestCase implements ContextProvider {
 
     static {
         // Path to the journal
-        String tmpJournalA = System.getProperty("JOURNAL_DIRECTORY_A");
-        JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
-        String tmpJournalB = System.getProperty("JOURNAL_DIRECTORY_B");
-        JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
+        JOURNAL_DIRECTORY_A = ConfigurationLoader.JOURNAL_DIRECTORY_A;
 
-        // IP addresses for the servers
-        if (System.getProperty("MYTESTIP_1") != null) {
-            CONTAINER1_IP = System.getProperty("MYTESTIP_1");
-            log.info(String.format("Setting CONTAINER1_IP='%s'", CONTAINER1_IP));
-        }
-        if (System.getProperty("MYTESTIP_2") != null) {
-            CONTAINER2_IP = System.getProperty("MYTESTIP_2");
-            log.info(String.format("Setting CONTAINER2_IP='%s'", CONTAINER2_IP));
-        }
-        if (System.getProperty("MYTESTIP_3") != null) {
-            CONTAINER3_IP = System.getProperty("MYTESTIP_3");
-            log.info(String.format("Setting CONTAINER3_IP='%s'", CONTAINER3_IP));
-        }
-        if (System.getProperty("MYTESTIP_4") != null) {
-            CONTAINER4_IP = System.getProperty("MYTESTIP_4");
-            log.info(String.format("Setting CONTAINER4_IP='%s'", CONTAINER4_IP));
-        }
-        MCAST_ADDRESS = System.getProperty("MCAST_ADDR") != null ? System.getProperty("MCAST_ADDR") : "233.3.3.3";
+        JOURNAL_DIRECTORY_B = ConfigurationLoader.JOURNAL_DIRECTORY_B;
+
+        MCAST_ADDRESS = ConfigurationLoader.MCAST_ADDRESS;
     }
 
     /**
      * Returns context
      *
      * @param hostName target hostname with JNDI service
-     * @param port     port on the target service
+     * @param port port on the target service
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
      */
@@ -224,9 +201,9 @@ public class HornetQTestCase implements ContextProvider {
      * Kills server using killer servlet. This just kill server and does not do
      * anything else. It doesn't call controller.kill
      *
-     * @param container         name of the container which will be killed
+     * @param container name of the container which will be killed
      * @param killerServletName name of the killer servlet - deployment name
-     * @param serverIP          ip address of the killed server
+     * @param serverIP ip address of the killed server
      * @throws Exception if something goes wrong
      */
     public void killServer(String container, String killerServletName, String serverIP) throws Exception {

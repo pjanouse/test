@@ -8,7 +8,7 @@ import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
  * 
  * @author mnovak
  */
-public class RestoreConfigRemoteExtension implements RemoteLoadableExtension{
+public class RestoreConfigRemoteExtension implements RemoteLoadableExtension {
 
     @Override
     public void register(ExtensionBuilder builder) {

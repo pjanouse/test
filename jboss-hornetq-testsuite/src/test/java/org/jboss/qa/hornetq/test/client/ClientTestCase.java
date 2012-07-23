@@ -18,7 +18,9 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Test;
@@ -66,7 +68,8 @@ public class ClientTestCase extends HornetQTestCase {
         
         controller.start(CONTAINER_NAME);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(BINDING_ADDRESS, MANAGEMENT_PORT);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER_NAME);
+
         jmsAdminOperations.setInetAddress("public", BINDING_ADDRESS);
         jmsAdminOperations.setInetAddress("unsecure", BINDING_ADDRESS);
         jmsAdminOperations.setInetAddress("management", BINDING_ADDRESS);
@@ -106,7 +109,7 @@ public class ClientTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      */
     private void deployDestinations() {
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(BINDING_ADDRESS, MANAGEMENT_PORT);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER_NAME);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + destinationNumber, jndiContextPrefix + queueJndiNamePrefix + destinationNumber, true);
             jmsAdminOperations.createTopic(topicNamePrefix + destinationNumber, jndiContextPrefix + topicJndiNamePrefix + destinationNumber);
@@ -118,7 +121,7 @@ public class ClientTestCase extends HornetQTestCase {
      * Destroy all destinations - queues and topics.
      */
     private void destroyDestinations() {
-    	JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(BINDING_ADDRESS, MANAGEMENT_PORT);
+    	JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER_NAME);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
             jmsAdminOperations.removeQueue(queueNamePrefix + destinationNumber);
             jmsAdminOperations.removeTopic(topicNamePrefix + destinationNumber);

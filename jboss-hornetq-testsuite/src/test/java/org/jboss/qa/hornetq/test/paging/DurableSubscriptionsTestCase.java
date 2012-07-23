@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.JMSTools;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +22,8 @@ import javax.jms.Session;
 import javax.jms.Topic;
 import javax.naming.Context;
 import java.util.concurrent.Semaphore;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 
 import static org.junit.Assert.fail;
 
@@ -113,7 +115,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         final String ADDRESS = "jms.topic." + TOPIC;
 
         controller.start(CONTAINER1);
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);

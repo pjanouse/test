@@ -5,7 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -18,6 +18,8 @@ import org.junit.runner.RunWith;
 import javax.jms.Session;
 
 import static junit.framework.Assert.*;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 
 /**
  * Test case covers basic fault injection tests for standalone node.
@@ -60,7 +62,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(MY_QUEUE, MY_QUEUE_JNDI_NEW);
 
@@ -193,7 +195,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -220,7 +222,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -247,7 +249,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNotNull(client.getExceptionDuringReceive());
         assertEquals(0, client.getReceivedMessages());
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -320,7 +322,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -347,7 +349,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -384,7 +386,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -411,7 +413,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertEquals(0, client.getReceivedMessages());
 
         final String MY_QUEUE = "dummyQueue";
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
         controller.stop(CONTAINER1);
@@ -451,7 +453,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(CONTAINER1_IP);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         jmsAdminOperations.createQueue(MY_QUEUE, MY_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
 

@@ -14,7 +14,9 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSAdminOperations;
+import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -223,11 +225,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
 
             controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1_IP, 9999);
+            deployDestinations(CONTAINER1);
             controller.stop(CONTAINER1);
 
             controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3_IP, 9999);
+            deployDestinations(CONTAINER3);
             controller.stop(CONTAINER3);
 
             copyApplicationPropertiesFiles();
@@ -254,7 +256,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -294,7 +296,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(bindingAddress, 9999);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -352,8 +354,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * @param hostname ip address where to bind to managemant interface
      * @param port port of management interface - it should be 9999
      */
-    private void deployDestinations(String hostname, int port) {
-        deployDestinations(hostname, port, "default");
+    private void deployDestinations(String containerName) {
+        deployDestinations(containerName, "default");
     }
 
     /**
@@ -364,9 +366,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * @param serverName server name of the hornetq server
      *
      */
-    private void deployDestinations(String hostname, int port, String serverName) {
+    private void deployDestinations(String containerName, String serverName) {
 
-        JMSAdminOperations jmsAdminOperations = new JMSAdminOperations(hostname, port);
+        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

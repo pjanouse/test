@@ -55,6 +55,12 @@ public class RestoreConfig {
                     .append(fileSeparator).append("standalone").append(fileSeparator).append("configuration").append(fileSeparator);
 
                 configurationFile = new File(pathToConfigurationDirectory.toString() + serverConfig);
+                
+                if (!configurationFile.exists()) {
+                    logger.warn("Configuration file: " + configurationFile.getAbsolutePath() + " does not exist. "
+                            + "Probably wrong container (EAP5) is used or distribution is corrupted");
+                    return;
+                }
                 configurationFileBackup = new File(pathToConfigurationDirectory.toString() + serverConfig + ".backup");
                 
                 logger.info("Copying configuration file " + configurationFile.getAbsolutePath() 
