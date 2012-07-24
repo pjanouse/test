@@ -17,6 +17,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Properties;
+
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
  * repeatedly.
@@ -142,6 +144,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      *
      */
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts) throws Exception {
+
         prepareServers(reconnectAttempts);
         
         controller.start(CONTAINER1); // A1

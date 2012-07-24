@@ -60,7 +60,7 @@ public class SimpleTest extends HornetQTestCase {
     public void test() throws Exception {
 
 //        prepareServer();
-
+        logger.error("mnovak: " + System.getProperty("JMS_PROVIDER_CLASS"));
         controller.start(CONTAINER1);
         
         JMSOperations jmsAdminOperations = new JMSProvider().getInstance(CONTAINER1);

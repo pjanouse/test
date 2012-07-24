@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
  */
 public class JMSProvider {
 
-    private static final String PROPERTY_NAME = "jmsoperations.implementation.class";
+    private static final String PROPERTY_NAME = "JMS_PROVIDER_CLASS";
     private static final String FILE_NAME = "provider.properties";
     private static final Logger logger = Logger.getLogger(JMSProvider.class);
 

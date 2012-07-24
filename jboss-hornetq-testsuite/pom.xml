@@ -59,6 +59,7 @@
                         <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
                         <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
                         <MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
+                        <JMS_PROVIDER_CLASS>${jms.provider.class}</JMS_PROVIDER_CLASS>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -186,6 +187,9 @@
                     <value>5x</value>
                 </property>
             </activation>
+            <properties>
+                <jms.provider.class>org.jboss.qa.tools.HornetQAdminOperationsEAP5</jms.provider.class>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
@@ -214,6 +218,9 @@
                     <value>6x</value>
                 </property>
             </activation>
+            <properties>
+                <jms.provider.class>org.jboss.qa.tools.HornetQAdminOperationsEAP6</jms.provider.class>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
