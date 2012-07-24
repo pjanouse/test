@@ -17,7 +17,8 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
-import org.jboss.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Method;
 

@@ -155,11 +155,11 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
-        
+
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-controller-client</artifactId>
-            <version>7.1.2.Final-SNAPSHOT</version>
+            <version>7.1.2.Final</version>
             <scope>test</scope>
             <type>jar</type>
             <exclusions>
