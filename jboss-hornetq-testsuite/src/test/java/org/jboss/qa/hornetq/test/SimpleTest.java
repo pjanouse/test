@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.JMSProvider;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -39,6 +40,7 @@ import org.junit.runner.RunWith;
  *
  * @author mnovak@rehat.com
  */
+//@RestoreConfigAfterTest
 @RunWith(Arquillian.class)
 public class SimpleTest extends HornetQTestCase {
 
@@ -54,6 +56,7 @@ public class SimpleTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+//    @RestoreConfigAfterTest
     public void test() throws Exception {
 
 //        prepareServer();
@@ -64,12 +67,12 @@ public class SimpleTest extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings(CONTAINER1, queueNamePrefix, PORT_JNDI, PORT_JNDI, PORT_JNDI, PORT_JNDI);
         jmsAdminOperations.createQueue("testQueue", "queue/testQueue");
         jmsAdminOperations.createQueue("testTopic", "queue/testTopic");
-        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setPersistenceEnabled(false);
 //        jmsAdminOperations.removeQueue("testQueue");
 //        jmsAdminOperations.removeTopic("testTopic");
         
         logger.info("mnovak: server was started and queue deployed");
-        Thread.sleep(100000);
+//        Thread.sleep(100000);
 
         controller.stop(CONTAINER1);
     }

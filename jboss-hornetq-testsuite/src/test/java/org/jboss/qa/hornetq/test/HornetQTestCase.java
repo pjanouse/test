@@ -1,11 +1,5 @@
 package org.jboss.qa.hornetq.test;
 
-import java.io.File;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -14,11 +8,16 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.tools.ConfigurationLoader;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.File;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parent class for all HornetQ test cases.
@@ -32,9 +31,10 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * <code>CONTAINER2_IP</code>
  *
  * @author pslavice@redhat.com
+ * @author mnovak@redhat.com
  */
 public class HornetQTestCase implements ContextProvider {
-    
+
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
     // Containers IDs
@@ -42,26 +42,26 @@ public class HornetQTestCase implements ContextProvider {
     protected static final String CONTAINER2 = ConfigurationLoader.CONTAINER2;
     protected static final String CONTAINER3 = ConfigurationLoader.CONTAINER3;
     protected static final String CONTAINER4 = ConfigurationLoader.CONTAINER4;
-    
+
     // IP address for containers
     protected static String CONTAINER1_IP = ConfigurationLoader.CONTAINER1_IP;
     protected static String CONTAINER2_IP = ConfigurationLoader.CONTAINER2_IP;
     protected static String CONTAINER3_IP = ConfigurationLoader.CONTAINER3_IP;
     protected static String CONTAINER4_IP = ConfigurationLoader.CONTAINER4_IP;
-    
+
     // Name of the connection factory in JNDI
-    protected static final String CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
+    protected static final String CONNECTION_FACTORY_JNDI = ConfigurationLoader.CONNECTION_FACTORY_JNDI;
     // Port for remote JNDI
-    protected static final int PORT_JNDI = 4447;
+    protected static final int PORT_JNDI = ConfigurationLoader.PORT_JNDI;
     // Ports for Byteman
-    protected static final int BYTEMAN_CONTAINER1_PORT = 9091;
-    protected static final int BYTEMAN_CONTAINER2_PORT = 9191;
+    protected static final int BYTEMAN_CONTAINER1_PORT = ConfigurationLoader.BYTEMAN_CONTAINER1_PORT;
+    protected static final int BYTEMAN_CONTAINER2_PORT = ConfigurationLoader.BYTEMAN_CONTAINER2_PORT;
     // Multi-cast address
-    protected static final String MCAST_ADDRESS;
+    protected static final String MCAST_ADDRESS = ConfigurationLoader.MCAST_ADDRESS;
     // Journal directory for first live/backup pair or first node in cluster
-    protected static final String JOURNAL_DIRECTORY_A;
+    protected static final String JOURNAL_DIRECTORY_A = ConfigurationLoader.JOURNAL_DIRECTORY_A;
     // Journal directory for second live/backup pair or second node in cluster
-    protected static final String JOURNAL_DIRECTORY_B;
+    protected static final String JOURNAL_DIRECTORY_B = ConfigurationLoader.JOURNAL_DIRECTORY_B;
     @ArquillianResource
     protected ContainerController controller;
     @ArquillianResource
@@ -73,20 +73,11 @@ public class HornetQTestCase implements ContextProvider {
     protected static final String SERVLET_KILLER_3 = "killerServlet3";
     protected static final String SERVLET_KILLER_4 = "killerServlet4";
 
-    static {
-        // Path to the journal
-        JOURNAL_DIRECTORY_A = ConfigurationLoader.JOURNAL_DIRECTORY_A;
-
-        JOURNAL_DIRECTORY_B = ConfigurationLoader.JOURNAL_DIRECTORY_B;
-
-        MCAST_ADDRESS = ConfigurationLoader.MCAST_ADDRESS;
-    }
-
     /**
      * Returns context
      *
      * @param hostName target hostname with JNDI service
-     * @param port port on the target service
+     * @param port     port on the target service
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
      */
@@ -201,9 +192,9 @@ public class HornetQTestCase implements ContextProvider {
      * Kills server using killer servlet. This just kill server and does not do
      * anything else. It doesn't call controller.kill
      *
-     * @param container name of the container which will be killed
+     * @param container         name of the container which will be killed
      * @param killerServletName name of the killer servlet - deployment name
-     * @param serverIP ip address of the killed server
+     * @param serverIP          ip address of the killed server
      * @throws Exception if something goes wrong
      */
     public void killServer(String container, String killerServletName, String serverIP) throws Exception {

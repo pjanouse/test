@@ -1,4 +1,3 @@
-//TODO do check of journal files
 package org.jboss.qa.hornetq.test.bridges;
 
 import junit.framework.Assert;
@@ -42,7 +41,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     
     private String discoveryGroupAddressServer1 = "233.1.2.1";
     private int discoveryGroupPortServer1 = 9876;
-    
+
     private String discoveryGroupAddressServer2 = "233.1.2.2";
     private int discoveryGroupPortServer2 = 9876;
     
@@ -130,9 +129,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages number of messages used for the test
      * @param messageBuilder instance of the message builder
-     * @param messageVerifier instance of the messages verifier
+     * @param timeBetweenFails time between fails
      */
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder) throws Exception {
         testNetworkFailure(timeBetweenFails, messageBuilder, -1);
@@ -142,9 +140,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages number of messages used for the test
-     * @param messageBuilder instance of the message builder
-     * @param messageVerifier instance of the messages verifier
      */
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts) throws Exception {
         prepareServers(reconnectAttempts);
@@ -211,7 +206,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         
         log.info("Start all proxies.");
         
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             Thread.sleep(timeBetweenFails);
             log.info("Stop all proxies.");
             proxy1.stop();
@@ -256,10 +251,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     }
 
     /**
+     * Prepare servers.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
-     * @param targetServerIpAddress ip address of target server for bridge
+     * @param containerName container name
+     * @param bindingAddress bind address
+     * @param proxyPortIn proxy port for connector where to connect to proxy directing to this server
+     * @param reconnectAttempts number of reconnects for cluster-connections
+     * @param discoveryGroupAddress discovery udp address
+     * @param discoveryGroupPort discovery udp port
      */
     private void prepareClusterServer(String containerName, String bindingAddress,
             int proxyPortIn, int reconnectAttempts, String discoveryGroupAddress, int discoveryGroupPort) {
@@ -271,8 +270,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         
         String messagingGroupSocketBindingName = "messaging-group";
         String messagingGroupSocketBindingNameForDiscovery = messagingGroupSocketBindingName + "-" + containerName;
-        String connectorName = "netty";
-        
+
         controller.start(containerName);
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
 
@@ -318,20 +316,15 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     }
 
- 
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to management interface
-     * @param port port of management interface - it should be 9999
-     * @param serverName server name of the hornetq server
-     * @param hornetqQueueName name of hornetq queue e.g. 'testQueue'
-     * @param relativeJndiQueueName relativeJndiName e.g. 'queue/testQueueX' ->
-     * will create "java:jboss/exported/queue/testQueueX" and
-     * "java:/queue/testQueue" jndi bindings
-     * @param numberOfQueues number of queue with the given queue name prefix
-     *
+     * @param containerName container name
+     * @param serverName server name
+     * @param hornetqQueueNamePrefix queue name prefix
+     * @param relativeJndiQueueNamePrefix relative queue jndi name prefix
+     * @param numberOfQueues number of queues
      */
     private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
             String relativeJndiQueueNamePrefix, int numberOfQueues) {

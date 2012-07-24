@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  *
- * @author mnovak
+ * @author mnovak@redhat.com
  */
 public interface JMSOperations {
     
@@ -371,7 +371,6 @@ public interface JMSOperations {
      *
      * @param jndi_name
      * @param poolName
-     * @param enabled
      * @param useJavaContext
      * @param useCCM
      * @param driverName
@@ -794,7 +793,6 @@ public interface JMSOperations {
     /**
      * Sets failover-on-server-shutdown.
      *
-     * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
     void setFailoverOnShutdown(boolean value);
@@ -1085,7 +1083,6 @@ public interface JMSOperations {
      * @param serverName             Set name of hornetq server.
      * @param name                   Name of the cluster group - like "failover-cluster"
      * @param address                Name of address this cluster connection applies to.
-     * @param discoveryGroupRef      Name of discovery group used by this bridge.
      * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
      * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
      * @param retryInterval          Period (in ms) between successive retries.

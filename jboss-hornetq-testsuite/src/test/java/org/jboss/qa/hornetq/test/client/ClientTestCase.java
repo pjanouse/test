@@ -134,7 +134,7 @@ public class ClientTestCase extends HornetQTestCase {
      */
     private Clients createClient(int acknowledgeMode, DestinationType dest) throws Exception  {
         
-        Clients clients = null;
+        Clients clients;
         
         if (dest == DestinationType.TOPIC) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
@@ -265,7 +265,7 @@ public class ClientTestCase extends HornetQTestCase {
 	        	SoakProducerClientAck producer = producers.get(destinationNumber);
 	        	SoakReceiverClientAck receiver = receivers.get(destinationNumber);
 	        	
-		        log.info(String.format("Producer %s sent % messages on destintion %s", producer, producer.getCounter(), destinationNumber));
+		        log.info(String.format("Producer %s sent % messages on destination %s", producer, producer.getCounter(), destinationNumber));
 		        log.info(String.format("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber));
 	
 		        Assert.assertNotSame("The producer had to sent at least some message. Otherwise there is an error somewhere.", 

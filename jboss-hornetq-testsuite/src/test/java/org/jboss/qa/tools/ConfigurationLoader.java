@@ -94,7 +94,7 @@ public class ConfigurationLoader {
     /**
      * Gets name of the profile. Related only to EAP 5.
      *
-     * @param containerName
+     * @param containerName name of the container
      * @return Name of the profile as specified in arquillian.xml for
      * profileName or "default" if not set.
      */
@@ -114,7 +114,7 @@ public class ConfigurationLoader {
     /**
      * Returns JBOSS_HOME for the given container.
      *
-     * @param containerName
+     * @param containerName name of the container
      * @return JBOSS_HOME or null if not specified
      */
     public static String getJbossHome(String containerName) {
@@ -133,13 +133,13 @@ public class ConfigurationLoader {
     /**
      * Returns hostname where the server was bound.
      *
-     * @param containerName
+     * @param containerName name of the container
      * @return hostname of "localhost" when no specified
      */
-    public static String getHostname(String bindAddress) {
+    public static String getHostname(String containerName) {
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(bindAddress)) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
                     if (containerDef.getContainerProperties().containsKey("bindAddress")) {
                         return containerDef.getContainerProperties().get("bindAddress");
                     }
@@ -148,7 +148,7 @@ public class ConfigurationLoader {
         }
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(bindAddress)) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
                     if (containerDef.getContainerProperties().containsKey("managementAddress")) {
                         return containerDef.getContainerProperties().get("managementAddress");
                     }
@@ -161,25 +161,15 @@ public class ConfigurationLoader {
     /**
      * Return managementPort or rmiPort as defined in arquillian.xml. For EAP 5.
      * 
-     * @param containerName
+     * @param containerName  name of the container
      * @return managementPort or rmiPort or 9999 when not set
      */
     public static int getRmiPort(String containerName) {
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase("rmiPort")) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
                     if (containerDef.getContainerProperties().containsKey("rmiPort")) {
                         return Integer.valueOf(containerDef.getContainerProperties().get("rmiPort"));
-                    }
-                }
-            }
-        }
-        
-        for (GroupDef groupDef : descriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase("managementPort")) {
-                    if (containerDef.getContainerProperties().containsKey("managementPort")) {
-                        return Integer.valueOf(containerDef.getContainerProperties().get("managementPort"));
                     }
                 }
             }
@@ -189,16 +179,16 @@ public class ConfigurationLoader {
     }
     
     /**
-     * Return managementPort or rmiPort as defined in arquillian.xml. For EAP 5.
+     * Return managementPort as defined in arquillian.xml.
      * 
-     * @param containerName
+     * @param containerName name of the container
      * @return managementPort or rmiPort or 9999 when not set
      */
     public static int getPort(String containerName) {
         
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase("managementPort")) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
                     if (containerDef.getContainerProperties().containsKey("managementPort")) {
                         return Integer.valueOf(containerDef.getContainerProperties().get("managementPort"));
                     }
