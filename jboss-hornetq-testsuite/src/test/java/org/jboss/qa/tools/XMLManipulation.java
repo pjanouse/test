@@ -1,9 +1,7 @@
 package org.jboss.qa.tools;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.apache.log4j.Logger;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +21,9 @@ import java.io.File;
  * Implements tools for the basic manipulation with the XML files
  */
 public final class XMLManipulation {
+
+    // Logger
+    private static final Logger log = Logger.getLogger(XMLManipulation.class);
 
     /**
      * Returns DOM model of the given XML file
@@ -113,5 +114,26 @@ public final class XMLManipulation {
             content = ((Attr) node.item(0)).getValue();
         }
         return content;
+    }
+
+    /**
+     * Adds new XML node into the DOM model, location is defined by xpath
+     *
+     * @param xpath location of the parameter defined by xpath
+     * @param name  name of the new xml element
+     * @param value content of the xml element
+     * @param doc   instance of the DOM model
+     * @throws Exception if something goes wrong
+     */
+    public static void addNode(String xpath, String name, String value, Document doc) throws Exception {
+        XPath xpathInstance = XPathFactory.newInstance().newXPath();
+        Node node = (Node) xpathInstance.evaluate(xpath, doc, XPathConstants.NODE);
+        if (node != null) {
+            Element e = doc.createElement(name);
+            e.appendChild(doc.createTextNode(value));
+            node.appendChild(e);
+        } else {
+            log.error(String.format("Cannot find xpath '%s'", xpath));
+        }
     }
 }
