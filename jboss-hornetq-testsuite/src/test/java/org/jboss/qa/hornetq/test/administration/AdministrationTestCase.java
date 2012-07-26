@@ -37,7 +37,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 

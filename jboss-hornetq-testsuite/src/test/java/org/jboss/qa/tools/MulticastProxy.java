@@ -57,8 +57,6 @@ public class MulticastProxy extends Thread {
                 log.info("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " content: " + line + " dest host:port - "
                         + pkt.getAddress());
-                
-                
 
                 DatagramPacket pkt1 = new DatagramPacket(line, line.length,
                         InetAddress.getByName(destinationMulticastGroup), destinationMulticastPort);

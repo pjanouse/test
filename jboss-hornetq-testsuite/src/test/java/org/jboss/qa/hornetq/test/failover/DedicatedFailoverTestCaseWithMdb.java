@@ -115,7 +115,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         Thread.sleep(15000);
         
         if (shutdown)   {
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
         } else {
             killServer(CONTAINER1);
         }
@@ -128,9 +128,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //                producerToInQueue1.getCounter(), receiver1.getCount());
 
         deployer.undeploy("mdb1");
-        controller.stop(CONTAINER3);
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
 
     }
 
@@ -144,10 +144,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
 

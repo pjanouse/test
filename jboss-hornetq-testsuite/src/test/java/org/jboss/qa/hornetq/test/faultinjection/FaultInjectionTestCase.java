@@ -41,7 +41,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         deleteDataFolderForJBoss1();
     }
 
@@ -82,7 +82,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.removeQueue(MY_QUEUE);
         jmsAdminOperations.close();
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
 
@@ -198,7 +198,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -225,7 +225,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -252,7 +252,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     //============================================================================================================
@@ -325,7 +325,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -352,7 +352,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     //============================================================================================================
@@ -389,7 +389,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -416,7 +416,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
         assertEquals(1, jmsAdminOperations.getCountOfMessagesOnQueue(MY_QUEUE));
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     //============================================================================================================
@@ -476,7 +476,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.receiveMessages(MY_QUEUE_JNDI);
             jmsAdminOperations.removeQueue(MY_QUEUE);
             jmsAdminOperations.close();
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
         } else {
             log.info("Execution of the client ...");
             client.sendMessages(MY_QUEUE_JNDI);

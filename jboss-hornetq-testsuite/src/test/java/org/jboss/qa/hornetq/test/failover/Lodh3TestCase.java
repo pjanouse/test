@@ -162,10 +162,10 @@ public class Lodh3TestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
     
@@ -199,10 +199,10 @@ public class Lodh3TestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
 
@@ -222,11 +222,11 @@ public class Lodh3TestCase extends HornetQTestCase {
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
 
             controller.start(CONTAINER3);
             deployDestinations(CONTAINER3);
-            controller.stop(CONTAINER3);
+            stopServer(CONTAINER3);
 
             copyApplicationPropertiesFiles();
 

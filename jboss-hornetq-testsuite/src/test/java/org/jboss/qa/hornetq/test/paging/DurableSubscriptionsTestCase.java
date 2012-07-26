@@ -45,7 +45,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -173,6 +173,6 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 }

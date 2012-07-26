@@ -117,7 +117,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             controller.kill(CONTAINER1);
         } else {
             Thread.sleep(15000);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
         }
         
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
@@ -132,7 +132,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
         }
         
         Thread.sleep(5000);
@@ -144,9 +144,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -213,7 +213,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //            logger.info("########################################");
 //            logger.info("failback - Stop backup server");
 //            logger.info("########################################");
-//            controller.stop(CONTAINER2);
+//            stopServer(CONTAINER2);
 //        }
 //        
 //        Thread.sleep(5000);
@@ -241,9 +241,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //            logger.info("Lost message : " + st);
 //        }
 //        
-//        controller.stop(CONTAINER1);
+//        stopServer(CONTAINER1);
 //
-//        controller.stop(CONTAINER2);
+//        stopServer(CONTAINER2);
 //
 //    }
     
@@ -530,9 +530,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @Before @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
         
 //        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
@@ -552,11 +552,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
 
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             
             topologyCreated = true;
         }

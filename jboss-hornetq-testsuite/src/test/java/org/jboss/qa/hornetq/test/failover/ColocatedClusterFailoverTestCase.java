@@ -114,7 +114,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             Thread.sleep(5000); // give some time to clients to do failback
         }
         
@@ -126,9 +126,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -281,9 +281,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @Before @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
         
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
         
@@ -308,11 +308,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
             deployDestinations(CONTAINER1, "backup");
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
             deployDestinations(CONTAINER2, "backup");
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             topologyCreated = true;
         }
     }

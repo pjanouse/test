@@ -56,10 +56,10 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Before
     public void stopAllServers() {
 //        prepareServers();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER3);
-        controller.stop(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
     }
 
     @Test
@@ -178,8 +178,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
                 producer1.getCounter(),
                 receiver1.getCount());
 
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
         
     }
 
@@ -246,10 +246,10 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
             // deploy destinations 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
            
     }
 

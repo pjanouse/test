@@ -342,6 +342,6 @@ public class ClientTestCase extends HornetQTestCase {
     @Test
     @InSequence(101)
     public void stopServer() {
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 }

@@ -101,9 +101,9 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertTrue("There are failures detected by clients. More information in log.", queueClients.evaluateResults());
         Assert.assertTrue("There are failures detected by clients. More information in log.", topicClients.evaluateResults());
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -149,9 +149,9 @@ public class ClusterTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -202,9 +202,9 @@ public class ClusterTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , 2 * NUMBER_OF_MESSAGES_PER_PRODUCER);
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
 
@@ -268,10 +268,10 @@ public class ClusterTestCase extends HornetQTestCase {
             // deploy destinations 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             topologyCreated = true;
         }
     }
@@ -378,9 +378,9 @@ public class ClusterTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     

@@ -181,7 +181,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
@@ -197,9 +197,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 receiver.getListOfReceivedMessages().size());
         
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -249,7 +249,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
@@ -269,9 +269,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 receiver.getListOfReceivedMessages().size());
         
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
     
@@ -284,10 +284,10 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             // deploy destinations 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             topologyCreated = true;
         }
     }
@@ -386,9 +386,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
 }

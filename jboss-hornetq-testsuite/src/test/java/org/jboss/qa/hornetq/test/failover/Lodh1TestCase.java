@@ -168,7 +168,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 receiver1.getCount());
         
         deployer.undeploy("mdb1");
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
     
@@ -213,9 +213,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 

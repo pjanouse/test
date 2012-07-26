@@ -1543,7 +1543,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
     }
-    
+
+    /**
+     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.
+     *
+     * @param active if true then this attribute is activated. It's defaulted to true.
+     */
+    @Override
+    public void setFactoryRef(boolean active) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
+     * Return name of the called method from the stack trace
+     *
+     * @return method name
+     */
+    private String getMethodName() {
+        Throwable t = new Throwable();
+        StackTraceElement[] elements = t.getStackTrace();
+        return elements[1].getMethodName();
+    }
+
 
     /**
      * Sets size of the journal file.

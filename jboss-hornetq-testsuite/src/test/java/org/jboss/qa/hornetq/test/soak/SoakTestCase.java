@@ -204,10 +204,10 @@ public class SoakTestCase extends HornetQTestCase {
             }
         }
 
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
 
@@ -221,10 +221,10 @@ public class SoakTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
         prepareRemoteJcaTopology();
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
     }
 
     /**
@@ -236,11 +236,11 @@ public class SoakTestCase extends HornetQTestCase {
         if (!topologyCreated) {
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
 
             controller.start(CONTAINER3);
             deployDestinations(CONTAINER3);
-            controller.stop(CONTAINER3);
+            stopServer(CONTAINER3);
 
             prepareJmsServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
             prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);

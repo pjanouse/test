@@ -204,7 +204,7 @@
                 <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-client</artifactId>
-                    <version>5.1.2.GA-HornetQ-all</version>
+                    <version>5.1.2.GA-HornetQ-all-unsigned</version>
                     <type>pom</type>
                 </dependency>
             </dependencies>

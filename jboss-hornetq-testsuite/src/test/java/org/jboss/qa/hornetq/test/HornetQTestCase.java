@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test;
 
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.spi.client.container.LifecycleException;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -82,10 +83,32 @@ public class HornetQTestCase implements ContextProvider {
      * @throws NamingException if a naming exception is encountered
      */
     protected Context getContext(String hostName, int port) throws NamingException {
+
+        Context ctx = null;
+
+        try {         // try EAP 6 context
+            ctx = getEAP6Context(hostName, port);
+        } catch (NamingException ex)  {      // try EAP 5 context
+            ctx = getEAP5Context(hostName,port);
+        }
+
+        return ctx;
+    }
+
+    private Context getEAP6Context(String hostName, int port) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
         env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostName, port));
         return new InitialContext(env);
+    }
+
+    private Context getEAP5Context(String hostName, int port) throws NamingException {
+
+        Properties properties = new Properties();
+        properties.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
+        properties.setProperty("java.naming.provider.url", "jnp://" + hostName + ":" + port);
+        properties.setProperty("java.naming.factory.url.pkgs", "org.jnp.interfaces.NamingContextFactory");
+        return new InitialContext(properties);
     }
 
     /**
@@ -207,6 +230,25 @@ public class HornetQTestCase implements ContextProvider {
         HttpRequest.get("http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
         Thread.sleep(3000);
         controller.kill(container);
+    }
+
+    /**
+     *
+     * This is wrapper method for controller.stop() method. Problem is that in EAP 5 this method throws exception
+     * when server is not running. We'll swallow this exception.
+     *
+     *
+     * @param containerName name of the container
+     *
+     */
+    public void stopServer(String containerName)    {
+
+        try {
+
+            controller.stop(containerName);
+
+        } catch (Exception ex) {} // swallow it
+
     }
 
     /**

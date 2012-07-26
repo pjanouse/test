@@ -54,10 +54,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @Before
     public void stopAllServers() {
         prepareServers();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER3);
-        controller.stop(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
     }
 
     /**
@@ -206,10 +206,10 @@ public class Lodh4TestCase extends HornetQTestCase {
             Thread.sleep(1000);
         }
 
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER3);
-        controller.stop(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
 
         assertTrue("There are problems detected by clients. Check logs for more info. Look for: 'Print kill sequence', "
                 + "'Kill and restart server', 'Killing server', 'Evaluate results for queue clients with client acknowledge'.", clientsA1.evaluateResults());
@@ -259,10 +259,10 @@ public class Lodh4TestCase extends HornetQTestCase {
                 producer1.getCounter(),
                 receiver1.getCount());
 
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER3);
-        controller.stop(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
 
     }
 
@@ -313,16 +313,16 @@ public class Lodh4TestCase extends HornetQTestCase {
             // deploy destinations 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             controller.start(CONTAINER3);
             deployDestinations(CONTAINER3, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            controller.stop(CONTAINER3);
+            stopServer(CONTAINER3);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             controller.start(CONTAINER4);
             deployDestinations(CONTAINER4, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            controller.stop(CONTAINER4);
+            stopServer(CONTAINER4);
 
     }
 

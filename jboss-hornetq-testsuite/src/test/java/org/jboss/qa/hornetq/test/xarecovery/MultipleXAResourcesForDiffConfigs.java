@@ -33,6 +33,6 @@ public class MultipleXAResourcesForDiffConfigs extends HornetQTestCase {
         controller.start(CONTAINER1);
         Thread.sleep(180 * 60000);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 }

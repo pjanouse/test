@@ -111,7 +111,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
             Thread.sleep(5000); // give some time to clients to do failback
         }
 
@@ -123,9 +123,9 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
 
@@ -134,18 +134,18 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
 
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
-            controller.stop(CONTAINER2);
+            stopServer(CONTAINER2);
 
 
             prepareLiveServer(CONTAINER3, CONTAINER3_IP, JOURNAL_DIRECTORY_B);
             controller.start(CONTAINER3);
             deployDestinations(CONTAINER3);
-            controller.stop(CONTAINER3);
+            stopServer(CONTAINER3);
             topologyCreated = true;
         }
     }
@@ -307,9 +307,9 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER2);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
         

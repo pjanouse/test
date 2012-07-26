@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -780,6 +781,49 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
+     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.
+     *
+     * @param active if true then this attribute is activated. It's defaulted to true.
+     */
+    @Override
+    public void setFactoryRef(boolean active) {
+
+        StringBuilder configurationFile = new StringBuilder();
+        configurationFile.append(this.jbossHome);
+        configurationFile.append(File.separator);
+        configurationFile.append("server");
+        configurationFile.append(File.separator);
+        configurationFile.append(this.profile);
+        configurationFile.append(File.separator);
+        configurationFile.append("deploy");
+        configurationFile.append(File.separator);
+        configurationFile.append("ejb3-interceptors-aop.xml");
+
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile.toString());
+
+            String currentValue = XMLManipulation.getNodeContent("//annotation/*[@expr='!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)']", doc);
+
+//            logger.info("Content of annotation DefaultActivationSpecs is : " + currentValue);
+
+            String contentToSet = "@org.jboss.ejb3.annotation.DefaultActivationSpecs(@javax.ejb.ActivationConfigProperty(" +
+                    "propertyName=\"preferFactoryRef\", propertyValue=\"" + active + "\"))";
+
+            if (currentValue != null) {
+                XMLManipulation.setNodeContent("//annotation/*[@expr='!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)']", contentToSet, doc);
+            } else {
+                HashMap<String,String> attributes = new HashMap<String, String>();
+                attributes.put("expr", "!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)");
+                XMLManipulation.addNode("//domain[@name='Message Driven Bean']", "annotation", contentToSet, doc, attributes);
+            }
+
+            XMLManipulation.saveDOMModel(doc, configurationFile.toString());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**

@@ -109,7 +109,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 

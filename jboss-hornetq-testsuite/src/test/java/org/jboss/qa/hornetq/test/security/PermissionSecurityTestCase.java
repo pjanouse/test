@@ -107,7 +107,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             
         }
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -165,7 +165,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             user.close();
         }
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 
@@ -223,14 +223,14 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             admin.close();
         }
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 
     @After
     public void stopAllServers() {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
@@ -246,7 +246,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             
             deployDestinations(CONTAINER1);
             
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
             
             topologyCreated = true;
         }

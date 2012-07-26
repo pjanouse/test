@@ -22,20 +22,6 @@ import org.junit.runner.RunWith;
 
 /**
  *
- * Test security permissions to queues and topic
- *
- * Uses its own application-roles.properties, application-roles.properties
- *
- * It creates its own address-settings in standalone-full-ha.xml, enables
- * security.
- *
- * There are 3 users and 3 roles: admin -> role (username/password) admin -
- * admin (admin/adminadmin) admin - admin (admin/useruser) user - user
- * (unauthenticated)
- *
- * There is 1 queue/topic name of queue/topic -> roles -> permission for the
- * role testQueue0 -> user -> send,consume -> admin -> all permissions -> admin
- * -> send, consume, create/delete durable queue
  *
  *
  * @author mnovak@rehat.com
@@ -68,19 +54,26 @@ public class SimpleTest extends HornetQTestCase {
         jmsAdminOperations.createQueue("testQueue", "queue/testQueue");
         jmsAdminOperations.createQueue("testTopic", "queue/testTopic");
         jmsAdminOperations.setPersistenceEnabled(false);
+        Thread.sleep(5000);
+        logger.info("I'm going to kill it");
+        killServer(CONTAINER1);
+        logger.info("KILLED");
+
+        //controller.kill(CONTAINER1);
+
 //        jmsAdminOperations.removeQueue("testQueue");
 //        jmsAdminOperations.removeTopic("testTopic");
         
         logger.info("mnovak: server was started and queue deployed");
 //        Thread.sleep(100000);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     @After
     public void stopAllServers() {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 
@@ -94,7 +87,7 @@ public class SimpleTest extends HornetQTestCase {
 //            
 //            deployDestinations(CONTAINER1_IP, 9999);
 //            
-//            controller.stop(CONTAINER1);
+//            stopServer(CONTAINER1);
 //            
 //            topologyCreated = true;
 //        }
@@ -178,8 +171,7 @@ public class SimpleTest extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param containerName container name
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -188,8 +180,7 @@ public class SimpleTest extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param containerName container name
      * @param serverName server name of the hornetq server
      *
      */

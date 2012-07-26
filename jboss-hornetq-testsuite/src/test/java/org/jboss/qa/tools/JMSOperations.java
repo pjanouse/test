@@ -1090,5 +1090,11 @@ public interface JMSOperations {
      * @param connectorName          Name of connector to use for live connection.
      */
     void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors);
-    
+
+    /**
+     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.
+     *
+     * @param active if true then this attribute is activated. It's defaulted to true.
+     */
+    void setFactoryRef(boolean active);
 }

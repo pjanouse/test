@@ -47,8 +47,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
         deleteDataFolderForJBoss1();
         deleteDataFolderForJBoss2();
     }
@@ -328,13 +328,13 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.removeBridge("myBridge");
         jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
@@ -363,8 +363,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
     
     
@@ -372,7 +372,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     /**
      * Implementation of the basic test scenario. Test network outage.
      *
-     * @param messages        number of messages used for the test
      * @param messageBuilder  instance of the message builder
      * @param messageVerifier instance of the messages verifier
      */
@@ -412,14 +411,14 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         ControllableProxy controllableProxy = new SimpleProxyServer(proxyAddress, 5445, proxyPort);
         controllableProxy.start();
         
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
         
         // direct remote socket to proxy
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", proxyAddress, proxyPort);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
@@ -451,8 +450,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
         
         controllableProxy.stop();
     }
@@ -489,7 +488,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         assertEquals(0, jmsAdminContainer1.getCountOfMessagesOnQueue(TEST_QUEUE));
@@ -535,8 +534,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
 
     /**
@@ -568,7 +567,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
@@ -586,8 +585,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
 
     /**
@@ -615,8 +614,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
 
         controller.start(CONTAINER1);
 
@@ -646,8 +645,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
 
 

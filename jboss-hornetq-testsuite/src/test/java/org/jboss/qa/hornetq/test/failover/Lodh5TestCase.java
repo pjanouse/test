@@ -111,7 +111,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 
@@ -125,7 +125,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
     }
 

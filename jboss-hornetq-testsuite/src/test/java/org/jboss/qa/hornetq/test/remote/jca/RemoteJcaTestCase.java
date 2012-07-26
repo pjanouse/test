@@ -140,10 +140,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
 
@@ -188,8 +188,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());;
                 
         deployer.undeploy("mdb1");
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
 
     }
     
@@ -203,10 +203,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() throws Exception {
 
-        controller.stop(CONTAINER2);
-        controller.stop(CONTAINER4);
-        controller.stop(CONTAINER1);
-        controller.stop(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
 
     }
 
@@ -226,11 +226,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            controller.stop(CONTAINER1);
+            stopServer(CONTAINER1);
 
             controller.start(CONTAINER3);
             deployDestinations(CONTAINER3);
-            controller.stop(CONTAINER3);
+            stopServer(CONTAINER3);
 
             copyApplicationPropertiesFiles();
 

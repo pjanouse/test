@@ -14,6 +14,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.util.Map;
 
 /**
  * XMLManipulation
@@ -126,12 +127,34 @@ public final class XMLManipulation {
      * @throws Exception if something goes wrong
      */
     public static void addNode(String xpath, String name, String value, Document doc) throws Exception {
+        addNode(xpath, name, value, doc, null);
+    }
+
+    /**
+     * Adds new XML node into the DOM model, location is defined by xpath
+     *
+     * @param xpath location of the parameter defined by xpath
+     * @param name  name of the new xml element
+     * @param value content of the xml element
+     * @param doc   instance of the DOM model
+     * @param attributes map: attributeName -> attributeValue for the element
+     * @throws Exception if something goes wrong
+     */
+    public static void addNode(String xpath, String name, String value, Document doc, Map<String, String> attributes) throws Exception {
         XPath xpathInstance = XPathFactory.newInstance().newXPath();
         Node node = (Node) xpathInstance.evaluate(xpath, doc, XPathConstants.NODE);
         if (node != null) {
             Element e = doc.createElement(name);
+
+            if (attributes != null && attributes.size() > 0)    {
+                for (String key : attributes.keySet())   {
+                    e.setAttribute(key, attributes.get(key));
+                }
+            }
+
             e.appendChild(doc.createTextNode(value));
             node.appendChild(e);
+
         } else {
             log.error(String.format("Cannot find xpath '%s'", xpath));
         }
