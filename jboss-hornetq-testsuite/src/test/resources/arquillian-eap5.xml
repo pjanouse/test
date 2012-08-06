@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <arquillian xmlns="http://jboss.com/arquillian">
+
+    <defaultProtocol type="Servlet 3.0" />
+
     <group qualifier="cluster">
-        <defaultProtocol type="Servlet 3.0" />
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>

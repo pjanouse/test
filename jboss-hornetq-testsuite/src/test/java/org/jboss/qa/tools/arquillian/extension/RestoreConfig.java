@@ -133,6 +133,8 @@ public class RestoreConfig {
         // if there is no RestoreConfigAfterTest annotation then do nothing
         if (event.getTestMethod().getAnnotation(RestoreConfigAfterTest.class) == null) return;
 
+        logger.info("Restoring configuration after test: " + event.getTestMethod().getName());
+
         restoreConfiguration(descriptor);
     }
 
@@ -147,6 +149,8 @@ public class RestoreConfig {
 
         // if there is no RestoreConfigAfterTest annotation then do nothing
         if (event.getTestClass().getAnnotation(RestoreConfigAfterTest.class) == null) return;
+
+        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
     }
@@ -223,11 +227,12 @@ public class RestoreConfig {
                 backupProfileDirectory = new File(pathToBackupConfigurationDirectory.toString());
 
                 if (!originalProfileDirectory.exists())  {
-                    logger.warn("Profile " + profileName + " does NOT exist. Profile cannot be restored.");
+                    logger.warn("Profile " + profileName + " does NOT exist. Path: " + originalProfileDirectory + " Profile cannot be restored.");
                     return;
                 }
                 if (!backupProfileDirectory.exists())   {
                     logger.error("Backup for profile " + profileName + " does not exist. Configuration won't be restored.");
+                    return;
                 }
                 copyDirectory(backupProfileDirectory, originalProfileDirectory);
             }

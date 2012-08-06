@@ -16,7 +16,7 @@
         <netty.version>3.2.6.Final</netty.version>
         <hornetq.version>2.2.16.Final</hornetq.version>
 
-        <arquillian.version>1.0.0.Final</arquillian.version>
+        <arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
         <arquillian.eap6x.container.version>7.1.2.Final-SNAPSHOT</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0-SNAPSHOT</arquillian.eap5x.container.version>
         <version.byteman>2.0.0</version.byteman>

@@ -3,102 +3,136 @@ package org.jboss.qa.hornetq.test.integration;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.test.HttpRequest;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.JMSProvider;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.XAConnectionFactory;
-import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * This test case deploy servlet which tries whether java:/JmsXA is XAConnectionFactory when preferFactoryRef is enabled.
  *
  * @author mnovak@rehat.com
  */
-//@RestoreConfigAfterTest
+@RestoreConfigAfterTest
 @RunWith(Arquillian.class)
 public class ConnectionFactoryTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ConnectionFactoryTestCase.class);
 
-    @Inject
-    JndiLookUpBean jndiLookUpBean;
-
 
     @Test
-//    @RestoreConfigAfterTest
-    public void testXAConnectionFactoryLookup() throws Exception {
+    @RunAsClient
+    @RestoreConfigAfterTest
+    public void testXAConnectionFactoryEnabled() throws Exception {
+        testXAConnectionFactoryLookup(true);
+    }
 
-        prepareServer(CONTAINER1);
+    private void testXAConnectionFactoryLookup(boolean preferFactoryRef) throws Exception {
+
+        prepareServer(CONTAINER1, preferFactoryRef);
 
         controller.start(CONTAINER1);
 
-        deployer.deploy("jndiLookUpBean");
-
         String connectionFactoryName = "java:/JmsXA";
+
+        deployer.deploy("hornetQTestServlet");
 
         try {
 
 
             logger.info("Trying to lookup connection factory: " + connectionFactoryName);
-            ConnectionFactory cf = jndiLookUpBean.lookUpConnectionFactory(connectionFactoryName);
 
-            Assert.assertNotNull("Connection factory: " + connectionFactoryName + " should not be null.", cf);
-            Assert.assertTrue("This should be instance of XAConnectionFactory.", cf instanceof XAConnectionFactory);
+            try {
+                deployer.undeploy("hornetQTestServlet");
+            } catch (Exception ex) {
+                logger.debug("HornetQTestServlet servlet was not deployed and it ");
+            }
+            deployer.deploy("hornetQTestServlet");
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/HornetQTestServlet/HornetQTestServlet" +
+                    "?op=testConnectionFactoryType&jndiName=" + connectionFactoryName, 4, TimeUnit.SECONDS);
+            logger.info("Response from server is: " + response);
+            Assert.assertTrue("This should be instance of XAConnectionFactory. Response is: " + response, preferFactoryRef == Boolean.valueOf(response.trim()));
 
         } catch (Exception ex)  {
 
             logger.error("Exception was thrown during ConnectionFactoryTestCase.testXAConnectionFactoryLookup: ", ex);
             Assert.fail("Exception was thrown during ConnectionFactoryTestCase.testXAConnectionFactoryLookup: " + ex.getMessage());
 
-        } finally {
-
-            deployer.undeploy("jndiLookUpBean");
-
         }
-    }
 
-    @Deployment(testable = true, name = "jndiLookUpBean", managed = true)
-    @TargetsContainer(CONTAINER1)
-    public static JavaArchive createDeployment() {
-        JavaArchive ejb =  ShrinkWrap.create(JavaArchive.class, "jndiLookUpBean.jar")
-                .addClass(JndiLookUpBean.class).addClass(JndiLookUp.class);
-        ejb.addAsManifestResource(new StringAsset("Manifest-Version: 1.0\n Dependencies: javax.jms, javax.naming \n"), "MANIFEST.MF");
+        deployer.undeploy("hornetQTestServlet");
 
-        File target = new File("/tmp/ejb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        ejb.as(ZipExporter.class).exportTo(target, true);
-
-        return ejb;
-
+        stopServer(CONTAINER1);
     }
 
     @After
     public void stopAllServers() {
 
+        deployer.undeploy("hornetQTestServlet");
         stopServer(CONTAINER1);
 
     }
 
-    @Before
-    public void startServer() {
+    @Deployment(testable = true, name = "hornetQTestServlet", managed = false)
+    @TargetsContainer(CONTAINER1)
+    public static WebArchive createHornetQTestServlet() {
+        final WebArchive hornetqTestServlet = ShrinkWrap.create(WebArchive.class, "hornetQTestServlet.war");
+        StringBuilder webXml = new StringBuilder();
+        webXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
+        webXml.append("<web-app version=\"2.5\" xmlns=\"http://java.sun.com/xml/ns/javaee\" \n");
+        webXml.append("         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n");
+        webXml.append("         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee \n");
+        webXml.append("                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\">\n");
+        webXml.append(" <servlet>\n");
+        webXml.append("   <servlet-name>HornetQTestServlet</servlet-name>\n");
+        webXml.append("   <servlet-class>org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet</servlet-class>\n");
+        webXml.append(" </servlet>\n");
+        webXml.append("\n");
+        webXml.append(" <servlet-mapping>\n");
+        webXml.append("   <servlet-name>HornetQTestServlet</servlet-name>\n");
+        webXml.append("   <url-pattern>/HornetQTestServlet</url-pattern>\n");
+        webXml.append(" </servlet-mapping>\n");
+        webXml.append("</web-app>\n");
+        webXml.append("\n");
 
-        controller.start(CONTAINER1);
+        StringBuilder jbossWebXml = new StringBuilder();
+        jbossWebXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n");
+        jbossWebXml.append("<jboss-web> \n");
+        jbossWebXml.append("  <context-root>/HornetQTestServlet</context-root> \n");
+        jbossWebXml.append("</jboss-web> \n");
+        webXml.append("\n");
 
+        hornetqTestServlet.addAsWebInfResource(new StringAsset(webXml.toString()), "web.xml");
+        hornetqTestServlet.addAsWebInfResource(new StringAsset(jbossWebXml.toString()), "jboss-web.xml");
+        hornetqTestServlet.addClass(HornetQTestServlet.class);
+        if (logger.isTraceEnabled()) {
+            logger.trace(webXml.toString());
+            logger.trace(jbossWebXml.toString());
+            logger.trace(hornetqTestServlet.toString(true));
+        }
+
+        //      Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/servlet.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        hornetqTestServlet.as(ZipExporter.class).exportTo(target, true);
+
+        return hornetqTestServlet;
     }
 
     /**
@@ -107,17 +141,17 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      * @param containerName Name of the container - defined in arquillian.xml
      *
      */
-    private void prepareServer(String containerName) throws IOException {
+    private void prepareServer(String containerName, boolean preferFactoryRef) throws IOException {
 
-//        controller.start(containerName);
+        controller.start(containerName);
 
         JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
 
-        jmsAdminOperations.setFactoryRef(true);
+        jmsAdminOperations.setFactoryRef(preferFactoryRef);
 
         jmsAdminOperations.close();
 
-//        controller.stop(containerName);
+        controller.stop(containerName);
 
     }
 

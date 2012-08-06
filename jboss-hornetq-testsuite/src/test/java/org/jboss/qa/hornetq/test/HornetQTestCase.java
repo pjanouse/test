@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.test;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.spi.client.container.LifecycleException;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -77,6 +76,40 @@ public class HornetQTestCase implements ContextProvider {
     /**
      * Returns context
      *
+     * @param containerName name of the container
+     *
+     * @return instance of {@link Context}
+     *
+     * @throws NamingException if a naming exception is encountered
+     */
+    protected Context getContextByContainerName(String containerName) throws NamingException {
+
+        if (containerName == null && "".equals(containerName))  {
+            throw new IllegalStateException("Container name cannot be null or empty");
+        }
+
+        Context ctx = null;
+
+        if (CONTAINER1.equals(containerName))   {
+            getContext(CONTAINER1_IP);
+        } else if (CONTAINER2.equals(containerName))    {
+            getContext(CONTAINER2_IP);
+        } else if (CONTAINER3.equals(containerName))    {
+            getContext(CONTAINER3_IP);
+        } else if (CONTAINER4.equals(containerName))    {
+            getContext(CONTAINER4_IP);
+        }
+
+        return ctx;
+    }
+
+    protected Context getContext(String hostName) throws NamingException {
+        return getContext(hostName, 4447);
+    }
+
+    /**
+     * Returns context
+     *
      * @param hostName target hostname with JNDI service
      * @param port     port on the target service
      * @return instance of {@link Context}
@@ -84,12 +117,12 @@ public class HornetQTestCase implements ContextProvider {
      */
     protected Context getContext(String hostName, int port) throws NamingException {
 
-        Context ctx = null;
+        Context ctx;
 
         try {         // try EAP 6 context
             ctx = getEAP6Context(hostName, port);
         } catch (NamingException ex)  {      // try EAP 5 context
-            ctx = getEAP5Context(hostName,port);
+            ctx = getEAP5Context(hostName, 1099);
         }
 
         return ctx;
@@ -247,7 +280,7 @@ public class HornetQTestCase implements ContextProvider {
 
             controller.stop(containerName);
 
-        } catch (Exception ex) {} // swallow it
+        } catch (Exception ignored) {} // swallow it
 
     }
 
