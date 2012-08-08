@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * This is only EAP5 related test.
  * This test case deploy servlet which tries whether java:/JmsXA is XAConnectionFactory when preferFactoryRef is enabled.
  *
  * @author mnovak@rehat.com

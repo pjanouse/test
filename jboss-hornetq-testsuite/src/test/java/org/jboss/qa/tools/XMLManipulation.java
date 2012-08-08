@@ -61,9 +61,11 @@ public final class XMLManipulation {
     public static void setNodeContent(String xpath, String value, Document doc) throws Exception {
         XPath xpathInstance = XPathFactory.newInstance().newXPath();
         NodeList nodes = (NodeList) xpathInstance.evaluate(xpath, doc, XPathConstants.NODESET);
+
         for (int idx = 0; idx < nodes.getLength(); idx++) {
             nodes.item(idx).setTextContent(value);
         }
+
     }
 
     /**
@@ -155,6 +157,23 @@ public final class XMLManipulation {
             e.appendChild(doc.createTextNode(value));
             node.appendChild(e);
 
+        } else {
+            log.error(String.format("Cannot find xpath '%s'", xpath));
+        }
+    }
+
+    /**
+     * Removes XML node from the DOM model, location is defined by xpath
+     *
+     * @param xpath location of the parameter defined by xpath
+     * @param doc   instance of the DOM model
+     * @throws Exception if something goes wrong
+     */
+    public static void removeNode(String xpath, Document doc) throws Exception {
+        XPath xpathInstance = XPathFactory.newInstance().newXPath();
+        Node node = (Node) xpathInstance.evaluate(xpath, doc, XPathConstants.NODE);
+        if (node != null) {
+            node.getParentNode().removeChild(node);
         } else {
             log.error(String.format("Cannot find xpath '%s'", xpath));
         }

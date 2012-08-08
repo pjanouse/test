@@ -2,6 +2,8 @@ package org.jboss.qa.tools;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.jms.Destination;
 import javax.management.MBeanServerConnection;
@@ -9,11 +11,11 @@ import javax.management.ObjectName;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Implementation of the <code>JMSOperations</code> for EAP 5
@@ -80,13 +82,28 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * Creates JMS destination on the server
+     * Retrun path to ra.xml. Configuration file of resource adapter.
      *
-     * @param isQueue         is target destination queue?
-     * @param destinationName name of the destination
-     * @param jndiName        JNDI name of the destination
-     * @param durable         determines if created destination is durable
+     * @return path to ra.xml
      */
+    protected String getRAConfigurationFile() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
+        sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
+        sb.append("jms-ra.rar").append(File.separator).append("META-INF").append(File.separator).append("ra.xml");
+        return sb.toString();
+    }
+
+        /**
+         * Creates JMS destination on the server
+         *
+         * @param isQueue         is target destination queue?
+         * @param destinationName name of the destination
+         * @param jndiName        JNDI name of the destination
+         * @param durable         determines if created destination is durable
+         */
+
     protected void createJmsDestination(boolean isQueue, String destinationName, String jndiName, boolean durable) {
         try {
             connect(hostname, rmiPort);
@@ -331,9 +348,36 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * @param name          name of the connector f.e.: "netty-remote"
+     * @param socketBinding ingnored
+     * @param params        map of params
+     */
     @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
-        logger.info("This operation is not supported: " + getMethodName());
+
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", name);
+            XMLManipulation.addNode("//connectors", "connector", "", doc, attributes);
+            XMLManipulation.addNode("//connector[@name='" + name + "']", "factory-class",
+                    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory", doc);
+            attributes = new Hashtable<String, String>();
+            attributes.put("key", "host");
+            attributes.put("value", params.get("host"));
+            XMLManipulation.addNode("//connector[@name='" + name + "']", "param", "", doc, attributes);
+            attributes = new Hashtable<String, String>();
+            attributes.put("key", "port");
+            attributes.put("value", params.get("port"));
+            XMLManipulation.addNode("//connector[@name='" + name + "']", "param", "", doc, attributes);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -368,7 +412,14 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void disableSecurity() {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//security-enabled", "false", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -404,17 +455,38 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//broadcast-group[@name='" + nameOfTheBroadcastGroup + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void removeClusteringGroup(String clusterGroupName) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//cluster-connection[@name='" + clusterGroupName + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void removeDiscoveryGroup(String dggroup) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//discovery-group[@name='" + dggroup + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -494,13 +566,35 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void setBroadCastGroup(String name, String localBindAddress, int localBindPort, String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
-        logger.info("This operation is not supported: " + getMethodName());
+    public void setBroadCastGroup(String broadcastGroupName, String localBindAddress, int localBindPort, String groupAddress,
+                                  int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", broadcastGroupName);
+            XMLManipulation.addNode("//broadcast-groups", "broadcast-group", "", doc, attributes);
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-address", localBindAddress, doc);
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-port", String.valueOf(localBindPort), doc);
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "group-address", groupAddress, doc);
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "group-port", String.valueOf(groupPort), doc);
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "broadcast-period", String.valueOf(broadCastPeriod), doc);
+            if (backupConnectorName != null && !"".equals(backupConnectorName)) {
+                logger.info("setBroadCastGroup - backupConnectorName is not null but it's unsupported for now. (TODO)");
+            }
+            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "connector-ref", connectorName, doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
-    public void setBroadCastGroup(String serverName, String name, String localBindAddress, int localBindPort, String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
-        logger.info("This operation is not supported: " + getMethodName());
+    public void setBroadCastGroup(String serverName, String broadcastGroupName, String localBindAddress, int localBindPort, String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
+        // ignore serverName for EAP 5
+        setBroadCastGroup(broadcastGroupName, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod,
+                connectorName, backupConnectorName);
+
     }
 
     @Override
@@ -514,13 +608,35 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
-        logger.info("This operation is not supported: " + getMethodName());
+    public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers,
+                                      int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        // ignore connectorName for EAP5
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", name);
+            XMLManipulation.addNode("//cluster-connections", "cluster-connection", "", doc, attributes);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "address", address, doc);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "connector-ref", connectorName, doc);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "retry-interval", String.valueOf(retryInterval), doc);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "use-duplicate-detection", String.valueOf(useDuplicateDetection), doc);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "forward-when-no-consumers", String.valueOf(forwardWhenNoConsumers), doc);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "max-hops", String.valueOf(maxHops), doc);
+            attributes = new HashMap<String, String>();
+            attributes.put("discovery-group-name", discoveryGroupRef);
+            XMLManipulation.addNode("//cluster-connection[@name='" + name + "']", "discovery-group-ref", "", doc, attributes);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
-        logger.info("This operation is not supported: " + getMethodName());
+        // ignore serverName
+        setClusterConnections(name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection,
+                connectorName);
     }
 
     @Override
@@ -535,7 +651,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setClustered(boolean clustered) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            logger.info("Set clustered to " + clustered + " in " + configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//clustered", String.valueOf(clustered), doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -550,7 +674,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
-        logger.info("This operation is not supported: " + getMethodName());
+
+
     }
 
     @Override
@@ -560,7 +685,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setDiscoveryGroup(String name, String localBindAddress, String groupAddress, int groupPort, long refreshTimeout) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", name);
+            XMLManipulation.addNode("//discovery-groups", "discovery-group", "", doc, attributes);
+            XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "local-bind-address", localBindAddress, doc);
+            XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "group-address", groupAddress, doc);
+            XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "group-port", String.valueOf(groupPort), doc);
+            XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "refresh-timeout", String.valueOf(refreshTimeout), doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -815,7 +953,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             if (currentValue != null) {
                 XMLManipulation.setNodeContent("//annotation/*[@expr='!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)']", contentToSet, doc);
             } else {
-                HashMap<String,String> attributes = new HashMap<String, String>();
+                HashMap<String, String> attributes = new HashMap<String, String>();
                 attributes.put("expr", "!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)");
                 XMLManipulation.addNode("//domain[@name='Message Driven Bean']", "annotation", contentToSet, doc, attributes);
             }
@@ -880,5 +1018,87 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     public void setRmiPort(int rmiPort) {
         this.rmiPort = rmiPort;
+    }
+
+    /**
+     * Related only to EAP 5.
+     * <p/>
+     * Sets basic attributes in ra.xml.
+     *
+     * @param connectorClassName org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param connectionParameters host->port
+     * @param ha  if ha
+     */
+    @Override
+    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha) {
+
+        String configurationFile = getRAConfigurationFile();
+
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+            //child[contains(string(),'Likes')]
+            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectorClassName')]/..", doc);
+            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectionParameters')]/..", doc);
+            XMLManipulation.removeNode("//config-property/*[contains(string(),'HA')]/..", doc);
+
+            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+            Node rootNode = (Node) xpathInstance.evaluate("//resourceadapter", doc, XPathConstants.NODE);
+            Node insertBeforeNode = (Node) xpathInstance.evaluate("//outbound-resourceadapter", doc, XPathConstants.NODE);
+
+            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectorClassName", "java.lang.String",
+                    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"), insertBeforeNode);
+
+            StringBuilder st = new StringBuilder();
+            for (String key : connectionParameters.keySet())   {
+                st.append("host=").append(key).append(";port=").append(connectionParameters.get(key)).append(",");
+            }
+            // remove last comma ","
+            st.deleteCharAt(st.length() - 1);
+            logger.info("Setting ConnectionParameters in ra.xml to: " + st);
+            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectionParameters", "java.lang.String",
+                    st.toString()), insertBeforeNode);
+            rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
+                    String.valueOf(ha)), insertBeforeNode);
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     *
+     * @param doc
+     * @param description
+     * @param configPropertyName
+     * @param configPropertyType
+     * @param configPropertyValues
+     * @return
+     */
+    private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType, String configPropertyValues)    {
+
+        Element e = doc.createElement("config-property");
+
+        Element eDescription = doc.createElement("description");
+        eDescription.setTextContent(description);
+
+        Element eConfigProperty = doc.createElement("config-property-name");
+        eConfigProperty.setTextContent(configPropertyName);
+
+        Element eConfigPropertyType = doc.createElement("config-property-type");
+        eConfigPropertyType.setTextContent(configPropertyType);
+
+        Element eConfigPropertyValue = doc.createElement("config-property-value");
+        eConfigPropertyValue.setTextContent(configPropertyValues);
+
+        e.appendChild(eDescription);
+        e.appendChild(eConfigProperty);
+        e.appendChild(eConfigPropertyType);
+        e.appendChild(eConfigPropertyValue);
+
+        return e;
     }
 }

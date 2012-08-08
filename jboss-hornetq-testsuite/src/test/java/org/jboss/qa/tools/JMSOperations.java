@@ -1097,4 +1097,15 @@ public interface JMSOperations {
      * @param active if true then this attribute is activated. It's defaulted to true.
      */
     void setFactoryRef(boolean active);
+
+    /**
+     * Related only to EAP 5.
+     *
+     * Sets basic attributes in ra.xml.
+     *
+     * @param connectorClassName
+     * @param connectionParameters
+     * @param ha
+     */
+    void setRA(String connectorClassName, Map<String,String> connectionParameters, boolean ha);
 }

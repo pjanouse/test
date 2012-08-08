@@ -28,8 +28,8 @@ import java.util.Map;
  * @author ochaloup@redhat.com
  */
 @RunWith(Arquillian.class)
-public class ClientTestCase extends HornetQTestCase {
-    private static final Logger log = Logger.getLogger(ClientTestCase.class);
+public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
+    private static final Logger log = Logger.getLogger(BackwardCompatibilityClientTestCase.class);
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     private static final int NUMBER_OF_DESTINATIONS = 1;

@@ -193,7 +193,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-jbossas-managed-6</artifactId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
                     <version>${arquillian.eap5x.container.version}</version>
                 </dependency>
                 <dependency>
