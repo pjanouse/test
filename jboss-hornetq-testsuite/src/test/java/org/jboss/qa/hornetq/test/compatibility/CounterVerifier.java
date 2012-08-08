@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.client;
+package org.jboss.qa.hornetq.test.compatibility;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;

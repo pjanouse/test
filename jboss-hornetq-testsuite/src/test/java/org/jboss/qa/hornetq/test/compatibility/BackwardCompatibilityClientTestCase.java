@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.client;
+package org.jboss.qa.hornetq.test.compatibility;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
