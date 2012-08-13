@@ -146,6 +146,40 @@ public class HornetQTestCase implements ContextProvider {
     /**
      * Returns context
      *
+     * @param containerName name of the container
+     *
+     * @return instance of {@link Context}
+     *
+     * @throws NamingException if a naming exception is encountered
+     */
+    protected Context getContextByContainerName(String containerName) throws NamingException {
+
+        if (containerName == null && "".equals(containerName))  {
+            throw new IllegalStateException("Container name cannot be null or empty");
+        }
+
+        Context ctx = null;
+
+        if (CONTAINER1.equals(containerName))   {
+            getContext(CONTAINER1_IP);
+        } else if (CONTAINER2.equals(containerName))    {
+            getContext(CONTAINER2_IP);
+        } else if (CONTAINER3.equals(containerName))    {
+            getContext(CONTAINER3_IP);
+        } else if (CONTAINER4.equals(containerName))    {
+            getContext(CONTAINER4_IP);
+        }
+
+        return ctx;
+    }
+
+    protected Context getContext(String hostName) throws NamingException {
+        return getContext(hostName, 4447);
+    }
+
+    /**
+     * Returns context
+     *
      * @param hostName target hostname with JNDI service
      * @param port     port on the target service
      * @return instance of {@link Context}
