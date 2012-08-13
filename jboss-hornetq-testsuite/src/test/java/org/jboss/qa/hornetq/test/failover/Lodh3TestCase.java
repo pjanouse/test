@@ -16,9 +16,7 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -253,7 +251,7 @@ public class Lodh3TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -276,7 +274,7 @@ public class Lodh3TestCase extends HornetQTestCase {
         jmsAdminOperations.close();
         controller.stop(containerName);
         controller.start(containerName);
-        jmsAdminOperations = JMSProvider.getInstance(containerName);
+        jmsAdminOperations = this.getJMSOperations(containerName);
         
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", multicastAddress, 55874);
         deployDestinations(containerName);
@@ -303,7 +301,7 @@ public class Lodh3TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -375,7 +373,7 @@ public class Lodh3TestCase extends HornetQTestCase {
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

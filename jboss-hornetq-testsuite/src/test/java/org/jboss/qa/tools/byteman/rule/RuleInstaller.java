@@ -66,7 +66,7 @@ public class RuleInstaller {
             try {
                 callerMethodName = elements[level].getMethodName();
                 log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
-                ruleInstaller.installMethod(testClass.getMethod(callerMethodName, null));
+                ruleInstaller.installMethod(testClass.getMethod(callerMethodName));
                 installed = true;
                 break;
             } catch (Exception ex) {
@@ -78,8 +78,10 @@ public class RuleInstaller {
                 // and try to find byteman rules
                 Method[] testClassMethods = testClass.getMethods();
                 for (int i = 0; i < testClassMethods.length; i++) {
-                    if (callerMethodName.equalsIgnoreCase(testClassMethods[i].getName())) {
-                        ruleInstaller.installMethod(testClassMethods[i]);
+                    if (callerMethodName != null) {
+                        if (callerMethodName.equalsIgnoreCase(testClassMethods[i].getName())) {
+                            ruleInstaller.installMethod(testClassMethods[i]);
+                        }
                     }
                 }
             }

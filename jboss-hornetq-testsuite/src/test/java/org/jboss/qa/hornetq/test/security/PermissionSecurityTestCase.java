@@ -1,40 +1,37 @@
 package org.jboss.qa.hornetq.test.security;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
 /**
- *
  * Test security permissions to queues and topic
- *
+ * <p/>
  * Uses its own application-roles.properties, application-roles.properties
- *
+ * <p/>
  * It creates its own address-settings in standalone-full-ha.xml, enables
  * security.
- *
+ * <p/>
  * There are 3 users and 3 roles: admin -> role (username/password) admin -
  * admin (admin/adminadmin) admin - admin (admin/useruser) user - user
  * (unauthenticated)
- *
+ * <p/>
  * There is 1 queue/topic name of queue/topic -> roles -> permission for the
  * role testQueue0 -> user -> send,consume -> admin -> all permissions -> admin
  * -> send, consume, create/delete durable queue
- *
  *
  * @author mnovak@rehat.com
  */
@@ -62,7 +59,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0", 10, null, null);
+            guest = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", 10, null, null);
             guest.initializeClient();
 
             try {
@@ -84,12 +81,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             } catch (Exception ex) {
                 // ignore
             }
-            
+
             try {
                 guest.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
-                
+
                 Assert.fail("This should fail. User guest should not have permission to create non-durable queue.");
-                
+
             } catch (Exception ex) {
                 // ignore
             }
@@ -102,11 +99,10 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
 
         } finally {
-            
-            guest.close();
-            
+            if (guest != null) {
+                guest.close();
+            }
         }
-
         stopServer(CONTAINER1);
     }
 
@@ -125,7 +121,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "1", 10, "user", "useruser");
             user.initializeClient();
 
             try {
@@ -147,7 +143,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             } catch (Exception ex) {
                 // ignore
             }
-            
+
             try {
                 user.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
             } catch (Exception ex) {
@@ -159,7 +155,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Assert.fail("This should pass. User 'user' should have permission to delete non-durable queue.");                
+                Assert.fail("This should pass. User 'user' should have permission to delete non-durable queue.");
             }
         } finally {
             user.close();
@@ -185,32 +181,32 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         try {
             // try user admin
-            admin = new SecurityClient(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
             admin.initializeClient();
 
             try {
                 admin.sendAndReceive();
             } catch (Exception ex) {
-                Assert.fail("This should not fail:" +  ex.getMessage());
+                Assert.fail("This should not fail:" + ex.getMessage());
             }
             try {
                 admin.createDurableQueue(queueNamePrefix + "2");
 
             } catch (Exception ex) {
-                Assert.fail("This should not fail:" +  ex.getMessage());
+                Assert.fail("This should not fail:" + ex.getMessage());
             }
 
             try {
                 admin.deleteDurableQueue(queueNamePrefix + "2");
             } catch (Exception ex) {
-                Assert.fail("This should not fail:" +  ex.getMessage());
+                Assert.fail("This should not fail:" + ex.getMessage());
                 ex.printStackTrace();
             }
 
             try {
                 admin.createNonDurableQueue("jms.queue." + queueNamePrefix + "nondurable");
             } catch (Exception ex) {
-                Assert.fail("This should not fail:" +  ex.getMessage());
+                Assert.fail("This should not fail:" + ex.getMessage());
             }
 
             try {
@@ -218,11 +214,11 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             } catch (Exception ex) {
                 Assert.fail("This should not fail.");
             }
-            
+
         } finally {
             admin.close();
         }
-        
+
         stopServer(CONTAINER1);
 
     }
@@ -243,11 +239,11 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
 
             controller.start(CONTAINER1);
-            
+
             deployDestinations(CONTAINER1);
-            
+
             stopServer(CONTAINER1);
-            
+
             topologyCreated = true;
         }
     }
@@ -255,15 +251,15 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) throws IOException {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -330,7 +326,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -339,19 +335,18 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param hostname   ip address where to bind to managemant interface
+     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
-     *
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (
                 int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-            
+
 //            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
         }
     }
@@ -360,7 +355,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     public void copyFile(File sourceFile, File destFile) throws IOException {

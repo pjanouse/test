@@ -36,6 +36,8 @@ public class SimpleJMSClient {
     private int receiveTimeout = 1000;
     private boolean rollbackOnly;
 
+    private String initialContextClass = "org.jboss.naming.remote.client.InitialContextFactory";
+
     private Exception exceptionDuringSend;
     private Exception exceptionDuringReceive;
 
@@ -79,9 +81,12 @@ public class SimpleJMSClient {
      */
     private Context getContext() throws NamingException {
         final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
-
+        env.put(Context.INITIAL_CONTEXT_FACTORY, this.initialContextClass);
+        if (this.initialContextClass!=null && !this.initialContextClass.contains("jnp")) {
+            env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
+        } else {
+            env.put(Context.PROVIDER_URL, String.format("jnp://%s:%s", this.hostname, this.port));
+        }
         return new InitialContext(env);
     }
 
@@ -359,4 +364,13 @@ public class SimpleJMSClient {
     public void setRollbackOnly(boolean rollbackOnly) {
         this.rollbackOnly = rollbackOnly;
     }
+
+    public String getInitialContextClass() {
+        return initialContextClass;
+    }
+
+    public void setInitialContextClass(String initialContextClass) {
+        this.initialContextClass = initialContextClass;
+    }
+
 }

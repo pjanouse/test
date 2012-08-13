@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * XMLManipulation
  * <p/>
- * Implements tools for the basic manipulation with the XML files
+ * Implements tools for the basic manipulations with the XML file
  */
 public final class XMLManipulation {
 
@@ -135,10 +135,10 @@ public final class XMLManipulation {
     /**
      * Adds new XML node into the DOM model, location is defined by xpath
      *
-     * @param xpath location of the parameter defined by xpath
-     * @param name  name of the new xml element
-     * @param value content of the xml element
-     * @param doc   instance of the DOM model
+     * @param xpath      location of the parameter defined by xpath
+     * @param name       name of the new xml element
+     * @param value      content of the xml element
+     * @param doc        instance of the DOM model
      * @param attributes map: attributeName -> attributeValue for the element
      * @throws Exception if something goes wrong
      */
@@ -147,16 +147,13 @@ public final class XMLManipulation {
         Node node = (Node) xpathInstance.evaluate(xpath, doc, XPathConstants.NODE);
         if (node != null) {
             Element e = doc.createElement(name);
-
-            if (attributes != null && attributes.size() > 0)    {
-                for (String key : attributes.keySet())   {
+            if (attributes != null && attributes.size() > 0) {
+                for (String key : attributes.keySet()) {
                     e.setAttribute(key, attributes.get(key));
                 }
             }
-
             e.appendChild(doc.createTextNode(value));
             node.appendChild(e);
-
         } else {
             log.error(String.format("Cannot find xpath '%s'", xpath));
         }

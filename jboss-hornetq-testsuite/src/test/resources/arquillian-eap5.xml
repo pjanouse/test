@@ -7,8 +7,6 @@
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="bindAddress">${MYTESTIP_1}</property>
-                <property name="rmiPort">1099</property>
                 <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
@@ -16,6 +14,7 @@
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                 </property>
+                <property name="bindAddress">${MYTESTIP_1}</property>
                 <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">120</property>
             </configuration>
@@ -23,8 +22,6 @@
         <container qualifier="node-2" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="bindAddress">${MYTESTIP_2}</property>
-                <property name="rmiPort">1099</property>
                 <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
@@ -32,6 +29,7 @@
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                 </property>
+                <property name="bindAddress">${MYTESTIP_2}</property>
                 <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">120</property>
             </configuration>
@@ -39,8 +37,6 @@
         <container qualifier="node-3" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_3}</property>
-                <property name="bindAddress">${MYTESTIP_3}</property>
-                <property name="rmiPort">1099</property>
                 <property name="javaVmArguments">-Xms512m -Xmx512m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
@@ -48,6 +44,7 @@
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                 </property>
+                <property name="bindAddress">${MYTESTIP_3}</property>
                 <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">120</property>
             </configuration>

@@ -69,6 +69,19 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
+     * Returns MBean for the Queue
+     *
+     * @param queueName name of the queue
+     * @return name of the Queue MBean
+     * @throws Exception if something goes wrong
+     */
+    protected ObjectName getHornetQQueueMBean(String queueName) throws Exception {
+        return new ObjectName(String.format(
+                "org.hornetq:address=\"jms.queue.%s\",module=Core,name=\"jms.queue.%s\",type=Queue",
+                queueName, queueName));
+    }
+
+    /**
      * Returns path to the HornetQ configuration file
      *
      * @return path to the configuration file
@@ -267,7 +280,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void cleanupQueue(String queueName) {
-        logger.info("This operation is not supported: " + getMethodName());
+        try {
+            connect(hostname, rmiPort);
+            MBeanServerConnection server = getMBeanServer();
+            ObjectName serverPeer = getHornetQQueueMBean(queueName);
+            String operation = "removeMessages";
+            server.invoke(serverPeer, operation, new Object[]{""}, new String[]{String.class.getName()});
+        } catch (Exception e) {
+            logger.info("Destination " + queueName + " does not exist");
+        }
     }
 
     @Override
@@ -427,10 +448,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * @see {@link JMSOperations#getCountOfMessagesOnQueue(String)}
+     */
     @Override
     public long getCountOfMessagesOnQueue(String queueName) {
-        logger.info("This operation is not supported: " + getMethodName());
-        return 0;
+        long result = 0;
+        try {
+            connect(hostname, rmiPort);
+            MBeanServerConnection server = getMBeanServer();
+            ObjectName queue = getHornetQQueueMBean(queueName);
+            result = (Long) server.getAttribute(queue, "MessageCount");
+        } catch (Exception e) {
+            logger.info("Invoking MBean", e);
+        }
+        return result;
     }
 
     @Override

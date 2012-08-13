@@ -1,21 +1,16 @@
 package org.jboss.qa.hornetq.test.transportreliability;
 
-import javax.jms.Message;
-import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -153,7 +148,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", 500);
         
         producer.setMessageBuilder(messageBuilder);
         
@@ -161,7 +156,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         
         producer.join();
         
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0");
         
         receiver.start();
         
@@ -227,7 +222,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
+        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
         
         producer.setMessageBuilder(messageBuilder);
         
@@ -257,7 +252,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             log.info("############# Server 1 started.");
         }
         
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0");
         
         receiver.start();
         
@@ -312,7 +307,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
@@ -343,7 +338,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 //        jmsAdminOperations.setLoopBackAddressType("public", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("unsecure", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("management", bindingAddress);

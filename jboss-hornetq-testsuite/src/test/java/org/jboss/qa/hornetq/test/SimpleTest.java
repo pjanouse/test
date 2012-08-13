@@ -1,29 +1,20 @@
 package org.jboss.qa.hornetq.test;
 
+import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.tools.JMSOperations;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import junit.framework.Assert;
-import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SecurityClient;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
 
 /**
- *
- *
- *
  * @author mnovak@rehat.com
  */
 //@RestoreConfigAfterTest
@@ -48,9 +39,9 @@ public class SimpleTest extends HornetQTestCase {
 //        prepareServer();
         logger.error("mnovak: " + System.getProperty("JMS_PROVIDER_CLASS"));
         controller.start(CONTAINER1);
-        
-        JMSOperations jmsAdminOperations = new JMSProvider().getInstance(CONTAINER1);
-        jmsAdminOperations.addAddressSettings(CONTAINER1, queueNamePrefix, PORT_JNDI, PORT_JNDI, PORT_JNDI, PORT_JNDI);
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        jmsAdminOperations.addAddressSettings(CONTAINER1, queueNamePrefix, getJNDIPort(), getJNDIPort(), getJNDIPort(), getJNDIPort());
         jmsAdminOperations.createQueue("testQueue", "queue/testQueue");
         jmsAdminOperations.createQueue("testTopic", "queue/testTopic");
         jmsAdminOperations.setPersistenceEnabled(false);
@@ -63,7 +54,7 @@ public class SimpleTest extends HornetQTestCase {
 
 //        jmsAdminOperations.removeQueue("testQueue");
 //        jmsAdminOperations.removeTopic("testTopic");
-        
+
         logger.info("mnovak: server was started and queue deployed");
 //        Thread.sleep(100000);
 
@@ -96,16 +87,16 @@ public class SimpleTest extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) throws IOException {
 
         controller.start(containerName);
-        
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
-        
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -181,17 +172,16 @@ public class SimpleTest extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param containerName container name
-     * @param serverName server name of the hornetq server
-     *
+     * @param serverName    server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (
                 int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-            
+
 //            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
         }
     }
@@ -200,7 +190,7 @@ public class SimpleTest extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     public void copyFile(File sourceFile, File destFile) throws IOException {
