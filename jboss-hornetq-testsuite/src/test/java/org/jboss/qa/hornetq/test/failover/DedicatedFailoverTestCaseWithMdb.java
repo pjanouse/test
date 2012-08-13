@@ -4,23 +4,17 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.Assert;
+
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteInQueueAndLocalOutQueue;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -100,7 +94,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -189,7 +183,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(false);
         
@@ -252,7 +246,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -312,7 +306,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);

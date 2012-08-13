@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.cluster;
 import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -15,11 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -129,8 +124,8 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
         deployer.deploy("mdbOnQueue2");
 
         // Send messages into input node and read from output node
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER2_IP, PORT_JNDI, outQueueJndiNameForMdb, 10000, 10, 10);
+        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER2_IP, getJNDIPort(), outQueueJndiNameForMdb, 10000, 10, 10);
 
         log.info("Start producer and consumer.");
         producer.start();
@@ -182,8 +177,8 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
         // Send messages into input topic and read from out topic
         log.info("Start publisher and consumer.");
-        PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, PORT_JNDI, inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER2_IP, PORT_JNDI, outQueueJndiNameForMdb, 10000, 10, 10);
+        PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, getJNDIPort(), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
+        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER2_IP, getJNDIPort(), outQueueJndiNameForMdb, 10000, 10, 10);
 
         publisher.start();
         receiver.start();
@@ -237,21 +232,21 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(CONTAINER1_IP, PORT_JNDI, queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -294,7 +289,7 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
@@ -328,7 +323,7 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 //        jmsAdminOperations.setLoopBackAddressType("public", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("unsecure", bindingAddress);
 //        jmsAdminOperations.setLoopBackAddressType("management", bindingAddress);

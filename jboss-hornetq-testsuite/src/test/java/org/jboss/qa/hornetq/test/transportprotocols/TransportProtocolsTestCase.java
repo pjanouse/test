@@ -13,9 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -95,8 +93,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         log.info("Start producer and consumer.");
-        ProducerAutoAck producer = new ProducerAutoAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverAutoAck receiver = new ReceiverAutoAck(CONTAINER1_IP, PORT_JNDI, inQueueJndiNameForMdb, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
+        ProducerAutoAck producer = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverAutoAck receiver = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();
@@ -125,7 +123,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     private void prepareServerForTCPTransport(String containerName, String bindingAddress, String journalType) {
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createQueue("default", inQueueNameForMdb, inQueueJndiNameForMdb, true);
@@ -146,7 +144,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("http-enabled", "true");
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createSocketBinding(socketBindingName, 7080);
@@ -197,7 +195,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         acceptorParams.put("trust-store-path", trustStoreNew.getAbsolutePath());
         acceptorParams.put("trust-store-password", "hornetqexample");
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.removeRemoteConnector("netty");

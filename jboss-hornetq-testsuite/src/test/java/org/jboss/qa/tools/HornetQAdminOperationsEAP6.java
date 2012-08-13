@@ -2764,9 +2764,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         this.port = port;
     }
 
-    
-    
-
     /**
      * Exception
      */

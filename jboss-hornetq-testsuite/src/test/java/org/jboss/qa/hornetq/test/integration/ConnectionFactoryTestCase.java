@@ -8,7 +8,6 @@ import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -111,7 +110,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
 //        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
 
         jmsAdminOperations.setFactoryRef(true);
 

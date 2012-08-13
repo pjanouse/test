@@ -15,9 +15,7 @@ import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Before;
@@ -188,7 +186,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES, 1, 1, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES, 1, 1, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
@@ -346,7 +344,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         String udpGroupAddress = "231.43.21.36";
 
         controller.start(containerName);
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -384,7 +382,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         controller.stop(containerName);
         controller.start(containerName);
 
-        jmsAdminOperations = JMSProvider.getInstance(containerName);
+        jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
@@ -411,7 +409,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -461,7 +459,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
             String relativeJndiQueueNamePrefix, int numberOfQueues) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);

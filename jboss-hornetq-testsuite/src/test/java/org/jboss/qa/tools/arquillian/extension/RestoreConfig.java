@@ -40,37 +40,40 @@ public class RestoreConfig {
         String serverConfig;
         File configurationFile;
         File configurationFileBackup;
-        StringBuilder pathToConfigurationDirectory;
+        StringBuilder pathToConfigDir;
         String fileSeparator = System.getProperty("file.separator");
 
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-
                 containerProperties = containerDef.getContainerProperties();
                 jbossHome = containerProperties.get("jbossHome");
                 serverConfig = containerProperties.get("serverConfig");
+                if (jbossHome != null && serverConfig != null) {
+                    pathToConfigDir = new StringBuilder(jbossHome)
+                            .append(fileSeparator)
+                            .append("standalone")
+                            .append(fileSeparator)
+                            .append("configuration")
+                            .append(fileSeparator);
+                    configurationFile = new File(pathToConfigDir.toString() + serverConfig);
+                    if (!configurationFile.exists()) {
+                        logger.warn(String.format("Configuration file: %s does not exist. "
+                                + "Probably container EAP5 is used. Trying to create backup of EAP 5 configuration."
+                                , configurationFile.getAbsolutePath()));
+                        backupConfigurationEAP5(descriptor);
+                        return;
+                    }
+                    configurationFileBackup = new File(pathToConfigDir.toString() + serverConfig + ".backup");
 
-                pathToConfigurationDirectory = new StringBuilder(jbossHome)
-                        .append(fileSeparator).append("standalone").append(fileSeparator).append("configuration").append(fileSeparator);
+                    if (configurationFileBackup.exists()) {
+                        return;
+                    }
 
-                configurationFile = new File(pathToConfigurationDirectory.toString() + serverConfig);
+                    logger.info("Copying configuration file " + configurationFile.getAbsolutePath()
+                            + " to " + configurationFileBackup.getAbsolutePath());
 
-                if (!configurationFile.exists()) {
-                    logger.warn("Configuration file: " + configurationFile.getAbsolutePath() + " does not exist. "
-                            + "Probably container EAP5 is used. Trying to create backup of EAP 5 configuration.");
-                    backupConfigurationEAP5(descriptor);
-                    return;
+                    copyFile(configurationFile, configurationFileBackup);
                 }
-                configurationFileBackup = new File(pathToConfigurationDirectory.toString() + serverConfig + ".backup");
-
-                if (configurationFileBackup.exists())   {
-                    return;
-                }
-
-                logger.info("Copying configuration file " + configurationFile.getAbsolutePath()
-                        + " to " + configurationFileBackup.getAbsolutePath());
-
-                copyFile(configurationFile, configurationFileBackup);
             }
         }
     }
@@ -82,41 +85,47 @@ public class RestoreConfig {
      */
     public void backupConfigurationEAP5(ArquillianDescriptor descriptor) throws IOException {
 
-        Map<String,String> containerProperties;
+        Map<String, String> containerProperties;
         String jbossHome;
         String profileName;
         StringBuilder pathToConfigurationDirectory;
         StringBuilder pathToBackupConfigurationDirectory;
         File originalProfileDirectory;
         File backupProfileDirectory;
-
         String fileSeparator = System.getProperty("file.separator");
-
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-
                 containerProperties = containerDef.getContainerProperties();
                 jbossHome = containerProperties.get("jbossHome");
                 profileName = containerProperties.get("profileName");
+                if (jbossHome != null && profileName != null) {
+                    pathToConfigurationDirectory = new StringBuilder(jbossHome)
+                            .append(fileSeparator)
+                            .append("server")
+                            .append(fileSeparator)
+                            .append(profileName);
+                    pathToBackupConfigurationDirectory = new StringBuilder(jbossHome)
+                            .append(fileSeparator)
+                            .append("server")
+                            .append(fileSeparator)
+                            .append(profileName)
+                            .append("-backup");
+                    originalProfileDirectory = new File(pathToConfigurationDirectory.toString());
+                    backupProfileDirectory = new File(pathToBackupConfigurationDirectory.toString());
 
-                pathToConfigurationDirectory = new StringBuilder(jbossHome)
-                        .append(fileSeparator).append("server").append(fileSeparator).append(profileName);
-                pathToBackupConfigurationDirectory = new StringBuilder(jbossHome)
-                        .append(fileSeparator).append("server").append(fileSeparator).append(profileName).append("-backup");
-                originalProfileDirectory = new File(pathToConfigurationDirectory.toString());
-                backupProfileDirectory = new File(pathToBackupConfigurationDirectory.toString());
+                    if (!originalProfileDirectory.exists()) {
+                        logger.warn(String.format("Profile %s does NOT exist. "
+                                + "Backup of the configuration cannot be created.", profileName));
+                        return;
+                    }
+                    if (!backupProfileDirectory.exists()) {
+                        backupProfileDirectory.mkdir();
+                    } else {
+                        return;
+                    }
 
-                if (!originalProfileDirectory.exists())  {
-                    logger.warn("Profile " + profileName + " does NOT exist. Backup of the configuration cannot be created.");
-                    return;
+                    copyDirectory(originalProfileDirectory, backupProfileDirectory);
                 }
-                if (!backupProfileDirectory.exists())   {
-                    backupProfileDirectory.mkdir();
-                } else {
-                    return;
-                }
-
-                copyDirectory(originalProfileDirectory, backupProfileDirectory);
             }
         }
     }
@@ -175,7 +184,7 @@ public class RestoreConfig {
 
                 configurationFile = new File(pathToConfigurationDirectory.toString() + serverConfig);
 
-                if (!configurationFile.exists())    {
+                if (!configurationFile.exists()) {
                     logger.warn("Configuration file " + configurationFile.getAbsolutePath() + " does not exist. Probably EAP 5 is used. " +
                             "Trying to restore EAP 5 profile.");
                     restoreConfigurationEAP5(descriptor);
@@ -198,7 +207,7 @@ public class RestoreConfig {
 
     private void restoreConfigurationEAP5(ArquillianDescriptor descriptor) throws IOException {
 
-        Map<String,String> containerProperties;
+        Map<String, String> containerProperties;
         String jbossHome;
         String profileName;
         StringBuilder pathToConfigurationDirectory;
@@ -218,21 +227,22 @@ public class RestoreConfig {
                 pathToConfigurationDirectory = new StringBuilder(jbossHome)
                         .append(fileSeparator).append("server").append(fileSeparator).append(profileName);
                 pathToBackupConfigurationDirectory = new StringBuilder(jbossHome)
-                        .append(fileSeparator).append("server").append(fileSeparator).append(profileName + "-backup");
+                        .append(fileSeparator).append("server").append(fileSeparator).append(profileName).append("-backup");
                 originalProfileDirectory = new File(pathToConfigurationDirectory.toString());
                 backupProfileDirectory = new File(pathToBackupConfigurationDirectory.toString());
 
-                if (!originalProfileDirectory.exists())  {
+                if (!originalProfileDirectory.exists()) {
                     logger.warn("Profile " + profileName + " does NOT exist. Profile cannot be restored.");
                     return;
                 }
-                if (!backupProfileDirectory.exists())   {
+                if (!backupProfileDirectory.exists()) {
                     logger.error("Backup for profile " + profileName + " does not exist. Configuration won't be restored.");
                 }
                 copyDirectory(backupProfileDirectory, originalProfileDirectory);
             }
         }
     }
+
     /**
      * Copies file from one place to another.
      *
@@ -264,6 +274,7 @@ public class RestoreConfig {
 
     /**
      * Copies one directory to another.
+     *
      * @param srcDir source directory
      * @param dstDir destination directory
      * @throws IOException
@@ -275,7 +286,7 @@ public class RestoreConfig {
             }
 
             String[] children = srcDir.list();
-            for (int i=0; i<children.length; i++) {
+            for (int i = 0; i < children.length; i++) {
                 copyDirectory(new File(srcDir, children[i]),
                         new File(dstDir, children[i]));
             }

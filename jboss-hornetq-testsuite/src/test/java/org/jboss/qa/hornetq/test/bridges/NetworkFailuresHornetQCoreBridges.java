@@ -17,8 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Properties;
-
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
  * repeatedly.
@@ -275,7 +273,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         String messagingGroupSocketBindingNameForDiscovery = messagingGroupSocketBindingName + "-" + containerName;
 
         controller.start(containerName);
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -332,7 +330,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
             String relativeJndiQueueNamePrefix, int numberOfQueues) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);

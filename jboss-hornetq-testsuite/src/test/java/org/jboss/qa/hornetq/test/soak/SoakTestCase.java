@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -31,8 +31,6 @@ import javax.naming.NamingException;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.Semaphore;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
 
 /**
  * Complex SOAK test for HornetQ
@@ -150,8 +148,8 @@ public class SoakTestCase extends HornetQTestCase {
             consumers[i].start();
         }
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, PORT_JNDI, IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, PORT_JNDI, IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
         producerToInQueue2.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
 
@@ -270,7 +268,7 @@ public class SoakTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -316,7 +314,7 @@ public class SoakTestCase extends HornetQTestCase {
 
         controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -392,7 +390,7 @@ public class SoakTestCase extends HornetQTestCase {
      */
     private void deployDestinations(String containerName, String serverName) {
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -460,8 +458,8 @@ public class SoakTestCase extends HornetQTestCase {
 
         Context context = null;
         try {
-            context = getContext(hostname, PORT_JNDI);
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI);
+            context = getContext(hostname, this.getJNDIPort());
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(BRIDGE_OUT_TOPIC_JNDI_NAME);
             for (int i = 0; i < consumers.length; i++) {
                 consumers[i] = new HighLoadConsumerWithSemaphores("consumer " + i + " on " + hostname, topic, cf,

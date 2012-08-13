@@ -315,8 +315,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSOperations jmsAdminContainer1 = JMSProvider.getInstance(CONTAINER1);
-        JMSOperations jmsAdminContainer2 = JMSProvider.getInstance(CONTAINER2);
+        JMSOperations jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
 
         // Create queue
         jmsAdminContainer1.cleanupQueue(TEST_QUEUE_IN);
@@ -390,8 +390,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSOperations jmsAdminContainer1 = JMSProvider.getInstance(CONTAINER1);
-        JMSOperations jmsAdminContainer2 = JMSProvider.getInstance(CONTAINER2);
+        JMSOperations jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
         
         // Create queue
         jmsAdminContainer1.cleanupQueue(TEST_QUEUE_IN);
@@ -424,7 +424,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node and read from output node
-        QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, PORT_JNDI, TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
+        QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
         clients.setHostnameForProducers(CONTAINER1_IP);
         clients.setQueueJndiNamePrefixProducers(TEST_QUEUE_IN_JNDI_PREFIX);
         clients.setHostnameForConsumers(CONTAINER2_IP);
@@ -478,8 +478,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSOperations jmsAdminContainer1 = JMSProvider.getInstance(CONTAINER1);
-        JMSOperations jmsAdminContainer2 = JMSProvider.getInstance(CONTAINER2);
+        JMSOperations jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
         
         // Create queue
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
@@ -553,8 +553,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSOperations jmsAdminContainer1 = JMSProvider.getInstance(CONTAINER1);
-        JMSOperations jmsAdminContainer2 = JMSProvider.getInstance(CONTAINER2);
+        JMSOperations jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
         
         // Create queue
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
@@ -604,8 +604,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         // Create administration objects
-        JMSOperations jmsAdminContainer1 = JMSProvider.getInstance(CONTAINER1);
-        JMSOperations jmsAdminContainer2 = JMSProvider.getInstance(CONTAINER2);
+        JMSOperations jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
 
         // Create queue
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
