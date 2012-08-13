@@ -330,7 +330,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createQueue(String queueName, String jndiName, boolean durable) {
-        createQueue("defalut", queueName, jndiName, durable);
+        createQueue("default", queueName, jndiName, durable);
     }
 
     @Override
@@ -547,12 +547,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setBindingsDirectory(String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            logger.info("Set bindings directory to " + path + " in " + configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//bindings-directory", new File(path).getAbsolutePath() + File.separator + "bindings", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void setBindingsDirectory(String serverName, String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        setBindingsDirectory(path);
     }
 
     @Override
@@ -763,12 +771,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setJournalDirectory(String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            logger.info("Set journal directory to " + path + " in " + configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//journal-directory", new File(path).getAbsolutePath() + File.separator + "journal", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void setJournalDirectory(String serverName, String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        setJournalDirectory(path);
     }
 
     @Override
@@ -793,12 +809,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setLargeMessagesDirectory(String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            logger.info("Set large-messages-directory directory to " + path + " in " + configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//large-messages-directory", new File(path).getAbsolutePath() + File.separator + "large-messages", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void setLargeMessagesDirectory(String serverName, String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        setLargeMessagesDirectory(path);
     }
 
     @Override
@@ -818,12 +842,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setPagingDirectory(String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            logger.info("Set paging-directory directory to " + path + " in " + configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.setNodeContent("//paging-directory", new File(path).getAbsolutePath() + File.separator + "paging", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void setPagingDirectory(String serverName, String path) {
-        logger.info("This operation is not supported: " + getMethodName());
+        setPagingDirectory(path);
     }
 
     @Override

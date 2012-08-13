@@ -48,6 +48,7 @@ public class ConfigurationLoader {
         // Path to the journal
         String tmpJournalA = System.getProperty("JOURNAL_DIRECTORY_A");
         JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
+        log.info("JOURNAL_DIRECTORY_A=" + JOURNAL_DIRECTORY_A);
         String tmpJournalB = System.getProperty("JOURNAL_DIRECTORY_B");
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
 

@@ -96,31 +96,94 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
     }
+
+    @BMRules({
+            @BMRule(name = "get xa recovery configs during getXAResources",
+                    targetClass = "org.hornetq.jms.server.recovery.HornetQRecoveryRegistry",
+                    targetMethod = "getXAResources",
+                    targetLocation = "EXIT",
+                    action = "org.jboss.qa.hornetq.test.integration.XARecoveryConfigHelper.checkResult($!);"),
+            @BMRule(name = "test",
+                    targetClass = "org.hornetq.jms.server.recovery.HornetQRecoveryRegistry",
+                    targetMethod = "getXAResources",
+                    action = "System.out.print(\"test: getXAResources called.\");")
+    })
+    /**
+     * This test case verifies that just one xa recovery config is registered with InVMConnector.
+     */
     @Test
     @RunAsClient
-//    @RestoreConfigAfterTest
-    public void testByteman() throws Exception {
-    // deploy helper and rule
-    //deployer.undeploy("xaRecoverConfigHelper");
-    //deployer.deploy("xaRecoverConfigHelper");
-    RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+    public void testOnlySimpleInVMJcaInCluster() throws Exception {
 
-    // wait until tx manager call getXAResources
-    Thread.sleep(120000);
+        prepareMdbServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
+        prepareJmsServer(CONTAINER2, CONTAINER2_IP);
 
-    BufferedReader in = new BufferedReader(new FileReader(ConfigurationLoader.getJbossHome(CONTAINER1)
-            + File.separator + "xa-resources.txt"));
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
 
-    // there is one live per config
-    String line;
-    StringBuilder st = new StringBuilder();
-    int numberOfLines = 0;
-    while ((line = in.readLine()) != null) {
-        logger.info(line);
-        numberOfLines++;
-        st.append(line);
+        // deploy helper and rule
+        deployer.undeploy("xaRecoverConfigHelper");
+        deployer.deploy("xaRecoverConfigHelper");
+        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+
+        // wait until tx manager call getXAResources
+        Thread.sleep(200000);
+
+        BufferedReader in = new BufferedReader(new FileReader(ConfigurationLoader.getJbossHome(CONTAINER1)
+                + File.separator + "xa-resources.txt"));
+
+        // there is one live per config
+        String line = null;
+        StringBuilder st = new StringBuilder();
+        int numberOfLines = 0;
+        while ((line = in.readLine()) != null) {
+//            logger.info(line);
+            numberOfLines++;
+            st.append(line);
+        }
+
+        // check them
+        String xaResources = st.toString();
+
+        Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources);
+        Assert.assertEquals("Only one xa resource should be registered.", numberOfLines, 1);
+
+        if (xaResources.contains("InVMConnectorFactory"))   {
+            logger.info("InVMConnectorFactory found");
+        } else {
+            Assert.fail("InVMConnectorFactory not found but is expected.");
+        }
+
+        // stop server
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
     }
-    }
+//    @Test
+//    @RunAsClient
+////    @RestoreConfigAfterTest
+//    public void testByteman() throws Exception {
+//    // deploy helper and rule
+//    //deployer.undeploy("xaRecoverConfigHelper");
+//    //deployer.deploy("xaRecoverConfigHelper");
+//    RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+//
+//    // wait until tx manager call getXAResources
+//    Thread.sleep(120000);
+//
+//    BufferedReader in = new BufferedReader(new FileReader(ConfigurationLoader.getJbossHome(CONTAINER1)
+//            + File.separator + "xa-resources.txt"));
+//
+//    // there is one live per config
+//    String line;
+//    StringBuilder st = new StringBuilder();
+//    int numberOfLines = 0;
+//    while ((line = in.readLine()) != null) {
+//        logger.info(line);
+//        numberOfLines++;
+//        st.append(line);
+//    }
+//    }
 
     @BMRules({
             @BMRule(name = "get xa recovery configs during getXAResources",
@@ -136,7 +199,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
 //    @RestoreConfigAfterTest
-    public void testParse() throws Exception {
+    public void testRemoteJcaInCluster() throws Exception {
         // jms server are 2 and 3
         // mdb server is 1 = > 2
         prepareMdbServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
@@ -181,7 +244,6 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         String xaResources1 = st1.toString();
 
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources1);
-        Assert.assertEquals("Only two xa resources should be registered.", numberOfLines, 2);
 
         if (xaResources1.contains("NettyConnectorFactory"))   {
             logger.info("NettyConnectorFactory found. This is expected.");
@@ -190,7 +252,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms servers are not present then fail the test
-        if (!xaResources1.contains(CONTAINER2_IP) || !xaResources1.contains(CONTAINER3_IP))   {
+        if (!xaResources1.replaceAll("-",".").contains(CONTAINER2_IP) || !xaResources1.replaceAll("-",".").contains(CONTAINER3_IP))   {
 
             Assert.fail(CONTAINER2_IP + " or " + CONTAINER3_IP + " not found but are expected in: " + xaResources1);
 
@@ -229,7 +291,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         String xaResources2 = st2.toString();
 
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources2);
-        Assert.assertEquals("Only one xa resource should be registered: " + xaResources2, numberOfLines, 1);
+        Assert.assertEquals("Only one xa resource should be registered: " + xaResources2, 1, numberOfLines);
 
         if (xaResources2.contains("NettyConnectorFactory"))   {
             logger.info("NettyConnectorFactory found. This is expected.");
@@ -238,14 +300,14 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms 2 server is not present then fail the test
-        if (!xaResources2.contains(CONTAINER2_IP))   {
+        if (!xaResources2.replaceAll("-",".").contains(CONTAINER2_IP))   {
 
             Assert.fail(CONTAINER2_IP + " not found but is expected in: " + xaResources2);
 
         }
 
         // if ip of jms 3 server is present then fail the test
-        if (xaResources2.contains(CONTAINER3_IP))   {
+        if (xaResources2.replaceAll("-",".").contains(CONTAINER3_IP))   {
 
             Assert.fail(CONTAINER3_IP + " found but is not expected in: " + xaResources2);
 
