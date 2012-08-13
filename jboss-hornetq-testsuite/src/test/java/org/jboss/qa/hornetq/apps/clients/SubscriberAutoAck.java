@@ -1,12 +1,14 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.*;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Simple subscriber with auto acknowledge session. ABLE to failover.
@@ -22,7 +24,8 @@ public class SubscriberAutoAck extends Thread {
     private String topicNameJndi;
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
+    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
+    ;
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
@@ -34,34 +37,34 @@ public class SubscriberAutoAck extends Thread {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
-    
+
     /**
      * Creates a subscriber to topic with client acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicNameJndi jndi name of the topic    
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
-        
+
         this(hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
-        
+
     }
-    
+
     /**
      * Creates a subscriber to topic with client acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicNameJndi jndi name of the topic
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
      * @param receiveTimeOut how long to wait to receive message
-     * @param maxRetries how many times to retry receive before giving up
+     * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
-            int maxRetries, String clientId, String subscriberName) {
-        
+                             int maxRetries, String clientId, String subscriberName) {
+
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicNameJndi;
@@ -81,25 +84,25 @@ public class SubscriberAutoAck extends Thread {
             }
 
             Message message = null;
-            
+
             while ((message = receiveMessage(subscriber)) != null) {
-                
+
                 listOfReceivedMessages.add(message);
-                
+
                 count++;
-                
-                logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
-                            + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
+
+                logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                        + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID());
             }
-            
-            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
-                    +". Received NULL - number of received messages: " + count);
-            
-            if (messageVerifier != null)    {
+
+            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                    + ". Received NULL - number of received messages: " + count);
+
+            if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
-            
+
         } catch (JMSException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
@@ -115,49 +118,48 @@ public class SubscriberAutoAck extends Thread {
                     // ignore
                 }
             }
-            if (context != null)    {
+            if (context != null) {
                 try {
                     context.close();
-                } catch (Exception ex)    {
+                } catch (Exception ex) {
                     // ignore
                 }
             }
         }
     }
-   
+
     /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
      * subscriber.subscriber(timeout) throw JMSException maxRetries's times then throw Exception above.
-     * 
+     *
      * @param subscriber subscriber message subscriber
      * @return message or null
      * @throws Exception when maxRetries was reached
-     * 
      */
     public Message receiveMessage(TopicSubscriber subscriber) throws Exception {
-        
+
         Message msg = null;
         int numberOfRetries = 0;
-        
+
         // receive message with retry
-        while (numberOfRetries < maxRetries)    {
-            
+        while (numberOfRetries < maxRetries) {
+
             try {
-                
+
                 msg = subscriber.receive(receiveTimeOut);
                 return msg;
-                
-            } catch (JMSException ex)   {
+
+            } catch (JMSException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1) 
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1)
                         + "ex: " + ex.getMessage());
             }
         }
-       
+
         throw new Exception("FAILURE - MaxRetry reached for subscriber Subscriber: " + subscriberName + " for node: " + hostname);
     }
-    
+
     /**
      * @return the maxRetries
      */
@@ -269,10 +271,9 @@ public class SubscriberAutoAck extends Thread {
     public void setSubscriberName(String subscriberName) {
         this.subscriberName = subscriberName;
     }
-    
+
     /**
      * I don't want to have synchronization between publishers and subscribers.
-     * 
      */
     public void subscribe() {
 
@@ -298,9 +299,9 @@ public class SubscriberAutoAck extends Thread {
             subscriber = session.createDurableSubscriber(topic, subscriberName);
 
         } catch (Exception e) {
-            
+
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-        } 
+        }
     }
 }

@@ -1,10 +1,7 @@
 //TODO do check of journal files
 package org.jboss.qa.hornetq.test.failover;
 
-import java.util.ArrayList;
-import java.util.List;
 import junit.framework.Assert;
-import static junit.framework.Assert.assertTrue;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -22,10 +19,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static junit.framework.Assert.assertTrue;
+
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
  * repeatedly.
- *
+ * <p/>
  * Topology - container1 - source server container2 - target server container3 -
  * source server container4 - target server
  *
@@ -154,8 +156,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages number of messages used for the test
-     * @param messageBuilder instance of the message builder
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
      * @param messageVerifier instance of the messages verifier
      */
     private void testLogic(MessageBuilder messageBuilder) throws Exception {
@@ -172,8 +174,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages number of messages used for the test
-     * @param messageBuilder instance of the message builder
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
      * @param messageVerifier instance of the messages verifier
      */
     private void testLogic(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
@@ -219,8 +221,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages number of messages used for the test
-     * @param messageBuilder instance of the message builder
+     * @param messages        number of messages used for the test
+     * @param messageBuilder  instance of the message builder
      * @param messageVerifier instance of the messages verifier
      */
     private void testLogicLargeMessages(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
@@ -267,7 +269,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     /**
      * Executes kill sequence.
      *
-     * @param failSequence map Contanier -> ContainerIP
+     * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
     private void executeNodeFaillSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
@@ -297,42 +299,42 @@ public class Lodh4TestCase extends HornetQTestCase {
 
     /**
      * Prepares servers.
-     *
+     * <p/>
      * Container1,3 - source servers in cluster A. Container2,4 - source servers
      * in cluster B.
      */
     public void prepareServers() {
-        
-            prepareSourceServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
-            prepareSourceServer(CONTAINER3, CONTAINER3_IP, CONTAINER4_IP);
-            prepareTargetServer(CONTAINER2, CONTAINER2_IP);
-            prepareTargetServer(CONTAINER4, CONTAINER4_IP);
 
-            // deploy destinations 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            stopServer(CONTAINER1);
-            controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            stopServer(CONTAINER3);
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            stopServer(CONTAINER2);
-            controller.start(CONTAINER4);
-            deployDestinations(CONTAINER4, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-            stopServer(CONTAINER4);
+        prepareSourceServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
+        prepareSourceServer(CONTAINER3, CONTAINER3_IP, CONTAINER4_IP);
+        prepareTargetServer(CONTAINER2, CONTAINER2_IP);
+        prepareTargetServer(CONTAINER4, CONTAINER4_IP);
+
+        // deploy destinations
+        controller.start(CONTAINER1);
+        deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+        stopServer(CONTAINER1);
+        controller.start(CONTAINER3);
+        deployDestinations(CONTAINER3, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+        stopServer(CONTAINER3);
+        controller.start(CONTAINER2);
+        deployDestinations(CONTAINER2, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+        stopServer(CONTAINER2);
+        controller.start(CONTAINER4);
+        deployDestinations(CONTAINER4, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
+        stopServer(CONTAINER4);
 
     }
 
     /**
      * Prepares source server for bridge.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName         Name of the container - defined in arquillian.xml
+     * @param bindingAddress        says on which ip container will be binded
      * @param targetServerIpAddress ip address of target server for bridge
      */
     private void prepareSourceServer(String containerName, String bindingAddress,
-            String targetServerIpAddress) {
+                                     String targetServerIpAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -395,7 +397,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     /**
      * Prepare target server for bridge
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
     private void prepareTargetServer(String containerName, String bindingAddress) {
@@ -446,18 +448,17 @@ public class Lodh4TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to management interface
-     * @param port port of management interface - it should be 9999
-     * @param serverName server name of the hornetq server
-     * @param hornetqQueueName name of hornetq queue e.g. 'testQueue'
+     * @param hostname              ip address where to bind to management interface
+     * @param port                  port of management interface - it should be 9999
+     * @param serverName            server name of the hornetq server
+     * @param hornetqQueueName      name of hornetq queue e.g. 'testQueue'
      * @param relativeJndiQueueName relativeJndiName e.g. 'queue/testQueueX' ->
-     * will create "java:jboss/exported/queue/testQueueX" and
-     * "java:/queue/testQueue" jndi bindings
-     * @param numberOfQueues number of queue with the given queue name prefix
-     *
+     *                              will create "java:jboss/exported/queue/testQueueX" and
+     *                              "java:/queue/testQueue" jndi bindings
+     * @param numberOfQueues        number of queue with the given queue name prefix
      */
     private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
-            String relativeJndiQueueNamePrefix, int numberOfQueues) {
+                                    String relativeJndiQueueNamePrefix, int numberOfQueues) {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 

@@ -10,7 +10,7 @@ import javax.jms.Session;
  */
 public interface MessageBuilder {
 
-	static final String MESSAGE_COUNTER_PROPERTY = "counter";
-	
+    static final String MESSAGE_COUNTER_PROPERTY = "counter";
+
     Message createMessage(Session session) throws Exception;
 }

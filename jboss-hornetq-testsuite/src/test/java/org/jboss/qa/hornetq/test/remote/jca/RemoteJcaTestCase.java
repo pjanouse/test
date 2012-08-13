@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq.test.remote.jca;
 
-import java.io.*;
-import java.nio.channels.FileChannel;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -10,7 +8,8 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -24,6 +23,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.*;
+import java.nio.channels.FileChannel;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
@@ -58,7 +60,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
-        
+
         File propertyFile = new File("mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER1_IP);
@@ -68,13 +70,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
-        
+
     }
 
     @Deployment(managed = false, testable = false, name = "mdb2")
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
-        
+
         File propertyFile = new File("mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER3_IP);
@@ -88,9 +90,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -132,10 +133,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver1.join();
         receiver2.join();
 
-        Assert.assertEquals("There is different number of sent and received messages.", 
+        Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
                 receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
-        
+
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
         stopServer(CONTAINER2);
@@ -147,9 +148,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -163,34 +163,35 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         // cluster B
         controller.start(CONTAINER2);
-        
+
         deployer.deploy("mdb1");
-        
+
         ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        
+
         producer1.start();
-        
+
         ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
-        
+
         receiver1.start();
-        
+
         // Wait to send and receive some messages
         Thread.sleep(3 * 60 * 1000);
 
         producer1.stopSending();
         producer1.join();
-        
+
         receiver1.join();
-        
+
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());;
-                
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        ;
+
         deployer.undeploy("mdb1");
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
     }
-    
+
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
@@ -240,8 +241,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
@@ -281,7 +282,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * Prepares mdb server for remote jca topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
 
@@ -322,7 +322,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     *
+     * <p/>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
@@ -350,7 +350,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -359,10 +359,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param hostname   ip address where to bind to managemant interface
+     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
-     *
      */
     private void deployDestinations(String containerName, String serverName) {
 
@@ -374,7 +373,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
-        
+
 
         jmsAdminOperations.close();
     }
@@ -383,7 +382,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     private void copyFile(File sourceFile, File destFile) throws IOException {

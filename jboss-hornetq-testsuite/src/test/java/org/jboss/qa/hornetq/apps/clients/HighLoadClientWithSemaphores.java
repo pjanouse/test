@@ -26,9 +26,9 @@ public class HighLoadClientWithSemaphores extends Thread {
     /**
      * Constructor
      *
-     * @param name               thread name
-     * @param topic              target topic
-     * @param cf                 connection factory
+     * @param name  thread name
+     * @param topic target topic
+     * @param cf    connection factory
      */
     public HighLoadClientWithSemaphores(String name, Topic topic, ConnectionFactory cf) {
         super(name);

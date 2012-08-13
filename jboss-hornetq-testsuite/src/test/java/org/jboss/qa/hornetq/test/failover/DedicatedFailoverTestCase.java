@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -18,8 +17,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.Session;
+
 /**
- *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -33,95 +33,92 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     private static final int BYTEMAN_PORT = 9091;
-  
+
     static boolean topologyCreated = false;
-    
+
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
-   
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
-     * 
+     *
      * @param acknowledge acknowledge type
-     * @param failback whether to test fail back
-     * 
-     * @throws Exception 
+     * @param failback    whether to test fail back
+     * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback) throws Exception {
-        
+
         testFailover(acknowledge, failback, false);
-        
+
     }
-    
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
-     * 
+     *
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     * 
-     * @throws Exception 
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
      */
     @BMRules({
-        @BMRule(name = "Setup counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "createCounter(\"counter\")"),
-        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "incrementCounter(\"counter\");"
-        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-        @BMRule(name = "Kill server when a number of messages were received",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>333",
-        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+            @BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>333",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFailover(acknowledge, failback, topic, false);
     }
-    
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
-     * 
+     *
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     * 
-     * @throws Exception 
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
-    
+
         prepareSimpleDedicatedTopology();
 
         controller.start(CONTAINER2);
 
         controller.start(CONTAINER1);
-        
-        Thread.sleep(10000); 
-        
+
+        Thread.sleep(10000);
+
         // install rule to first server
         if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
 
         Clients clients = createClients(acknowledge, topic);
         clients.startClients();
-        
+
         if (!shutdown) {
             controller.kill(CONTAINER1);
         } else {
             Thread.sleep(15000);
             stopServer(CONTAINER1);
         }
-        
+
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
         Thread.sleep(10000); // give some time to clients to failover
 
-        if (failback)   {
+        if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
@@ -132,14 +129,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             stopServer(CONTAINER2);
         }
-        
+
         Thread.sleep(5000);
         clients.stopClients();
-        
+
         while (!clients.isFinished()) {
             Thread.sleep(1000);
         }
-        
+
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
         stopServer(CONTAINER1);
@@ -147,7 +144,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
 
     }
-    
+
 //    /**
 //     * This test will start two servers in dedicated topology - no cluster. Sent
 //     * some messages to first Receive messages from the second one
@@ -244,12 +241,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //        stopServer(CONTAINER2);
 //
 //    }
-    
-  
-    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception  {
-        
+
+
+    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
+
         Clients clients = null;
-        
+
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
                 clients = new TopicClientsAutoAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -271,10 +268,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
         }
-        
+
         return clients;
     }
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -291,7 +288,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     public void testFailoverClientAckQueueOnShutdown() throws Exception {
-        
+
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
     }
 
@@ -304,7 +301,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, false, true);
     }
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -333,7 +330,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, false, true);
     }
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -343,7 +340,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverAutoAckTopicOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true, true);
     }
-    
+
     /**
      * Start simple failover test with client acknowledge on queues
      */
@@ -353,7 +350,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true, true);
     }
-    
+
     /**
      * Start simple failover test with transaction acknowledge on queues
      */
@@ -363,7 +360,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true, true);
     }
-    
+
     /**
      * Start simple failback test with auto acknowledge on queues
      */
@@ -373,7 +370,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackAutoAckTopicOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true, true);
     }
-    
+
     /**
      * Start simple failback test with client acknowledge on queues
      */
@@ -383,7 +380,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true, true);
     }
-    
+
     /**
      * Start simple failback test with transaction acknowledge on queues
      */
@@ -393,11 +390,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true, true);
     }
-    
+
     ////////////////////////////////////////////////////////
     // TEST KILL ////////////////////////
     ////////////////////////////////////////////////////////
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -414,7 +411,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     public void testFailoverClientAckQueue() throws Exception {
-        
+
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
     }
 
@@ -427,7 +424,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -456,7 +453,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
-    
+
     /**
      * Start simple failover test with auto_ack on queues
      */
@@ -466,7 +463,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
-    
+
     /**
      * Start simple failover test with client acknowledge on queues
      */
@@ -476,7 +473,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
-    
+
     /**
      * Start simple failover test with transaction acknowledge on queues
      */
@@ -486,7 +483,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
-    
+
     /**
      * Start simple failback test with auto acknowledge on queues
      */
@@ -496,7 +493,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
     }
-    
+
     /**
      * Start simple failback test with client acknowledge on queues
      */
@@ -506,7 +503,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
-    
+
     /**
      * Start simple failback test with transaction acknowledge on queues
      */
@@ -517,21 +514,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
 
-    
 
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
-    @Before @After
+    @Before
+    @After
     public void stopAllServers() throws Exception {
 
         stopServer(CONTAINER1);
 
         stopServer(CONTAINER2);
-        
+
 //        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
 
@@ -555,7 +552,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
             stopServer(CONTAINER2);
-            
+
             topologyCreated = true;
         }
 
@@ -564,8 +561,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
@@ -576,14 +573,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        
+
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
-        
+
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.setClustered(true);
@@ -614,9 +611,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.close();
-        
+
         controller.stop(containerName);
 
     }
@@ -625,7 +622,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * Prepares backup server for dedicated topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
 
@@ -637,7 +633,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
-        
+
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
@@ -647,7 +643,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
-        
+
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -679,7 +675,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -689,7 +685,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -698,10 +694,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param hostname   ip address where to bind to managemant interface
+     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
-     *
      */
     private void deployDestinations(String containerName, String serverName) {
 
@@ -714,7 +709,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
-        
+
         jmsAdminOperations.close();
     }
 }

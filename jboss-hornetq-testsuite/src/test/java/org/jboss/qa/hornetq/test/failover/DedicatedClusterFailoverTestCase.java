@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.File;
-import javax.jms.Session;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -19,8 +17,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.Session;
+import java.io.File;
+
 /**
- *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -46,8 +46,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * some messages to first Receive messages from the second one
      *
      * @param acknowledge acknowledge type
-     * @param failback whether to test fail back
-     *
+     * @param failback    whether to test fail back
      * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback) throws Exception {
@@ -61,26 +60,25 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * some messages to first Receive messages from the second one
      *
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     @BMRules({
-        @BMRule(name = "Setup counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "createCounter(\"counter\")"),
-        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        action = "incrementCounter(\"counter\");"
-        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-        @BMRule(name = "Kill server when a number of messages were received",
-        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-        targetMethod = "processRoute",
-        condition = "readCounter(\"counter\")>333",
-        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+            @BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>333",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
 
         prepareDedicatedTopologyInCluster();
@@ -152,8 +150,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * Create clients with the given acknowledge mode on topic or queue.
      *
      * @param acknowledgeMode can be Session.AUTO_ACKNOWLEDGE,
-     * Session.CLIENT_ACKNOWLEDGE, Session.SESSION_TRANSACTED
-     * @param topic true for topic
+     *                        Session.CLIENT_ACKNOWLEDGE, Session.SESSION_TRANSACTED
+     * @param topic           true for topic
      * @return clients
      * @throws Exception
      */
@@ -310,7 +308,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
-        
+
         deleteFolder(new File(JOURNAL_DIRECTORY_B));
 
     }
@@ -318,8 +316,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
@@ -350,7 +348,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-        
+
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
@@ -374,7 +372,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * Prepares backup server for dedicated topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
 
@@ -432,7 +429,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -441,10 +438,9 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param hostname   ip address where to bind to managemant interface
+     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
-     *
      */
     private void deployDestinations(String containerName, String serverName) {
 

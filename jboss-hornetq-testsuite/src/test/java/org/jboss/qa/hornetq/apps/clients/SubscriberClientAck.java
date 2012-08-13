@@ -1,13 +1,14 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.*;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -24,7 +25,8 @@ public class SubscriberClientAck extends Thread {
     private long receiveTimeOut;
     private int ackAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
+    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
+    ;
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
@@ -40,31 +42,31 @@ public class SubscriberClientAck extends Thread {
     /**
      * Creates a subscriber to topic with client acknowledge.
      *
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicNameJndi jndi name of the topic
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
-        
+
         this(hostname, port, topicNameJndi, 30000, 1000, 30, clientId, subscriberName);
-        
+
     }
-    
+
     /**
      * Creates a subscriber to topic with client acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicNameJndi jndi name of the topic
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
      * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter send ack after how many messages
-     * @param maxRetries how many times to retry receive before giving up
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
-            int ackAfter, int maxRetries, String clientId, String subscriberName) {
-        
+                               int ackAfter, int maxRetries, String clientId, String subscriberName) {
+
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicNameJndi;
@@ -79,44 +81,44 @@ public class SubscriberClientAck extends Thread {
     public void run() {
 
         try {
-            
+
             if (cf == null) {
                 subscribe();
             }
 
             Message message = null;
-            
+
             Message lastMessage = null;
-            
+
             while ((message = receiveMessage(subscriber)) != null) {
-                
+
                 listOfReceivedMessagesToBeAcked.add(message);
-                
+
                 count++;
-                
+
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
                 } else { // i don't want to ack now
-                    logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
+                    logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
-                
+
                 // hold information about last message so we can ack it when null is received = topic empty
                 lastMessage = message;
             }
-            
-            if (lastMessage != null)    {
+
+            if (lastMessage != null) {
                 acknowledgeMessage(lastMessage);
             }
 
-            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi() 
-                    +". Received NULL - number of received messages: " + count);
-            
-            if (messageVerifier != null)    {
+            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                    + ". Received NULL - number of received messages: " + count);
+
+            if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
-            
+
         } catch (JMSException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
@@ -132,78 +134,76 @@ public class SubscriberClientAck extends Thread {
                     // ignore
                 }
             }
-            if (context != null)    {
+            if (context != null) {
                 try {
                     context.close();
-                } catch (Exception ex)    {
+                } catch (Exception ex) {
                     // ignore
                 }
             }
         }
     }
-    
+
     /**
      * Try to acknowledge a message.
-     * 
+     *
      * @param message message to be acknowledged
-     * @throws JMSException  
-     * 
+     * @throws JMSException
      */
     public void acknowledgeMessage(Message message) throws JMSException {
         try {
 
             message.acknowledge();
-            
+
             logger.info("Subscriber for node: " + getHostname() + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
-            
+                    + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
+
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
 
         } catch (Exception ex) {
-            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: " 
+            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: "
                     + hostname + ". Received message - count: "
                     + count + ", messageId:" + message.getJMSMessageID(), ex);
             // all unacknowledge messges will be received again
             count = count - listOfReceivedMessagesToBeAcked.size();
         } finally {
-        
+
             listOfReceivedMessagesToBeAcked.clear();
         }
     }
-    
+
     /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
      * subscriber.subscriber(timeout) throw JMSException maxRetries's times then throw Exception above.
-     * 
+     *
      * @param subscriber subscriber message subscriber
      * @return message or null
      * @throws Exception when maxRetries was reached
-     * 
      */
     public Message receiveMessage(TopicSubscriber subscriber) throws Exception {
-        
+
         Message msg = null;
         int numberOfRetries = 0;
-        
+
         // receive message with retry
-        while (numberOfRetries < maxRetries)    {
-            
+        while (numberOfRetries < maxRetries) {
+
             try {
-                
+
                 msg = subscriber.receive(receiveTimeOut);
                 return msg;
-                
-            } catch (JMSException ex)   {
+
+            } catch (JMSException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1) 
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1)
                         + "ex: " + ex.getMessage());
             }
         }
-       
+
         throw new Exception("FAILURE - MaxRetry reached for subscriber Subscriber: " + subscriberName + " for node: " + hostname);
     }
-    
+
     /**
      * @return the maxRetries
      */
@@ -315,10 +315,9 @@ public class SubscriberClientAck extends Thread {
     public void setSubscriberName(String subscriberName) {
         this.subscriberName = subscriberName;
     }
-    
+
     /**
      * I don't want to have synchronization between publishers and subscribers.
-     * 
      */
     public void subscribe() {
 
@@ -344,18 +343,18 @@ public class SubscriberClientAck extends Thread {
             subscriber = session.createDurableSubscriber(topic, subscriberName);
 
         } catch (Exception e) {
-            
+
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-            
+
         }
     }
-    
+
     public static void main(String[] args) throws InterruptedException, Exception {
 
         SubscriberClientAck client =
                 new SubscriberClientAck("192.168.1.1", 4447, "jms/topic/testTopic0", "subscriberClientId-jms/topic/testTopic0-0",
-                "subscriber1");
+                        "subscriber1");
         client.start();
         client.join();
     }

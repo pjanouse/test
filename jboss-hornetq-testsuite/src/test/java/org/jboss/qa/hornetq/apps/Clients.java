@@ -5,7 +5,6 @@
 package org.jboss.qa.hornetq.apps;
 
 /**
- *
  * @author mnovak
  */
 public interface Clients {
@@ -13,7 +12,6 @@ public interface Clients {
     /**
      * Check whether number of sent and received messages is equal for all clients and whether clients
      * ended properly without exception.
-     *
      */
     boolean evaluateResults() throws Exception;
 
@@ -28,7 +26,6 @@ public interface Clients {
     int getMessages();
 
     /**
-     *
      * Returns false if some clients are still running. No matter how.
      *
      * @return true if all clients ended

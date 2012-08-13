@@ -1,11 +1,8 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.impl.MessageInfo;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -15,14 +12,16 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 import javax.sql.DataSource;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.impl.MessageInfo;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @MessageDriven(name = "SimpleMdbToDb",
-activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
-})
+        activationConfig = {
+                @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
+        })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class SimpleMdbToDb implements MessageListener {
@@ -69,7 +68,7 @@ public class SimpleMdbToDb implements MessageListener {
             int count = counter.incrementAndGet();
             log.info("messageInfo " + messageInfo.getName() + ", counter: " + count);
             processMessageInfo(message, messageInfo, count);
-            
+
         } catch (JMSException jmse) {
             jmse.printStackTrace();
             context.setRollbackOnly();
@@ -89,13 +88,13 @@ public class SimpleMdbToDb implements MessageListener {
 
     // This method would use JPA in the real world to persist the data
     private void processMessageInfo(Message message, MessageInfo messageInfo, int count) throws SQLException, JMSException {
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
-                    + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
-            ps.setString(1, message.getJMSMessageID());
-            ps.setString(2, messageInfo.getName() + count);
-            ps.setString(3, messageInfo.getAddress() + count);
-            ps.executeUpdate();
-            ps.close();
-            
+        PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
+                + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
+        ps.setString(1, message.getJMSMessageID());
+        ps.setString(2, messageInfo.getName() + count);
+        ps.setString(3, messageInfo.getAddress() + count);
+        ps.executeUpdate();
+        ps.close();
+
     }
 }

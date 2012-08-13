@@ -1,21 +1,21 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 /**
- *
  * Simple sender with auto acknowledge session. Able to fail over.
- *
+ * <p/>
  * This class extends Thread class and should be started as a thread using
  * start().
  *
@@ -38,15 +38,14 @@ public class ProducerAutoAck extends Thread {
     private boolean securityEnabled = false;
     private String userName;
     private String password;
-    
+
     /**
-     *
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
      * @param messageBuilder message builder
-     * @param maxRetries number of retries to send message after server fails
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param maxRetries     number of retries to send message after server fails
+     * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerAutoAck(String hostname, int port, String queueNameJndi, int messages) {
         this.hostname = hostname;
@@ -58,7 +57,6 @@ public class ProducerAutoAck extends Thread {
     /**
      * Starts end messages to server. This should be started as Thread -
      * producer.start();
-     *
      */
     public void run() {
 
@@ -175,8 +173,8 @@ public class ProducerAutoAck extends Thread {
                 + ", messageId:" + msg.getJMSMessageID());
 
     }
-    
-    public void stopSending()    {
+
+    public void stopSending() {
         this.stop = true;
     }
 
@@ -277,25 +275,25 @@ public class ProducerAutoAck extends Thread {
     public void setException(Exception exception) {
         this.exception = exception;
     }
-    
+
     /**
      * Returns connection.
-     * 
+     *
      * @param cf
      * @return
-     * @throws JMSException 
+     * @throws JMSException
      */
     private Connection getConnection(ConnectionFactory cf) throws JMSException {
-        
+
         // if there is username and password and security enabled then use it
-        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null)   {
-                return cf.createConnection(getUserName(), getPassword());
-            
+        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null) {
+            return cf.createConnection(getUserName(), getPassword());
+
         }
         // else it's guest user or security disabled
         return cf.createConnection();
     }
-    
+
     /**
      * @return the securityEnabled
      */
@@ -337,15 +335,15 @@ public class ProducerAutoAck extends Thread {
     public void setPassword(String password) {
         this.password = password;
     }
-    
-    public static void main(String[] args) throws InterruptedException  {
-        
+
+    public static void main(String[] args) throws InterruptedException {
+
         ProducerAutoAck producer = new ProducerAutoAck("192.168.1.1", 4447, "jms/queue/testQueue0", 10000);
-        
+
         producer.start();
-        
+
         producer.join();
-        
+
     }
 
 }

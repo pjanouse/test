@@ -1,11 +1,5 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.HashMap;
-import java.util.Properties;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.HornetQException;
@@ -15,13 +9,19 @@ import org.hornetq.api.core.client.ClientSessionFactory;
 import org.hornetq.api.core.client.HornetQClient;
 import org.hornetq.api.core.client.ServerLocator;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
-import org.hornetq.jms.client.HornetQQueue;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.util.HashMap;
+import java.util.Properties;
+
 /**
  * Simple sender with auto acknowledge session. Able to fail over.
- *
+ * <p/>
  * This class extends Thread class and should be started as a thread using
  * start().
  *
@@ -51,13 +51,12 @@ public class SecurityClient {
     ClientSession coreClientSession = null;
 
     /**
-     *
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
+     * @param hostname      hostname
+     * @param port          port
+     * @param messages      number of messages to send
      * @param queueNameJndi set jndi name of the queue to send messages
-     * @param username username
-     * @param password password
+     * @param username      username
+     * @param password      password
      */
     public SecurityClient(String hostname, int port, String queueNameJndi, int messages, String username, String password) {
         this.hostname = hostname;
@@ -84,9 +83,9 @@ public class SecurityClient {
         context = new InitialContext(env);
 
         cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        
+
         con = getConnection();
-        
+
         queue = (Queue) context.lookup(queueNameJndi);
 
         session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -202,7 +201,7 @@ public class SecurityClient {
      *
      * @param queueName
      * @return
-     * @throws JMSException      *
+     * @throws JMSException *
      */
     public void createDurableQueue(String queueName) throws HornetQException {
 
@@ -210,19 +209,19 @@ public class SecurityClient {
 
     }
 
-    public void createNonDurableQueue(String queueName) throws HornetQException  {
+    public void createNonDurableQueue(String queueName) throws HornetQException {
 
         coreClientSession.createQueue(queueName, queueName, false);
 
     }
 
-    public void deleteDurableQueue(String queueName) throws HornetQException  {
+    public void deleteDurableQueue(String queueName) throws HornetQException {
 
         deleteNonDurableQueue(queueName);
 
     }
 
-    public void deleteNonDurableQueue(String queueName) throws HornetQException  {
+    public void deleteNonDurableQueue(String queueName) throws HornetQException {
 
         coreClientSession.deleteQueue("jms.queue." + queueName);
 
@@ -356,7 +355,7 @@ public class SecurityClient {
      */
     public void setPassword(String password) {
         this.password = password;
-        
+
     }
 
     public static void main(String[] args) throws Exception {

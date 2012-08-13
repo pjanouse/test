@@ -3,14 +3,14 @@ package org.jboss.qa.hornetq.apps.impl;
 import java.io.Serializable;
 
 /**
- * For lodh 5 test case. 
- * 
+ * For lodh 5 test case.
+ *
  * @author mnovak
  */
 public class MessageInfo implements Serializable {
 
     private String name;
-    
+
     private String address;
 
     public MessageInfo(String name, String address) {

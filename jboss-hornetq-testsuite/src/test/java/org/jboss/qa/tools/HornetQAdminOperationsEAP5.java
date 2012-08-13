@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.jms.Destination;
 import javax.management.MBeanServerConnection;
@@ -94,6 +95,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return sb.toString();
     }
 
+
+    /**
+     * Returns path to the HornetQ configuration file
+     *
+     * @return path to the configuration file
+     */
+    protected String getHornetQJmsConfigurationFile() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
+        sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
+        sb.append("hornetq").append(File.separator).append("hornetq-jms.xml");
+        return sb.toString();
+    }
+
     /**
      * Retrun path to ra.xml. Configuration file of resource adapter.
      *
@@ -108,37 +123,47 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return sb.toString();
     }
 
-        /**
-         * Creates JMS destination on the server
-         *
-         * @param isQueue         is target destination queue?
-         * @param destinationName name of the destination
-         * @param jndiName        JNDI name of the destination
-         * @param durable         determines if created destination is durable
-         */
+    /**
+     * Creates JMS destination on the server
+     *
+     * @param isQueue         is target destination queue?
+     * @param destinationName name of the destination
+     * @param jndiName        JNDI name of the destination
+     * @param durable         determines if created destination is durable
+     */
 
     protected void createJmsDestination(boolean isQueue, String destinationName, String jndiName, boolean durable) {
+
+        // try to remove it first
+        removeJmsDestination(isQueue, destinationName);
+
+        String configurationFile = getHornetQJmsConfigurationFile();
+
         try {
-            connect(hostname, rmiPort);
-            logger.info("deployDestination " + destinationName);
-            try {
-                logger.info("Checking for :" + destinationName);
-                Destination destination = (Destination) ctx.lookup(destinationName);
-                if (destination != null) {
-                    removeJmsDestination(isQueue, destinationName);
-                }
-            } catch (Exception e) {
-                logger.info("Destination " + destinationName + " not found");
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+            Element e;
+            if (isQueue)    {
+                e = doc.createElement("queue");
+            } else {
+                e = doc.createElement("topic");
             }
-            MBeanServerConnection server = getMBeanServer();
-            ObjectName serverPeer = getHornetQServerMBean();
-            String operation = (isQueue) ? "createQueue" : "createTopic";
-            server.invoke(serverPeer, operation,
-                    new Object[]{destinationName, jndiName, null, durable},
-                    new String[]{String.class.getName(), String.class.getName(),
-                            String.class.getName(), boolean.class.getName()});
+
+            e.setAttribute("name", destinationName);
+            Element entry = doc.createElement("entry");
+            entry.setAttribute("name", jndiName);
+            Element eDurable = doc.createElement("durable");
+            eDurable.setTextContent(String.valueOf(durable));
+            e.appendChild(entry);
+            e.appendChild(eDurable);
+
+            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+            Node node = (Node) xpathInstance.evaluate("//configuration", doc, XPathConstants.NODE);
+            node.appendChild(e);
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
         } catch (Exception e) {
-            logger.info("Invoking MBean", e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -149,17 +174,30 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param destinationName name of the destination
      */
     protected void removeJmsDestination(boolean isQueue, String destinationName) {
+
+        String configurationFile = getHornetQJmsConfigurationFile();
+
         try {
-            connect(hostname, rmiPort);
-            logger.info("undeployDestination " + destinationName);
-            MBeanServerConnection server = getMBeanServer();
-            ObjectName serverPeer = getHornetQServerMBean();
-            String operation = (isQueue) ? "destroyQueue" : "destroyTopic";
-            server.invoke(serverPeer, operation, new Object[]{destinationName}, new String[]{String.class.getName()});
-            logger.info("Destination " + destinationName + " has been destroyed");
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//configuration/*[@name='" + destinationName + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
         } catch (Exception e) {
-            logger.info("Destination " + destinationName + " does not exist");
+            logger.error(e.getMessage(), e);
         }
+
+//        try {
+//            connect(hostname, rmiPort);
+//            logger.info("undeployDestination " + destinationName);
+//            MBeanServerConnection server = getMBeanServer();
+//            ObjectName serverPeer = getHornetQServerMBean();
+//            String operation = (isQueue) ? "destroyQueue" : "destroyTopic";
+//            server.invoke(serverPeer, operation, new Object[]{destinationName}, new String[]{String.class.getName()});
+//            logger.info("Destination " + destinationName + " has been destroyed");
+//        } catch (Exception e) {
+//            logger.info("Destination " + destinationName + " does not exist");
+//        }
     }
 
     /**
@@ -1089,9 +1127,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * <p/>
      * Sets basic attributes in ra.xml.
      *
-     * @param connectorClassName org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param connectorClassName   org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
      * @param connectionParameters host->port
-     * @param ha  if ha
+     * @param ha                   if ha
      */
     @Override
     public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha) {
@@ -1115,7 +1153,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
                     "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"), insertBeforeNode);
 
             StringBuilder st = new StringBuilder();
-            for (String key : connectionParameters.keySet())   {
+            for (String key : connectionParameters.keySet()) {
                 st.append("host=").append(key).append(";port=").append(connectionParameters.get(key)).append(",");
             }
             // remove last comma ","
@@ -1134,7 +1172,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     *
      * @param doc
      * @param description
      * @param configPropertyName
@@ -1142,7 +1179,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param configPropertyValues
      * @return
      */
-    private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType, String configPropertyValues)    {
+    private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType, String configPropertyValues) {
 
         Element e = doc.createElement("config-property");
 

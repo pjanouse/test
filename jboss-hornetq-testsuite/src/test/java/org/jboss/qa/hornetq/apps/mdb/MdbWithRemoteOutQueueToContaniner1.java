@@ -1,28 +1,20 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Properties;
-import javax.ejb.*;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import javax.ejb.*;
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Properties;
+
 /**
- *
  * A MdbWithRemoteOutQueueToContaniner1 used for lodh tests. Used in RemoteJcaTestCase.
- *
+ * <p/>
  * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
@@ -30,9 +22,9 @@ import org.apache.log4j.Logger;
  * @version $Revision: 1.1 $
  */
 @MessageDriven(name = "mdb1",
-activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
+        activationConfig = {
+                @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, MessageListener {
@@ -42,23 +34,19 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
     private MessageDrivenContext context = null;
     private static String hostname;
     private static InitialContext ctx = null;
-    private static InitialContext ctxRemote = null;
     private static Queue queue = null;
     private static ConnectionFactory cf = null;
 
     static {
         try {
             Properties prop = new Properties();
-            File propFile = new File("mdb1.properties");
+            String jbossHome = System.getProperty("jboss.home.dir") != null ? System.getProperty("jboss.home.dir") : "";
+            File propFile = new File(jbossHome + File.separator + "mdb1.properties");
             log.info("Location of property file (mdb1) is: " + propFile.getAbsolutePath());
             prop.load(new FileInputStream(propFile));
             hostname = prop.getProperty("remote-jms-server");
             log.info("Hostname of remote jms server is: " + hostname);
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
-            ctxRemote = new InitialContext(env);
-            queue = (Queue) ctxRemote.lookup("jms/queue/OutQueue");
+
             ctx = new InitialContext();
             // i want connection factory configured here
             cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
@@ -81,13 +69,7 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
 
     @Override
     public void ejbRemove() {
-        if (ctxRemote != null) {
-            try {
-                ctxRemote.close();
-            } catch (NamingException e) {
-                log.log(Level.FATAL, e.getMessage(), e);
-            }
-        }
+
         if (ctx != null) {
             try {
                 ctx.close();
@@ -121,15 +103,17 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
                 } catch (InterruptedException ex) {
                 }
             }
-            
+
             if (cf == null) {
                 ctx = new InitialContext();
                 cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
             }
-            
+
             con = cf.createConnection();
-            
+
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            queue = session.createQueue("OutQueue");
 
             con.start();
 
@@ -140,12 +124,12 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
             sender.send(newMessage);
 
             log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
-            
+
         } catch (Exception t) {
-            
+
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
-            
+
             this.context.setRollbackOnly();
         } finally {
             if (session != null) {

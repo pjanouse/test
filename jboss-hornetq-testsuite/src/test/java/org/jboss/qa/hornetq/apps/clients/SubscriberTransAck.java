@@ -1,13 +1,14 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -24,7 +25,8 @@ public class SubscriberTransAck extends Thread {
     private long receiveTimeOut;
     private int commitAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
+    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
+    ;
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
@@ -36,33 +38,33 @@ public class SubscriberTransAck extends Thread {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
-    
+
     /**
      * Creates a subscriber to topic with client acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicJndiName jndi name of the topic    
+     *
+     * @param hostname      hostname
+     * @param port          jndi port
+     * @param topicJndiName jndi name of the topic
      */
     public SubscriberTransAck(String hostname, int port, String topicJndiName, String clientId, String subscriberName) {
-        
+
         this(hostname, port, topicJndiName, 30000, 10, 30, clientId, subscriberName);
-        
+
     }
-    
+
     /**
      * Creates a subscriber to topic with client acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param topicJndiName jndi name of the topic
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicJndiName  jndi name of the topic
      * @param receiveTimeOut how long to wait to receive message
-     * @param commitAfter send ack after how many messages
-     * @param maxRetries how many times to retry receive before giving up
+     * @param commitAfter    send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
      */
     public SubscriberTransAck(String hostname, int port, String topicJndiName, long receiveTimeOut,
-            int commitAfter, int maxRetries, String clientId, String subscriberName) {
-        
+                              int commitAfter, int maxRetries, String clientId, String subscriberName) {
+
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicJndiName;
@@ -83,31 +85,31 @@ public class SubscriberTransAck extends Thread {
             }
 
             Message message = null;
-            
+
             while ((message = receiveMessage(subscriber)) != null) {
-                
+
                 listOfReceivedMessagesToBeCommited.add(message);
-                
+
                 count++;
-                
+
                 if (count % commitAfter == 0) { // try to ack message
                     commitSession(session);
                 } else { // i don't want to ack now
-                    logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi 
+                    logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
             }
-            
+
             commitSession(session);
 
-            logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi 
-                    +". Received NULL - number of received messages: " + count);
-            
-            if (messageVerifier != null)    {
+            logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi
+                    + ". Received NULL - number of received messages: " + count);
+
+            if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
-            
+
         } catch (JMSException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
@@ -131,75 +133,73 @@ public class SubscriberTransAck extends Thread {
             }
         }
     }
-    
+
     /**
      * Try to acknowledge a message.
-     * 
+     *
      * @param message message to be acknowledged
-     * @throws JMSException  
-     * 
+     * @throws JMSException
      */
-    public void commitSession(Session session) throws Exception  {
+    public void commitSession(Session session) throws Exception {
         try {
 
             session.commit();
-            
+
             logger.info("Subscriber for node: " + getHostname() + ". Received message - count: "
-                            + count  + " SENT COMMIT");
-            
+                    + count + " SENT COMMIT");
+
             listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
-            
+
         } catch (TransactionRolledBackException ex) {
-            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() 
-                    +". Subscriber for node: " + hostname 
+            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage()
+                    + ". Subscriber for node: " + hostname
                     + ". Received message - count: " + count + ", retrying receive", ex);
             // all uncommited messges will be received again
             count = count - listOfReceivedMessagesToBeCommited.size();
-            
-        } catch(JMSException ex)    {
+
+        } catch (JMSException ex) {
             throw new Exception("Subscriber got JMSException during commit and has underterministic result."
-                    + " Node: " + hostname + 
+                    + " Node: " + hostname +
                     ". Received message - count: " + count + ", messages will be received again. Supposed to be commited.", ex);
-            
+
         } finally {
             listOfReceivedMessagesToBeCommited.clear();
         }
-        
-        
+
+
     }
-    
+
     /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
      * consumer.subscriber(timeout) throw JMSException maxRetries's times then throw Exception above.
-     * 
+     *
      * @param consumer consumer message consumer
      * @return message or null
      * @throws Exception when maxRetries was reached
-     * 
      */
     public Message receiveMessage(MessageConsumer consumer) throws Exception {
-        
+
         Message msg = null;
         int numberOfRetries = 0;
-        
+
         // receive message with retry
-        while (numberOfRetries < maxRetries)    {
-            
+        while (numberOfRetries < maxRetries) {
+
             try {
-                
+
                 msg = consumer.receive(receiveTimeOut);
                 return msg;
-                
-            } catch (JMSException ex)   {
+
+            } catch (JMSException ex) {
                 numberOfRetries++;
                 logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1), ex);
             }
         }
-       
+
         throw new Exception("FAILURE - MaxRetry reached for subscriber for node: " + hostname);
     }
-    
+
     /**
      * @return the maxRetries
      */
@@ -297,9 +297,9 @@ public class SubscriberTransAck extends Thread {
     public void setException(Exception exception) {
         this.exception = exception;
     }
-    
-    
-     /**
+
+
+    /**
      * @return the subscriberName
      */
     public String getSubscriberName() {
@@ -312,7 +312,7 @@ public class SubscriberTransAck extends Thread {
     public void setSubscriberName(String subscriberName) {
         this.subscriberName = subscriberName;
     }
-    
+
     public void subscribe() {
 
         try {
@@ -337,19 +337,19 @@ public class SubscriberTransAck extends Thread {
             subscriber = session.createDurableSubscriber(topic, subscriberName);
 
         } catch (Exception e) {
-            
+
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-        } 
+        }
     }
-    
-    public static void main(String[] args) throws InterruptedException  {
-        
+
+    public static void main(String[] args) throws InterruptedException {
+
         SubscriberTransAck subscriber = new SubscriberTransAck("192.168.1.1", 4447, "jms/topic/testTopic0", 10000, 100, 10,
                 "testClientId", "testSubscriber");
-        
+
         subscriber.start();
-        
+
         subscriber.join();
     }
 }

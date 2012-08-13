@@ -1,13 +1,14 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.*;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-
-import org.apache.log4j.Logger;
-import javax.jms.Queue;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Simple receiver with auto acknowledge session. ABLE to failover.
@@ -23,7 +24,8 @@ public class ReceiverAutoAck extends Thread {
     private String queueNameJndi = "jms/queue/testQueue1";
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();;
+    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
+    ;
     private int count = 0;
     private Exception exception = null;
     private boolean securityEnabled = false;
@@ -32,36 +34,36 @@ public class ReceiverAutoAck extends Thread {
 
     /**
      * Creates a receiver to queue with auto acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param queueJndiName jndi name of the queue    
+     *
+     * @param hostname      hostname
+     * @param port          jndi port
+     * @param queueJndiName jndi name of the queue
      */
     public ReceiverAutoAck(String hostname, int port, String queueJndiName) {
-        
+
         this(hostname, port, queueJndiName, 30000, 30);
-        
+
     }
-    
+
     /**
      * Creates a receiver to queue with auto acknowledge.
-     * 
-     * @param hostname hostname
-     * @param port jndi port
-     * @param queueJndiName jndi name of the queue
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param queueJndiName  jndi name of the queue
      * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter send ack after how many messages
-     * @param maxRetries how many times to retry receive before giving up
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
      */
     public ReceiverAutoAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
-            int maxRetries) {
-        
+                           int maxRetries) {
+
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueJndiName;
         this.receiveTimeOut = receiveTimeOut;
         this.maxRetries = maxRetries;
-        
+
     }
 
     @Override
@@ -83,7 +85,7 @@ public class ReceiverAutoAck extends Thread {
             cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
             conn = getConnection(cf);
-            
+
             conn.start();
 
             queue = (Queue) context.lookup(queueNameJndi);
@@ -93,25 +95,25 @@ public class ReceiverAutoAck extends Thread {
             MessageConsumer receiver = session.createConsumer(queue);
 
             Message message = null;
-            
+
             while ((message = receiveMessage(receiver)) != null) {
-                
+
                 listOfReceivedMessages.add(message);
-                
+
                 count++;
-                
-                logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
-                            + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
+
+                logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
+                        + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID());
             }
 
-            logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi 
-                    +". Received NULL - number of received messages: " + count);
-            
-            if (messageVerifier != null)    {
+            logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
+                    + ". Received NULL - number of received messages: " + count);
+
+            if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
-            
+
         } catch (JMSException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
@@ -127,49 +129,48 @@ public class ReceiverAutoAck extends Thread {
                     // ignore
                 }
             }
-            if (context != null)    {
+            if (context != null) {
                 try {
                     context.close();
-                } catch (Exception ex)  {
+                } catch (Exception ex) {
                     // ignore
                 }
             }
         }
     }
-    
-    
+
+
     /**
      * Tries to receive message from server in specified timeout. If server crashes
      * then it retries for maxRetries. If even then fails to receive which means that
      * consumer.receiver(timeout) throw JMSException maxRetries's times then throw Exception above.
-     * 
+     *
      * @param consumer consumer message consumer
      * @return message or null
      * @throws Exception when maxRetries was reached
-     * 
      */
     public Message receiveMessage(MessageConsumer consumer) throws Exception {
-        
+
         Message msg = null;
         int numberOfRetries = 0;
-        
+
         // receive message with retry
-        while (numberOfRetries < maxRetries)    {
-            
+        while (numberOfRetries < maxRetries) {
+
             try {
-                
+
                 msg = consumer.receive(receiveTimeOut);
                 return msg;
-                
-            } catch (JMSException ex)   {
+
+            } catch (JMSException ex) {
                 numberOfRetries++;
                 logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (count + 1));
             }
         }
-       
+
         throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + getHostname());
     }
-    
+
     /**
      * @return the maxRetries
      */
@@ -268,28 +269,28 @@ public class ReceiverAutoAck extends Thread {
         this.exception = exception;
     }
 
-    public static void main(String[] args) throws InterruptedException  {
-        
+    public static void main(String[] args) throws InterruptedException {
+
         ReceiverAutoAck receiver = new ReceiverAutoAck("192.168.1.1", 4447, "jms/queue/testQueue0", 30000, 10);
-        
+
         receiver.start();
-        
+
         receiver.join();
     }
 
     /**
      * Returns connection.
-     * 
+     *
      * @param cf
      * @return
-     * @throws JMSException 
+     * @throws JMSException
      */
     private Connection getConnection(ConnectionFactory cf) throws JMSException {
-        
+
         // if there is username and password and security enabled then use it
-        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null)   {
-                return cf.createConnection(getUserName(), getPassword());
-            
+        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null) {
+            return cf.createConnection(getUserName(), getPassword());
+
         }
         // else it's guest user or security disabled
         return cf.createConnection();

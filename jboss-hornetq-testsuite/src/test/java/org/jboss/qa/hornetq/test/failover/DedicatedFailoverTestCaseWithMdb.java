@@ -1,10 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.*;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -26,6 +21,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This is modified failover with mdb test case which is testing remote jca.
  *
@@ -37,7 +40,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
-    
+
     // Queue to send messages in 
     String inQueueName = "InQueue";
     String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -56,7 +59,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteInQueueAndLocalOutQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        
+
         //      Uncomment when you want to see what's in the servlet
         File target = new File("/tmp/mdb.jar");
         if (target.exists()) {
@@ -65,26 +68,25 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
-    
+
     @RunAsClient
     @CleanUpAfterTest
     @Test
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false);
     }
-    
+
     @RunAsClient
     @CleanUpAfterTest
     @Test
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true);
     }
-    
+
     /**
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     public void testFailoverWithRemoteJca(boolean shutdown) throws Exception {
@@ -102,18 +104,18 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER3);
         // start mdb server
         deployer.deploy("mdb1");
-        
+
 //        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 180000, 100, 10);
 //        receiver1.start();
-        
+
         Thread.sleep(15000);
-        
-        if (shutdown)   {
+
+        if (shutdown) {
             stopServer(CONTAINER1);
         } else {
             killServer(CONTAINER1);
         }
-        
+
 //        receiver1.join();
         Thread.sleep(350000);
         logger.info("Producer: " + producerToInQueue1.getCounter());
@@ -154,7 +156,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-            
+
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
             prepareMdbServer(CONTAINER3, CONTAINER1_IP);
@@ -170,7 +172,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * Prepares mdb server for remote jca topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
 
@@ -186,12 +187,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(false);
-        
+
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
-        
+
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        
+
         jmsAdminOperations.setFailoverOnShutdown("RemoteConnectionFactory", true);
         jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setFailoverOnShutdown(true);
@@ -219,7 +220,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
-        
+
         jmsAdminOperations.createPooledConnectionFactory("ra-connection-factory", "java:/jmsXALocal", "netty");
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("ra-connection-factory", connectorName);
         jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory("ra-connection-factory", true);
@@ -231,8 +232,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
@@ -293,7 +294,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * Prepares backup server for dedicated topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
 
@@ -353,7 +353,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     *
+     * <p/>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
@@ -382,7 +382,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     private void copyFile(File sourceFile, File destFile) throws IOException {

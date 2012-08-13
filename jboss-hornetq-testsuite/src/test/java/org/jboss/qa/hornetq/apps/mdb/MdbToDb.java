@@ -1,27 +1,17 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import java.util.Properties;
-import javax.annotation.Resource;
-import javax.ejb.*;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import javax.annotation.Resource;
+import javax.ejb.*;
+import javax.jms.*;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
 /**
- *
  * A MdbToDb used for lodh tests.
- *
+ * <p/>
  * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
@@ -29,23 +19,23 @@ import org.apache.log4j.Logger;
  * @version $Revision: 1.1 $
  */
 @MessageDriven(name = "mdb",
-activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue0")})
+        activationConfig = {
+                @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue0")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class MdbToDb implements MessageDrivenBean, MessageListener {
-    
+
     @Resource(mappedName = "java:/JmsXA")
     private static ConnectionFactory cf;
-    
+
     @Resource(mappedName = "java:/jms/queue/OutQueue0")
     private static Queue queue;
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbToDb.class.getName());
     private MessageDrivenContext context = null;
-    
+
     public MdbToDb() {
         super();
     }
@@ -81,9 +71,9 @@ public class MdbToDb implements MessageDrivenBean, MessageListener {
             log.log(Level.INFO, " Start of message:" + messageInfo);
 
             con = cf.createConnection();
-            
+
             con.start();
-            
+
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
@@ -93,12 +83,12 @@ public class MdbToDb implements MessageDrivenBean, MessageListener {
             sender.send(newMessage);
 
             log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
-            
+
         } catch (Exception t) {
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
             this.context.setRollbackOnly();
-            
+
         } finally {
             if (session != null) {
                 try {

@@ -1,11 +1,12 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.jboss.qa.hornetq.apps.Clients;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class starts publishers and subscribers on multiple topic.
@@ -33,7 +34,7 @@ public class TopicClientsAutoAck implements Clients {
     }
 
     public TopicClientsAutoAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
-            int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+                               int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
 
         this.hostnameForSubscribers = hostname;
         this.hostnameForPublishers = hostname;
@@ -47,46 +48,46 @@ public class TopicClientsAutoAck implements Clients {
     }
 
     /**
-     *  Creates clients and start them.
+     * Creates clients and start them.
      */
     @Override
     public void startClients() {
 
         List<FinalTestMessageVerifier> topicTextMessageVerifiers = null;
-        
+
         FinalTestMessageVerifier verifier = null;
 
         // create publishers and subscribers
         for (int destinationNumber = 0; destinationNumber < getNumberOfTopics(); destinationNumber++) {
 
             SubscriberAutoAck subscriber = null;
-            
+
             topicTextMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
-            
+
             for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
-                
-                subscriber = new SubscriberAutoAck(getHostnameForSubscribers(), getJndiPort(), 
+
+                subscriber = new SubscriberAutoAck(getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
                 verifier = new TextMessageVerifier();
-                
+
                 subscriber.setMessageVerifier(verifier);
-                
+
                 topicTextMessageVerifiers.add(verifier);
 
                 getSubscribers().add(subscriber);
-                
+
                 subscriber.subscribe();
             }
-            
+
             PublisherAutoAck publisher = null;
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
                 publisher = new PublisherAutoAck(getHostnameForPublishers(), getJndiPort(),
-                        getDestionationJndiNamePrefix() + destinationNumber, getMessages(), 
+                        getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
                 publisher.setMessageVerifiers(topicTextMessageVerifiers);
@@ -95,17 +96,17 @@ public class TopicClientsAutoAck implements Clients {
 
             }
         }
-        
+
         // start subscribers
         for (Thread subscriberThread : getSubscribers()) {
             subscriberThread.start();
         }
-        
+
         // start all clients - publishers 
         for (Thread publisherThread : getPublishers()) {
             publisherThread.start();
         }
-        
+
 
     }
 
@@ -141,7 +142,6 @@ public class TopicClientsAutoAck implements Clients {
     /**
      * Check whether number of sent and received messages is equal for all
      * clients and whether clients ended properly without exception.
-     *
      */
     @Override
     public boolean evaluateResults() throws Exception {
@@ -178,7 +178,7 @@ public class TopicClientsAutoAck implements Clients {
         // check message verifiers
         for (SubscriberAutoAck subscriber : getSubscribers()) {
             logger.info("################################################################");
-            logger.info("Subscriber on topic: " + subscriber.getTopicNameJndi() 
+            logger.info("Subscriber on topic: " + subscriber.getTopicNameJndi()
                     + " with name: " + subscriber.getSubscriberName() + " -- Number of received messages: " + subscriber.getMessageVerifier().getReceivedMessages().size()
                     + " Number of sent messages: " + subscriber.getMessageVerifier().getSentMessages().size());
             if (!subscriber.getMessageVerifier().verifyMessages()) {
@@ -190,15 +190,15 @@ public class TopicClientsAutoAck implements Clients {
         // check exceptions
         return isOk;
     }
-    
+
     /**
      * Stop all publishers
      */
     @Override
     public void stopClients() {
-        
-        for (PublisherAutoAck publisher : publishers)   {
-            
+
+        for (PublisherAutoAck publisher : publishers) {
+
             publisher.stopSending();
         }
     }
@@ -356,10 +356,10 @@ public class TopicClientsAutoAck implements Clients {
         while (!clients.isFinished()) {
             Thread.sleep(1000);
         }
-        
+
         clients.evaluateResults();
 
     }
-    
+
 
 }

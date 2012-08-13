@@ -1,8 +1,5 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -18,8 +15,11 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+
 /**
- *
  * @author nziakova
  */
 @RunWith(Arquillian.class)
@@ -85,8 +85,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
     /**
      * Test: starts 1 server, creates producer and consumer, producer sends messages to queue and consumer receives them
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public void TransportProtocolTest() throws Exception {
 
@@ -115,9 +115,9 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for TCP transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress IP on which the container will be binded
-     * @param journalType Type of journal
+     * @param journalType    Type of journal
      * @throws IOException
      */
     private void prepareServerForTCPTransport(String containerName, String bindingAddress, String journalType) {
@@ -134,9 +134,9 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for HTTP transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress IP on which the container will be binded
-     * @param journalType Type of journal
+     * @param journalType    Type of journal
      */
     private void prepareServerForHTTPTransport(String containerName, String bindingAddress, String journalType) {
         controller.start(containerName);
@@ -160,9 +160,9 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for SSL transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress IP on which the container will be binded
-     * @param journalType Type of journal
+     * @param journalType    Type of journal
      * @throws IOException
      */
     private void prepareServerForSSLTransport(String containerName, String bindingAddress, String journalType) throws IOException {

@@ -124,8 +124,8 @@ public class HornetQTestCase implements ContextProvider {
      * Default constructor
      */
     public HornetQTestCase() {
-        this.currentContainerForTest = getCurrentContainerId();
-        log.info("Setting current container ID : " + this.currentContainerForTest);
+        this.setCurrentContainerForTest(getCurrentContainerId());
+        log.info("Setting current container ID : " + this.getCurrentContainerForTest());
     }
 
     /**
@@ -147,26 +147,24 @@ public class HornetQTestCase implements ContextProvider {
      * Returns context
      *
      * @param containerName name of the container
-     *
      * @return instance of {@link Context}
-     *
      * @throws NamingException if a naming exception is encountered
      */
     protected Context getContextByContainerName(String containerName) throws NamingException {
 
-        if (containerName == null && "".equals(containerName))  {
+        if (containerName == null && "".equals(containerName)) {
             throw new IllegalStateException("Container name cannot be null or empty");
         }
 
         Context ctx = null;
 
-        if (CONTAINER1.equals(containerName))   {
+        if (CONTAINER1.equals(containerName)) {
             getContext(CONTAINER1_IP);
-        } else if (CONTAINER2.equals(containerName))    {
+        } else if (CONTAINER2.equals(containerName)) {
             getContext(CONTAINER2_IP);
-        } else if (CONTAINER3.equals(containerName))    {
+        } else if (CONTAINER3.equals(containerName)) {
             getContext(CONTAINER3_IP);
-        } else if (CONTAINER4.equals(containerName))    {
+        } else if (CONTAINER4.equals(containerName)) {
             getContext(CONTAINER4_IP);
         }
 
@@ -185,7 +183,7 @@ public class HornetQTestCase implements ContextProvider {
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
      */
-    protected Context getContext(String hostName, int port) throws NamingException {
+    public Context getContext(String hostName, int port) throws NamingException {
         Context ctx = null;
         if (isEAP5()) {
             ctx = getEAP5Context(hostName, port);
@@ -295,6 +293,7 @@ public class HornetQTestCase implements ContextProvider {
             eap5AdmOps.setHostname(getHostname(container));
             eap5AdmOps.setProfile(getProfile(container));
             eap5AdmOps.setRmiPort(getJNDIPort());
+            eap5AdmOps.setJbossHome(getJbossHome(container));
             operations = eap5AdmOps;
         } else if (isEAP6()) {
             HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
@@ -540,7 +539,7 @@ public class HornetQTestCase implements ContextProvider {
      * @return true for EAP 5 container
      */
     public boolean isEAP5() {
-        return (this.currentContainerForTest != null) && EAP5_CONTAINER.equals(this.currentContainerForTest);
+        return (this.getCurrentContainerForTest() != null) && EAP5_CONTAINER.equals(this.getCurrentContainerForTest());
     }
 
     /**
@@ -549,7 +548,7 @@ public class HornetQTestCase implements ContextProvider {
      * @return true for EAP 6 container
      */
     public boolean isEAP6() {
-        return (this.currentContainerForTest != null) && EAP6_CONTAINER.equals(this.currentContainerForTest);
+        return (this.getCurrentContainerForTest() != null) && EAP6_CONTAINER.equals(this.getCurrentContainerForTest());
     }
 
     /**
@@ -586,6 +585,25 @@ public class HornetQTestCase implements ContextProvider {
             }
         }
         return "default";
+    }
+
+    /**
+     * Gets JBOSS_HOME of the container.
+     *
+     * @param containerName name of the container
+     * @return JBOSS_HOME as specified in arquillian.xml or null
+     */
+    public static String getJbossHome(String containerName) {
+        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+                    if (containerDef.getContainerProperties().containsKey("jbossHome")) {
+                        return containerDef.getContainerProperties().get("jbossHome");
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -637,4 +655,16 @@ public class HornetQTestCase implements ContextProvider {
         return 9999;
     }
 
+    /**
+     * Sets current container for test.
+     *
+     * @return name
+     */
+    public String getCurrentContainerForTest() {
+        return currentContainerForTest;
+    }
+
+    public void setCurrentContainerForTest(String currentContainerForTest) {
+        this.currentContainerForTest = currentContainerForTest;
+    }
 }

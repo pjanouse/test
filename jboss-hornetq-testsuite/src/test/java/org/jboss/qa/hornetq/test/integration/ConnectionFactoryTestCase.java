@@ -67,7 +67,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
             logger.info("Response from server is: " + response);
             Assert.assertTrue("This should be instance of XAConnectionFactory. Response is: " + response, preferFactoryRef == Boolean.valueOf(response.trim()));
 
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
 
             logger.error("Exception was thrown during ConnectionFactoryTestCase.testXAConnectionFactoryLookup: ", ex);
             Assert.fail("Exception was thrown during ConnectionFactoryTestCase.testXAConnectionFactoryLookup: " + ex.getMessage());
@@ -139,7 +139,6 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      * Prepares live server for dedicated topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareServer(String containerName, boolean preferFactoryRef) throws IOException {
 

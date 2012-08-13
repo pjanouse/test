@@ -7,10 +7,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.ConfigurationLoader;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.JMSProvider;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -26,7 +23,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 /**
  * Only EAP 5 test.
@@ -67,7 +63,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // wait until tx manager call getXAResources
         Thread.sleep(120000);
 
-        BufferedReader in = new BufferedReader(new FileReader(ConfigurationLoader.getJbossHome(CONTAINER1)
+        BufferedReader in = new BufferedReader(new FileReader(getJbossHome(CONTAINER1)
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
@@ -86,7 +82,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources);
         Assert.assertEquals("Only one xa resource should be registered.", numberOfLines, 1);
 
-        if (xaResources.contains("InVMConnectorFactory"))   {
+        if (xaResources.contains("InVMConnectorFactory")) {
             logger.info("InVMConnectorFactory found");
         } else {
             Assert.fail("InVMConnectorFactory not found but is expected.");
@@ -129,7 +125,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // wait until tx manager call getXAResources
         Thread.sleep(200000);
 
-        BufferedReader in = new BufferedReader(new FileReader(ConfigurationLoader.getJbossHome(CONTAINER1)
+        BufferedReader in = new BufferedReader(new FileReader(getJbossHome(CONTAINER1)
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
@@ -148,7 +144,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources);
         Assert.assertEquals("Only one xa resource should be registered.", numberOfLines, 1);
 
-        if (xaResources.contains("InVMConnectorFactory"))   {
+        if (xaResources.contains("InVMConnectorFactory")) {
             logger.info("InVMConnectorFactory found");
         } else {
             Assert.fail("InVMConnectorFactory not found but is expected.");
@@ -219,7 +215,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // wait until tx manager call getXAResources
         Thread.sleep(300000);
 
-        File xaRecoveryConfigFile = new File(ConfigurationLoader.getJbossHome(CONTAINER1)
+        File xaRecoveryConfigFile = new File(getJbossHome(CONTAINER1)
                 + File.separator + "xa-resources.txt");
         BufferedReader in = null;
         int numberOfLines = 0;
@@ -245,21 +241,21 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources1);
 
-        if (xaResources1.contains("NettyConnectorFactory"))   {
+        if (xaResources1.contains("NettyConnectorFactory")) {
             logger.info("NettyConnectorFactory found. This is expected.");
         } else {
             Assert.fail("NettyConnectorFactory not found but is expected.");
         }
 
         // if ips of jms servers are not present then fail the test
-        if (!xaResources1.replaceAll("-",".").contains(CONTAINER2_IP) || !xaResources1.replaceAll("-",".").contains(CONTAINER3_IP))   {
+        if (!xaResources1.replaceAll("-", ".").contains(CONTAINER2_IP) || !xaResources1.replaceAll("-", ".").contains(CONTAINER3_IP)) {
 
             Assert.fail(CONTAINER2_IP + " or " + CONTAINER3_IP + " not found but are expected in: " + xaResources1);
 
         }
 
         // remove xa-resources.txt (just for sure)
-        if (xaRecoveryConfigFile.exists())  {
+        if (xaRecoveryConfigFile.exists()) {
             xaRecoveryConfigFile.delete();
         }
 
@@ -293,21 +289,21 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         Assert.assertNotSame("File xa-resources.txt cannot be empty.", "", xaResources2);
         Assert.assertEquals("Only one xa resource should be registered: " + xaResources2, 1, numberOfLines);
 
-        if (xaResources2.contains("NettyConnectorFactory"))   {
+        if (xaResources2.contains("NettyConnectorFactory")) {
             logger.info("NettyConnectorFactory found. This is expected.");
         } else {
             Assert.fail("NettyConnectorFactory not found but is expected.");
         }
 
         // if ips of jms 2 server is not present then fail the test
-        if (!xaResources2.replaceAll("-",".").contains(CONTAINER2_IP))   {
+        if (!xaResources2.replaceAll("-", ".").contains(CONTAINER2_IP)) {
 
             Assert.fail(CONTAINER2_IP + " not found but is expected in: " + xaResources2);
 
         }
 
         // if ip of jms 3 server is present then fail the test
-        if (xaResources2.replaceAll("-",".").contains(CONTAINER3_IP))   {
+        if (xaResources2.replaceAll("-", ".").contains(CONTAINER3_IP)) {
 
             Assert.fail(CONTAINER3_IP + " found but is not expected in: " + xaResources2);
 
@@ -321,14 +317,14 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
-        String clusterGroupName  = "my-cluster";
+        String clusterGroupName = "my-cluster";
         int port = 9876;
         String groupAddress = "233.6.88.3";
         int groupPort = 9876;
@@ -337,7 +333,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
 //        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 
@@ -358,13 +354,12 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
      * Prepares mdb server for remote jca topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
-        String clusterGroupName  = "my-cluster";
+        String clusterGroupName = "my-cluster";
         int port = 9876;
         String groupAddress = "233.6.88.5";
         int groupPort = 9876;
@@ -373,13 +368,13 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         String remoteConnectorName = "netty-remote";
 
         String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
-        Map<String,String> connectionParameters = new HashMap<String, String>();
+        Map<String, String> connectionParameters = new HashMap<String, String>();
         connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
         boolean ha = false;
 
 //        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = JMSProvider.getInstance(containerName);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(true);
 

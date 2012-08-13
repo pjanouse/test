@@ -1,11 +1,5 @@
 package org.jboss.qa.hornetq.test.administration;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -15,17 +9,22 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
 /**
- *
  * Test administration console - cli
- * 
+ *
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
 public class AdministrationTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AdministrationTestCase.class);
-    
+
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -40,7 +39,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
     }
-    
+
     @Test
     @RunAsClient
     public void testConfiguration() throws IOException {
@@ -50,12 +49,12 @@ public class AdministrationTestCase extends HornetQTestCase {
     /**
      * Test all possible things. Failed operation simply throw RuntimeException
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     public void configure(String containerName, String bindingAddress, String journalDirectory) throws IOException {
-        
+
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -64,20 +63,20 @@ public class AdministrationTestCase extends HornetQTestCase {
         int udpGroupPort = 9875;
         int broadcastBindingPort = 56880;
         String serverName = "default";
-        
+
         controller.start(containerName);
-        
+
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
-        
-        
+
+
         jmsAdminOperations.setClustered(true);
-        
+
         jmsAdminOperations.setSharedStore(true);
-        
+
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -93,25 +92,25 @@ public class AdministrationTestCase extends HornetQTestCase {
 
         jmsAdminOperations.createInVmAcceptor("my-acceptor", 32, null);
         jmsAdminOperations.createRemoteAcceptor("remote-acceptor", "messaging", null);
-        
+
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MCAST_ADDRESS, udpGroupPort, 10000);
-        
+
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        
+
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER1_IP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-        
+
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
@@ -152,7 +151,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         copyFile(applicationRolesModified, applicationRolesOriginal);
-        
+
         for (int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
         }
@@ -169,7 +168,7 @@ public class AdministrationTestCase extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     public void copyFile(File sourceFile, File destFile) throws IOException {

@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.apps;
 
-import java.util.List;
 import javax.jms.Message;
 
 /**
@@ -11,5 +10,5 @@ import javax.jms.Message;
 public interface MessageVerifier {
 
     void verifyMessage(Message message) throws Exception;
-    
+
 }

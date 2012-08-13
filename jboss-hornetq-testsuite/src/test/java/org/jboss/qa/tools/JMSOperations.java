@@ -1102,12 +1102,12 @@ public interface JMSOperations {
 
     /**
      * Related only to EAP 5.
-     *
+     * <p/>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
      * @param connectionParameters
      * @param ha
      */
-    void setRA(String connectorClassName, Map<String,String> connectionParameters, boolean ha);
+    void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha);
 }

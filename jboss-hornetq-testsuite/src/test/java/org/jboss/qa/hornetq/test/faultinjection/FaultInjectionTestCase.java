@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -17,7 +18,6 @@ import org.junit.runner.RunWith;
 import javax.jms.Session;
 
 import static junit.framework.Assert.*;
-import org.jboss.qa.tools.JMSOperations;
 
 /**
  * Test case covers basic fault injection tests for standalone node.

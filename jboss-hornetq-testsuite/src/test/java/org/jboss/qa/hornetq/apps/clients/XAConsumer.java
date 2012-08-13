@@ -1,9 +1,10 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import org.apache.log4j.Logger;
+import org.hornetq.core.transaction.impl.XidImpl;
+import org.hornetq.utils.UUIDGenerator;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -11,14 +12,12 @@ import javax.naming.NamingException;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import org.apache.log4j.Logger;
-import org.hornetq.core.transaction.impl.XidImpl;
-import org.hornetq.utils.UUIDGenerator;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Random;
 
 /**
- *
- *
  * This class extends Thread class and should be started as a thread using
  * start().
  *
@@ -27,7 +26,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 public class XAConsumer extends Thread {
 
     private static final Logger logger = Logger.getLogger(XAConsumer.class);
-    
+
     private int maxRetries = 30;
     private String hostname = "localhost";
     private int port = 4447;
@@ -43,13 +42,12 @@ public class XAConsumer extends Thread {
     Random r = new Random();
 
     /**
-     *
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
      * @param messageBuilder message builder
-     * @param maxRetries number of retries to send message after server fails
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param maxRetries     number of retries to send message after server fails
+     * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public XAConsumer(String hostname, int port, String queueNameJndi) {
         this.hostname = hostname;
@@ -77,9 +75,9 @@ public class XAConsumer extends Thread {
             context = new InitialContext(env);
 
             queue = (Queue) context.lookup("jms/queue/testQueue0");
-            
+
             XAConnectionFactory cf = (XAConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-            
+
             con = cf.createXAConnection();
 
             con.start();
@@ -93,7 +91,7 @@ public class XAConsumer extends Thread {
             while (!stop) {
 
                 receiveMessagesInXATransaction(consumer, xaSession);
-                
+
             }
 
             if (messageVerifier != null) {
@@ -101,7 +99,7 @@ public class XAConsumer extends Thread {
             }
 
         } catch (Exception e) {
-            
+
             exception = e;
             logger.error("Consumer got exception and ended:" + e.getMessage(), e);
 
@@ -123,17 +121,17 @@ public class XAConsumer extends Thread {
     }
 
     private void receiveMessagesInXATransaction(MessageConsumer consumer, XASession xaSession) throws Exception {
-        
+
         XAResource xaRes = xaSession.getXAResource();
-        
+
         int count = counter;
-        
+
         Xid xid = new XidImpl(("xa-example1" + r.nextInt()).getBytes(), 1, UUIDGenerator.getInstance().generateStringUUID().getBytes());
-        
+
         List<Message> receivedMessageWindow = null;
-        
+
         try {
-            
+
             xaRes.start(xid, XAResource.TMNOFLAGS);
 
             Message message = null;
@@ -154,25 +152,25 @@ public class XAConsumer extends Thread {
             xaRes.end(xid, XAResource.TMSUCCESS);
 
             xaRes.commit(xid, true);
-         
+
             if (message == null) {
                 stop = true;
             }
-        
+
         } catch (XAException ex) {
-            
+
             logger.error("Exception: ", ex);
-            
+
             tryCommitAgain(xid, xaRes);
-            
+
         } finally {
-            
+
             listOfReceivedMessages.addAll(receivedMessageWindow);
 
             counter += receivedMessageWindow.size();
 
             receivedMessageWindow.clear();
-            
+
         }
     }
 
@@ -272,27 +270,27 @@ public class XAConsumer extends Thread {
     }
 
     private void tryCommitAgain(Xid xid, XAResource xaRes) throws Exception {
-        
+
         int numberOfTries = 0;
         while (numberOfTries < maxRetries) {
             try {
-                
+
                 Thread.sleep(3000);
 
                 xaRes.commit(xid, false);
-                
+
                 return;
-                
-            } catch (XAException ex)    {
-                
+
+            } catch (XAException ex) {
+
                 numberOfTries++;
-                if (ex.errorCode == XAException.XAER_NOTA)  {
+                if (ex.errorCode == XAException.XAER_NOTA) {
                     return;
-                } else if (ex.errorCode == XAException.XA_RETRY)    {
+                } else if (ex.errorCode == XAException.XA_RETRY) {
                     System.out.println("Exception during commit, try: " + numberOfTries);
                     ex.printStackTrace();
                 }
-                
+
             }
         }
         throw new Exception("Retrying commit failed. MaxRetries: " + maxRetries + " Stopping consumer.");

@@ -1,12 +1,12 @@
 package org.jboss.qa.hornetq.apps.impl;
 
-import javax.jms.*;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+
+import javax.jms.*;
 
 
 /**
  * Creates new byte JMS messages with mixed size.
- * 
  *
  * @author mnovak@redhat.com
  */
@@ -14,13 +14,13 @@ public class MixMessageBuilder implements MessageBuilder {
 
     // Counter for messages
     private int counter = 0;
-    
+
     private int modulo = 10;
-    
+
     String content = null;
 
     private byte[] data = null;
-    
+
     // Required size
     private int size;
 
@@ -47,35 +47,35 @@ public class MixMessageBuilder implements MessageBuilder {
      */
     @Override
     public Message createMessage(Session session) throws Exception {
-        
+
         Message message = null;
-        
-        if (counter % modulo == 0)    { //send large byte messge
+
+        if (counter % modulo == 0) { //send large byte messge
             message = session.createBytesMessage();
             message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
             if (this.size > 0) {
                 ((BytesMessage) message).writeBytes(data);
             }
-            
-        } else if (counter % modulo == 1)    { // send lage text message
+
+        } else if (counter % modulo == 1) { // send lage text message
             message = session.createTextMessage();
             message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
             if (this.size > 0) {
                 ((TextMessage) message).setText(content);
             }
-            
-        } else if (counter % modulo == 2)    { // send lage object message
-             message = session.createObjectMessage();
+
+        } else if (counter % modulo == 2) { // send lage object message
+            message = session.createObjectMessage();
             message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
             if (this.size > 0) {
-                ((ObjectMessage)message).setObject(content);
+                ((ObjectMessage) message).setObject(content);
             }
-            
+
         } else { // send normal message
-             message = session.createTextMessage();
+            message = session.createTextMessage();
             message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
             ((TextMessage) message).setText("normal message:" + message.getJMSMessageID());
-            
+
         }
         return message;
     }

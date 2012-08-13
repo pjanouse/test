@@ -1,23 +1,23 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 /**
- * 
  * Publisher with client acknowledge session. Able to fail over.
- * 
+ * <p/>
  * This class extends thread class and should be started as a thread using start().
- * 
+ *
  * @author mnovak
  */
 public class PublisherClientAck extends Thread {
@@ -34,17 +34,16 @@ public class PublisherClientAck extends Thread {
     private Exception exception = null;
     private String clientId;
     private boolean stop = false;
-    
+
     private int counter = 0;
-    
+
     /**
-     * 
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
      * @param messageBuilder message builder
-     * @param maxRetries number of retries to send message after server fails
-     * @param topicNameJndi set jndi name of the topic to send messages
+     * @param maxRetries     number of retries to send message after server fails
+     * @param topicNameJndi  set jndi name of the topic to send messages
      */
     public PublisherClientAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this.hostname = hostname;
@@ -53,10 +52,9 @@ public class PublisherClientAck extends Thread {
         this.topicNameJndi = topicNameJndi;
         this.clientId = clientId;
     }
-    
+
     /**
      * Starts end messages to server. This should be started as Thread - publisher.start();
-     * 
      */
     public void run() {
 
@@ -67,7 +65,7 @@ public class PublisherClientAck extends Thread {
         Session session = null;
 
         try {
-            
+
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
             env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
@@ -78,7 +76,7 @@ public class PublisherClientAck extends Thread {
             Topic topic = (Topic) context.lookup(getTopicNameJndi());
 
             con = cf.createConnection();
-            
+
             con.setClientID(clientId);
 
             session = con.createSession(false, Session.CLIENT_ACKNOWLEDGE);
@@ -92,18 +90,18 @@ public class PublisherClientAck extends Thread {
                 msg = messageBuilder.createMessage(session);
                 // send message in while cycle
                 sendMessage(publisher, msg);
-                
+
                 logger.info("Publisher with clientId: " + clientId + " for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 
             publisher.close();
-            
-            if (messageVerifiers != null)    {
-                for (FinalTestMessageVerifier finalTestMessageVerifier : messageVerifiers)  {
-                     finalTestMessageVerifier.addSendMessages(listOfSentMessages);
+
+            if (messageVerifiers != null) {
+                for (FinalTestMessageVerifier finalTestMessageVerifier : messageVerifiers) {
+                    finalTestMessageVerifier.addSendMessages(listOfSentMessages);
                 }
-                
+
             }
 
         } catch (Exception e) {
@@ -142,19 +140,19 @@ public class PublisherClientAck extends Thread {
      * @param msg
      */
     private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
-        
+
         int numberOfRetries = 0;
-        
+
         while (numberOfRetries < maxRetries) {
-            
+
             try {
 
                 publisher.send(msg);
-                
+
                 listOfSentMessages.add(msg);
-                
+
                 counter++;
-                
+
                 numberOfRetries = 0;
 
                 return;
@@ -165,12 +163,13 @@ public class PublisherClientAck extends Thread {
                     logger.info("SEND RETRY - Publisher for node: " + hostname
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID(), ex);
-                } catch (JMSException e) {} // ignore 
+                } catch (JMSException e) {
+                } // ignore
 
                 numberOfRetries++;
             }
         }
-        
+
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + hostname
                 + ". Sent message with property count: " + counter
@@ -181,10 +180,10 @@ public class PublisherClientAck extends Thread {
     /**
      * Stop producer
      */
-    public void stopSending()   {
+    public void stopSending() {
         this.stop = true;
     }
-    
+
     /**
      * @return the hostname
      */
@@ -283,13 +282,13 @@ public class PublisherClientAck extends Thread {
         this.topicNameJndi = topicNameJndi;
     }
 
-	public MessageBuilder getMessageBuilder() {
-		return messageBuilder;
-	}
+    public MessageBuilder getMessageBuilder() {
+        return messageBuilder;
+    }
 
-	public void setMessageBuilder(MessageBuilder messageBuilder) {
-		this.messageBuilder = messageBuilder;
-	}
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
+    }
 }
 
 

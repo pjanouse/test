@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
+ * Test compatibility of EAP 5.1.2 clients against EAP 6 server.
+ *
  * @author mnovak@redhat.com
  * @author ochaloup@redhat.com
  */

@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 // TODO Finish this test case.
-import javax.jms.Session;
+
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -22,6 +22,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.jms.Session;
 
 /**
  * This class starts servers create cluster with TCP and UDP proxies. Then it stop them and check what happens.
@@ -222,11 +224,11 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
      * Create clients with the given acknowledge mode on topic or queue.
      *
      * @param acknowledgeMode can be Session.AUTO_ACKNOWLEDGE, Session.CLIENT_ACKNOWLEDGE, Session.SESSION_TRANSACTED
-     * @param topic true for topic
+     * @param topic           true for topic
      * @return clients
      * @throws Exception
      */
-    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception  {
+    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
 
         Clients clients = null;
 
@@ -274,6 +276,7 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
     /**
      * Deploys destinations to server which is currently running.
+     *
      * @param containerName container name
      */
     private void deployDestinations(String containerName) {
@@ -284,8 +287,7 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param containerName container name
-     * @param serverName server name of the hornetq server
-     *
+     * @param serverName    server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
 
@@ -309,7 +311,7 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
     private void prepareServer(String containerName, String bindingAddress) {
@@ -391,13 +393,13 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = "mdbOnQueue1")
     @TargetsContainer(CONTAINER1)
-    public static JavaArchive createMdbOnQueue1()  {
+    public static JavaArchive createMdbOnQueue1() {
         return createDeploymentMdbOnQueue();
     }
 
     @Deployment(managed = false, testable = false, name = "mdbOnQueue2")
     @TargetsContainer(CONTAINER2)
-    public static JavaArchive createMdbOnQueue2()  {
+    public static JavaArchive createMdbOnQueue2() {
         return createDeploymentMdbOnQueue();
     }
 
@@ -416,13 +418,13 @@ public class ClusterDisconnectionTestCase extends HornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = "mdbOnTopic1")
     @TargetsContainer(CONTAINER1)
-    public static JavaArchive createMdbOnTopic1()  {
+    public static JavaArchive createMdbOnTopic1() {
         return createDeploymentMdbOnTopic();
     }
 
     @Deployment(managed = false, testable = false, name = "mdbOnTopic2")
     @TargetsContainer(CONTAINER2)
-    public static JavaArchive createMdbOnTopic2()  {
+    public static JavaArchive createMdbOnTopic2() {
         return createDeploymentMdbOnTopic();
     }
 }

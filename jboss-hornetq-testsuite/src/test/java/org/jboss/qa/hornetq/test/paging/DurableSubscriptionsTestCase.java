@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.JMSTools;
+import org.jboss.qa.tools.JMSOperations;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,6 @@ import javax.jms.Session;
 import javax.jms.Topic;
 import javax.naming.Context;
 import java.util.concurrent.Semaphore;
-import org.jboss.qa.tools.JMSOperations;
 
 import static org.junit.Assert.fail;
 

@@ -30,10 +30,10 @@ import java.util.Arrays;
  * @version $Revision: $
  */
 public class SubmitUtil {
-    
+
     public static String host = "localhost";
     public static int port = 9091;
-    
+
     // Logger
     private static final Logger log = Logger.getLogger(SubmitUtil.class);
 

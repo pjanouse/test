@@ -4,7 +4,10 @@ package org.jboss.qa.tools.arquillian.extension;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -29,7 +32,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         // try to get property specific for EAP 6 and if succeed use EAP 6 dead detection mechanism
         String serverConfig = container.getContainerConfiguration().getContainerProperties().get("serverConfig");
         // if EAP 6
-        if (serverConfig != null)   {
+        if (serverConfig != null) {
             killEAP6(container);
         } else {
             killEAP5(container);
@@ -78,7 +81,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             code = connection.getResponseCode();
 
             // You can determine on HTTP return code received. 200 is success.
-        } catch (ConnectException e)    {
+        } catch (ConnectException e) {
             // ignore
         } catch (MalformedURLException e) {
             // TODO Auto-generated catch block
@@ -142,6 +145,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             throw new RuntimeException("jboss-as not killed");
         }
     }
+
     /**
      * Checks if AS is alive
      *
@@ -150,37 +154,36 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
      * @throws Exception if something goes wrong
      */
     private boolean checkJBossAlive(String killSequence) throws Exception {
-        
+
         Process p = Runtime.getRuntime().exec(killSequence);
         p.waitFor();
-        
+
         boolean stillRunning = true;
         // check standard output - false returned then server is stopped
         if (!checkOutput(p.getInputStream())) {
             stillRunning = false;
         }
-        
+
         // check error output - false returned then server is stopped
-        if (!checkOutput(p.getErrorStream()))   {
+        if (!checkOutput(p.getErrorStream())) {
             stillRunning = false;
         }
-        
+
         if (p.exitValue() != 0) {
             log.log(Level.SEVERE, "Return code from kill sequence is different from zero. It's expected when server is no longer"
                     + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
         }
         return stillRunning;
     }
-    
+
     /**
      * Verify output from the stream.
-     * 
+     *
      * @param in Standard/error output from the kill sequence - expected string
-     * 
      * @return true - when server lives, false - when server was killed or kill sequence failed
      */
-    private boolean checkOutput(InputStream in) throws IOException   {
-        
+    private boolean checkOutput(InputStream in) throws IOException {
+
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
         String result;
         while ((result = br.readLine()) != null) {

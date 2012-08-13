@@ -4,24 +4,22 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImpl
 import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionSynchronizationRegistryImple;
 import com.arjuna.ats.jta.TransactionManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.transaction.*;
-import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
- *
  * Simple sender with transaction acknowledge session. Able to fail over.
- *
+ * <p/>
  * This class extends Thread class and should be started as a thread using
  * start().
  *
@@ -30,7 +28,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 public class XAConsumerTransAck extends Thread {
 
     private static final Logger logger = Logger.getLogger(XAConsumerTransAck.class);
-    
+
     private int maxRetries = 30;
     private String hostname = "localhost";
     private int port = 4447;
@@ -46,13 +44,12 @@ public class XAConsumerTransAck extends Thread {
     javax.transaction.TransactionManager txMgr = null;
 
     /**
-     *
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
      * @param messageBuilder message builder
-     * @param maxRetries number of retries to send message after server fails
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param maxRetries     number of retries to send message after server fails
+     * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public XAConsumerTransAck(String hostname, int port, String queueNameJndi) {
         this.hostname = hostname;
@@ -160,13 +157,13 @@ public class XAConsumerTransAck extends Thread {
             } catch (SystemException ex) {
                 logger.error(ex);
             }
-            
+
             try {
                 transaction = txMgr.getTransaction();
             } catch (SystemException ex) {
                 logger.error(ex);
             }
-            
+
             try {
                 transaction.enlistResource(xaRes);
             } catch (RollbackException ex) {
@@ -196,26 +193,26 @@ public class XAConsumerTransAck extends Thread {
             } catch (JMSException ex) {
                 logger.error(ex);
             }
-            
+
             try {
                 txMgr.commit();
             } catch (RollbackException ex) {
-                
-                while (numberOfRetries < maxRetries)    {
+
+                while (numberOfRetries < maxRetries) {
                     try {
                         Thread.sleep(4000);
                         txMgr.commit();
-                    } catch (javax.transaction.RollbackException e)  {
-                        
+                    } catch (javax.transaction.RollbackException e) {
+
                         return;
-                        
-                    } catch (Exception e)  {
+
+                    } catch (Exception e) {
                         numberOfRetries++;
                         logger.info("Try to commit again: " + numberOfRetries);
                         logger.error("Exception:", ex);
                     }
                 }
-                
+
             } catch (HeuristicMixedException ex) {
                 logger.error(ex);
             } catch (HeuristicRollbackException ex) {
@@ -239,7 +236,6 @@ public class XAConsumerTransAck extends Thread {
             }
 
             return;
-
 
 
         }

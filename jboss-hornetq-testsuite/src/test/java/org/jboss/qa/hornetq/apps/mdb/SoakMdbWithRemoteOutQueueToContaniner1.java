@@ -1,30 +1,20 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import javax.ejb.*;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Properties;
 
 /**
- *
  * A SoakMdbWithRemoteOutQueueToContaniner1 used for lodh tests. Used in RemoteJcaTestCase.
- *
+ * <p/>
  * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
@@ -32,9 +22,9 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
  * @version $Revision: 1.1 $
  */
 @MessageDriven(name = "mdb",
-activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
+        activationConfig = {
+                @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, MessageListener {
@@ -137,12 +127,12 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
             sender.send(newMessage);
 
 //            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
-            
+
         } catch (Exception t) {
-            
+
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
-            
+
             this.context.setRollbackOnly();
         } finally {
             if (session != null) {

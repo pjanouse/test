@@ -1,16 +1,12 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.*;
-import java.util.StringTokenizer;
-import java.util.concurrent.TimeUnit;
-
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
@@ -28,8 +24,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.*;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+
 /**
- *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -66,9 +65,8 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     /**
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -92,7 +90,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         Thread.sleep(30000);
 
         for (int i = 0; i < 3; i++) {
-            
+
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
             controller.start(CONTAINER1);
@@ -139,8 +137,8 @@ public class Lodh5TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
@@ -168,7 +166,6 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
-
 
 
         jmsAdminOperations.removeAddressSettings("#");
@@ -244,7 +241,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         return numberOfRecords;
     }
 
-//    public int insertRecords() throws Exception {
+    //    public int insertRecords() throws Exception {
 //        deployer.deploy("dbUtilServlet");
 //        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=insertRecord", 10, TimeUnit.SECONDS);
 //        deployer.undeploy("dbUtilServlet");

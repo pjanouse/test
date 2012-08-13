@@ -17,9 +17,10 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
-import java.lang.reflect.Method;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
+
+import java.lang.reflect.Method;
 
 /**
  * ExtractScriptUtil
@@ -27,32 +28,26 @@ import org.jboss.qa.tools.byteman.annotation.BMRules;
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @version $Revision: $
  */
-public final class ExtractScriptUtil
-{
+public final class ExtractScriptUtil {
 
-    public static String extract(Method method)
-    {
+    public static String extract(Method method) {
         BMRule rule = method.getAnnotation(BMRule.class);
         BMRules rules = method.getAnnotation(BMRules.class);
 
         return createRules(rule, rules);
     }
 
-    private static String createRules(BMRule rule, BMRules rules)
-    {
-        if(rule != null || rules != null)
-        {
-           return GenerateScriptUtil.constructScriptText(toRuleArray(rule, rules));
+    private static String createRules(BMRule rule, BMRules rules) {
+        if (rule != null || rules != null) {
+            return GenerateScriptUtil.constructScriptText(toRuleArray(rule, rules));
         }
         return null;
     }
 
-    private static BMRule[] toRuleArray(BMRule rule, BMRules rules)
-    {
-       if(rule != null)
-       {
-          return new BMRule[] {rule};
-       }
-       return rules.value();
+    private static BMRule[] toRuleArray(BMRule rule, BMRules rules) {
+        if (rule != null) {
+            return new BMRule[]{rule};
+        }
+        return rules.value();
     }
 }

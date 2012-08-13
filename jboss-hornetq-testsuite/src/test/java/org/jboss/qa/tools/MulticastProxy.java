@@ -1,23 +1,27 @@
 package org.jboss.qa.tools;
 
-import java.net.*;
 import org.apache.log4j.Logger;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 
 /**
  * This proxy routes multicast from one multicast group for example 233.1.2.99 to another
  * multicast group for example 233.1.2.1.
- * 
+ * <p/>
  * The goal is that one server sends multicast packets to one group and listen on another.
  * In this was a cluster can be disconnected.
- * 
+ *
  * @author mnovak@redhat.com
  */
 public class MulticastProxy extends Thread {
 
-    
+
     // Logger
     private static final Logger log = Logger.getLogger(MulticastProxy.class);
-    
+
     private String sourceMulticastGroup;
     private int sourceMulticastPort;
     private String destinationMulticastGroup;
@@ -25,7 +29,7 @@ public class MulticastProxy extends Thread {
     private boolean stop = false;
 
     public MulticastProxy(String sourceMulticastGroup, int sourceMulticastPort, String destinationMulticastGroup,
-            int destinationMulticastPort) {
+                          int destinationMulticastPort) {
 
         this.sourceMulticastGroup = sourceMulticastGroup;
         this.sourceMulticastPort = sourceMulticastPort;
@@ -39,28 +43,28 @@ public class MulticastProxy extends Thread {
 
             MulticastSocket sourceMulticastSocket = new MulticastSocket(sourceMulticastPort);  // Create socket
             sourceMulticastSocket.joinGroup(InetAddress.getByName(sourceMulticastGroup));
-                       
+
             DatagramSocket destSocket = new DatagramSocket();
             destSocket.setSoTimeout(500);
-            
+
             log.info("Proxy from: " + sourceMulticastGroup + ":" + sourceMulticastPort
-                        + " to: " + destinationMulticastGroup + ":" + destinationMulticastPort + " was created");
-            
+                    + " to: " + destinationMulticastGroup + ":" + destinationMulticastPort + " was created");
+
             do {
                 byte[] line = new byte[4096];
 
                 DatagramPacket pkt = new DatagramPacket(line, line.length,
                         InetAddress.getByName(destinationMulticastGroup), destinationMulticastPort);
-                
+
                 sourceMulticastSocket.receive(pkt);
-                
+
                 log.info("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " content: " + line + " dest host:port - "
                         + pkt.getAddress());
 
                 DatagramPacket pkt1 = new DatagramPacket(line, line.length,
                         InetAddress.getByName(destinationMulticastGroup), destinationMulticastPort);
-                
+
                 destSocket.send(pkt1);
 
                 log.info("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
@@ -72,7 +76,7 @@ public class MulticastProxy extends Thread {
             sourceMulticastSocket.close();
             destSocket.close();
         } catch (Exception err) {
-            log.error("Multicast proxy got critical error: " , err);
+            log.error("Multicast proxy got critical error: ", err);
         }
     }
 

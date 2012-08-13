@@ -1,9 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.*;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -25,6 +21,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is modified lodh 2 (kill/shutdown mdb servers) test case which is
@@ -84,7 +85,7 @@ public class Lodh3TestCase extends HornetQTestCase {
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
-    
+
     /**
      * Kills mdbs servers.
      */
@@ -98,10 +99,9 @@ public class Lodh3TestCase extends HornetQTestCase {
         killSequence.add(CONTAINER4);
         testRemoteJcaInCluster(killSequence);
     }
-    
+
 
     /**
-     *
      * @throws Exception
      */
 //    @CleanUpAfterTest
@@ -111,18 +111,18 @@ public class Lodh3TestCase extends HornetQTestCase {
         // cluster A
         controller.start(CONTAINER1);
         controller.start(CONTAINER3);
-        
+
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producer2 = new SoakProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(new MixMessageBuilder(1024 * 200));
         producer2.setMessageBuilder(new MixMessageBuilder(1024 * 200));
-        
+
         producer1.start();
         producer2.start();
-        
+
         producer1.join();
         producer2.join();
-        
+
         logger.info("Deploying mdbs.");
         // cluster B
         controller.start(CONTAINER2);
@@ -130,30 +130,30 @@ public class Lodh3TestCase extends HornetQTestCase {
         deployer.deploy("mdb2");
         deployer.deploy("mdb1");
         logger.info("Mdbs DEPLOYED.");
-        
+
         // Wait to send and receive some messages
         Thread.sleep(30 * 1000);
 
         ///executeKillSequence(killSequence, 20000);
-        
+
         logger.info("Start receivers from jms servers.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
         SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 10000, 10, 10);
 
         receiver1.start();
         receiver2.start();
-        
+
         receiver1.join();
         receiver2.join();
-        
-        logger.info("Number of sent messages: " + (producer1.getCounter() + producer2.getCounter()) 
-                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages, " 
+
+        logger.info("Number of sent messages: " + (producer1.getCounter() + producer2.getCounter())
+                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages, "
                 + ", Producer to jms2 server sent: " + producer2.getCounter() + " messages.");
-        
-        logger.info("Number of received messages: " + (receiver1.getCount() + receiver2.getCount()) 
-                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages, " 
+
+        logger.info("Number of received messages: " + (receiver1.getCount() + receiver2.getCount())
+                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages, "
                 + ", Consumer from jms2 server received: " + receiver2.getCount() + " messages.");
-        
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter() + producer2.getCounter(),
                 receiver1.getCount() + receiver2.getCount());
@@ -166,15 +166,15 @@ public class Lodh3TestCase extends HornetQTestCase {
         stopServer(CONTAINER3);
 
     }
-    
+
     /**
      * Executes kill sequence.
-     * 
-     * @param killSequence map Contanier -> ContainerIP
+     *
+     * @param killSequence     map Contanier -> ContainerIP
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
     private void executeKillSequence(List<String> killSequence, long timeBetweenKills) throws InterruptedException {
-        
+
         for (String containerName : killSequence) {
             Thread.sleep(timeBetweenKills);
             killServer(containerName);
@@ -236,8 +236,8 @@ public class Lodh3TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName) throws IOException {
@@ -270,25 +270,24 @@ public class Lodh3TestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-        
+
         jmsAdminOperations.close();
         controller.stop(containerName);
         controller.start(containerName);
         jmsAdminOperations = this.getJMSOperations(containerName);
-        
+
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", multicastAddress, 55874);
         deployDestinations(containerName);
-        
+
         jmsAdminOperations.close();
         controller.stop(containerName);
-        
+
     }
 
     /**
      * Prepares mdb server for remote jca topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
-     *
      */
     private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
 
@@ -329,7 +328,7 @@ public class Lodh3TestCase extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     *
+     * <p/>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
@@ -357,7 +356,7 @@ public class Lodh3TestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -366,10 +365,9 @@ public class Lodh3TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port port of management interface - it should be 9999
+     * @param hostname   ip address where to bind to managemant interface
+     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
-     *
      */
     private void deployDestinations(String containerName, String serverName) {
 
@@ -390,7 +388,7 @@ public class Lodh3TestCase extends HornetQTestCase {
      * Copies file from one place to another.
      *
      * @param sourceFile source file
-     * @param destFile destination file - file will be rewritten
+     * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
     private void copyFile(File sourceFile, File destFile) throws IOException {

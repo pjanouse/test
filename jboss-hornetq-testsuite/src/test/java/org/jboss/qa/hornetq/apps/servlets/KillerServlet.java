@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.apps.servlets;
-import javax.annotation.Resource;
-import javax.jms.*;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -8,13 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Servlet is used to kill server. Or do other stuff with the server.
+ *
  * @author mnovak
  */
 public class KillerServlet extends HttpServlet {
@@ -23,22 +21,22 @@ public class KillerServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(KillerServlet.class.getName());
 
     /**
-     * @see {@link HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      * @param request
      * @param response
      * @throws ServletException
      * @throws IOException
+     * @see {@link HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
 
     /**
-     * @see {@link HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      * @param request
      * @param response
      * @throws ServletException
      * @throws IOException
+     * @see {@link HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
@@ -47,6 +45,7 @@ public class KillerServlet extends HttpServlet {
 
     /**
      * Process requests
+     *
      * @param request
      * @param response
      * @param queueIn
@@ -58,9 +57,9 @@ public class KillerServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         String op = request.getParameter("op");
-        out.println("op is: " + op );
+        out.println("op is: " + op);
         try {
-            
+
             if (op != null) {
                 if (op.equals("kill")) {
                     killServer(out);
@@ -77,7 +76,7 @@ public class KillerServlet extends HttpServlet {
     }
 
     private void killServer(PrintWriter out) throws IOException {
-        
+
         String jvmName = ManagementFactory.getRuntimeMXBean().getName();
         int index = jvmName.indexOf('@');
 
@@ -92,11 +91,11 @@ public class KillerServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             // ignore
         }
-        
+
         out.println("Killing server");
-        
+
         log.info("pid of the proccess is : " + pid);
-        
+
         Runtime.getRuntime().exec("kill -9 " + pid);
     }
 }

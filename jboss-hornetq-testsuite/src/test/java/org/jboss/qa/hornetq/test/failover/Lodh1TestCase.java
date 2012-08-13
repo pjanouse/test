@@ -1,15 +1,13 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -24,8 +22,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -39,23 +41,23 @@ public class Lodh1TestCase extends HornetQTestCase {
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueue = "jms/queue/" + inQueueName;
-    
+
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER1)
-    public static JavaArchive createLodh1Deployment()   {
-        
+    public static JavaArchive createLodh1Deployment() {
+
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
-        
+
         mdbJar.addClass(LocalMdbFromQueue.class);
-        
+
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        
+
         StringBuffer ejbXml = new StringBuffer();
-        
+
         ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
         ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
         ejbXml.append("xmlns=\"http://java.sun.com/xml/ns/javaee\"\n");
@@ -80,7 +82,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>"+ outQueue + "</jndi-name>\n");
+        ejbXml.append("<jndi-name>" + outQueue + "</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -88,10 +90,10 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</enterprise-beans>\n");
         ejbXml.append("</jboss:ejb-jar>\n");
         ejbXml.append("\n");
-        
+
         mdbJar.addAsManifestResource(new StringAsset(ejbXml.toString()), "jboss-ejb3.xml");
 
-        logger.info(ejbXml);                                
+        logger.info(ejbXml);
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
 //        File target = new File("/tmp/mdb.jar");
@@ -100,77 +102,76 @@ public class Lodh1TestCase extends HornetQTestCase {
 //        }
 //        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
-        
+
     }
-    
+
     @RunAsClient
     @Test
     @CleanUpAfterTest
     @RestoreConfigAfterTest
-    public void testKill() throws Exception  {
+    public void testKill() throws Exception {
         testLodh(false);
     }
-    
+
     @RunAsClient
     @Test
     @CleanUpAfterTest
     @RestoreConfigAfterTest
-    public void testShutDown() throws Exception  {
+    public void testShutDown() throws Exception {
         testLodh(true);
     }
-    
+
     /**
      * @param acknowledge acknowledge type
-     * @param failback whether to test failback
-     * @param topic whether to test with topics
-     *
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
      * @throws Exception
      */
     public void testLodh(boolean shutdown) throws Exception {
-        
+
         // we use only the first server
         prepareServer();
-        
+
         controller.start(CONTAINER1);
-        
+
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageBuilder(new MixMessageBuilder(500*1024));
+        producer1.setMessageBuilder(new MixMessageBuilder(500 * 1024));
 
         logger.info("Start producer.");
         producer1.start();
         producer1.join();
-        
+
         deployer.deploy("mdb1");
-        
+
         List<String> killSequence = new ArrayList<String>();
-        
+
         for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
-        
+
         executeNodeFaillSequence(killSequence, 10000, shutdown);
 
         logger.info("Start receiver.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 100000, 10, 10);
         receiver1.start();
         receiver1.join();
-        
+
         logger.info("Number of sent messages: " + producer1.getCounter());
         logger.info("Number of received messages: " + receiver1.getCount());
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
                 receiver1.getCount());
-        
+
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
 
     }
-    
+
     /**
      * Executes kill sequence.
      *
-     * @param failSequence map Contanier -> ContainerIP
+     * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
     private void executeNodeFaillSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
@@ -215,7 +216,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
     }
-    
+
     /**
      * Prepare server in simple topology.
      *
@@ -228,8 +229,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
@@ -252,7 +253,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
-        
+
         controller.stop(containerName);
 
     }

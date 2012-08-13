@@ -47,5 +47,5 @@ public class TextMessageBuilder implements MessageBuilder {
         }
         return message;
     }
-    
+
 }

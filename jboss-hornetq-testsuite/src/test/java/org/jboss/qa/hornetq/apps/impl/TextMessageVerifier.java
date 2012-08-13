@@ -4,55 +4,56 @@
  */
 package org.jboss.qa.hornetq.apps.impl;
 
-import java.util.*;
-import javax.jms.JMSException;
-import javax.jms.Message;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
+import javax.jms.JMSException;
+import javax.jms.Message;
+import java.util.*;
+
 /**
- *  This class observers jms clients and store their sent and received messages.
- * 
- *  //TODO Then it's able to verify for example whether there are no duplicated or lost messages. Or different number of messages.
- * 
+ * This class observers jms clients and store their sent and received messages.
+ * <p/>
+ * //TODO Then it's able to verify for example whether there are no duplicated or lost messages. Or different number of messages.
+ *
  * @author mnovak@redhat.com
  */
 public class TextMessageVerifier implements FinalTestMessageVerifier {
-        
+
     private static final Logger logger = Logger.getLogger(TextMessageVerifier.class);
 
     private List<Message> sentMessages = new ArrayList<Message>();
-    
+
     private List<Message> receivedMessages = new ArrayList<Message>();
 
-    /** 
+    /**
      * Returns true if all messages are ok = there are equal number of sent and received messages.
-     * 
+     *
      * @return true if there is equal number of sent and received messages
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public boolean verifyMessages() throws JMSException {
-        
+
         boolean isOk = true;
-        
+
         if (sentMessages.size() != receivedMessages.size()) {
             logger.error("There is different number of sent and received messages");
             isOk = false;
         }
-        
+
         // set of lost messages -- (sendMessages - receivedMessages) = lostMessages
-        if (getLostMessages().size() != 0)  {
+        if (getLostMessages().size() != 0) {
             logger.error("Lost message detected: " + getLostMessages());
             isOk = false;
         }
-        
+
         // set of duplicated messages --  (receivedMessages - sendMessages) = lostMessages
-        if (getDuplicatedMessages().size() != 0)  {
+        if (getDuplicatedMessages().size() != 0) {
             logger.error("Duplicated message detected: " + getDuplicatedMessages());
             isOk = false;
         }
-        
+
         return isOk;
     }
 
@@ -85,60 +86,60 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
     public void setReceivedMessages(ArrayList<Message> receivedMessages) {
         this.receivedMessages = receivedMessages;
     }
-    
+
     /**
      * Add received messages to verify.
-     * 
-     * @param list 
+     *
+     * @param list
      */
     public synchronized void addReceivedMessages(List<Message> list) {
-        
+
         receivedMessages.addAll(list);
-        
+
     }
-    
+
     /**
      * Add send messages to verify.
-     * 
-     * @param list 
+     *
+     * @param list
      */
     public synchronized void addSendMessages(List<Message> list) {
-        
+
         sentMessages.addAll(list);
-        
+
     }
 
     /**
      * Returns list of lost messages.
-     * 
+     *
      * @return list of lost messages or empty list if there are no lost messages
      */
     private List<Message> getLostMessages() throws JMSException {
-        
+
         Map<String, Message> sentMessageIds = new HashMap<String, Message>();
-        
+
         for (Message message : sentMessages) {
             sentMessageIds.put(message.getJMSMessageID(), message);
         }
-        
-        for (Message message : receivedMessages)    {
+
+        for (Message message : receivedMessages) {
             sentMessageIds.remove(message.getJMSMessageID());
         }
-        
+
         List<Message> listOfLostMessages = new ArrayList<Message>();
-        
+
         for (Message message : sentMessageIds.values()) {
             listOfLostMessages.add(message);
         }
-        
+
         return listOfLostMessages;
     }
-    
+
     /**
      * Returns list of duplicated messages.
-     * 
+     *
      * @return list of duplicated messages or empty list if there are no
-     * duplicated messages
+     *         duplicated messages
      */
     private List<Message> getDuplicatedMessages() throws JMSException {
 

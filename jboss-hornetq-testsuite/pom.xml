@@ -59,7 +59,8 @@
                         <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
                         <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
                         <MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
-                        <!--<JMS_PROVIDER_CLASS>${jms.provider.class}</JMS_PROVIDER_CLASS>-->
+                        <JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
+                        <JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

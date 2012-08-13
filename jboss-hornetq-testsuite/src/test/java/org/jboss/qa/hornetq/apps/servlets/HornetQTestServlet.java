@@ -19,22 +19,22 @@ public class HornetQTestServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(HornetQTestServlet.class.getName());
 
     /**
-     * @see {@link HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      * @param request
      * @param response
      * @throws ServletException
      * @throws IOException
+     * @see {@link HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
 
     /**
-     * @see {@link HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      * @param request
      * @param response
      * @throws ServletException
      * @throws IOException
+     * @see {@link HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
@@ -42,6 +42,7 @@ public class HornetQTestServlet extends HttpServlet {
 
     /**
      * Process requests
+     *
      * @param request
      * @param response
      * @throws ServletException
@@ -63,7 +64,7 @@ public class HornetQTestServlet extends HttpServlet {
 
                     log.info("testConnectionFactoryType was called on HornetQTestServlet with jndiName: " + jndiName);
 
-                    if (jndiName == null || "".equals(jndiName))   {
+                    if (jndiName == null || "".equals(jndiName)) {
                         out.println("jndiName is missing. Provide jndiName parameter to url.");
                     }
 
@@ -73,7 +74,7 @@ public class HornetQTestServlet extends HttpServlet {
                         out.println("Connection factory lookup is null for jndiName: " + jndiName);
                     }
 
-                    if (cf instanceof XAConnectionFactory)  {
+                    if (cf instanceof XAConnectionFactory) {
                         out.println("true");
                     } else {
                         out.println("false");

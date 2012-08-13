@@ -20,23 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 package org.jboss.qa.hornetq.test;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+
+import org.jboss.util.Base64;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.jboss.util.Base64;
+import java.util.concurrent.*;
 
 /**
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
@@ -82,11 +73,11 @@ public class HttpRequest {
     /**
      * Returns the URL response as a string.
      *
-     * @param spec  URL spec
-     * @param waitUntilAvailableMs  maximum timeout in milliseconds to wait for the URL to return non 404 response
-     * @param responseTimeout  the timeout to read the response
+     * @param spec                 URL spec
+     * @param waitUntilAvailableMs maximum timeout in milliseconds to wait for the URL to return non 404 response
+     * @param responseTimeout      the timeout to read the response
      * @param responseTimeoutUnit  the time unit for responseTimeout
-     * @return  URL response
+     * @return URL response
      * @throws IOException
      * @throws ExecutionException
      * @throws TimeoutException
@@ -99,13 +90,13 @@ public class HttpRequest {
                 final long startTime = System.currentTimeMillis();
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setDoInput(true);
-                while(conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    if(System.currentTimeMillis() - startTime >= waitUntilAvailableMs) {
+                while (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    if (System.currentTimeMillis() - startTime >= waitUntilAvailableMs) {
                         break;
                     }
                     try {
                         Thread.sleep(500);
-                    } catch(InterruptedException e) {
+                    } catch (InterruptedException e) {
                         break;
                     } finally {
                         conn = (HttpURLConnection) url.openConnection();
@@ -139,7 +130,7 @@ public class HttpRequest {
     private static String read(final InputStream in) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         int b;
-        while((b = in.read()) != -1) {
+        while ((b = in.read()) != -1) {
             out.write(b);
         }
         return out.toString();
@@ -151,16 +142,14 @@ public class HttpRequest {
             final InputStream err = conn.getErrorStream();
             try {
                 throw new IOException(read(err));
-            }
-            finally {
+            } finally {
                 err.close();
             }
         }
         final InputStream in = conn.getInputStream();
         try {
             return read(in);
-        }
-        finally {
+        } finally {
             in.close();
         }
     }
@@ -172,10 +161,10 @@ public class HttpRequest {
     /**
      * Executes an HTTP request to write the specified message.
      *
-     * @param spec The {@link URL} in String form
-     * @param message Message to write
-     * @param timeout Timeout value
-     * @param unit Timeout units
+     * @param spec          The {@link URL} in String form
+     * @param message       Message to write
+     * @param timeout       Timeout value
+     * @param unit          Timeout units
      * @param requestMethod Name of the HTTP method to execute (ie. HEAD, GET, POST)
      * @return
      * @throws MalformedURLException
@@ -184,7 +173,7 @@ public class HttpRequest {
      */
     private static String execRequestMethod(final String spec, final String message, final long timeout, final TimeUnit unit, final String requestMethod) throws MalformedURLException, ExecutionException, TimeoutException {
 
-        if(requestMethod==null||requestMethod.isEmpty()){
+        if (requestMethod == null || requestMethod.isEmpty()) {
             throw new IllegalArgumentException("Request Method must be specified (ie. GET, PUT, DELETE etc)");
         }
 
@@ -200,8 +189,7 @@ public class HttpRequest {
                 try {
                     write(out, message);
                     return processResponse(conn);
-                }
-                finally {
+                } finally {
                     out.close();
                 }
             }

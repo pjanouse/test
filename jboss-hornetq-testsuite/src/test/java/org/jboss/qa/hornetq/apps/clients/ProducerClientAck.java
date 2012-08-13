@@ -1,22 +1,22 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 /**
- *
  * Simple sender with client acknowledge session. Able to fail over.
- *
+ * <p/>
  * This class extends Thread class and should be started as a thread using
  * start().
  *
@@ -38,13 +38,10 @@ public class ProducerClientAck extends Thread {
     private int counter = 0;
 
     /**
-     *
-     * @param hostname hostname
-     * @param port port
-     * @param messages number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries number of retries to send message after server fails
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
         this.hostname = hostname;
@@ -56,7 +53,6 @@ public class ProducerClientAck extends Thread {
     /**
      * Starts end messages to server. This should be started as Thread -
      * producer.start();
-     *
      */
     public void run() {
 

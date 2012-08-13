@@ -82,7 +82,7 @@ public class SimpleJMSClient {
     private Context getContext() throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, this.initialContextClass);
-        if (this.initialContextClass!=null && !this.initialContextClass.contains("jnp")) {
+        if (this.initialContextClass != null && !this.initialContextClass.contains("jnp")) {
             env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
         } else {
             env.put(Context.PROVIDER_URL, String.format("jnp://%s:%s", this.hostname, this.port));
