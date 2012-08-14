@@ -119,13 +119,6 @@
             <version>${version.byteman}</version>
         </dependency>
 
-        <!-- dependencies for HornetQ client -->
-        <dependency>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
@@ -219,6 +212,7 @@
                     <version>${arquillian.eap6x.container.version}</version>
                     <scope>test</scope>
                 </dependency>
+                <!-- dependencies for HornetQ client -->
                 <dependency>
                     <groupId>org.hornetq</groupId>
                     <artifactId>hornetq-core-client</artifactId>
@@ -228,6 +222,11 @@
                     <groupId>org.hornetq</groupId>
                     <artifactId>hornetq-jms-client</artifactId>
                     <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                    <version>${netty.version}</version>
                 </dependency>
             </dependencies>
         </profile>

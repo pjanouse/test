@@ -70,19 +70,17 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @ArquillianResource
     private Deployer deployer;
     private static final Logger logger = Logger.getLogger(BackwardCompatibilityJournalDataTestCase.class);
-    private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
-    static String inQueueFullJndiName = "java:/" + inQueueJndiName;
+
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
     static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreatedEAP5 = false;
-    static boolean topologyCreatedEAP6 = false;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
