@@ -1,0 +1,398 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building jboss-hornetq-testsuite 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.1:tree (default-cli) @ qa-hornetq-testsuite ---
+[INFO] org.jboss.qa.hornetq:qa-hornetq-testsuite:jar:1.0-SNAPSHOT
+[INFO] +- org.jboss.spec:jboss-javaee-6.0:pom:2.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.annotation:jboss-annotations-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.resource:jboss-connector-api_1.6_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.1.Final:compile
+[INFO] |  +- org.jboss.spec.javax.el:jboss-el-api_2.2_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.faces:jboss-jsf-api_2.0_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.enterprise.deploy:jboss-jad-api_1.2_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.management.j2ee:jboss-j2eemgmt-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.xml.registry:jboss-jaxr-api_1.0_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.jms:jboss-jms-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.security.auth.message:jboss-jaspi-api_1.0_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.4_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.servlet.jsp:jboss-jsp-api_2.2_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.servlet.jstl:jboss-jstl-api_1.2_spec:jar:1.0.1.Final:compile
+[INFO] |  |  \- org.apache.xalan:xalan:jar:2.7.1-1.jbossorg:compile
+[INFO] |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.xml.bind:jboss-jaxb-api_2.2_spec:jar:1.0.2.Final:compile
+[INFO] |  +- org.jboss.spec.javax.xml.rpc:jboss-jaxrpc-api_1.1_spec:jar:1.0.0.Final:compile
+[INFO] |  +- org.jboss.spec.javax.xml.soap:jboss-saaj-api_1.3_spec:jar:1.0.1.Final:compile
+[INFO] |  +- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:2.0.0.Final:compile
+[INFO] |  +- javax.activation:activation:jar:1.1:compile
+[INFO] |  +- javax.enterprise:cdi-api:jar:1.0-SP4:compile
+[INFO] |  +- javax.inject:javax.inject:jar:1:compile
+[INFO] |  +- javax.jws:jsr181-api:jar:1.0-MR1:compile
+[INFO] |  +- javax.mail:mail:jar:1.4.4:compile
+[INFO] |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.1.Final:compile
+[INFO] |  \- javax.validation:validation-api:jar:1.0.0.GA:compile
+[INFO] +- org.jboss.arquillian:arquillian-bom:pom:1.0.3.Final-SNAPSHOT:compile
+[INFO] +- org.jboss.arquillian.junit:arquillian-junit-container:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.junit:arquillian-junit-core:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.test:arquillian-test-api:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.container:arquillian-container-test-api:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.core:arquillian-core-impl-base:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.test:arquillian-test-impl-base:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.container:arquillian-container-impl-base:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  +- org.jboss.arquillian.container:arquillian-container-test-impl-base:jar:1.0.3.Final-SNAPSHOT:test
+[INFO] |  \- org.jboss.shrinkwrap:shrinkwrap-impl-base:jar:1.0.1:test
+[INFO] |     \- org.jboss.shrinkwrap:shrinkwrap-spi:jar:1.0.1:test
+[INFO] +- org.jboss.arquillian.protocol:arquillian-protocol-servlet:jar:1.0.3.Final-SNAPSHOT:test (scope not updated to compile)
+[INFO] |  \- org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-spi:jar:2.0.0-alpha-3:test
+[INFO] +- junit:junit:jar:4.9:test
+[INFO] |  \- org.hamcrest:hamcrest-core:jar:1.1:test
+[INFO] +- org.jboss.naming:jnp-client:jar:5.0.5.Final:compile
+[INFO] |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:compile
+[INFO] +- org.jboss.byteman:byteman:jar:2.0.0:compile
+[INFO] +- org.jboss.byteman:byteman-submit:jar:2.0.0:compile
+[INFO] +- xalan:xalan:jar:2.7.0:test
+[INFO] |  \- xml-apis:xml-apis:jar:1.0.b2:test
+[INFO] +- log4j:log4j:jar:1.2.16:test
+[INFO] +- org.jboss.jbossts:jbossjts:jar:4.16.4.Final:test
+[INFO] +- org.jboss.as:jboss-as-controller-client:jar:7.1.2.Final:test
+[INFO] |  +- org.jboss.as:jboss-as-protocol:jar:7.1.2.Final:test
+[INFO] |  |  +- org.jboss.marshalling:jboss-marshalling:jar:1.3.14.GA:test
+[INFO] |  |  +- org.jboss.xnio:xnio-api:jar:3.0.3.GA:test
+[INFO] |  |  \- org.jboss.xnio:xnio-nio:jar:3.0.3.GA:test
+[INFO] |  +- org.jboss:jboss-dmr:jar:1.1.1.Final:test
+[INFO] |  +- org.jboss.threads:jboss-threads:jar:2.0.0.GA:test
+[INFO] |  \- org.jboss.as:jboss-as-build-config:jar:7.1.2.Final:test
+[INFO] +- org.jdom:jdom:jar:2.0.2:test
+[INFO] +- org.jboss.as:jboss-as-arquillian-container-managed:jar:7.1.2.Final:test
+[INFO] |  +- org.jboss.as:jboss-as-arquillian-common:jar:7.1.2.Final:test
+[INFO] |  |  +- org.jboss.arquillian.container:arquillian-container-osgi:jar:1.0.2.Final:test
+[INFO] |  |  +- org.jboss.arquillian.testenricher:arquillian-testenricher-cdi:jar:1.0.0.Final:test
+[INFO] |  |  +- org.jboss.arquillian.testenricher:arquillian-testenricher-osgi:jar:1.0.2.Final:test
+[INFO] |  |  +- org.jboss.as:jboss-as-arquillian-testenricher-msc:jar:7.1.2.Final:test
+[INFO] |  |  |  +- org.jboss.as:jboss-as-server:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-controller:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  \- org.jboss:staxmapper:jar:1.1.0.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-domain-http-interface:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  +- org.jboss.as:jboss-as-domain-management:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  \- org.jboss.com.sun.httpserver:httpserver:jar:1.0.1.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-deployment-repository:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-embedded:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-platform-mbean:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-process-controller:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  |  |  +- org.jboss.as:jboss-as-remoting:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  +- org.jboss.as:jboss-as-network:jar:7.1.2.Final:test
+[INFO] |  |  |  |  |  \- org.jboss.as:jboss-as-threads:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.jboss:jandex:jar:1.0.3.Final:test
+[INFO] |  |  |  |  +- org.jboss.invocation:jboss-invocation:jar:1.1.1.Final:test
+[INFO] |  |  |  |  +- org.jboss.logmanager:log4j-jboss-logmanager:jar:1.0.0.Final:test
+[INFO] |  |  |  |  +- org.jboss.stdio:jboss-stdio:jar:1.0.1.GA:test
+[INFO] |  |  |  |  \- org.jboss:jboss-vfs:jar:3.1.0.Final:test
+[INFO] |  |  |  \- org.jboss.msc:jboss-msc:jar:1.0.2.GA:test
+[INFO] |  |  +- org.jboss.as:jboss-as-jmx:jar:7.1.2.Final:test
+[INFO] |  |  +- org.jboss.osgi.spi:jbosgi-spi:jar:3.1.0.Final:test
+[INFO] |  |  |  \- org.jboss.osgi.vfs:jbosgi-vfs30:jar:1.1.0.Final:test
+[INFO] |  |  |     \- org.jboss.osgi.vfs:jbosgi-vfs:jar:1.1.0.Final:test
+[INFO] |  |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:jar:1.0.0-beta-5:test
+[INFO] |  |  |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:jar:1.0.0-beta-5:test
+[INFO] |  |  |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api-maven:jar:1.0.0-beta-5:test
+[INFO] |  |  |  +- org.sonatype.aether:aether-api:jar:1.8:test
+[INFO] |  |  |  +- org.sonatype.aether:aether-util:jar:1.8:test
+[INFO] |  |  |  +- org.sonatype.aether:aether-connector-wagon:jar:1.8:test
+[INFO] |  |  |  |  +- org.sonatype.aether:aether-spi:jar:1.8:test
+[INFO] |  |  |  |  \- org.codehaus.plexus:plexus-container-default:jar:1.5.5:test
+[INFO] |  |  |  |     +- org.codehaus.plexus:plexus-classworlds:jar:2.2.2:test
+[INFO] |  |  |  |     +- org.apache.xbean:xbean-reflect:jar:3.4:test
+[INFO] |  |  |  |     \- com.google.collections:google-collections:jar:1.0:test
+[INFO] |  |  |  +- org.apache.maven:maven-aether-provider:jar:3.0.1:test
+[INFO] |  |  |  |  +- org.apache.maven:maven-model:jar:3.0.1:test
+[INFO] |  |  |  |  +- org.apache.maven:maven-model-builder:jar:3.0.1:test
+[INFO] |  |  |  |  +- org.apache.maven:maven-repository-metadata:jar:3.0.1:test
+[INFO] |  |  |  |  +- org.sonatype.aether:aether-impl:jar:1.8:test
+[INFO] |  |  |  |  +- org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:test
+[INFO] |  |  |  |  \- org.codehaus.plexus:plexus-utils:jar:2.0.4:test
+[INFO] |  |  |  +- org.apache.maven:maven-settings-builder:jar:3.0.1:test
+[INFO] |  |  |  |  +- org.codehaus.plexus:plexus-interpolation:jar:1.14:test
+[INFO] |  |  |  |  +- org.apache.maven:maven-settings:jar:3.0.1:test
+[INFO] |  |  |  |  \- org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:test
+[INFO] |  |  |  |     \- org.sonatype.plexus:plexus-cipher:jar:1.4:test
+[INFO] |  |  |  +- org.apache.maven.wagon:wagon-provider-api:jar:1.0-beta-7:test
+[INFO] |  |  |  +- org.apache.maven.wagon:wagon-file:jar:1.0-beta-7:test
+[INFO] |  |  |  \- org.apache.maven.wagon:wagon-http-lightweight:jar:1.0-beta-7:test
+[INFO] |  |  |     \- org.apache.maven.wagon:wagon-http-shared:jar:1.0-beta-7:test
+[INFO] |  |  \- org.osgi:org.osgi.core:jar:4.2.0:test
+[INFO] |  +- org.jboss.as:jboss-as-arquillian-protocol-jmx:jar:7.1.2.Final:test
+[INFO] |  |  +- org.jboss.as:jboss-as-osgi-service:jar:7.1.2.Final:test
+[INFO] |  |  |  +- org.jboss.as:jboss-as-ee:jar:7.1.2.Final:test
+[INFO] |  |  |  |  +- org.hibernate:hibernate-validator:jar:4.2.0.Final:test
+[INFO] |  |  |  |  |  \- org.slf4j:slf4j-api:jar:1.6.1:test
+[INFO] |  |  |  |  +- org.jboss.metadata:jboss-metadata-common:jar:7.0.3.Final:test
+[INFO] |  |  |  |  \- org.jboss.metadata:jboss-metadata-ear:jar:7.0.3.Final:test
+[INFO] |  |  |  +- org.jboss.as:jboss-as-naming:jar:7.1.2.Final:test
+[INFO] |  |  |  |  \- org.jboss:jboss-remote-naming:jar:1.0.3.Final:test
+[INFO] |  |  |  |     \- org.jboss:jboss-ejb-client:jar:1.0.0.Final:test
+[INFO] |  |  |  +- org.jboss.modules:jboss-modules:jar:1.1.2.GA:test
+[INFO] |  |  |  +- org.jboss.osgi.framework:jbosgi-framework-core:jar:1.3.0.Final:test
+[INFO] |  |  |  |  +- org.jboss.osgi.deployment:jbosgi-deployment:jar:1.1.0.Final:test
+[INFO] |  |  |  |  \- org.jboss.osgi.resolver:jbosgi-resolver-felix:jar:2.1.0.Final:test
+[INFO] |  |  |  +- org.jboss.osgi.metadata:jbosgi-metadata:jar:2.1.0.Final:test
+[INFO] |  |  |  +- org.jboss.osgi.resolver:jbosgi-resolver-api:jar:2.1.0.Final:test
+[INFO] |  |  |  +- org.jboss.osgi.repository:jbosgi-repository-api:jar:1.2.0.Final:test
+[INFO] |  |  |  +- org.jboss.osgi.repository:jbosgi-repository-core:jar:1.2.0.Final:test
+[INFO] |  |  |  \- org.osgi:org.osgi.enterprise:jar:4.2.0:test
+[INFO] |  |  \- org.jboss.arquillian.protocol:arquillian-protocol-jmx:jar:1.0.0.Final:test
+[INFO] |  +- org.jboss.remoting3:jboss-remoting:jar:3.2.7.GA:test
+[INFO] |  +- org.jboss.remotingjmx:remoting-jmx:jar:1.0.3.Final:test
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.3.0.Final:test
+[INFO] |  |  \- org.jboss.marshalling:jboss-marshalling-river:jar:1.3.14.GA:test
+[INFO] |  \- org.jboss.sasl:jboss-sasl:jar:1.0.1.Final:test
+[INFO] +- org.hornetq:hornetq-core-client:jar:2.2.16.Final:compile
+[INFO] +- org.hornetq:hornetq-jms-client:jar:2.2.16.Final:compile
+[INFO] +- org.jboss.netty:netty:jar:3.2.6.Final:compile
+[INFO] +- org.jboss.logging:jboss-logging:jar:2.1.2.GA-compat:test
+[INFO] +- org.jboss.arquillian.container:arquillian-jbossas-managed-5.1:jar:1.0.0-SNAPSHOT:compile
+[INFO] |  +- org.jboss.arquillian.container:arquillian-container-spi:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  |  +- org.jboss.arquillian.core:arquillian-core-spi:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  |  |  \- org.jboss.arquillian.core:arquillian-core-api:jar:1.0.0.Final:compile
+[INFO] |  |  +- org.jboss.arquillian.config:arquillian-config-api:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  |  +- org.jboss.arquillian.config:arquillian-config-impl-base:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  |  |  \- org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-impl:jar:1.0.0-beta-1:compile
+[INFO] |  |  +- org.jboss.shrinkwrap:shrinkwrap-api:jar:1.0.1:compile
+[INFO] |  |  \- org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-api:jar:1.0.0-beta-1:compile
+[INFO] |  +- org.jboss.arquillian.container:arquillian-container-test-spi:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  |  \- org.jboss.arquillian.test:arquillian-test-spi:jar:1.0.3.Final-SNAPSHOT:compile
+[INFO] |  +- org.jboss.arquillian.testenricher:arquillian-testenricher-ejb:jar:1.0.0.Beta1:compile
+[INFO] |  +- org.jboss.arquillian.testenricher:arquillian-testenricher-resource:jar:1.0.0.Beta1:compile
+[INFO] |  \- org.jboss.arquillian.testenricher:arquillian-testenricher-initialcontext:jar:1.0.0.Beta1:compile
+[INFO] +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:compile
+[INFO] |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:compile
+[INFO] |  +- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:runtime
+[INFO] |  \- org.jboss.logging:jboss-logging-spi:jar:2.2.0.CR1:compile
+[INFO] +- eap:eap-client:pom:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-streambuffer:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jsr88:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jnpserver:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-logging-jdk:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jmx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-jpa-int:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-scheduler-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-monitoring:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-getopt:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-threads:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossas-remoting:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-transactions:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-c3p0:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-metadata:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-mdr:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-logkit:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-hornetq:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jettison:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jsr77:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-bootstrap:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-saaj-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jpa-deployers:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-slf4j-jboss-logging:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbosscx-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-validator:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-remoting:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-spi-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-native-factories:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-metatype:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-current-invocation-aspects:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-bsh-bsf:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-log4j-snmp-appender:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-vfs:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-mail:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbosssx-as-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxws-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-negotiation:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-main:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-system-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-deployers:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-log4j-boot:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-javaee:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-management:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-security-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossxacml:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-FastInfoset:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-xmlsec:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-int:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-security-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-ejb3-persistence:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-endpoint:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jaspi-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-remoting-aspects:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-srp-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-jms-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-context-base:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ha-server-cache-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-proxool:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-common:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-common-jdbc-wrapper:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossts-common:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-swarmcache:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-framework:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxb-impl:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossjts-jacorb:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-jmx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-scout:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-asintegration-mc:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-core-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-ext-api-impl:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-vfs-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-iiop-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-structure-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-stax-ex:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-javassist:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ha-server-cache-jbc:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-impl:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jsp-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-bsh:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-scheduler-plugin-example:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-commons-annotations:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-managed:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-classloading-vfs:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-j2se:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-ext-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-autonumber-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-logging-log4j:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-system-jmx-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-logmanager:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-native-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-commons-collections:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-bsf:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-cache:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-trove:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-interceptors:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-servlet-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jmx-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-core-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-clustered:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-concurrent:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-logging-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-netty:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jmx-adaptor-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-profileservice-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-iiop:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxen:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-impl:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-native-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-annotations:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jnp-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-log4j:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jacorb:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-commons-logging:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-clustered-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxws-rt:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-serialization:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossall-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-cglib:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-quartz:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-hibernate:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-common-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-properties-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-mbeans:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-common:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-dependency:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-appclient:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxb-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hsqldb-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossjts:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossws-jboss50:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxws-tools:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-mc-int:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-asintegration-jmx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossjts-integration:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-antlr:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-system-jmx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-bootstrap:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-system:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-profileservice:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-vfs-impl-vfs2:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-dom4j:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-xnio-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-client-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-core-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-asintegration-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-deployers:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-mail-plugin:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-oscache:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-ehcache:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-proxy-impl-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-transaction-aspects:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ha-legacy-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aspect-jdk50-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-integration:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jaxb-xjc:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-timeout-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-wstx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hibernate-entitymanager:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-security:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-el-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-kernel:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-logbridge:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jsr77-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbosssx-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-profileservice-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-slf4j-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossha:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-classloading:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-common-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-timerservice-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-joesnmp:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-core:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployers-vfs:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jsr181-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-reflect:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-jms:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jmx-invoker-adaptor-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ha-server-api:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-timeout-3.0:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-wsdl4j:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbossjmx-ant:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-bcel:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ha-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-deployment:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-context-naming:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-activation:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-messaging-client:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbosssx-server:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-jboss-as-integration:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-classloader:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hsqldb:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-vfs-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-srp:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-aop-mc-int:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-security-aspects:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-classloading-spi:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-xml-binding:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jbosssx:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-jca:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-asm:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-jboss-ejb3-metadata:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  +- eap:eap-hornetq-logging:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] |  \- eap:eap-jboss-jaxrpc-api_1.1_spec:jar:5.1.2.GA-HornetQ-all-unsigned:compile
+[INFO] \- org.jboss.arquillian.extension:arquillian-multiple-containers:jar:1.0-SNAPSHOT:test
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 7.223s
+[INFO] Finished at: Tue Aug 14 10:07:57 CEST 2012
+[INFO] Final Memory: 30M/342M
+[INFO] ------------------------------------------------------------------------

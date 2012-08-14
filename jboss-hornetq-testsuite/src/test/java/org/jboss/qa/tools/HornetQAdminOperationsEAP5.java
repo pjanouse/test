@@ -213,7 +213,26 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes) {
-        logger.info("This operation is not supported: " + getMethodName());
+
+        removeAddressSettings(address);
+
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("match", address);
+            XMLManipulation.addNode("//address-settings", "address-setting", "", doc, attributes);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "address-full-policy", addressFullPolicy, doc);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "max-size-bytes", String.valueOf(maxSizeBytes), doc);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "redelivery-delay", String.valueOf(redeliveryDelay), doc);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "redistribution-delay", String.valueOf(redistributionDelay), doc);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "page-size-bytes", String.valueOf(pageSizeBytes), doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -515,7 +534,14 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeAddressSettings(String address) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//address-setting[@match='" + address + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override

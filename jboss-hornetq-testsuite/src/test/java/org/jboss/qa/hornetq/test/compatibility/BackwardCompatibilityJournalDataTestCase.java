@@ -10,6 +10,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
@@ -131,7 +132,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         // this is client with libs from Container 1 server which is older version of EAP
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(this, CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy("mdb1");
@@ -146,7 +147,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         deployer.undeploy("mdb2");
         deployer.deploy("mdb2");
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(this, CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue2.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
+        producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
@@ -235,6 +236,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024*1024*1024, 0, 0, 1024*1024);
 
         jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);

@@ -75,7 +75,6 @@
             <version>${jboss.javaee.version}</version>
             <type>pom</type>
         </dependency>
-
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
@@ -190,6 +189,35 @@
                     <artifactId>eap-client</artifactId>
                     <version>5.1.2.GA-HornetQ-all-unsigned</version>
                     <type>pom</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>eap</groupId>
+                            <artifactId>eap-hornetq-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>eap</groupId>
+                            <artifactId>eap-hornetq-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>eap</groupId>
+                            <artifactId>eap-netty</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-core-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-jms-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                    <version>${netty.version}</version>
                 </dependency>
             </dependencies>
         </profile>
