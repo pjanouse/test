@@ -171,7 +171,8 @@
                 </property>
             </activation>
             <properties>
-                <jms.provider.class>org.jboss.qa.tools.HornetQAdminOperationsEAP5</jms.provider.class>
+                <netty.version>3.2.3-compatibility-EAP-5.1.2</netty.version>
+                <hornetq.version>HQ_2_2_10_EAP_GA_BUILD2-compatibility-EAP-5.1.2</hornetq.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -230,9 +231,7 @@
                     <value>6x</value>
                 </property>
             </activation>
-            <properties>
-                <jms.provider.class>org.jboss.qa.tools.HornetQAdminOperationsEAP6</jms.provider.class>
-            </properties>
+
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
