@@ -302,7 +302,7 @@ public class SoakProducerClientAck extends Thread {
 
     public static void main(String[] args) throws InterruptedException {
 
-        SoakProducerClientAck producer = new SoakProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10000);
+        SoakProducerClientAck producer = new SoakProducerClientAck("localhost", 1099, "jms/queue/InQueue", 10);
 //        SoakProducerClientAck producer = new SoakProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
         producer.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
         producer.start();

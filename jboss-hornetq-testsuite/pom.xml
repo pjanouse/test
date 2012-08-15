@@ -176,6 +176,21 @@
             </properties>
             <dependencies>
                 <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-core-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-jms-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                    <version>${netty.version}</version>
+                </dependency>
+                <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
                     <artifactId>arquillian-jbossas-managed-5.1</artifactId>
                     <version>${arquillian.eap5x.container.version}</version>
@@ -204,21 +219,6 @@
                             <artifactId>eap-netty</artifactId>
                         </exclusion>
                     </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-core-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-jms-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.netty</groupId>
-                    <artifactId>netty</artifactId>
-                    <version>${netty.version}</version>
                 </dependency>
             </dependencies>
         </profile>
