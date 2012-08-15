@@ -38,17 +38,12 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
 
-    private static final String CONTAINER_NAME = CONTAINER1;
-    private static final String BINDING_ADDRESS = CONTAINER1_IP;
-    private static final int MANAGEMENT_PORT = 9999;
-    private static final int REMOTE_PORT = 4447;
     private static final String JOURNAL_DIR = JOURNAL_DIRECTORY_A;
 
     private String queueNamePrefix = "testQueue";
     private String topicNamePrefix = "testTopic";
     private String queueJndiNamePrefix = "jms/queue/testQueue";
     private String topicJndiNamePrefix = "jms/topic/testTopic";
-    private String jndiContextPrefix = "java:jboss/exported/";
 
     public enum DestinationType {
         QUEUE, TOPIC
@@ -65,53 +60,77 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(CONTAINER_NAME);
+        if (isEAP6())   {
+            controller.start(CONTAINER1);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER_NAME);
+            JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
 
-        jmsAdminOperations.setInetAddress("public", BINDING_ADDRESS);
-        jmsAdminOperations.setInetAddress("unsecure", BINDING_ADDRESS);
-        jmsAdminOperations.setInetAddress("management", BINDING_ADDRESS);
+            jmsAdminOperations.setInetAddress("public", CONTAINER1_IP);
+            jmsAdminOperations.setInetAddress("unsecure", CONTAINER1_IP);
+            jmsAdminOperations.setInetAddress("management", CONTAINER1_IP);
 
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
-        jmsAdminOperations.setPagingDirectory(JOURNAL_DIR);
-        jmsAdminOperations.setJournalDirectory(JOURNAL_DIR);
-        jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setPagingDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setJournalDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIR);
 
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
+            jmsAdminOperations.setPersistenceEnabled(true);
+            jmsAdminOperations.setSharedStore(true);
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+            jmsAdminOperations.disableSecurity();
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.close();
 
-        jmsAdminOperations.close();
+        } else {
+
+            JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setPagingDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setJournalDirectory(JOURNAL_DIR);
+            jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIR);
+
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+            jmsAdminOperations.disableSecurity();
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+            jmsAdminOperations.close();
+
+            controller.start(CONTAINER1);
+
+        }
     }
 
     /**
      * Deploys destinations to server which is currently running.
      */
     private void deployDestinations() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER_NAME);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + destinationNumber, jndiContextPrefix + queueJndiNamePrefix + destinationNumber, true);
-            jmsAdminOperations.createTopic(topicNamePrefix + destinationNumber, jndiContextPrefix + topicJndiNamePrefix + destinationNumber);
+            jmsAdminOperations.createQueue(queueNamePrefix + destinationNumber, queueJndiNamePrefix + destinationNumber, true);
+            jmsAdminOperations.createTopic(topicNamePrefix + destinationNumber, topicJndiNamePrefix + destinationNumber);
         }
         jmsAdminOperations.close();
     }
@@ -120,7 +139,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
      * Destroy all destinations - queues and topics.
      */
     private void destroyDestinations() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER_NAME);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
             jmsAdminOperations.removeQueue(queueNamePrefix + destinationNumber);
             jmsAdminOperations.removeTopic(topicNamePrefix + destinationNumber);
@@ -137,21 +156,21 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
 
         if (dest == DestinationType.TOPIC) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -238,7 +257,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             Map<Integer, SoakProducerClientAck> producers = new HashMap<Integer, SoakProducerClientAck>();
             // Put messages to queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakProducerClientAck producer = new SoakProducerClientAck(CONTAINER1_IP, REMOTE_PORT, queueJndiNamePrefix + destinationNumber, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                SoakProducerClientAck producer = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, NUMBER_OF_MESSAGES_PER_PRODUCER);
                 producer.setMessageBuilder(new ClientMixMessageBuilder());
                 producer.start();
                 producers.put(destinationNumber, producer);
@@ -251,7 +270,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             Map<Integer, SoakReceiverClientAck> receivers = new HashMap<Integer, SoakReceiverClientAck>();
             // Let's read the messages from queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakReceiverClientAck receiver = new SoakReceiverClientAck(CONTAINER1_IP, REMOTE_PORT, queueJndiNamePrefix + destinationNumber, 100000, 10, 10);
+                SoakReceiverClientAck receiver = new SoakReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, 100000, 10, 10);
                 receiver.start();
                 receivers.put(destinationNumber, receiver);
                 log.info("Receiver " + receiver + " started");
@@ -265,7 +284,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
                 SoakProducerClientAck producer = producers.get(destinationNumber);
                 SoakReceiverClientAck receiver = receivers.get(destinationNumber);
 
-                log.info(String.format("Producer %s sent % messages on destintion %s", producer, producer.getCounter(), destinationNumber));
+                log.info(String.format("Producer %s sent % messages on destination %s", producer, producer.getCounter(), destinationNumber));
                 log.info(String.format("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber));
 
                 Assert.assertNotSame("The producer had to sent at least some message. Otherwise there is an error somewhere.",

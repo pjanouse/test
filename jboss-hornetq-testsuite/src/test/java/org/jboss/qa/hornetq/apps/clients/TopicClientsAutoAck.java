@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +29,22 @@ public class TopicClientsAutoAck implements Clients {
     private int numberOfsubscribersPerTopic;
     private List<PublisherAutoAck> publishers = new ArrayList<PublisherAutoAck>();
     private List<SubscriberAutoAck> subscribers = new ArrayList<SubscriberAutoAck>();
+    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
 
     public TopicClientsAutoAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
-        this("localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
+        this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
     }
 
     public TopicClientsAutoAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
+                numberOfsubscribersPerTopic, numberOfMessages);
+    }
 
+    public TopicClientsAutoAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+                               int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this.container = container;
         this.hostnameForSubscribers = hostname;
         this.hostnameForPublishers = hostname;
         this.jndiPort = jndiPort;
@@ -66,7 +75,7 @@ public class TopicClientsAutoAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
 
-                subscriber = new SubscriberAutoAck(getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberAutoAck(container, getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
@@ -86,7 +95,7 @@ public class TopicClientsAutoAck implements Clients {
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
-                publisher = new PublisherAutoAck(getHostnameForPublishers(), getJndiPort(),
+                publisher = new PublisherAutoAck(container, getHostnameForPublishers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 

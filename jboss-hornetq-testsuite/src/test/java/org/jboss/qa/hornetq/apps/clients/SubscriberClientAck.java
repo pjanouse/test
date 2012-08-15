@@ -15,7 +15,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SubscriberClientAck extends Thread {
+public class SubscriberClientAck extends Client {
 
     private static final Logger logger = Logger.getLogger(SubscriberClientAck.class);
     private int maxRetries;
@@ -56,6 +56,21 @@ public class SubscriberClientAck extends Thread {
     /**
      * Creates a subscriber to topic with client acknowledge.
      *
+     * @param container     container
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
+
+        this(container, hostname, port, topicNameJndi, 30000, 1000, 30, clientId, subscriberName);
+
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
      * @param hostname       hostname
      * @param port           jndi port
      * @param topicNameJndi  jndi name of the topic
@@ -66,7 +81,23 @@ public class SubscriberClientAck extends Thread {
      */
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
                                int ackAfter, int maxRetries, String clientId, String subscriberName) {
+        this(EAP6_CONTAINER, hostname, port, topicNameJndi, receiveTimeOut, ackAfter, maxRetries, clientId, subscriberName);
+    }
 
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, long receiveTimeOut,
+                               int ackAfter, int maxRetries, String clientId, String subscriberName) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicNameJndi;
@@ -323,12 +354,9 @@ public class SubscriberClientAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 

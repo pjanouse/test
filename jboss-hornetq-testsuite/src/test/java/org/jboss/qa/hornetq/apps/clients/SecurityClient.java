@@ -27,7 +27,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SecurityClient {
+public class SecurityClient extends Client {
 
     private static final Logger logger = Logger.getLogger(SecurityClient.class);
     private String hostname = "localhost";
@@ -59,6 +59,18 @@ public class SecurityClient {
      * @param password      password
      */
     public SecurityClient(String hostname, int port, String queueNameJndi, int messages, String username, String password) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages, username, password);
+    }
+    /**
+     * @param hostname      hostname
+     * @param port          port
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param username      username
+     * @param password      password
+     */
+    public SecurityClient(String container, String hostname, int port, String queueNameJndi, int messages, String username, String password) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -76,13 +88,9 @@ public class SecurityClient {
      */
     public void initializeClient() throws NamingException, JMSException, Exception {
 
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
+        context = getContext(hostname, port);
 
-        context = new InitialContext(env);
-
-        cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
         con = getConnection();
 
@@ -300,8 +308,7 @@ public class SecurityClient {
     /**
      * Returns connection.
      *
-     * @param cf
-     * @return
+     * @return connection
      * @throws JMSException
      */
     private Connection getConnection() throws JMSException {

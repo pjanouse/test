@@ -131,7 +131,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         deployer.undeploy("mdb1");
 
         // this is client with libs from Container 1 server which is older version of EAP
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(this, CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -146,7 +146,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         controller.start(CONTAINER4);
         deployer.undeploy("mdb2");
         deployer.deploy("mdb2");
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(this, CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();

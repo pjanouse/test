@@ -18,9 +18,9 @@ import java.util.Properties;
  * <p/>
  * This class extends Thread class and should be started as a thread using start().
  *
- * @author mnovak
+ * @author mnovak@redhat.com
  */
-public class PublisherTransAck extends Thread {
+public class PublisherTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(PublisherTransAck.class);
     private int maxRetries = 30;
@@ -40,18 +40,31 @@ public class PublisherTransAck extends Thread {
     private int counter = 0;
 
     /**
-     * @param hostname      hostname
-     * @param port          port
-     * @param messages      number of messages to send
-     * @param topicNameJndi set jndi name of the topic to send messages
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param topicNameJndi  set jndi name of the topic to send messages
      */
     public PublisherTransAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
+        this(EAP6_CONTAINER,hostname, port, topicNameJndi, messages, clientId);
+    }
+
+    /**
+     * @param container     EAP container
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param topicNameJndi  set jndi name of the topic to send messages
+     */
+    public PublisherTransAck(String container, String hostname, int port, String topicNameJndi, int messages, String clientId) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
         this.topicNameJndi = topicNameJndi;
         this.clientId = clientId;
     }
+
 
     /**
      * Starts end messages to server. This should be started as Thread - publisher.start();
@@ -67,12 +80,9 @@ public class PublisherTransAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Topic topic = (Topic) context.lookup(topicNameJndi);
 
@@ -258,7 +268,7 @@ public class PublisherTransAck extends Thread {
     }
 
     /**
-     * @param messageVerifiers the messageVerifiers to set
+     * @param messageVerifier list of message verifiers from each subscriber
      */
     public void setMessageVerifiers(List<FinalTestMessageVerifier> messageVerifier) {
         this.messageVerifiers = messageVerifier;

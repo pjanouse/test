@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,14 +42,22 @@ public class QueueClientsTransAck implements Clients {
 
     private HashMap<String, FinalTestMessageVerifier> verifiers = new HashMap<String, FinalTestMessageVerifier>();
 
+    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+
     public QueueClientsTransAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
-        this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 1000);
+        this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 1000);
     }
 
     public QueueClientsTransAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues,
+                numberOfProducersPerQueueu, numberOfConsumersPerQueueu, numberOfMessages);
+    }
 
+    public QueueClientsTransAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
+                                int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this.container = container;
         this.hostnameForConsumers = hostname;
         this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
@@ -78,7 +88,7 @@ public class QueueClientsTransAck implements Clients {
 
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
 
-                p = new ProducerTransAck(getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
+                p = new ProducerTransAck(container, getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
 
                 p.setMessageVerifier(queueTextMessageVerifier);
 
@@ -90,7 +100,7 @@ public class QueueClientsTransAck implements Clients {
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
-                r = new ReceiverTransAck(getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
+                r = new ReceiverTransAck(container, getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
 

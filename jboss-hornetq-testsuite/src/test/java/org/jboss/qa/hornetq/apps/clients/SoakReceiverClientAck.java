@@ -13,7 +13,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SoakReceiverClientAck extends Thread {
+public class SoakReceiverClientAck extends Client {
 
     private static final Logger logger = Logger.getLogger(SoakReceiverClientAck.class);
     private int maxRetries;
@@ -26,7 +26,6 @@ public class SoakReceiverClientAck extends Thread {
 //    private List<String> listOfReceivedMessagesToBeAcked = new ArrayList<String>();
     private int count = 0;
     private Exception exception = null;
-    private HornetQTestCase parentTestCase = null;
 
     /**
      * Creates a receiver to queue with client acknowledge.
@@ -53,7 +52,7 @@ public class SoakReceiverClientAck extends Thread {
      */
     public SoakReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
-       this(null, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
+        this(null, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
 
     }
 
@@ -70,14 +69,30 @@ public class SoakReceiverClientAck extends Thread {
      */
     public SoakReceiverClientAck(HornetQTestCase parentTestCase, String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
+        this(EAP6_CONTAINER, parentTestCase, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
+    }
 
+    /**
+     * Creates a receiver to queue with client acknowledge.
+     *
+     * @param container     container
+     * @param parentTestCase calling test class
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param queueJndiName  jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public SoakReceiverClientAck(String container, HornetQTestCase parentTestCase, String hostname, int port, String queueJndiName, long receiveTimeOut,
+                                 int ackAfter, int maxRetries) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueJndiName;
         this.receiveTimeOut = receiveTimeOut;
         this.ackAfter = ackAfter;
         this.maxRetries = maxRetries;
-        this.parentTestCase = parentTestCase;
 
     }
 
@@ -85,23 +100,16 @@ public class SoakReceiverClientAck extends Thread {
     public void run() {
 
         Context context = null;
-        ConnectionFactory cf = null;
+        ConnectionFactory cf;
         Connection conn = null;
-        Session session = null;
-        Queue queue = null;
+        Session session;
+        Queue queue;
 
         try {
 
-            if (parentTestCase != null) {
-                context = parentTestCase.getContext(hostname, port);
-                cf = (ConnectionFactory) context.lookup(parentTestCase.getConnectionFactoryName());
-            } else {
-                final Properties env = new Properties();
-                env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-                env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-                context = new InitialContext(env);
-                cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-            }
+            context = getContext(hostname, port);
+
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 

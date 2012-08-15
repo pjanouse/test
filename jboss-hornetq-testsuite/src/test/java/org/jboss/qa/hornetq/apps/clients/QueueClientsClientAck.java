@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,14 +48,22 @@ public class QueueClientsClientAck implements Clients {
 
     private HashMap<String, FinalTestMessageVerifier> verifiers = new HashMap<String, FinalTestMessageVerifier>();
 
+    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+
     public QueueClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
-        this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
+        this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
     }
 
     public QueueClientsClientAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                  int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu,
+                    numberOfMessages);
+    }
 
+    public QueueClientsClientAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
+                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this.container = container;
         this.hostnameForConsumers = hostname;
         this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
@@ -86,7 +95,7 @@ public class QueueClientsClientAck implements Clients {
 
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
 
-                p = new ProducerClientAck(getHostnameForProducers(), getJndiPort(), queueJndiNamePrefixProducers + destinationNumber, getMessages());
+                p = new ProducerClientAck(container, getHostnameForProducers(), getJndiPort(), queueJndiNamePrefixProducers + destinationNumber, getMessages());
 
                 p.setMessageVerifier(queueTextMessageVerifier);
 
@@ -100,7 +109,7 @@ public class QueueClientsClientAck implements Clients {
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
-                r = new ReceiverClientAck(getHostnameForConsumers(), getJndiPort(), queueJndiNamePrefixConsumers + destinationNumber);
+                r = new ReceiverClientAck(container, getHostnameForConsumers(), getJndiPort(), queueJndiNamePrefixConsumers + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
 

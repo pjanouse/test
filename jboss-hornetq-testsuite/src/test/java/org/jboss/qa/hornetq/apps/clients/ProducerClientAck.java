@@ -22,7 +22,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class ProducerClientAck extends Thread {
+public class ProducerClientAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ProducerClientAck.class);
     private int maxRetries = 30;
@@ -44,6 +44,18 @@ public class ProducerClientAck extends Thread {
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
+    }
+
+    /**
+     * @param container      EAP container
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param queueNameJndi  set jndi name of the queue to send messages
+     */
+    public ProducerClientAck(String container, String hostname, int port, String queueNameJndi, int messages) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -64,12 +76,9 @@ public class ProducerClientAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
             Queue queue = (Queue) context.lookup(queueNameJndi);

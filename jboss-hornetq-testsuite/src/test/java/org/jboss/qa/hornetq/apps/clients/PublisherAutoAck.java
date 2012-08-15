@@ -18,9 +18,9 @@ import java.util.Properties;
  * <p/>
  * This class extends thread class and should be started as a thread using start().
  *
- * @author mnovak
+ * @author mnovak@redhat.com
  */
-public class PublisherAutoAck extends Thread {
+public class PublisherAutoAck extends Client {
 
     private static final Logger logger = Logger.getLogger(PublisherAutoAck.class);
     private int maxRetries = 30;
@@ -41,11 +41,14 @@ public class PublisherAutoAck extends Thread {
      * @param hostname       hostname
      * @param port           port
      * @param messages       number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries     number of retries to send message after server fails
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
     public PublisherAutoAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
+        this(EAP6_CONTAINER, hostname, port, topicNameJndi, messages, clientId);
+    }
+
+    public PublisherAutoAck(String container, String hostname, int port, String topicNameJndi, int messages, String clientId) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -66,12 +69,9 @@ public class PublisherAutoAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Topic topic = (Topic) context.lookup(getTopicNameJndi());
 
