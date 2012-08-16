@@ -374,7 +374,12 @@ public class SubscriberClientAck extends Client {
 
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-
+        } finally {
+            if (conn != null)   {
+                try {
+                    conn.close();
+                } catch (JMSException ignored) {}
+            }
         }
     }
 

@@ -12,3 +12,4 @@ jboss-hornetq-testsuite/log
 test-suite.log*
 **/ObjectStore*
 **/PutObjectStoreDirHere*
+/jboss-hornetq-testsuite/.idea/
