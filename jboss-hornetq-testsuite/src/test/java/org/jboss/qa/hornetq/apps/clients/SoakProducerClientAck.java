@@ -23,7 +23,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SoakProducerClientAck extends Thread {
+public class SoakProducerClientAck extends Client {
 
     private static final Logger logger = Logger.getLogger(SoakProducerClientAck.class);
     private int maxRetries = 30;
@@ -36,8 +36,6 @@ public class SoakProducerClientAck extends Thread {
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
-    private HornetQTestCase parentTestCase = null;
-
     private int counter = 0;
 
     /**
@@ -51,18 +49,18 @@ public class SoakProducerClientAck extends Thread {
     }
 
     /**
+     * @param container     container
      * @param hostname       hostname
      * @param port           port
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
-     * @param testCase calling test class instance - needed for setting initial context
      */
-    public SoakProducerClientAck(HornetQTestCase testCase, String hostname, int port, String queueNameJndi, int messages) {
+    public SoakProducerClientAck(String container, String hostname, int port, String queueNameJndi, int messages) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
-        this.parentTestCase = testCase;
     }
 
     /**
@@ -80,17 +78,8 @@ public class SoakProducerClientAck extends Thread {
 
             ConnectionFactory cf;
 
-            if (parentTestCase != null)   {
-                context = parentTestCase.getContext(hostname, port);
-                cf = (ConnectionFactory) context.lookup(parentTestCase.getConnectionFactoryName());
-
-            } else {
-                final Properties env = new Properties();
-                env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-                env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-                context = new InitialContext(env);
-                cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-            }
+            context = getContext(hostname, port);
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
 

@@ -137,6 +137,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
         String configurationFile = getHornetQJmsConfigurationFile();
 
+        logger.info("Deploy destination: " + jndiName);
+
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
 
@@ -150,10 +152,14 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             e.setAttribute("name", destinationName);
             Element entry = doc.createElement("entry");
             entry.setAttribute("name", jndiName);
-            Element eDurable = doc.createElement("durable");
-            eDurable.setTextContent(String.valueOf(durable));
             e.appendChild(entry);
-            e.appendChild(eDurable);
+
+            if (isQueue)    {
+                Element eDurable = doc.createElement("durable");
+                eDurable.setTextContent(String.valueOf(durable));
+                e.appendChild(eDurable);
+            }
+
 
             XPath xpathInstance = XPathFactory.newInstance().newXPath();
             Node node = (Node) xpathInstance.evaluate("//configuration", doc, XPathConstants.NODE);
@@ -488,8 +494,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     public void disableSecurity() {
         String configurationFile = getHornetQConfigurationFile();
         try {
+
             Document doc = XMLManipulation.getDOMModel(configurationFile);
-            XMLManipulation.setNodeContent("//security-enabled", "false", doc);
+
+            // if exists just set
+            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+            Node node = (Node) xpathInstance.evaluate("//security-enabled", doc, XPathConstants.NODE);
+            if (node != null)   {
+                XMLManipulation.setNodeContent("//security-enabled", "false", doc);
+            } else { //else add it
+                XMLManipulation.addNode("//configuration", "security-enabled", "false", doc);
+            }
             XMLManipulation.saveDOMModel(doc, configurationFile);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

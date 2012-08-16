@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +47,8 @@ public class QueueClientsAutoAck implements Clients {
 
     private String password = null;
 
+    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+
     public QueueClientsAutoAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
@@ -54,6 +57,13 @@ public class QueueClientsAutoAck implements Clients {
     public QueueClientsAutoAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
 
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues,
+                numberOfProducersPerQueueu, numberOfConsumersPerQueueu, numberOfMessages);
+    }
+
+    public QueueClientsAutoAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
+                               int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this.container = container;
         this.hostnameForConsumers = hostname;
         this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
@@ -84,7 +94,7 @@ public class QueueClientsAutoAck implements Clients {
 
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
 
-                p = new ProducerAutoAck(getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
+                p = new ProducerAutoAck(container, getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
 
                 p.setMessageVerifier(queueTextMessageVerifier);
 
@@ -102,7 +112,7 @@ public class QueueClientsAutoAck implements Clients {
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
-                r = new ReceiverAutoAck(getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
+                r = new ReceiverAutoAck(container, getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
 

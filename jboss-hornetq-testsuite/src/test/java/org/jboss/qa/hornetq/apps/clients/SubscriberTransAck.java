@@ -15,7 +15,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SubscriberTransAck extends Thread {
+public class SubscriberTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(SubscriberTransAck.class);
     private int maxRetries;
@@ -64,7 +64,24 @@ public class SubscriberTransAck extends Thread {
      */
     public SubscriberTransAck(String hostname, int port, String topicJndiName, long receiveTimeOut,
                               int commitAfter, int maxRetries, String clientId, String subscriberName) {
+        this(EAP6_CONTAINER, hostname, port, topicJndiName, receiveTimeOut, commitAfter, maxRetries, clientId, subscriberName);
+    }
 
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container     container
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicJndiName  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param commitAfter    send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public SubscriberTransAck(String container, String hostname, int port, String topicJndiName, long receiveTimeOut,
+                              int commitAfter, int maxRetries, String clientId, String subscriberName) {
+
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicJndiName;
@@ -137,7 +154,7 @@ public class SubscriberTransAck extends Thread {
     /**
      * Try to acknowledge a message.
      *
-     * @param message message to be acknowledged
+     * @param session session
      * @throws JMSException
      */
     public void commitSession(Session session) throws Exception {
@@ -317,12 +334,9 @@ public class SubscriberTransAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 

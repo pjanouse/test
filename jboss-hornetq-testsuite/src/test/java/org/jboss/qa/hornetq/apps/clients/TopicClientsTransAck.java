@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +28,27 @@ public class TopicClientsTransAck implements Clients {
     private int numberOfsubscribersPerTopic;
     private List<PublisherTransAck> publishers = new ArrayList<PublisherTransAck>();
     private List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
+    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
 
     public TopicClientsTransAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
-        this("localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 10000);
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 10000);
+    }
+
+    public TopicClientsTransAck(String container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
+
+        this(container, "localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 10000);
     }
 
     public TopicClientsTransAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
+                numberOfsubscribersPerTopic, numberOfMessages);
+    }
 
+    public TopicClientsTransAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this.container = container;
         this.hostnameForSubscribers = hostname;
         this.hostnameForPublishers = hostname;
         this.jndiPort = jndiPort;
@@ -66,7 +79,7 @@ public class TopicClientsTransAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
 
-                subscriber = new SubscriberTransAck(getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberTransAck(container, getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, 30000, 1000, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
@@ -86,7 +99,7 @@ public class TopicClientsTransAck implements Clients {
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
-                p = new PublisherTransAck(getHostnameForPublishers(), getJndiPort(),
+                p = new PublisherTransAck(container, getHostnameForPublishers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
@@ -351,7 +364,7 @@ public class TopicClientsTransAck implements Clients {
     public static void main(String[] args) throws InterruptedException, Exception {
 
         TopicClientsTransAck clients =
-                new TopicClientsTransAck("192.168.1.1", 4447, "jms/topic/testTopic", 2, 1, 2, 300);
+                new TopicClientsTransAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/testTopic", 2, 1, 2, 300);
         clients.startClients();
         while (!clients.isFinished()) {
             Thread.sleep(1000);

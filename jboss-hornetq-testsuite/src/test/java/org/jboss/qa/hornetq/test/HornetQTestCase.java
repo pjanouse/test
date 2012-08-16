@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @author pslavice@redhat.com
  * @author mnovak@redhat.com
  */
-public class HornetQTestCase implements ContextProvider {
+public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstants {
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
@@ -43,29 +43,11 @@ public class HornetQTestCase implements ContextProvider {
     public static String JBOSS_HOME_3;
     public static String JBOSS_HOME_4;
 
-    // Containers IDs
-    public static final String CONTAINER1 = "node-1";
-    public static final String CONTAINER2 = "node-2";
-    public static final String CONTAINER3 = "node-3";
-    public static final String CONTAINER4 = "node-4";
-
     // IP address for containers
     public static String CONTAINER1_IP;
     public static String CONTAINER2_IP;
     public static String CONTAINER3_IP;
     public static String CONTAINER4_IP;
-
-    // Name of the connection factory in JNDI
-    public static String CONNECTION_FACTORY_JNDI_EAP5 = "/ConnectionFactory";
-    public static String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
-
-    // Port for remote JNDI
-    public static int PORT_JNDI_EAP5 = 1099;
-    public static int PORT_JNDI_EAP6 = 4447;
-
-    // Ports for Byteman
-    public static final int BYTEMAN_CONTAINER1_PORT = 9091;
-    public static final int BYTEMAN_CONTAINER2_PORT = 9191;
 
     // Multi-cast address
     public static final String MCAST_ADDRESS;
@@ -85,10 +67,6 @@ public class HornetQTestCase implements ContextProvider {
 
     // Active server - EAP 5 or EAP 6?
     private String currentContainerForTest;
-
-    // IDs for the active container definition
-    protected static final String EAP5_CONTAINER = "EAP5 container";
-    protected static final String EAP6_CONTAINER = "EAP6 container";
 
     @ArquillianResource
     protected ContainerController controller;
@@ -143,34 +121,6 @@ public class HornetQTestCase implements ContextProvider {
         return envProperty;
     }
 
-    /**
-     * Returns context
-     *
-     * @param containerName name of the container
-     * @return instance of {@link Context}
-     * @throws NamingException if a naming exception is encountered
-     */
-    protected Context getContextByContainerName(String containerName) throws NamingException {
-
-        if (containerName == null && "".equals(containerName)) {
-            throw new IllegalStateException("Container name cannot be null or empty");
-        }
-
-        Context ctx = null;
-
-        if (CONTAINER1.equals(containerName)) {
-            getContext(CONTAINER1_IP);
-        } else if (CONTAINER2.equals(containerName)) {
-            getContext(CONTAINER2_IP);
-        } else if (CONTAINER3.equals(containerName)) {
-            getContext(CONTAINER3_IP);
-        } else if (CONTAINER4.equals(containerName)) {
-            getContext(CONTAINER4_IP);
-        }
-
-        return ctx;
-    }
-
     protected Context getContext(String hostName) throws NamingException {
         return getContext(hostName, 4447);
     }
@@ -204,10 +154,8 @@ public class HornetQTestCase implements ContextProvider {
      * @throws NamingException if something goes wrong
      */
     private Context getEAP6Context(String hostName, int port) throws NamingException {
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostName, port));
-        return new InitialContext(env);
+        JMSTools jmsTools = new JMSTools();
+        return  JMSTools.getEAP6Context(hostName, port);
     }
 
     /**
@@ -219,11 +167,8 @@ public class HornetQTestCase implements ContextProvider {
      * @throws NamingException if something goes wrong
      */
     private Context getEAP5Context(String hostName, int port) throws NamingException {
-        Properties properties = new Properties();
-        properties.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-        properties.setProperty("java.naming.provider.url", "jnp://" + hostName + ":" + port);
-        properties.setProperty("java.naming.factory.url.pkgs", "org.jnp.interfaces.NamingContextFactory");
-        return new InitialContext(properties);
+        JMSTools jmsTools = new JMSTools();
+        return  JMSTools.getEAP5Context(hostName, port);
     }
 
     /**

@@ -26,5 +26,6 @@ public interface PerformanceConstants {
     // Count of the messages used in test
     String MESSAGES_COUNT_PARAM = "performance.messages";
     String LARGE_MESSAGES_COUNT_PARAM = "performance.large_messages";
-
+    String MESSAGES_CYCLES_PARAM = "performance.messages_cycles";
+    String LARGE_MESSAGES_CYCLES_PARAM = "performance.large_messages_cycles";
 }

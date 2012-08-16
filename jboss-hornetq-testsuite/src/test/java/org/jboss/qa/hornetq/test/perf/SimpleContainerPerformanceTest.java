@@ -38,6 +38,10 @@ import static org.junit.Assert.fail;
  * Configuration parameters:
  * <ul>
  * <li>performance.wait - defines maximal wait time which will test wait for the messages in output queue</li>
+ * <li>performance.messages - count of the messages used in test</li>
+ * <li>performance.messages_cycles - count of the used cycles inside the container for the each message</li>
+ * <li>performance.large_messages - count of the large messages used in test</li>
+ * <li>performance.large_messages_cycles - count of the used cycles inside the container for the each large message</li>
  * </ul>
  *
  * @author pslavice@redhat.com
@@ -52,16 +56,24 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     // ID of the deployment
     private static final String MDB_DEPLOY = "mdbPerformanceMDB";
 
-    private static int COUNT_OF_MSAGES = 100;
+    private static int MESSAGES = 100;
 
-    private static int COUNT_OF_LARGE_MESSAGES = 100;
+    private static int LARGE_MESSAGES = 100;
+
+    private static int MESSAGE_CYCLES = 10;
+
+    private static int LARGE_MESSAGES_CYCLES = 10;
 
     static {
-        COUNT_OF_MSAGES = parseIntFromSysProp(PerformanceConstants.MESSAGES_COUNT_PARAM, COUNT_OF_MSAGES);
-        COUNT_OF_LARGE_MESSAGES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_COUNT_PARAM, COUNT_OF_LARGE_MESSAGES);
+        MESSAGES = parseIntFromSysProp(PerformanceConstants.MESSAGES_COUNT_PARAM, MESSAGES);
+        MESSAGE_CYCLES = parseIntFromSysProp(PerformanceConstants.MESSAGES_CYCLES_PARAM, MESSAGE_CYCLES);
+        LARGE_MESSAGES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_COUNT_PARAM, LARGE_MESSAGES);
+        LARGE_MESSAGES_CYCLES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_CYCLES_PARAM, LARGE_MESSAGES_CYCLES);
 
-        log.info(String.format("Setting %s messages for test", COUNT_OF_MSAGES));
-        log.info(String.format("Setting %s large messages for test", COUNT_OF_LARGE_MESSAGES));
+        log.info(String.format("Setting %s messages for test", MESSAGES));
+        log.info(String.format("Setting %s cycles for messages", MESSAGE_CYCLES));
+        log.info(String.format("Setting %s large messages for test", LARGE_MESSAGES));
+        log.info(String.format("Setting %s cycles for large messages messages", LARGE_MESSAGES_CYCLES));
     }
 
     /**
@@ -117,7 +129,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void normalByteMessagesTest() throws InterruptedException {
-        testLogic(100, 10, new ByteMessageBuilder(512));
+        testLogic(MESSAGES, MESSAGE_CYCLES, new ByteMessageBuilder(512));
     }
 
     /**
@@ -129,7 +141,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void normalTextMessagesTest() throws InterruptedException {
-        testLogic(100, 10, new TextMessageBuilder(512));
+        testLogic(MESSAGES, MESSAGE_CYCLES, new TextMessageBuilder(512));
     }
 
     /**
@@ -141,7 +153,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void largeByteMessagesTest() throws InterruptedException {
-        testLogic(100, 10, new ByteMessageBuilder(150 * 1024));
+        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(150 * 1024));
     }
 
     /**
@@ -153,7 +165,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void largeTextMessagesTest() throws InterruptedException {
-        testLogic(100, 10, new TextMessageBuilder(150 * 1024));
+        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(150 * 1024));
     }
 
     /**

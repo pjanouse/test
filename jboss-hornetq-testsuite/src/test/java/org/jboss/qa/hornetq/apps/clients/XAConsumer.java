@@ -23,7 +23,7 @@ import java.util.Random;
  *
  * @author mnovak@redhat.com
  */
-public class XAConsumer extends Thread {
+public class XAConsumer extends Client {
 
     private static final Logger logger = Logger.getLogger(XAConsumer.class);
 
@@ -44,12 +44,20 @@ public class XAConsumer extends Thread {
     /**
      * @param hostname       hostname
      * @param port           port
-     * @param messages       number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries     number of retries to send message after server fails
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public XAConsumer(String hostname, int port, String queueNameJndi) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi);
+    }
+
+    /**
+     * @param container     container
+     * @param hostname       hostname
+     * @param port           port
+     * @param queueNameJndi  set jndi name of the queue to send messages
+     */
+    public XAConsumer(String container, String hostname, int port, String queueNameJndi) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueNameJndi;
@@ -68,15 +76,11 @@ public class XAConsumer extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-//            env.put(Context.PROVIDER_URL, "remote://127.0.0.1:4447");
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
             queue = (Queue) context.lookup("jms/queue/testQueue0");
 
-            XAConnectionFactory cf = (XAConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            XAConnectionFactory cf = (XAConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             con = cf.createXAConnection();
 

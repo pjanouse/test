@@ -2,16 +2,13 @@ package org.jboss.qa.hornetq.test.compatibility;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -68,8 +65,6 @@ import java.util.Map;
 @RunWith(Arquillian.class)
 public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
-    @ArquillianResource
-    private Deployer deployer;
     private static final Logger logger = Logger.getLogger(BackwardCompatibilityJournalDataTestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
@@ -80,7 +75,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreatedEAP5 = false;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
@@ -131,7 +125,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         deployer.undeploy("mdb1");
 
         // this is client with libs from Container 1 server which is older version of EAP
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(this, CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -146,12 +140,12 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         controller.start(CONTAINER4);
         deployer.undeploy("mdb2");
         deployer.deploy("mdb2");
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(this, CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
-        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(this, CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 10000, 10, 5);
+        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 10000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
@@ -266,7 +260,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         int groupPort = 9876;
         long broadcastPeriod = 500;
         String connectorName = "netty";
-        String remoteConnectorName = "netty-remote";
 
         String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
         Map<String, String> connectionParameters = new HashMap<String, String>();

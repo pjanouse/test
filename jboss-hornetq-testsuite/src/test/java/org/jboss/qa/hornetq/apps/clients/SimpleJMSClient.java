@@ -16,7 +16,7 @@ import java.util.Properties;
  *
  * @author pslavice@redhat.com
  */
-public class SimpleJMSClient {
+public class SimpleJMSClient extends Client {
 
     // Logger
     private static final Logger log = Logger.getLogger(SimpleJMSClient.class);
@@ -65,6 +65,22 @@ public class SimpleJMSClient {
      * @param messageBuilder     messages builder used for building messages
      */
     public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
+        this(EAP6_CONTAINER, hostname, port, messages, ackMode, transactionSession, messageBuilder);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param container         container
+     * @param hostname           target host
+     * @param port               target port
+     * @param messages           count of messages to be send
+     * @param ackMode            acknowledge mode
+     * @param transactionSession is session transacted
+     * @param messageBuilder     messages builder used for building messages
+     */
+    public SimpleJMSClient(String container, String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;

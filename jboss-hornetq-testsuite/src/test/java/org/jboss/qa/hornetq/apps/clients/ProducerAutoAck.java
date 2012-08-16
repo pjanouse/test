@@ -7,11 +7,9 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple sender with auto acknowledge session. Able to fail over.
@@ -21,7 +19,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class ProducerAutoAck extends Thread {
+public class ProducerAutoAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ProducerAutoAck.class);
     private int maxRetries = 30;
@@ -43,11 +41,21 @@ public class ProducerAutoAck extends Thread {
      * @param hostname       hostname
      * @param port           port
      * @param messages       number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries     number of retries to send message after server fails
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerAutoAck(String hostname, int port, String queueNameJndi, int messages) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
+    }
+
+    /**
+     * @param container      EAP container
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param queueNameJndi  set jndi name of the queue to send messages
+     */
+    public ProducerAutoAck(String container, String hostname, int port, String queueNameJndi, int messages) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -68,12 +76,9 @@ public class ProducerAutoAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
@@ -83,7 +88,7 @@ public class ProducerAutoAck extends Thread {
 
             MessageProducer producer = session.createProducer(queue);
 
-            Message msg = null;
+            Message msg;
 
             while (counter < messages && !stop) {
 
@@ -110,19 +115,19 @@ public class ProducerAutoAck extends Thread {
             if (session != null) {
                 try {
                     session.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (con != null) {
                 try {
                     con.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (context != null) {
                 try {
                     context.close();
-                } catch (NamingException e) {
+                } catch (NamingException ignored) {
                 }
             }
         }
@@ -133,8 +138,8 @@ public class ProducerAutoAck extends Thread {
      * send fails and exception is thrown it tries send again until max retry is
      * reached. Then throws new Exception.
      *
-     * @param producer
-     * @param msg
+     * @param producer producer
+     * @param msg message
      */
     private void sendMessage(MessageProducer producer, Message msg) throws Exception {
 
@@ -160,7 +165,7 @@ public class ProducerAutoAck extends Thread {
                     logger.info("SEND RETRY - Producer for node: " + getHostname()
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 } // ignore 
 
                 numberOfRetries++;
@@ -280,7 +285,7 @@ public class ProducerAutoAck extends Thread {
      * Returns connection.
      *
      * @param cf
-     * @return
+     * @return connection
      * @throws JMSException
      */
     private Connection getConnection(ConnectionFactory cf) throws JMSException {

@@ -15,7 +15,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class ReceiverAutoAck extends Thread {
+public class ReceiverAutoAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ReceiverAutoAck.class);
     private int maxRetries;
@@ -41,7 +41,7 @@ public class ReceiverAutoAck extends Thread {
      */
     public ReceiverAutoAck(String hostname, int port, String queueJndiName) {
 
-        this(hostname, port, queueJndiName, 30000, 30);
+        this(EAP6_CONTAINER, hostname, port, queueJndiName);
 
     }
 
@@ -52,12 +52,41 @@ public class ReceiverAutoAck extends Thread {
      * @param port           jndi port
      * @param queueJndiName  jndi name of the queue
      * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
     public ReceiverAutoAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                            int maxRetries) {
+        this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, maxRetries);
+    }
 
+    /**
+     * Creates a receiver to queue with auto acknowledge.
+     *
+     * @param container     container
+     * @param hostname      hostname
+     * @param port          jndi port
+     * @param queueJndiName jndi name of the queue
+     */
+    public ReceiverAutoAck(String container, String hostname, int port, String queueJndiName) {
+
+        this(container, hostname, port, queueJndiName, 30000, 30);
+
+    }
+
+
+    /**
+     * Creates a receiver to queue with auto acknowledge.
+     *
+     * @param container     container
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param queueJndiName  jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public ReceiverAutoAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
+                           int maxRetries) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueJndiName;
@@ -77,12 +106,9 @@ public class ReceiverAutoAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = getConnection(cf);
 

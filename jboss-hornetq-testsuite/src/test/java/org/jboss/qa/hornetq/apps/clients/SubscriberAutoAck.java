@@ -15,7 +15,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class SubscriberAutoAck extends Thread {
+public class SubscriberAutoAck extends Client {
 
     private static final Logger logger = Logger.getLogger(SubscriberAutoAck.class);
     private int maxRetries;
@@ -48,7 +48,22 @@ public class SubscriberAutoAck extends Thread {
      */
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
+        this(EAP6_CONTAINER, hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
+
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container      container
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
+
+        this(container, hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
 
     }
 
@@ -64,7 +79,23 @@ public class SubscriberAutoAck extends Thread {
      */
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
                              int maxRetries, String clientId, String subscriberName) {
+        this(EAP6_CONTAINER, hostname, port, topicNameJndi, receiveTimeOut, maxRetries, clientId, subscriberName);
+    }
 
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container     container
+     * @param hostname       hostname
+     * @param port           jndi port
+     * @param topicNameJndi  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param maxRetries     how many times to retry receive before giving up
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, long receiveTimeOut,
+                             int maxRetries, String clientId, String subscriberName) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.topicNameJndi = topicNameJndi;
@@ -279,12 +310,9 @@ public class SubscriberAutoAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + getHostname() + ":" + getPort());
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 

@@ -260,7 +260,7 @@
         <profile>
             <id>multiContainer</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
                 <property>
                     <name>eap</name>
                     <value>multiContainer</value>

@@ -23,9 +23,9 @@ import java.util.Properties;
  * This class extends Thread class and should be started as a thread using
  * start().
  *
- * @author mnovak
+ * @author mnovak@redhat.com
  */
-public class XAConsumerTransAck extends Thread {
+public class XAConsumerTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(XAConsumerTransAck.class);
 
@@ -46,12 +46,19 @@ public class XAConsumerTransAck extends Thread {
     /**
      * @param hostname       hostname
      * @param port           port
-     * @param messages       number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries     number of retries to send message after server fails
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public XAConsumerTransAck(String hostname, int port, String queueNameJndi) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi);
+    }
+
+    /**
+     * @param hostname       hostname
+     * @param port           port
+     * @param queueNameJndi  set jndi name of the queue to send messages
+     */
+    public XAConsumerTransAck(String container, String hostname, int port, String queueNameJndi) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.queueNameJndi = queueNameJndi;
@@ -70,11 +77,7 @@ public class XAConsumerTransAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-//            env.put(Context.PROVIDER_URL, "remote://127.0.0.1:4447");
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
             queue = (Queue) context.lookup("jms/queue/testQueue0");
 
@@ -83,7 +86,7 @@ public class XAConsumerTransAck extends Thread {
 
             txMgr = TransactionManager.transactionManager();
 
-            XAConnectionFactory cf = (XAConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            XAConnectionFactory cf = (XAConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             con = cf.createXAConnection();
 

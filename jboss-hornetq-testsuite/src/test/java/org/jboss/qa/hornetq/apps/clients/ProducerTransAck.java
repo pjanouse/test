@@ -20,7 +20,7 @@ import java.util.Properties;
  *
  * @author mnovak
  */
-public class ProducerTransAck extends Thread {
+public class ProducerTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ProducerTransAck.class);
     private int maxRetries = 30;
@@ -42,11 +42,21 @@ public class ProducerTransAck extends Thread {
      * @param hostname       hostname
      * @param port           port
      * @param messages       number of messages to send
-     * @param messageBuilder message builder
-     * @param maxRetries     number of retries to send message after server fails
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerTransAck(String hostname, int port, String queueNameJndi, int messages) {
+        this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
+    }
+
+    /**
+     * @param container      EAP container
+     * @param hostname       hostname
+     * @param port           port
+     * @param messages       number of messages to send
+     * @param queueNameJndi  set jndi name of the queue to send messages
+     */
+    public ProducerTransAck(String container, String hostname, int port, String queueNameJndi, int messages) {
+        super(container);
         this.hostname = hostname;
         this.port = port;
         this.messages = messages;
@@ -67,12 +77,9 @@ public class ProducerTransAck extends Thread {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
-            context = new InitialContext(env);
+            context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
@@ -82,7 +89,7 @@ public class ProducerTransAck extends Thread {
 
             MessageProducer producer = session.createProducer(queue);
 
-            Message msg = null;
+            Message msg;
 
             while (counter < messages && !stop) {
 
@@ -96,7 +103,6 @@ public class ProducerTransAck extends Thread {
                     commitSession(session, producer);
 
                 }
-
             }
 
             commitSession(session, producer);
@@ -117,19 +123,19 @@ public class ProducerTransAck extends Thread {
             if (session != null) {
                 try {
                     session.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (con != null) {
                 try {
                     con.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (context != null) {
                 try {
                     context.close();
-                } catch (NamingException e) {
+                } catch (NamingException ignored) {
                 }
             }
         }
@@ -140,8 +146,8 @@ public class ProducerTransAck extends Thread {
      * send fails and exception is thrown it tries send again until max retry is
      * reached. Then throws new Exception.
      *
-     * @param producer
-     * @param msg
+     * @param producer producer
+     * @param msg message
      */
     private void sendMessage(MessageProducer producer, Message msg) throws Exception {
 
@@ -169,7 +175,7 @@ public class ProducerTransAck extends Thread {
                     logger.info("SEND RETRY - Producer for node: " + hostname
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 } // ignore
 
                 numberOfRetries++;
