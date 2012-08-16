@@ -4,9 +4,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.jms.Destination;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.naming.Context;
@@ -65,9 +63,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @return instance of the 'org.hornetq:module=JMS,type=Server'
      * @throws Exception if something goes wrong
      */
-    protected ObjectName getHornetQServerMBean() throws Exception {
-        return new ObjectName("org.hornetq:module=JMS,type=Server");
-    }
+    //protected ObjectName getHornetQServerMBean() throws Exception {
+//        return new ObjectName("org.hornetq:module=JMS,type=Server");
+//    }
 
     /**
      * Returns MBean for the Queue
@@ -143,7 +141,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
 
             Element e;
-            if (isQueue)    {
+            if (isQueue) {
                 e = doc.createElement("queue");
             } else {
                 e = doc.createElement("topic");
@@ -174,19 +172,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param destinationName name of the destination
      */
     protected void removeJmsDestination(boolean isQueue, String destinationName) {
-
         String configurationFile = getHornetQJmsConfigurationFile();
-
         try {
-
+            if (logger.isDebugEnabled()) {
+                logger.debug(String.format("Removing JMS Destination '%s', is queue? '%s'", destinationName, isQueue));
+            }
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.removeNode("//configuration/*[@name='" + destinationName + "']", doc);
             XMLManipulation.saveDOMModel(doc, configurationFile);
-
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.debug(e.getMessage(), e);
         }
-
 //        try {
 //            connect(hostname, rmiPort);
 //            logger.info("undeployDestination " + destinationName);

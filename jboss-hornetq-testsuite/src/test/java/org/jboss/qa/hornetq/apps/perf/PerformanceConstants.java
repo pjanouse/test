@@ -23,4 +23,8 @@ public interface PerformanceConstants {
     // System configuration property for max wait time in test
     String MAX_WAIT_TIME_PARAM = "performance.wait";
 
+    // Count of the messages used in test
+    String MESSAGES_COUNT_PARAM = "performance.messages";
+    String LARGE_MESSAGES_COUNT_PARAM = "performance.large_messages";
+
 }

@@ -42,12 +42,12 @@ public class RestoreConfig {
         File configurationFileBackup;
         StringBuilder pathToConfigDir;
         String fileSeparator = System.getProperty("file.separator");
-
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
                 containerProperties = containerDef.getContainerProperties();
                 jbossHome = containerProperties.get("jbossHome");
                 serverConfig = containerProperties.get("serverConfig");
+                serverConfig = (serverConfig == null) ? containerProperties.get("profileName") : serverConfig;
                 if (jbossHome != null && serverConfig != null) {
                     pathToConfigDir = new StringBuilder(jbossHome)
                             .append(fileSeparator)
