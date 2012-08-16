@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.compatibility;
 // TODO ADD RIGHTS FOR TOPIC AND QUEUES
+
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -219,7 +220,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
     @Test
     @RunAsClient
     @InSequence(2)
-    public void testClientAckTopic() throws Exception {
+    public void testClientAckTopic() throws     Exception {
         testClient(Session.CLIENT_ACKNOWLEDGE, DestinationType.TOPIC);
     }
 
@@ -230,99 +231,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
         testClient(Session.SESSION_TRANSACTED, DestinationType.TOPIC);
     }
 
-    @Test
-    @RunAsClient
-    @InSequence(5)
-    public void testClientQueueOnMessageTypes() throws Exception {
 
-            Map<Integer, SoakProducerClientAck> producers = new HashMap<Integer, SoakProducerClientAck>();
-            // Put messages to queues
-            for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakProducerClientAck producer = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, NUMBER_OF_MESSAGES_PER_PRODUCER);
-                producer.setMessageBuilder(new ClientMixMessageBuilder());
-                producer.start();
-                producers.put(destinationNumber, producer);
-                log.info("Producer " + producer + " started");
-            }
-            for (Thread thread : producers.values()) {
-                thread.join();
-            }
-
-            Map<Integer, SoakReceiverClientAck> receivers = new HashMap<Integer, SoakReceiverClientAck>();
-            // Let's read the messages from queues
-            for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakReceiverClientAck receiver = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, 100000, 10, 10);
-                receiver.start();
-                receivers.put(destinationNumber, receiver);
-                log.info("Receiver " + receiver + " started");
-            }
-            for (Thread thread : receivers.values()) {
-                thread.join();
-            }
-
-            // And let's check that we get all messages - yippee...
-            for (Integer destinationNumber : producers.keySet()) {
-                SoakProducerClientAck producer = producers.get(destinationNumber);
-                SoakReceiverClientAck receiver = receivers.get(destinationNumber);
-
-                log.info(String.format("Producer %s sent %s messages on destination %s", producer, producer.getCounter(), destinationNumber));
-                log.info(String.format("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber));
-
-                Assert.assertNotSame("The producer had to sent at least some message. Otherwise there is an error somewhere.",
-                        0, producer.getCounter());
-                Assert.assertEquals("There is different number of sent and received messages.",
-                        producer.getCounter(),
-                        receiver.getCount());
-            }
-    }
-
-    @Test
-    @RunAsClient
-    @InSequence(5)
-    public void testClientTopicOnMessageTypes() throws Exception {
-
-            Map<Integer, SubscriberClientAck> receivers = new HashMap<Integer, SubscriberClientAck>();
-            // Let's read the messages from queues
-            for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SubscriberClientAck receiver = new SubscriberClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber, "" +
-                        "topicClient-subscriber-" + destinationNumber, "subscriber" + destinationNumber);
-                receiver.setMessageVerifier(new CounterVerifier());
-                receiver.subscribe();
-                receiver.start();
-                receivers.put(destinationNumber, receiver);
-                log.info("Receiver " + receiver + " started");
-            }
-
-            Map<Integer, PublisherClientAck> producers = new HashMap<Integer, PublisherClientAck>();
-            // Put messages to queues
-            for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                PublisherClientAck producer = new PublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber,
-                        NUMBER_OF_MESSAGES_PER_PRODUCER, "topicClient-publisher-" + destinationNumber);
-                producer.setMessageBuilder(new ClientMixMessageBuilder());
-                List<FinalTestMessageVerifier> verifiers = new ArrayList<FinalTestMessageVerifier>();
-                verifiers.add(receivers.get(destinationNumber).getMessageVerifier());
-                producer.setMessageVerifiers(verifiers);
-                producer.start();
-                producers.put(destinationNumber, producer);
-                log.info("Producer " + producer + " started");
-            }
-
-            // waiting for producers to be stopped
-            for (Thread thread : producers.values()) {
-                thread.join();
-            }
-            Thread.sleep(3000);
-            // waiting for receivers to be stopped
-            for (Thread thread : receivers.values()) {
-                thread.join();
-            }
-
-            // And let's check whether we get all messages
-            for (PublisherClientAck p : producers.values()) {
-                Assert.assertTrue("The number of sent and received messages has to be the same.",
-                        p.getMessageVerifiers().get(0).verifyMessages());
-            }
-    }
 
     @Test
     @InSequence(100)

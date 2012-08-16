@@ -612,4 +612,5 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public void setCurrentContainerForTest(String currentContainerForTest) {
         this.currentContainerForTest = currentContainerForTest;
     }
+
 }

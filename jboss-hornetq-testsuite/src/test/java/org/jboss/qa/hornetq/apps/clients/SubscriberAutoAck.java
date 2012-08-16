@@ -5,10 +5,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple subscriber with auto acknowledge session. ABLE to failover.
@@ -114,7 +112,7 @@ public class SubscriberAutoAck extends Client {
                 subscribe();
             }
 
-            Message message = null;
+            Message message;
 
             while ((message = receiveMessage(subscriber)) != null) {
 
@@ -170,7 +168,7 @@ public class SubscriberAutoAck extends Client {
      */
     public Message receiveMessage(TopicSubscriber subscriber) throws Exception {
 
-        Message msg = null;
+        Message msg;
         int numberOfRetries = 0;
 
         // receive message with retry
@@ -312,7 +310,7 @@ public class SubscriberAutoAck extends Client {
 
             context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 
@@ -327,15 +325,8 @@ public class SubscriberAutoAck extends Client {
             subscriber = session.createDurableSubscriber(topic, subscriberName);
 
         } catch (Exception e) {
-
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-        } finally {
-            if (conn != null)   {
-                try {
-                    conn.close();
-                } catch (JMSException ignored) {}
-            }
         }
     }
 }

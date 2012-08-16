@@ -356,7 +356,7 @@ public class SubscriberClientAck extends Client {
 
             context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             conn = cf.createConnection();
 
@@ -374,12 +374,6 @@ public class SubscriberClientAck extends Client {
 
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
-        } finally {
-            if (conn != null)   {
-                try {
-                    conn.close();
-                } catch (JMSException ignored) {}
-            }
         }
     }
 

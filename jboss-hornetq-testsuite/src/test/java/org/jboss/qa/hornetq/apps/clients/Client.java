@@ -58,10 +58,8 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
 
     protected String getConnectionFactoryJndiName() {
         if (currentContainer.equals(EAP5_CONTAINER)) {
-            logger.info("mnovak: " + CONNECTION_FACTORY_JNDI_EAP5);
             return CONNECTION_FACTORY_JNDI_EAP5;
         } else {
-            logger.info("mnovak: " + CONNECTION_FACTORY_JNDI_EAP6);
             return CONNECTION_FACTORY_JNDI_EAP6;
         }
     }

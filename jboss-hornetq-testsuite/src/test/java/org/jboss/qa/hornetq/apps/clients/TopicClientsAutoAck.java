@@ -64,12 +64,12 @@ public class TopicClientsAutoAck implements Clients {
 
         List<FinalTestMessageVerifier> topicTextMessageVerifiers = null;
 
-        FinalTestMessageVerifier verifier = null;
+        FinalTestMessageVerifier verifier;
 
         // create publishers and subscribers
         for (int destinationNumber = 0; destinationNumber < getNumberOfTopics(); destinationNumber++) {
 
-            SubscriberAutoAck subscriber = null;
+            SubscriberAutoAck subscriber;
 
             topicTextMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
 
@@ -91,7 +91,7 @@ public class TopicClientsAutoAck implements Clients {
                 subscriber.subscribe();
             }
 
-            PublisherAutoAck publisher = null;
+            PublisherAutoAck publisher;
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 

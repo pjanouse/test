@@ -111,7 +111,7 @@ public class SoakReceiverClientAck extends Client {
 
 //                listOfReceivedMessagesToBeAcked.add(message.getJMSMessageID());
 
-                setCount(count + 1);
+                count++;
 //                Thread.sleep(20);
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
@@ -166,9 +166,8 @@ public class SoakReceiverClientAck extends Client {
      */
     public void acknowledgeMessage(Message message) throws JMSException {
         try {
-
+            logger.info("Try to ack message: " + message);
             message.acknowledge();
-
             logger.info("Receiver for node: " + hostname + ". Received message - count: "
                     + count + ", message-counter: " + message.getStringProperty("counter")
                     + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");

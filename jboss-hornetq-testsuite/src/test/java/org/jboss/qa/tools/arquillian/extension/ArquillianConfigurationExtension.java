@@ -1,5 +1,6 @@
 package org.jboss.qa.tools.arquillian.extension;
 
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 
