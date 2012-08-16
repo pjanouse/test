@@ -52,31 +52,13 @@ public class SoakReceiverClientAck extends Client {
      */
     public SoakReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
-        this(null, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
-
-    }
-
-    /**
-     * Creates a receiver to queue with client acknowledge.
-     *
-     * @param parentTestCase calling test class
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param queueJndiName  jndi name of the queue
-     * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
-     * @param maxRetries     how many times to retry receive before giving up
-     */
-    public SoakReceiverClientAck(HornetQTestCase parentTestCase, String hostname, int port, String queueJndiName, long receiveTimeOut,
-                                 int ackAfter, int maxRetries) {
-        this(EAP6_CONTAINER, parentTestCase, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
+        this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
     }
 
     /**
      * Creates a receiver to queue with client acknowledge.
      *
      * @param container     container
-     * @param parentTestCase calling test class
      * @param hostname       hostname
      * @param port           jndi port
      * @param queueJndiName  jndi name of the queue
@@ -84,7 +66,7 @@ public class SoakReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
-    public SoakReceiverClientAck(String container, HornetQTestCase parentTestCase, String hostname, int port, String queueJndiName, long receiveTimeOut,
+    public SoakReceiverClientAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
         super(container);
         this.hostname = hostname;
@@ -121,7 +103,7 @@ public class SoakReceiverClientAck extends Client {
 
             MessageConsumer receiver = session.createConsumer(queue);
 
-            Message message = null;
+            Message message;
 
             Message lastMessage = null;
 
@@ -215,7 +197,7 @@ public class SoakReceiverClientAck extends Client {
      */
     public Message receiveMessage(MessageConsumer consumer) throws Exception {
 
-        Message msg = null;
+        Message msg;
         int numberOfRetries = 0;
 
         // receive message with retry

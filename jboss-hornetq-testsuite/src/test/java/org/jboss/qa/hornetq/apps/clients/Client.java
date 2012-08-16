@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.apps.clients;
 
+import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.test.JMSTools;
 import javax.naming.Context;
@@ -16,6 +17,7 @@ import javax.naming.NamingException;
  */
 public class Client extends Thread implements HornetQTestCaseConstants  {
 
+    private static final Logger logger = Logger.getLogger(Client.class);
     private String currentContainer = EAP6_CONTAINER;
     private String connectionFactoryJndiName = CONNECTION_FACTORY_JNDI_EAP6;
 
@@ -28,10 +30,8 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP5_CONTAINER;
-            connectionFactoryJndiName = CONNECTION_FACTORY_JNDI_EAP5;
         } else {
             currentContainer = EAP6_CONTAINER;
-            connectionFactoryJndiName = CONNECTION_FACTORY_JNDI_EAP6;
         }
     }
 
@@ -56,8 +56,14 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
         return context;
     }
 
-    public String getConnectionFactoryJndiName() {
-        return connectionFactoryJndiName;
+    protected String getConnectionFactoryJndiName() {
+        if (currentContainer.equals(EAP5_CONTAINER)) {
+            logger.info("mnovak: " + CONNECTION_FACTORY_JNDI_EAP5);
+            return CONNECTION_FACTORY_JNDI_EAP5;
+        } else {
+            logger.info("mnovak: " + CONNECTION_FACTORY_JNDI_EAP6);
+            return CONNECTION_FACTORY_JNDI_EAP6;
+        }
     }
 
 }

@@ -40,6 +40,12 @@ public class TopicClientsClientAck implements Clients {
         this(container, "localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
     }
 
+    public TopicClientsClientAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
+                numberOfsubscribersPerTopic, numberOfMessages);
+    }
+
     public TopicClientsClientAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                  int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
         this.container = container;
@@ -73,7 +79,7 @@ public class TopicClientsClientAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
 
-                subscriber = new SubscriberClientAck(getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberClientAck(container, getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);

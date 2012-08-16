@@ -1,5 +1,5 @@
 package org.jboss.qa.hornetq.test.compatibility;
-
+// TODO ADD RIGHTS FOR TOPIC AND QUEUES
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -12,7 +12,6 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,7 +57,6 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
 
         if (isEAP6())   {
             controller.start(CONTAINER1);
@@ -90,12 +88,16 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
+            deployDestinations();
             jmsAdminOperations.close();
 
         } else {
 
+            String groupAddress = "233.4.66.88";
+            int groupPort = 9876;
             JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+
+            deployDestinations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
@@ -104,10 +106,10 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIR);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, CONTAINER1_IP, 5445, groupAddress, groupPort, 2000, connectorName, null);
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, CONTAINER1_IP, groupAddress, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -136,23 +138,11 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
     }
 
     /**
-     * Destroy all destinations - queues and topics.
-     */
-    private void destroyDestinations() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
-        for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-            jmsAdminOperations.removeQueue(queueNamePrefix + destinationNumber);
-            jmsAdminOperations.removeTopic(topicNamePrefix + destinationNumber);
-        }
-        jmsAdminOperations.close();
-    }
-
-    /**
      * Creating client to be run against the server.
      */
     private Clients createClient(int acknowledgeMode, DestinationType dest) throws Exception {
 
-        Clients clients = null;
+        Clients clients;
 
         if (dest == DestinationType.TOPIC) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
@@ -180,12 +170,9 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
     }
 
     private void testClient(int acknowledgeMode, DestinationType destination) throws Exception {
-        deployDestinations();
 
-        try {
             Clients client = createClient(acknowledgeMode, destination);
             client.startClients();
-            client.stopClients();
 
             while (!client.isFinished()) {
                 log.info("Waiting for client " + client + " to finish.");
@@ -193,9 +180,6 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             }
 
             Assert.assertTrue("There are failures detected by clients. More information in log.", client.evaluateResults());
-        } finally {
-            destroyDestinations();
-        }
     }
 
     @Test
@@ -251,13 +235,10 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
     @InSequence(5)
     public void testClientQueueOnMessageTypes() throws Exception {
 
-        deployDestinations();
-
-        try {
             Map<Integer, SoakProducerClientAck> producers = new HashMap<Integer, SoakProducerClientAck>();
             // Put messages to queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakProducerClientAck producer = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                SoakProducerClientAck producer = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, NUMBER_OF_MESSAGES_PER_PRODUCER);
                 producer.setMessageBuilder(new ClientMixMessageBuilder());
                 producer.start();
                 producers.put(destinationNumber, producer);
@@ -270,7 +251,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             Map<Integer, SoakReceiverClientAck> receivers = new HashMap<Integer, SoakReceiverClientAck>();
             // Let's read the messages from queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SoakReceiverClientAck receiver = new SoakReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, 100000, 10, 10);
+                SoakReceiverClientAck receiver = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + destinationNumber, 100000, 10, 10);
                 receiver.start();
                 receivers.put(destinationNumber, receiver);
                 log.info("Receiver " + receiver + " started");
@@ -284,7 +265,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
                 SoakProducerClientAck producer = producers.get(destinationNumber);
                 SoakReceiverClientAck receiver = receivers.get(destinationNumber);
 
-                log.info(String.format("Producer %s sent % messages on destination %s", producer, producer.getCounter(), destinationNumber));
+                log.info(String.format("Producer %s sent %s messages on destination %s", producer, producer.getCounter(), destinationNumber));
                 log.info(String.format("Receiver %s received %s messages on destination %s", receiver, receiver.getCount(), destinationNumber));
 
                 Assert.assertNotSame("The producer had to sent at least some message. Otherwise there is an error somewhere.",
@@ -293,23 +274,17 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
                         producer.getCounter(),
                         receiver.getCount());
             }
-        } finally {
-            destroyDestinations();
-        }
     }
 
     @Test
     @RunAsClient
     @InSequence(5)
     public void testClientTopicOnMessageTypes() throws Exception {
-        deployDestinations();
-
-        try {
 
             Map<Integer, SubscriberClientAck> receivers = new HashMap<Integer, SubscriberClientAck>();
             // Let's read the messages from queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                SubscriberClientAck receiver = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber, "" +
+                SubscriberClientAck receiver = new SubscriberClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber, "" +
                         "topicClient-subscriber-" + destinationNumber, "subscriber" + destinationNumber);
                 receiver.setMessageVerifier(new CounterVerifier());
                 receiver.subscribe();
@@ -321,7 +296,7 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
             Map<Integer, PublisherClientAck> producers = new HashMap<Integer, PublisherClientAck>();
             // Put messages to queues
             for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-                PublisherClientAck producer = new PublisherClientAck(CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber,
+                PublisherClientAck producer = new PublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, topicJndiNamePrefix + destinationNumber,
                         NUMBER_OF_MESSAGES_PER_PRODUCER, "topicClient-publisher-" + destinationNumber);
                 producer.setMessageBuilder(new ClientMixMessageBuilder());
                 List<FinalTestMessageVerifier> verifiers = new ArrayList<FinalTestMessageVerifier>();
@@ -347,15 +322,12 @@ public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client exte
                 Assert.assertTrue("The number of sent and received messages has to be the same.",
                         p.getMessageVerifiers().get(0).verifyMessages());
             }
-        } finally {
-            destroyDestinations();
-        }
     }
 
     @Test
     @InSequence(100)
     @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    //@RestoreConfigAfterTest
     public void cleanServers() {
         // just waiting for clean up after tests
     }

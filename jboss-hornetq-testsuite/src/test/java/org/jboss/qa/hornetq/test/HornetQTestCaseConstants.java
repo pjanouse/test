@@ -12,7 +12,7 @@ public interface HornetQTestCaseConstants {
     public static final String CONTAINER4 = "node-4";
 
     // Name of the connection factory in JNDI
-    public static String CONNECTION_FACTORY_JNDI_EAP5 = "/ConnectionFactory";
+    public static String CONNECTION_FACTORY_JNDI_EAP5 = "ConnectionFactory";
     public static String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
 
     // Port for remote JNDI

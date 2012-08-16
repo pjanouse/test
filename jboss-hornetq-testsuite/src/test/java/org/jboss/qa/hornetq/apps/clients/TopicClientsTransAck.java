@@ -40,6 +40,12 @@ public class TopicClientsTransAck implements Clients {
         this(container, "localhost", 4447, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 10000);
     }
 
+    public TopicClientsTransAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
+                numberOfsubscribersPerTopic, numberOfMessages);
+    }
+
     public TopicClientsTransAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
         this.container = container;
