@@ -7,9 +7,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.qa.hornetq.apps.Clients;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
@@ -17,10 +15,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -30,8 +24,8 @@ import java.util.Map;
  * @author ochaloup@redhat.com
  */
 @RunWith(Arquillian.class)
-public class BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client extends HornetQTestCase {
-    private static final Logger log = Logger.getLogger(BackwardCompatibilityClientTestCaseEAP6serverAgainstEAP5Client.class);
+public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
+    private static final Logger log = Logger.getLogger(BackwardCompatibilityClientTestCase.class);
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     private static final int NUMBER_OF_DESTINATIONS = 1;
