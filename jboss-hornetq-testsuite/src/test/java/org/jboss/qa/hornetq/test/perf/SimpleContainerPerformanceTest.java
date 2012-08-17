@@ -225,7 +225,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("  %s messages in input queue", messagesInQueue));
                 }
-                if ((System.currentTimeMillis() - waitForMessagesStart) / 100 > MAX_WAIT_TIME) {
+                if ((System.currentTimeMillis() - waitForMessagesStart) / 1000 > MAX_WAIT_TIME) {
                     log.warn(String.format("  %s messages in input queue", messagesInQueue));
                     fail(String.format("Receive timeout, %s has still '%s' messages", IN_QUEUE, messagesInQueue));
                 }

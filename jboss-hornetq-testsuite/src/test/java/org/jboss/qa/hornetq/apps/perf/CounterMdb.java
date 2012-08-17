@@ -93,6 +93,9 @@ public class CounterMdb implements MessageListener {
             con = cf.createConnection();
             con.start();
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            if (counter % 1000 == 0) {
+                log.info(String.format("Message '%s' has reached %s cycle", message.getJMSMessageID(), counter));
+            }
             if (counter < maxCycles) {
                 MessageProducer sender = session.createProducer(inQueue);
                 TextMessage newMessage = session.createTextMessage();
@@ -115,7 +118,6 @@ public class CounterMdb implements MessageListener {
         } catch (Exception t) {
             log.log(Level.FATAL, t.getMessage(), t);
             this.context.setRollbackOnly();
-
         } finally {
             if (session != null) {
                 try {
