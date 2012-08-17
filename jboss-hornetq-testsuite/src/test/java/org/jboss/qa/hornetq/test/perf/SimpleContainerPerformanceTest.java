@@ -85,7 +85,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     private static int parseIntFromSysProp(String sysPropName, int defaultValue) {
         int value = defaultValue;
-        String tmpMessagesCount = System.getenv(sysPropName);
+        String tmpMessagesCount = System.getProperty(sysPropName);
         if (tmpMessagesCount != null) {
             try {
                 value = Integer.parseInt(tmpMessagesCount);
@@ -224,7 +224,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             log.info("Deploying mdb for test ....");
             deployer.deploy(MDB_DEPLOY);
 
-            log.info(String.format("We will receive %s messages to server", messagesCount));
+            log.info(String.format("We should receive %s messages from server", messagesCount));
             log.info(String.format("We will wait max %s s", MAX_WAIT_TIME));
             long waitForMessagesStart = System.currentTimeMillis();
             long messagesInQueue;
@@ -234,7 +234,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                     log.debug(String.format("  %s messages in input queue", messagesInQueue));
                 }
                 if ((System.currentTimeMillis() - waitForMessagesStart) / 100 > MAX_WAIT_TIME) {
-                    fail("Cannot wait more time for messages");
+                    log.warn(String.format("  %s messages in input queue", messagesInQueue));
+                    fail(String.format("Receive timeout, %s has still '%s' messages", IN_QUEUE, messagesInQueue));
                 }
             }
 
