@@ -15,10 +15,11 @@
         <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
         <netty.version>3.2.6.Final</netty.version>
         <hornetq.version>2.2.16.Final</hornetq.version>
+        <eap5.client>5.1.2.GA-HornetQ-all-unsigned</eap5.client>
 
         <arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
         <arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
-        <arquillian.eap5x.container.version>1.0.0-SNAPSHOT</arquillian.eap5x.container.version>
+        <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
         <version.byteman>2.0.0</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -162,6 +163,9 @@
     </dependencies>
 
     <profiles>
+        <!-- ################################################### -->
+        <!-- # Standard EAP 5 - managed                          -->
+        <!-- ################################################### -->
         <profile>
             <id>eap5x</id>
             <activation>
@@ -170,26 +174,7 @@
                     <value>5x</value>
                 </property>
             </activation>
-            <properties>
-                <netty.version>3.2.3-compatibility-EAP-5.1.2</netty.version>
-                <hornetq.version>HQ_2_2_10_EAP_GA_BUILD2-compatibility-EAP-5.1.2</hornetq.version>
-            </properties>
             <dependencies>
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-core-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-jms-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.netty</groupId>
-                    <artifactId>netty</artifactId>
-                    <version>${netty.version}</version>
-                </dependency>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
                     <artifactId>arquillian-jbossas-managed-5.1</artifactId>
@@ -203,22 +188,8 @@
                 <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-client</artifactId>
-                    <version>5.1.2.GA-HornetQ-all-unsigned</version>
+                    <version>${eap5.client}</version>
                     <type>pom</type>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>eap</groupId>
-                            <artifactId>eap-hornetq-core-client</artifactId>
-                        </exclusion>
-                        <exclusion>
-                            <groupId>eap</groupId>
-                            <artifactId>eap-hornetq-jms-client</artifactId>
-                        </exclusion>
-                        <exclusion>
-                            <groupId>eap</groupId>
-                            <artifactId>eap-netty</artifactId>
-                        </exclusion>
-                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>
