@@ -37,7 +37,7 @@ import static org.junit.Assert.fail;
  * <p/>
  * Configuration parameters:
  * <ul>
- * <li>performance.wait - defines maximal wait time which will test wait for the messages in output queue</li>
+ * <li>performance.wait - defines maximal wait time which will test wait for the messages in output queue (sec)</li>
  * <li>performance.messages - count of the messages used in test</li>
  * <li>performance.messages_cycles - count of the used cycles inside the container for the each message</li>
  * <li>performance.large_messages - count of the large messages used in test</li>
@@ -64,12 +64,16 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     private static int LARGE_MESSAGES_CYCLES = 10;
 
+    private static int MAX_WAIT_TIME = 10 * 60; // 10 minutes by default
+
     static {
+        MAX_WAIT_TIME = parseIntFromSysProp(PerformanceConstants.MAX_WAIT_TIME_PARAM, MAX_WAIT_TIME);
         MESSAGES = parseIntFromSysProp(PerformanceConstants.MESSAGES_COUNT_PARAM, MESSAGES);
         MESSAGE_CYCLES = parseIntFromSysProp(PerformanceConstants.MESSAGES_CYCLES_PARAM, MESSAGE_CYCLES);
         LARGE_MESSAGES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_COUNT_PARAM, LARGE_MESSAGES);
         LARGE_MESSAGES_CYCLES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_CYCLES_PARAM, LARGE_MESSAGES_CYCLES);
 
+        log.info(String.format("Setting %s s as max wait time for receive", MAX_WAIT_TIME));
         log.info(String.format("Setting %s messages for test", MESSAGES));
         log.info(String.format("Setting %s cycles for messages", MESSAGE_CYCLES));
         log.info(String.format("Setting %s large messages for test", LARGE_MESSAGES));
@@ -85,7 +89,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     private static int parseIntFromSysProp(String sysPropName, int defaultValue) {
         int value = defaultValue;
-        String tmpMessagesCount = System.getenv(sysPropName);
+        String tmpMessagesCount = System.getProperty(sysPropName);
         if (tmpMessagesCount != null) {
             try {
                 value = Integer.parseInt(tmpMessagesCount);
@@ -185,17 +189,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
         controller.start(CONTAINER1);
 
-        int MAX_WAIT_TIME = 10 * 60; // 10 minutes by default
-        String tmpMaxWaitTime = System.getenv(PerformanceConstants.MAX_WAIT_TIME_PARAM);
-        if (tmpMaxWaitTime != null) {
-            try {
-                MAX_WAIT_TIME = Integer.parseInt(tmpMaxWaitTime);
-            } catch (NumberFormatException e) {
-                log.error(e.getMessage(), e);
-                MAX_WAIT_TIME = 30 * 60;
-            }
-        }
-
         // Sends all messages into the server
         Context context = null;
         Connection connection = null;
@@ -221,11 +214,10 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             }
             producer.close();
 
-            log.info("Deploying mdb for test ....");
+            log.info("  Deploying mdb for test ....");
             deployer.deploy(MDB_DEPLOY);
-
-            log.info(String.format("We will receive %s messages to server", messagesCount));
-            log.info(String.format("We will wait max %s s", MAX_WAIT_TIME));
+            log.info("  Receiving ....");
+            log.info(String.format("We should receive %s messages from server", messagesCount));
             long waitForMessagesStart = System.currentTimeMillis();
             long messagesInQueue;
             while ((messagesInQueue = jmsAdminOperations.getCountOfMessagesOnQueue(IN_QUEUE)) > 0L) {
@@ -233,8 +225,9 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("  %s messages in input queue", messagesInQueue));
                 }
-                if ((System.currentTimeMillis() - waitForMessagesStart) / 100 > MAX_WAIT_TIME) {
-                    fail("Cannot wait more time for messages");
+                if ((System.currentTimeMillis() - waitForMessagesStart) / 1000 > MAX_WAIT_TIME) {
+                    log.warn(String.format("  %s messages in input queue", messagesInQueue));
+                    fail(String.format("Receive timeout, %s has still '%s' messages", IN_QUEUE, messagesInQueue));
                 }
             }
 
