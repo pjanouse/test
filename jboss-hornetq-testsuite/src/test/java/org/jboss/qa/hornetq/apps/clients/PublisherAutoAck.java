@@ -4,14 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Publisher with client acknowledge session. Able to fail over.
@@ -280,6 +279,12 @@ public class PublisherAutoAck extends Client {
      */
     public void setTopicNameJndi(String topicNameJndi) {
         this.topicNameJndi = topicNameJndi;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        PublisherAutoAck p = new PublisherAutoAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", 100, "mnovakClientIdPublisher");
+        p.start();
+        p.join();
     }
 }
 

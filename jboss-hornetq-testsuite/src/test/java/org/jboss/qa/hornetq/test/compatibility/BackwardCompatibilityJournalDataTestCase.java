@@ -75,7 +75,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static boolean topologyCreatedEAP5 = false;
+    static boolean topologyCreated = false;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -117,7 +117,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @CleanUpAfterTest
     public void testRemoteJca() throws Exception {
 
-        prepareRemoteJcaTopologyEap5();
+        prepareRemoteJcaTopology();
 
         controller.start(CONTAINER1);//jms server
         controller.start(CONTAINER2);// mdb server
@@ -181,15 +181,15 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopologyEap5() throws Exception {
+    public void prepareRemoteJcaTopology() throws Exception {
 
-        if (!topologyCreatedEAP5) {
+        if (!topologyCreated) {
 
-            prepareJmsServerEap5(CONTAINER1, CONTAINER1_IP);
-            prepareMdbServerEap5(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
-            prepareJmsServerEap5(CONTAINER3, CONTAINER3_IP);
-            prepareMdbServerEap5(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
-            topologyCreatedEAP5 = true;
+            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
+            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER3, CONTAINER3_IP);
+            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+            topologyCreated = true;
         }
     }
 
@@ -201,45 +201,79 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServerEap5(String containerName, String bindingAddress) throws IOException {
+    private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
         String clusterGroupName = "my-cluster";
-        int port = 9876;
-        String groupAddress = "233.6.88.3";
-        int groupPort = 9876;
-        long broadcastPeriod = 500;
         String connectorName = "netty";
 
-        controller.start(containerName);
+        if (isEAP5()) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            int port = 9876;
+            String groupAddress = "233.6.88.3";
+            int groupPort = 9876;
+            long broadcastPeriod = 500;
 
-        jmsAdminOperations.setJournalDirectory(JOURNAL_DIRECTORY_A);
-        jmsAdminOperations.setBindingsDirectory(JOURNAL_DIRECTORY_A);
-        jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIRECTORY_A);
-        jmsAdminOperations.setPagingDirectory(JOURNAL_DIRECTORY_A);
+            controller.start(containerName);
 
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
+            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, groupAddress, groupPort, 10000);
+            jmsAdminOperations.setJournalDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setBindingsDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setPagingDirectory(JOURNAL_DIRECTORY_A);
 
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024*1024*1024, 0, 0, 1024*1024);
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, groupAddress, groupPort, 10000);
 
-        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.close();
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        stopServer(containerName);
+            jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+            jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+
+            jmsAdminOperations.close();
+
+            stopServer(containerName);
+        } else {
+            // prepare jms for eap 6
+            String messagingGroupSocketBindingName = "messaging-group";
+
+            controller.start(containerName);
+
+            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setJournalDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setBindingsDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIRECTORY_A);
+            jmsAdminOperations.setPagingDirectory(JOURNAL_DIRECTORY_A);
+
+            jmsAdminOperations.setPersistenceEnabled(true);
+            jmsAdminOperations.setSharedStore(true);
+
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+            jmsAdminOperations.disableSecurity();
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.close();
+            controller.stop(containerName);
+        }
 
     }
 
@@ -250,46 +284,84 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServerEap5(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
 
-        String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        int port = 9876;
-        String groupAddress = "233.6.88.5";
-        int groupPort = 9876;
-        long broadcastPeriod = 500;
         String connectorName = "netty";
 
-        String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
-        Map<String, String> connectionParameters = new HashMap<String, String>();
-        connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
-        boolean ha = false;
+        if (isEAP5()) {
 
-        controller.start(containerName);
+            int port = 9876;
+            String groupAddress = "233.6.88.5";
+            int groupPort = 9876;
+            long broadcastPeriod = 500;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.setClustered(true);
+            String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
+            Map<String, String> connectionParameters = new HashMap<String, String>();
+            connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
+            boolean ha = false;
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
+            controller.start(containerName);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, groupAddress, groupPort, 10000);
+            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.setClustered(true);
+
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
+
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, groupAddress, groupPort, 10000);
+
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
 //        Map<String, String> params = new HashMap<String, String>();
 //        params.put("host", jmsServerBindingAddress);
 //        params.put("port", "5445");
 //        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "", params);
 
-        jmsAdminOperations.setRA(connectorClassName, connectionParameters, ha);
-        jmsAdminOperations.close();
+            jmsAdminOperations.setRA(connectorClassName, connectionParameters, ha);
+            jmsAdminOperations.close();
 
-        stopServer(containerName);
+            stopServer(containerName);
+        } else {
+
+            // prepare eap 6
+            String remoteConnectorName = "netty-remote";
+            String messagingGroupSocketBindingName = "messaging-group";
+
+            controller.start(containerName);
+
+            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+            jmsAdminOperations.setClustered(true);
+
+            jmsAdminOperations.setPersistenceEnabled(true);
+            jmsAdminOperations.setSharedStore(true);
+
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+            jmsAdminOperations.disableSecurity();
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+            jmsAdminOperations.close();
+            controller.stop(containerName);
+
+        }
 
     }
 

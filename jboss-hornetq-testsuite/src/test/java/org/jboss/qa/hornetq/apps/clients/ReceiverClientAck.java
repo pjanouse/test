@@ -5,10 +5,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -341,7 +339,7 @@ public class ReceiverClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverClientAck receiver = new ReceiverClientAck("192.168.1.4", 4447, "queue/OutQueue4", 1000, 10, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck("192.168.1.1", 4447, "jms/queue/OutQueue", 1000, 10, 10);
 
         receiver.start();
 

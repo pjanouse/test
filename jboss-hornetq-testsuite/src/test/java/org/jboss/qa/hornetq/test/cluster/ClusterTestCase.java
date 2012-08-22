@@ -2,20 +2,21 @@ package org.jboss.qa.hornetq.test.cluster;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
+import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
+import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -23,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
+import java.io.File;
 
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
@@ -30,7 +32,9 @@ import javax.jms.Session;
  * export MYTESTIP_2=$MYTESTIPV6_2
  * export MCAST_ADDR=$MCAST_ADDRIPV6
  *
- * @author mnovak
+ * This test also serves
+ *
+ * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 //@RestoreConfigAfterTest
@@ -64,10 +68,6 @@ public class ClusterTestCase extends HornetQTestCase {
     String outTopicNameForMdb = "OutTopic";
     String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
 
-    String jndiContext = "java:jboss/exported/";
-
-    @ArquillianResource
-    Deployer deployer;
 
     /**
      * This test will start two servers A and B in cluster.
@@ -159,8 +159,22 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-//    @CleanUpAfterTest
-    public void clusterTestWithMdbOnTopic() throws Exception {
+    public void clusterTestWithMdbOnTopicWithoutSubscription() throws Exception {
+        clusterTestWithMdbOnTopic(false);
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    public void clusterTestWithMdbOnTopicWithSubscription() throws Exception {
+        clusterTestWithMdbOnTopic(true);
+    }
+
+    public void clusterTestWithMdbOnTopic(boolean mdbsWithSubscription) throws Exception {
 
         prepareServers();
 
@@ -168,9 +182,28 @@ public class ClusterTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        deployer.deploy("mdbOnTopic1");
+        if (mdbsWithSubscription) {
+            try {
+                deployer.undeploy("mdbOnTopic1WithSubscriptionName1");
+                deployer.undeploy("mdbOnTopic1WithSubscriptionName2");
+            } catch (Exception ex) {
+                //ignore
+            }
+            deployer.deploy("mdbOnTopic1WithSubscriptionName1");
+            // lets say I don't want to have two mdbs with just different subscription names in test suite, this will do the same
+            deployer.deploy("mdbOnTopic1WithSubscriptionName2");
+        } else {
+            try {
+                deployer.undeploy("mdbOnTopic1");
+                deployer.undeploy("mdbOnTopic2");
+            } catch (Exception ex) {
+                //ignore
+            }
 
-        deployer.deploy("mdbOnTopic2");
+            deployer.deploy("mdbOnTopic1");
+
+            deployer.deploy("mdbOnTopic2");
+        }
 
         // give it some time - mdbs to subscribe
         Thread.sleep(1000);
@@ -186,17 +219,29 @@ public class ClusterTestCase extends HornetQTestCase {
         publisher.join();
         receiver.join();
 
-        Assert.assertEquals("Number of sent and received messages is different. There should twice as many received messages"
-                + "then sent. Sent: " + publisher.getListOfSentMessages().size()
-                + "Received: " + receiver.getListOfReceivedMessages().size(), 2 * publisher.getListOfSentMessages().size(),
-                receiver.getListOfReceivedMessages().size());
+        if (mdbsWithSubscription) {
+            Assert.assertEquals("Number of sent and received messages is not correct. There should be as many received messages as"
+                    + " sent. Sent: " + publisher.getListOfSentMessages().size()
+                    + "Received: " + receiver.getListOfReceivedMessages().size(), publisher.getListOfSentMessages().size(),
+                    receiver.getListOfReceivedMessages().size());
+            Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
+                    + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
+                    , NUMBER_OF_MESSAGES_PER_PRODUCER);
+        } else {
+            Assert.assertEquals("Number of sent and received messages is different. There should twice as many received messages"
+                    + "then sent. Sent: " + publisher.getListOfSentMessages().size()
+                    + "Received: " + receiver.getListOfReceivedMessages().size(), 2 * publisher.getListOfSentMessages().size(),
+                    receiver.getListOfReceivedMessages().size());
+            Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + 2 * NUMBER_OF_MESSAGES_PER_PRODUCER
+                    + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
+                    , 2 * NUMBER_OF_MESSAGES_PER_PRODUCER);
+        }
+
         Assert.assertFalse("Producer did not sent any messages. Sent: " + publisher.getListOfSentMessages().size()
                 , publisher.getListOfSentMessages().size() == 0);
         Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size()
                 , receiver.getListOfReceivedMessages().size() == 0);
-        Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + 2 * NUMBER_OF_MESSAGES_PER_PRODUCER
-                + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
-                , 2 * NUMBER_OF_MESSAGES_PER_PRODUCER);
+
 
         stopServer(CONTAINER1);
 
@@ -207,7 +252,7 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * Wait for clients to finish.
      *
-     * @param clients
+     * @param clients clients
      * @throws InterruptedException
      */
     private void waitForClientsToFinish(Clients clients) throws InterruptedException {
@@ -228,7 +273,7 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     private Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
 
-        Clients clients = null;
+        Clients clients;
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
@@ -258,8 +303,8 @@ public class ClusterTestCase extends HornetQTestCase {
     @Before
     public void prepareServers() {
         if (!topologyCreated) {
-            prepareServer(CONTAINER1, CONTAINER1_IP);
-            prepareServer(CONTAINER2, CONTAINER2_IP);
+            prepareServer(CONTAINER1);
+            prepareServer(CONTAINER2);
 
             // deploy destinations 
             controller.start(CONTAINER1);
@@ -274,9 +319,6 @@ public class ClusterTestCase extends HornetQTestCase {
 
     /**
      * Deploys destinations to server which is currently running.
-     *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port     port of management interface - it should be 9999
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -285,8 +327,6 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to managemant interface
-     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
@@ -311,11 +351,9 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
+     * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName, String bindingAddress) {
+    private void prepareServer(String containerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -382,9 +420,11 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
-     * @return
+     * @return mdb
      */
-    private static JavaArchive createDeploymentMdbOnQueue() {
+    @Deployment(managed = false, testable = false, name = "mdbOnQueue1")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnQueue1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -392,40 +432,94 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = "mdbOnQueue1")
-    @TargetsContainer(CONTAINER1)
-    public static JavaArchive createMdbOnQueue1() {
-        return createDeploymentMdbOnQueue();
-    }
-
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
     @Deployment(managed = false, testable = false, name = "mdbOnQueue2")
     @TargetsContainer(CONTAINER2)
-    public static JavaArchive createMdbOnQueue2() {
-        return createDeploymentMdbOnQueue();
+    public static JavaArchive createDeploymentMdbOnQueue2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue.jar");
+        mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+        return mdbJar;
     }
 
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
-     * @return
+     * @return mdb
      */
-    private static JavaArchive createDeploymentMdbOnTopic() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic.jar");
+    @Deployment(managed = false, testable = false, name = "mdbOnTopic1")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnTopic1() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic1.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = "mdbOnTopic1")
-    @TargetsContainer(CONTAINER1)
-    public static JavaArchive createMdbOnTopic1() {
-        return createDeploymentMdbOnTopic();
-    }
 
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
     @Deployment(managed = false, testable = false, name = "mdbOnTopic2")
     @TargetsContainer(CONTAINER2)
-    public static JavaArchive createMdbOnTopic2() {
-        return createDeploymentMdbOnTopic();
+    public static JavaArchive createDeploymentMdbOnTopic2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic2.jar");
+        mdbJar.addClass(LocalMdbFromTopic.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+        return mdbJar;
     }
+
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = "mdbOnTopic1WithSubscriptionName1")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnTopicWithSub1() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopicWithSub1.jar");
+        mdbJar.addClass(MdbAllHornetQActivationConfigTopic.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+        //      Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+
+        return mdbJar;
+    }
+
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = "mdbOnTopic1WithSubscriptionName2")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnTopicWithSub2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopicWithSub2.jar");
+        mdbJar.addClass(MdbAllHornetQActivationConfigTopic.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+        //      Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb2.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+
+        return mdbJar;
+    }
+
 }

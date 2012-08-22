@@ -18,12 +18,12 @@ import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.After;
+import org.junit.Before;
 
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.File;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -243,7 +243,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         } else if (isEAP6()) {
             HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
             eap6AdmOps.setHostname(getHostname(container));
-            eap6AdmOps.setPort(getJNDIPort());
+            eap6AdmOps.setPort(getPort(container));
             eap6AdmOps.connect();
             operations = eap6AdmOps;
         }
@@ -601,7 +601,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
-     * Sets current container for test.
+     * Gets current container for test.
      *
      * @return name
      */
@@ -609,8 +609,23 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return currentContainerForTest;
     }
 
+    /**
+     * Set current container for testing.
+     *
+     * @param currentContainerForTest container
+     */
     public void setCurrentContainerForTest(String currentContainerForTest) {
         this.currentContainerForTest = currentContainerForTest;
+    }
+
+    @Before
+    public void printTestMethodNameStart()   {
+        // keep this empty - this is just for arquillian extension to print start of the test
+    }
+
+    @After
+    public void printTestMethodNameStop()   {
+        // keep this empty - this is just for arquillian extension to print stop of the test
     }
 
 }

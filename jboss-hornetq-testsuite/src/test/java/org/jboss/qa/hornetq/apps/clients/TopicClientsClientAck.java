@@ -365,7 +365,7 @@ public class TopicClientsClientAck implements Clients {
     public static void main(String[] args) throws InterruptedException, Exception {
 
         TopicClientsClientAck clients =
-                new TopicClientsClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/testTopic", 2, 1, 2, 300);
+                new TopicClientsClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", 2, 1, 2, 300);
         clients.startClients();
         while (!clients.isFinished()) {
             Thread.sleep(1000);

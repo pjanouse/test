@@ -2,12 +2,10 @@ package org.jboss.qa.hornetq.test.remote.jca;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
@@ -36,8 +34,6 @@ import java.nio.channels.FileChannel;
 @RunWith(Arquillian.class)
 public class RemoteJcaTestCase extends HornetQTestCase {
 
-    @ArquillianResource
-    private Deployer deployer;
     private static final Logger logger = Logger.getLogger(RemoteJcaTestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
@@ -45,17 +41,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
-    static String inQueueFullJndiName = "java:/" + inQueueJndiName;
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
-    String jndiContextPrefix = "java:jboss/exported/";
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -89,9 +80,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     /**
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -147,9 +135,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     /**
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -184,7 +169,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-        ;
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER2);
@@ -217,11 +201,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
-            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER1);
+            prepareMdbServer(CONTAINER2, CONTAINER1_IP);
 
-            prepareJmsServer(CONTAINER3, CONTAINER3_IP);
-            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+            prepareJmsServer(CONTAINER3);
+            prepareMdbServer(CONTAINER4, CONTAINER3_IP);
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
@@ -242,10 +226,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * Prepares jms server for remote jca topology.
      *
      * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
+    private void prepareJmsServer(String containerName) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -283,7 +265,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -330,8 +312,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
 
-        File applicationUsersOriginal = null;
-        File applicationRolesOriginal = null;
+        File applicationUsersOriginal;
+        File applicationRolesOriginal;
         for (int i = 1; i < 5; i++) {
 
             // copy application-users.properties
@@ -349,8 +331,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port     port of management interface - it should be 9999
+     * @param containerName container
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -359,8 +340,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to managemant interface
-     * @param port       port of management interface - it should be 9999
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
