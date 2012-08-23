@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
 
 import java.io.File;
 import java.io.IOException;
@@ -1442,7 +1443,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("max-hops").set(maxHops);
         model.get("retry-interval").set(retryInterval);
         model.get("use-duplicate-detection").set(useDuplicateDetection);
-        model.get("connector-ref").set(connectorName);
+        if (connectorName != null && !"".equals(connectorName)) {
+            model.get("connector-ref").set(connectorName);
+        } else {
+            model.get("connector-ref").set(ModelType.UNDEFINED);
+        }
 
         try {
             this.applyUpdate(model);
@@ -2466,6 +2471,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
         model.get("name").set("multicast-address");
         model.get("value").set(multicastAddress);
+        System.out.println(model.toString());
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Set multicast address for socket binding
+     *
+     * @param socketBindingName name of the socket binding
+     * @param port port of the socket binding
+     */
+    @Override
+    public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("name").set("multicast-port");
+        model.get("value").set(port);
         System.out.println(model.toString());
         try {
             this.applyUpdate(model);

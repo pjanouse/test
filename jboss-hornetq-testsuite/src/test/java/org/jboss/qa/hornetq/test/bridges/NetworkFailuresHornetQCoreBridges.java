@@ -7,15 +7,13 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.MulticastProxy;
 import org.jboss.qa.tools.SimpleProxyServer;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +24,24 @@ import org.junit.runner.RunWith;
  * <p/>
  * Topology - container1 - source server container2 - target server container3 -
  * source server container4 - target server
+ * <p/>
+ * IMPORTANT:
+ * There are two types of proxies. Multicast proxy and TCP/UDP proxy.
+ * <p/>
+ * TCP/UDP proxy listen on localhost:localport and send packets received to other specified remoteHost:remotePort.
+ * <p/>
+ * Multicast proxy receives multicast on multicast group (for example 233.1.2.3) and sends to other multicast group
+ * (for example 233.1.2.4)
+ * <p/>
+ * Tests are using proxies in following way:
+ * 1. Set broadcast group to mulsticast connector to sourceMulticastAddress where multicast proxy listens
+ * 2. Set discovery group to listen multicast on destinationMulticastAddress to where multicast proxy sends connectors
+ * from broadcast groups
+ * 3. Broadcasted connectors from server A points to proxy to server A so each server in cluster connects to server A by connecting
+ * it proxy resending messages to server A
+ * <p/>
+ * STEPS 1. AND 2. ARE THE SAME FOR ALL NODES IN ONE CLUSTER. THERE IS ONE MULTICAST PROXY PER CLUSTER.
+ * STEP 3 IS SPECIFIC FOR EACH NODE IN CLUSTER. THERE IS ONE TCP/UDP PROXY PER NODE.
  *
  * @author mnovak@redhat.com
  */
@@ -39,93 +55,169 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     private String hornetqInQueueName = "InQueue";
     private String relativeJndiInQueueName = "queue/InQueue";
 
-    private String broadcastGroupAddress = "233.1.2.99";
-    private int broadcastGroupPort = 9876;
+    private String broadcastGroupAddressClusterA = "233.1.2.1";
+    private int broadcastGroupPortClusterA = 9876;
 
-    private String discoveryGroupAddressServer1 = "233.1.2.1";
-    private int discoveryGroupPortServer1 = 9876;
+    private String broadcastGroupAddressClusterB = "233.1.2.2";
+    private int broadcastGroupPortClusterB = 9876;
 
-    private String discoveryGroupAddressServer2 = "233.1.2.2";
-    private int discoveryGroupPortServer2 = 9876;
+    private String discoveryGroupAddressClusterA = "233.1.2.3";
+    private int discoveryGroupPortServerClusterA = 9876;
+
+    private String discoveryGroupAddressClusterB = "233.1.2.4";
+    private int discoveryGroupPortServerClusterB = 9876;
 
     private int proxy12port = 43812;
     private int proxy21port = 43821;
+
+    ControllableProxy proxy1;
+    ControllableProxy proxy2;
+    MulticastProxy mp1;
+    MulticastProxy mp2;
 
     /**
      * Stops all servers
      */
     @Before
-    public void stopAllServers() {
+    public void stopAllServers() throws Exception {
 //        prepareServers();
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
         stopServer(CONTAINER4);
+        if (proxy1 != null) proxy1.stop();
+        if (proxy2 != null) proxy2.stop();
+        if (mp1 != null) mp1.setStop(true);
+        if (mp2 != null) mp2.setStop(true);
     }
 
     @Test
     @RunAsClient
-//    @RestoreConfigAfterTest
-//    @CleanUpAfterTest
+    @CleanUpAfterTest
     public void testNetworkFailoverMixMessages() throws Exception {
-        testNetworkFailure(20000, new MixMessageBuilder(500 * 1024));
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverNormalMessages() throws Exception {
-        testNetworkFailure(20000, new MixMessageBuilder(10 * 1024));
+    public void testNetworkFailoverSmallMessages() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverExtraLargeMixMessages() throws Exception {
-        testNetworkFailure(120000, new MixMessageBuilder(100 * 1024 * 1024));
+    public void testNetworkFailoverLargeMessages() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverExtraLargeMessages() throws Exception {
-        testNetworkFailure(30000, new TextMessageBuilder(100 * 1024 * 1024));
+    public void testNetworkFailoverMixMessages1recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverMixMessagesLimitedReconnectReties() throws Exception {
-        testNetworkFailure(20000, new MixMessageBuilder(500 * 1024), 1);
+    public void testNetworkFailoverSmallMessages1recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverNormalMessagesLimitedReconnectReties() throws Exception {
-        testNetworkFailure(20000, new MixMessageBuilder(10 * 1024), 1);
+    public void testNetworkFailoverLargeMessages1recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverExtraLargeMixMessagesLimitedReconnectReties() throws Exception {
-        testNetworkFailure(120000, new MixMessageBuilder(100 * 1024 * 1024), 1);
+    public void testNetworkFailoverMixMessages5recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
     @CleanUpAfterTest
-    public void testNetworkFailoverExtraLargeMessagesLimitedReconnectReties() throws Exception {
-        testNetworkFailure(30000, new TextMessageBuilder(100 * 1024 * 1024), 1);
+    public void testNetworkFailoverSmallMessages5recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 5, 2);
     }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testNetworkFailoverLargeMessages5recAttempts() throws Exception {
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverMixMessages() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverSmallMessages() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverLargeMessages() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverMixMessages1recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverSmallMessages1recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverLargeMessages1recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverMixMessages5recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverSmallMessages5recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpAfterTest
+    public void testShortNetworkFailoverLargeMessages5recAttempts() throws Exception {
+        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
+    }
+
+
 
     /**
      * Implementation of the basic test scenario: 1. Start cluster A and B 2.
@@ -136,7 +228,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * @param timeBetweenFails time between fails
      */
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder) throws Exception {
-        testNetworkFailure(timeBetweenFails, messageBuilder, -1);
+        testNetworkFailure(timeBetweenFails, messageBuilder, -1, 2);
     }
 
     /**
@@ -144,18 +236,18 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      */
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts) throws Exception {
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails) throws Exception {
 
         prepareServers(reconnectAttempts);
 
         controller.start(CONTAINER1); // A1
         controller.start(CONTAINER2); // B1
-
+        Thread.sleep(60000);
         // A1 producer
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         // B1 consumer
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, relativeJndiInQueueName + 0, 2 * timeBetweenFails, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, relativeJndiInQueueName, 2 * timeBetweenFails, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -164,7 +256,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         // Wait to send and receive some messages
         Thread.sleep(5 * 1000);
 
-        executeNetworkFails(timeBetweenFails);
+        executeNetworkFails(timeBetweenFails, numberOfFails);
 
         Thread.sleep(5 * 1000);
 
@@ -194,23 +286,24 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      *
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
-    private void executeNetworkFails(long timeBetweenFails)
+    private void executeNetworkFails(long timeBetweenFails, int numberOfFails)
             throws Exception {
 
-        ControllableProxy proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
-        ControllableProxy proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
+        log.info("Start all proxies.");
+        proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
+        proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
         proxy1.start();
         proxy2.start();
-        MulticastProxy mp1 = new MulticastProxy(broadcastGroupAddress, broadcastGroupPort,
-                discoveryGroupAddressServer1, discoveryGroupPortServer1);
-        MulticastProxy mp2 = new MulticastProxy(broadcastGroupAddress, broadcastGroupPort,
-                discoveryGroupAddressServer1, discoveryGroupPortServer1);
+        mp1 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+        mp2 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
         mp1.start();
         mp2.start();
 
-        log.info("Start all proxies.");
+        log.info("All proxies started.");
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < numberOfFails; i++) {
             Thread.sleep(timeBetweenFails);
             log.info("Stop all proxies.");
             proxy1.stop();
@@ -218,17 +311,19 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
             mp1.setStop(true);
             mp2.setStop(true);
+            log.info("All proxies stopped.");
 
             Thread.sleep(timeBetweenFails);
             log.info("Start all proxies.");
             proxy1.start();
             proxy2.start();
-            mp1 = new MulticastProxy(broadcastGroupAddress, broadcastGroupPort,
-                    discoveryGroupAddressServer1, discoveryGroupPortServer1);
-            mp2 = new MulticastProxy(broadcastGroupAddress, broadcastGroupPort,
-                    discoveryGroupAddressServer1, discoveryGroupPortServer1);
+            mp1 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                    discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+            mp2 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                    discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
             mp1.start();
             mp2.start();
+            log.info("All proxies started.");
 
         }
     }
@@ -241,16 +336,11 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      */
     public void prepareServers(int reconnectAttempts) {
 
-        prepareClusterServer(CONTAINER1, CONTAINER1_IP, proxy21port, reconnectAttempts, discoveryGroupAddressServer1, discoveryGroupPortServer1);
-        prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, discoveryGroupAddressServer2, discoveryGroupPortServer2);
+        prepareClusterServer(CONTAINER1, CONTAINER1_IP, proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+        prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
 
-        // deploy destinations
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2, "default", hornetqInQueueName, relativeJndiInQueueName, 1);
-        stopServer(CONTAINER2);
 
     }
 
@@ -259,13 +349,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      *
      * @param containerName         container name
      * @param bindingAddress        bind address
-     * @param proxyPortIn           proxy port for connector where to connect to proxy directing to this server
+     * @param proxyPortIn           proxy port for connector where to connect to proxy directing to this server,every can connect to this server through proxy on 127.0.0.1:proxyPortIn
      * @param reconnectAttempts     number of reconnects for cluster-connections
      * @param discoveryGroupAddress discovery udp address
      * @param discoveryGroupPort    discovery udp port
      */
     private void prepareClusterServer(String containerName, String bindingAddress,
-                                      int proxyPortIn, int reconnectAttempts, String discoveryGroupAddress, int discoveryGroupPort) {
+                                      int proxyPortIn, int reconnectAttempts, String broadcastGroupAddress,
+                                      int broadcastGroupPort, String discoveryGroupAddress, int discoveryGroupPort) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -298,20 +389,26 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
 
+        // every can connect to this server through proxy on 127.0.0.1:proxyPortIn
         jmsAdminOperations.addRemoteSocketBinding("binding-connect-to-this-server-through-remote-proxy", "127.0.0.1", proxyPortIn);
         jmsAdminOperations.createRemoteConnector("connector-to-proxy-directing-to-this-server", "binding-connect-to-this-server-through-remote-proxy", null);
 
         jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, broadcastGroupAddress);
+        jmsAdminOperations.setMulticastPortOnSocketBinding(messagingGroupSocketBindingName, broadcastGroupPort);
 
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, "connector-to-proxy-directing-to-this-server", "");
 
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingNameForDiscovery, "public", discoveryGroupAddress, discoveryGroupPort);
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingNameForDiscovery, 10000);
+        jmsAdminOperations.setIdCacheSize(20000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, "connector-to-proxy-directing-to-this-server");
         jmsAdminOperations.setReconnectAttemptsForClusterConnection(clusterGroupName, reconnectAttempts);
+
+        jmsAdminOperations.createQueue(hornetqInQueueName, relativeJndiInQueueName, true);
+
 //        jmsAdminOperations.setConnectionTtlOverride("default", 8000);
 
         jmsAdminOperations.close();
@@ -321,23 +418,4 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     }
 
 
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName               container name
-     * @param serverName                  server name
-     * @param hornetqQueueNamePrefix      queue name prefix
-     * @param relativeJndiQueueNamePrefix relative queue jndi name prefix
-     * @param numberOfQueues              number of queues
-     */
-    private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
-                                    String relativeJndiQueueNamePrefix, int numberOfQueues) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);
-        }
-
-    }
 }

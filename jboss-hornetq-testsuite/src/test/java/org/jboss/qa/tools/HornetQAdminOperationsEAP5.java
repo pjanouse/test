@@ -1209,6 +1209,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
+     * Set multicast address for socket binding
+     *
+     * @param socketBindingName name of the socket binding
+     * @param port              port of the socket binding
+     */
+    @Override
+    public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
      * @param doc
      * @param description
      * @param configPropertyName

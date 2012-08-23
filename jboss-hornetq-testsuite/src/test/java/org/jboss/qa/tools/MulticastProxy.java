@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.rmi.RemoteException;
 
 /**
  * This proxy routes multicast from one multicast group for example 233.1.2.99 to another
@@ -58,7 +59,7 @@ public class MulticastProxy extends Thread {
 
                 sourceMulticastSocket.receive(pkt);
 
-                log.info("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " content: " + line + " dest host:port - "
                         + pkt.getAddress());
 
@@ -67,7 +68,7 @@ public class MulticastProxy extends Thread {
 
                 destSocket.send(pkt1);
 
-                log.info("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " content: " + pkt1.getData().length + " dest host:port - "
                         + pkt1.getAddress());
 
@@ -75,6 +76,8 @@ public class MulticastProxy extends Thread {
 
             sourceMulticastSocket.close();
             destSocket.close();
+            log.info("Proxy from: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                    + " to: " + destinationMulticastGroup + ":" + destinationMulticastPort + " was stopped");
         } catch (Exception err) {
             log.error("Multicast proxy got critical error: ", err);
         }
@@ -94,14 +97,23 @@ public class MulticastProxy extends Thread {
         this.stop = stop;
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, RemoteException {
 
-        MulticastProxy mp12 = new MulticastProxy("233.1.2.99", 9876, "233.1.2.1", 9876);
-        MulticastProxy mp21 = new MulticastProxy("233.1.2.99", 9876, "233.1.2.2", 9876);
+//        ControllableProxy proxy1 = new SimpleProxyServer("192.168.1.1", 5445, 43821);
+//        ControllableProxy proxy2 = new SimpleProxyServer("192.168.1.2", 5445, 43812);
+//        proxy1.start();
+//        proxy2.start();
+
+        MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.3", 9876);
+
         mp12.start();
-        mp21.start();
+
+//        MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.4", 9876);
+//        mp21.start();
+//        mp21.join();
+
         mp12.join();
-        mp21.join();
+
 
     }
 }

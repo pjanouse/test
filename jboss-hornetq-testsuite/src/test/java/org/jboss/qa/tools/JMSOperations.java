@@ -1110,4 +1110,12 @@ public interface JMSOperations {
      * @param ha
      */
     void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha);
+
+    /**
+     * Set multicast address for socket binding
+     *
+     * @param socketBindingName name of the socket binding
+     * @param port port of the socket binding
+     */
+    void setMulticastPortOnSocketBinding(String socketBindingName, int port);
 }

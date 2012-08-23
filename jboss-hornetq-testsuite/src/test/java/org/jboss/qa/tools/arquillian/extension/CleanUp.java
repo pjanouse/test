@@ -33,10 +33,10 @@ public class CleanUp {
         if (event.getTestMethod().getAnnotation(org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest.class) == null)
             return;
 
-        Map<String, String> containerProperties = null;
-        String jbossHome = null;
+        Map<String, String> containerProperties;
+        String jbossHome;
 
-        StringBuilder pathToStandaloneDirectory = null;
+        StringBuilder pathToStandaloneDirectory;
         String fileSeparator = System.getProperty("file.separator");
 
 
