@@ -320,6 +320,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         arquillianDescriptor = descriptor;
     }
 
+    public void describeTestStart(@Observes org.jboss.arquillian.test.spi.event.suite.Before event) {
+        log.info("Start test -------------------------------- " + event.getTestClass().getName() + "." + event.getTestMethod().getName());
+    }
+
+    public void describeTestStop(@Observes org.jboss.arquillian.test.spi.event.suite.After event) {
+        log.info("Stop test -------------------------------- " + event.getTestClass().getName() + "." + event.getTestMethod().getName());
+    }
+
     /**
      * Kills server using killer servlet. This just kill server and does not do
      * anything else. It doesn't call controller.kill

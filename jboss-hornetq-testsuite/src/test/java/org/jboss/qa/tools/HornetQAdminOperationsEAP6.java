@@ -2479,6 +2479,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+
+
     /**
      * Set multicast address for socket binding
      *
@@ -2494,6 +2496,30 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("name").set("multicast-port");
         model.get("value").set(port);
         System.out.println(model.toString());
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Sets compression on connection factory.
+     *
+     * @param connectionFactoryName name of the connection factory
+     * @param value                 true to enable large message compression
+     */
+    @Override
+    public void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("compress-large-messages");
+        model.get("value").set(value);
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {

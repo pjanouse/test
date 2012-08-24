@@ -1118,4 +1118,12 @@ public interface JMSOperations {
      * @param port port of the socket binding
      */
     void setMulticastPortOnSocketBinding(String socketBindingName, int port);
+
+    /**
+     * Set compression.
+     *
+     * @param connectionFactoryName name of the connection factory
+     * @param value true to enable large message compression
+     */
+    void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value);
 }

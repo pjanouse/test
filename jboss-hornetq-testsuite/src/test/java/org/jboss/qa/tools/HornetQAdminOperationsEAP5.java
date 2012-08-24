@@ -1220,6 +1220,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
+     * Set compression.
+     *
+     * @param connectionFactoryName name of the connection factory
+     * @param value                 true to enable large message compression
+     */
+    @Override
+    public void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
      * @param doc
      * @param description
      * @param configPropertyName
