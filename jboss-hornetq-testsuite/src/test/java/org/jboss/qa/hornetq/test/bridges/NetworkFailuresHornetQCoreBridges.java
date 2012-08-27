@@ -55,8 +55,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     // Logger
     private static final Logger log = Logger.getLogger(NetworkFailuresHornetQCoreBridges.class);
 
-    private static boolean topologyCreated =false;
-
     private String hornetqInQueueName = "InQueue";
     private String relativeJndiInQueueName = "queue/InQueue";
 
