@@ -7,6 +7,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * This proxy routes multicast from one multicast group for example 233.1.2.99 to another
@@ -28,6 +30,8 @@ public class MulticastProxy extends Thread {
     private String destinationMulticastGroup;
     private int destinationMulticastPort;
     private boolean stop = false;
+
+    private LinkedList<byte[]> sendPackets = new LinkedList<byte[]>();
 
     public MulticastProxy(String sourceMulticastGroup, int sourceMulticastPort, String destinationMulticastGroup,
                           int destinationMulticastPort) {
@@ -63,6 +67,19 @@ public class MulticastProxy extends Thread {
                         + " content: " + line + " dest host:port - "
                         + pkt.getAddress());
 
+                // if we sent this packet before then don't send it again to prevent multicast packet flooding
+                for (byte[] content : sendPackets)  {
+                    if (Arrays.equals(content, line)) {
+                        sendPackets.remove(content);
+                        log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                                + " content: " + line + " and destination host:port - "
+                                + pkt.getAddress() + " is DUPLICATE - DON'T SEND IT");
+                        break;
+                    }
+                }
+
+                sendPackets.add(line);
+
                 DatagramPacket pkt1 = new DatagramPacket(line, line.length,
                         InetAddress.getByName(destinationMulticastGroup), destinationMulticastPort);
 
@@ -71,6 +88,12 @@ public class MulticastProxy extends Thread {
                 log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " content: " + pkt1.getData().length + " dest host:port - "
                         + pkt1.getAddress());
+
+                // if linked list is too big then remove first
+                while (sendPackets.size() > 100)    {
+                    log.info("Remove first packets from list. Sent packets size: " + sendPackets.size());
+                    sendPackets.removeFirst();
+                }
 
             } while (!stop);
 
@@ -104,14 +127,11 @@ public class MulticastProxy extends Thread {
 //        proxy1.start();
 //        proxy2.start();
 
-        MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.3", 9876);
-
+        MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.2", 9876);
         mp12.start();
-
-//        MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.4", 9876);
-//        mp21.start();
-//        mp21.join();
-
+        MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.1", 9876);
+        mp21.start();
+        mp21.join();
         mp12.join();
 
 
