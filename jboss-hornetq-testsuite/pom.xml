@@ -16,7 +16,7 @@
         <netty.version>3.2.6.Final</netty.version>
         <hornetq.version>2.2.16.Final</hornetq.version>
         <!--<eap5.client>5.1.2.GA-HornetQ-all-unsigned</eap5.client>-->
-        <eap5.client>5.2.0.ER1-HornetQ</eap5.client>
+        <eap5.client>5.2.0.ER2-HornetQ</eap5.client>
 
         <arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
         <arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>

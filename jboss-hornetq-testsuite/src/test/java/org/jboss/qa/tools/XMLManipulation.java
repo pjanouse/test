@@ -155,7 +155,9 @@ public final class XMLManipulation {
             e.appendChild(doc.createTextNode(value));
             node.appendChild(e);
         } else {
-            log.error(String.format("Cannot find xpath '%s'", xpath));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cannot find xpath '%s'", xpath));
+            }
         }
     }
 
@@ -172,7 +174,9 @@ public final class XMLManipulation {
         if (node != null) {
             node.getParentNode().removeChild(node);
         } else {
-            log.error(String.format("Cannot find xpath '%s'", xpath));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cannot find xpath '%s'", xpath));
+            }
         }
     }
 }

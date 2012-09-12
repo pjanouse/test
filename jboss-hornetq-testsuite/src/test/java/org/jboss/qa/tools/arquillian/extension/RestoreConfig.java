@@ -57,9 +57,11 @@ public class RestoreConfig {
                             .append(fileSeparator);
                     configurationFile = new File(pathToConfigDir.toString() + serverConfig);
                     if (!configurationFile.exists()) {
-                        logger.warn(String.format("Configuration file: %s does not exist. "
-                                + "Probably container EAP5 is used. Trying to create backup of EAP 5 configuration."
-                                , configurationFile.getAbsolutePath()));
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(String.format("Configuration file: %s does not exist. "
+                                    + "Probably container EAP5 is used. Trying to create backup of EAP 5 configuration."
+                                    , configurationFile.getAbsolutePath()));
+                        }
                         backupConfigurationEAP5(descriptor);
                         return;
                     }
