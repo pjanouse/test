@@ -44,7 +44,6 @@ public class CounterMdb implements MessageListener {
     public void onMessage(Message message) {
         Connection con = null;
         Session session = null;
-        String textContent = "";
         try {
             // Get parameters from original message
             Long created = 0L;
@@ -84,11 +83,6 @@ public class CounterMdb implements MessageListener {
                 maxCycles = 1000;
             }
 
-            // Get content of the original message
-            if (message instanceof TextMessage) {
-                textContent = ((TextMessage) message).getText();
-            }
-
             // Send message into the inQueue or outQueue
             con = cf.createConnection();
             con.start();
@@ -98,14 +92,35 @@ public class CounterMdb implements MessageListener {
             }
             if (counter < maxCycles) {
                 MessageProducer sender = session.createProducer(inQueue);
-                TextMessage newMessage = session.createTextMessage();
-                newMessage.setText(textContent);
-                newMessage.setLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED, created);
-                newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_COUNTER, counter + 1);
-                newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX, index);
-                newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_CYCLES, maxCycles);
-                sender.send(newMessage);
+                Message newMessage = null;
+                if (message instanceof TextMessage) {
+                    newMessage = session.createTextMessage();
+                    ((TextMessage) newMessage).setText(((TextMessage) message).getText());
+                } else if (message instanceof BytesMessage) {
+                    newMessage = session.createBytesMessage();
+                    BytesMessage originalMessage = (BytesMessage) message;
+                    byte[] content = new byte[(int) originalMessage.getBodyLength()];
+                    originalMessage.readBytes(content);
+                    ((BytesMessage) newMessage).writeBytes(content);
+                }
+                if (newMessage == null) {
+                    log.log(Level.FATAL, "Unknown message type " + message);
+                } else {
+                    newMessage.setLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED, created);
+                    newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_COUNTER, counter + 1);
+                    newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX, index);
+                    newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_CYCLES, maxCycles);
+                    sender.send(newMessage);
+                }
             } else {
+                long msgLength = 0;
+                if (message instanceof TextMessage) {
+                    TextMessage originalMessage = (TextMessage) message;
+                    msgLength = (originalMessage.getText() != null) ? originalMessage.getText().length() : 0;
+                } else if (message instanceof BytesMessage) {
+                    BytesMessage originalMessage = (BytesMessage) message;
+                    msgLength = originalMessage.getBodyLength();
+                }
                 MessageProducer sender = session.createProducer(outQueue);
                 TextMessage newMessage = session.createTextMessage();
                 newMessage.setLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED, created);
@@ -113,6 +128,8 @@ public class CounterMdb implements MessageListener {
                 newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_COUNTER, counter);
                 newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX, index);
                 newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_CYCLES, maxCycles);
+                newMessage.setStringProperty(PerformanceConstants.MESSAGE_TYPE, message.getClass().getName());
+                newMessage.setLongProperty(PerformanceConstants.MESSAGE_LENGTH, msgLength);
                 sender.send(newMessage);
             }
         } catch (Exception t) {

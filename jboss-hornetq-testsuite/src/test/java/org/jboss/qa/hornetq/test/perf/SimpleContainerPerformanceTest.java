@@ -42,6 +42,7 @@ import static org.junit.Assert.fail;
  * <li>performance.messages_cycles - count of the used cycles inside the container for the each message</li>
  * <li>performance.large_messages - count of the large messages used in test</li>
  * <li>performance.large_messages_cycles - count of the used cycles inside the container for the each large message</li>
+ * <li>performance.large_messages_length - length of the large messages (kb)</li>
  * </ul>
  *
  * @author pslavice@redhat.com
@@ -64,6 +65,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     private static int LARGE_MESSAGES_CYCLES = 10;
 
+    private static int LARGE_MESSAGES_LENGTH = 250;
+
     private static int MAX_WAIT_TIME = 10 * 60; // 10 minutes by default
 
     static {
@@ -72,12 +75,14 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         MESSAGE_CYCLES = parseIntFromSysProp(PerformanceConstants.MESSAGES_CYCLES_PARAM, MESSAGE_CYCLES);
         LARGE_MESSAGES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_COUNT_PARAM, LARGE_MESSAGES);
         LARGE_MESSAGES_CYCLES = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_CYCLES_PARAM, LARGE_MESSAGES_CYCLES);
+        LARGE_MESSAGES_LENGTH = parseIntFromSysProp(PerformanceConstants.LARGE_MESSAGES_LENGTH, LARGE_MESSAGES_LENGTH);
 
         log.info(String.format("Setting %s s as max wait time for receive", MAX_WAIT_TIME));
         log.info(String.format("Setting %s messages for test", MESSAGES));
         log.info(String.format("Setting %s cycles for messages", MESSAGE_CYCLES));
         log.info(String.format("Setting %s large messages for test", LARGE_MESSAGES));
         log.info(String.format("Setting %s cycles for large messages messages", LARGE_MESSAGES_CYCLES));
+        log.info(String.format("Setting %s kb length for large messages messages", LARGE_MESSAGES_LENGTH));
     }
 
     /**
@@ -157,7 +162,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void largeByteMessagesTest() throws InterruptedException {
-        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(150 * 1024));
+        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }
 
     /**
@@ -169,7 +174,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigAfterTest
     public void largeTextMessagesTest() throws InterruptedException {
-        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(150 * 1024));
+        testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }
 
     /**
@@ -236,8 +241,12 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             Queue outQueue = (Queue) context.lookup(OUT_QUEUE);
             MessageConsumer consumer = session.createConsumer(outQueue);
             Message msg;
+            String messageType = null;
+            long messageLength = 0;
             while ((msg = consumer.receive(10000)) != null) {
                 try {
+                    messageType = msg.getStringProperty(PerformanceConstants.MESSAGE_TYPE);
+                    messageLength = msg.getLongProperty(PerformanceConstants.MESSAGE_LENGTH);
                     int index = msg.getIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX);
                     long start = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED);
                     long end = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_FINISHED);
@@ -259,9 +268,11 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                 sum += result;
             }
             log.info("########################################################");
+            log.info("Type of the last message " + messageType);
+            log.info(String.format(" Length of the last message : %s bytes", messageLength));
             log.info(String.format(" Min time : %s ms", (minValue != Integer.MAX_VALUE) ? minValue : "??"));
             log.info(String.format(" Max time : %s ms", (maxValue != Integer.MIN_VALUE) ? maxValue : "??"));
-            log.info(String.format(" Avg time : %s ms", sum / results.size()));
+            log.info(String.format(" Avg time : %s ms", (results != null && results.size() != 0) ? sum / results.size() : 0));
             log.info(String.format(" Messages : %s", results.size()));
             log.info("########################################################");
             if (results.size() != messagesCount) {
