@@ -2528,6 +2528,51 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Set old(true) or new failover model(false)
+     *
+     * @param keepOldFailover          false to activate it
+     * @param nodeStateRefreshInterval after which time will be node's timestamp updated in database
+     */
+    @Override
+    public void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
+     * Whether to retyr connection to database
+     *
+     * @param retryOnConnectionFailure true for retry
+     * @param retryInterval            interval in miliseconds
+     * @param maxRetry                 how many times to retry before giving up
+     */
+    @Override
+    public void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
+     * Sets TUNNEL protocol for jgroups
+     *
+     * @param gossipRouterHostname ip address of gosship router
+     * @param gossipRouterPort     port of gosship router
+     */
+    @Override
+    public void setTunnelForJGroups( String gossipRouterHostname, int gossipRouterPort) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
+     * Set database.
+     *
+     * @param databaseHostname hostname
+     * @param databasePort     port
+     */
+    @Override
+    public void setDatabase(String databaseHostname, int databasePort) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
      * Creates in-vm connector
      *
      * @param name     name of the remote connetor

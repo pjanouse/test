@@ -1126,4 +1126,36 @@ public interface JMSOperations {
      * @param value true to enable large message compression
      */
     void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value);
+
+    /**
+     * Set old(true) or new failover model(false)
+     *
+     * @param keepOldFailover false to activate it
+     * @param nodeStateRefreshInterval after which time will be node's timestamp updated in database
+     */
+    void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval);
+
+    /**
+     * Whether to retyr connection to database
+     *
+     * @param retryOnConnectionFailure true for retry
+     * @param retryInterval interval in miliseconds
+     * @param maxRetry how many times to retry before giving up
+     */
+    void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry);
+
+    /**
+     * Sets TUNNEL protocol for jgroups
+     * @param gossipRouterHostname ip address of gosship router
+     * @param gossipRouterPort  port of gosship router
+     */
+    void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort);
+
+    /**
+     * Set database.
+     *
+     * @param databaseHostname hostname
+     * @param databasePort  port
+     */
+    void setDatabase(String databaseHostname, int databasePort);
 }

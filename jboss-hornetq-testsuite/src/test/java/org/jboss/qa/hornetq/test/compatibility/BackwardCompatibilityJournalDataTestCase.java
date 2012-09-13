@@ -72,6 +72,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
 
+    static String inTopicName = "InTopic";
+    static String inTopicJndiName = "jms/queue/" + inTopicName;
+
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
@@ -238,6 +241,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024 * 1024, 0, 0, 1024 * 1024);
 
             jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+            jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
 
             jmsAdminOperations.close();
@@ -271,6 +275,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+            jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+            jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.close();
             controller.stop(containerName);
         }

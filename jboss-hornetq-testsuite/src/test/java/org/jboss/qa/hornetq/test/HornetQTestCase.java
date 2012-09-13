@@ -14,6 +14,7 @@ import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.tools.JBMAdminOperationsEAP5;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -178,7 +179,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public int getJNDIPort() {
         int port = 0;
-        if (isEAP5()) {
+        if (isEAP5() || isEAP5WithJBM()) {
             port = PORT_JNDI_EAP5;
         } else if (isEAP6()) {
             port = PORT_JNDI_EAP6;
@@ -246,8 +247,24 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             eap6AdmOps.setPort(getPort(container));
             eap6AdmOps.connect();
             operations = eap6AdmOps;
+        } else if (isEAP5WithJBM()) {
+            JBMAdminOperationsEAP5 eap5AdmOps = new JBMAdminOperationsEAP5();
+            eap5AdmOps.setHostname(getHostname(container));
+            eap5AdmOps.setProfile(getProfile(container));
+            eap5AdmOps.setRmiPort(getJNDIPort());
+            eap5AdmOps.setJbossHome(getJbossHome(container));
+            operations = eap5AdmOps;
         }
         return operations;
+    }
+
+    /**
+     * Return true if container is EAP 5 with JBM.
+     *
+     * @return true if EAP 5 with JBM
+     */
+    private boolean isEAP5WithJBM() {
+        return (this.getCurrentContainerForTest() != null) && EAP5_WITH_JBM_CONTAINER.equals(this.getCurrentContainerForTest());
     }
 
     /**
@@ -492,7 +509,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return true for EAP 5 container
      */
     public boolean isEAP5() {
-        return (this.getCurrentContainerForTest() != null) && EAP5_CONTAINER.equals(this.getCurrentContainerForTest());
+        return ((this.getCurrentContainerForTest() != null) && EAP5_CONTAINER.equals(this.getCurrentContainerForTest()));
     }
 
     /**
@@ -515,6 +532,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         if (arqConfigurationFile != null && arqConfigurationFile.trim().length() > 0) {
             if (arqConfigurationFile.toLowerCase().contains("eap5")) {
                 containerId = EAP5_CONTAINER;
+                if (arqConfigurationFile.toLowerCase().contains("jbm")) {
+                    containerId = EAP5_WITH_JBM_CONTAINER;
+                }
             }
         }
         return containerId;

@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.ejb3.annotation.Depends;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -9,40 +10,43 @@ import javax.jms.*;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+
 /**
- * A LocalMdbFromTopic used for lodh tests.
+ * A LocalMdbFromTopicDurable used for lodh tests.
  * <p/>
- * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue". This mdb is used
- * in ClusterTestCase. Don't change it!!!
  *
- * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
  * @author <a href="mnovak@redhat.com">Miroslav Novak</a>
  * @version $Revision: 1.1 $
  */
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InTopic"),
-                @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable")
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "topic/InTopic"),
+                @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable"),
+                @ActivationConfigProperty(propertyName = "clientId", propertyValue = "topicId1"),
+                @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "subscriber1"),
+                @ActivationConfigProperty(propertyName = "useDLQ", propertyValue = "false"),
+                @ActivationConfigProperty(propertyName="reconnectAttempts", propertyValue="500"),
+                @ActivationConfigProperty(propertyName="reconnectInterval", propertyValue="10"),
+                @ActivationConfigProperty(propertyName="DLQMaxResent", propertyValue="10")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class LocalMdbFromTopic implements MessageDrivenBean, MessageListener {
+@Depends({"jboss.messaging.destination:service=Queue,name=OutQueue"})
+public class LocalMdbFromTopicDurable implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private static ConnectionFactory cf;
+    private ConnectionFactory cf;
 
-    @Resource(name = "java:/jms/queue/OutQueue")
-    private static Queue queue;
 
 //    @Resource(name = "queue/OutQueue")
 //    private static Queue queue;
 
     private static final long serialVersionUID = 2770941392406343837L;
-    private static final Logger log = Logger.getLogger(LocalMdbFromTopic.class.getName());
+    private static final Logger log = Logger.getLogger(LocalMdbFromTopicDurable.class.getName());
     private MessageDrivenContext context = null;
 
-    public LocalMdbFromTopic() {
+    public LocalMdbFromTopicDurable() {
         super();
     }
 
@@ -83,6 +87,9 @@ public class LocalMdbFromTopic implements MessageDrivenBean, MessageListener {
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
+
+            ctxRemote = new InitialContext();
+            Queue queue = (Queue) ctxRemote.lookup("queue/OutQueue");
             MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());

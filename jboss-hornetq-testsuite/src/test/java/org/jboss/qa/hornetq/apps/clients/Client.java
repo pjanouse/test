@@ -30,7 +30,9 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP5_CONTAINER;
-        } else {
+        } else if (EAP5_WITH_JBM_CONTAINER.equals(currentContainerForTest)) {
+            currentContainer =  EAP5_WITH_JBM_CONTAINER;
+        }  else {
             currentContainer = EAP6_CONTAINER;
         }
     }
@@ -47,7 +49,7 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
 
         Context context;
 
-        if (currentContainer.equals(EAP5_CONTAINER)) {
+        if (currentContainer.equals(EAP5_CONTAINER) || currentContainer.equals(EAP5_WITH_JBM_CONTAINER)) {
             context = JMSTools.getEAP5Context(hostname, port);
         } else {
             context = JMSTools.getEAP6Context(hostname, port);
@@ -57,7 +59,7 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
     }
 
     protected String getConnectionFactoryJndiName() {
-        if (currentContainer.equals(EAP5_CONTAINER)) {
+        if (currentContainer.equals(EAP5_CONTAINER) || currentContainer.equals(EAP5_WITH_JBM_CONTAINER)) {
             return CONNECTION_FACTORY_JNDI_EAP5;
         } else {
             return CONNECTION_FACTORY_JNDI_EAP6;

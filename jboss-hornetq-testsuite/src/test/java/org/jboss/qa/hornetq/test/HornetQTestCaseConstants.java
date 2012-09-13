@@ -26,6 +26,7 @@ public interface HornetQTestCaseConstants {
     // IDs for the active container definition
     public static final String EAP5_CONTAINER = "EAP5";
     public static final String EAP6_CONTAINER = "EAP6";
+    public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM";
 
 
 }

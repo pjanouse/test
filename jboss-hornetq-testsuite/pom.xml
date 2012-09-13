@@ -16,7 +16,7 @@
         <netty.version>3.2.6.Final</netty.version>
         <hornetq.version>2.2.16.Final</hornetq.version>
         <!--<eap5.client>5.1.2.GA-HornetQ-all-unsigned</eap5.client>-->
-        <eap5.client>5.2.0.ER1-HornetQ</eap5.client>
+        <eap5.client>5.2.0.ER2-HornetQ</eap5.client>
 
         <arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
         <arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
@@ -161,6 +161,13 @@
             <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- this gives @depends annotation -->
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -191,6 +198,59 @@
                     <artifactId>eap-client</artifactId>
                     <version>${eap5.client}</version>
                     <type>pom</type>
+                </dependency>
+
+                <!-- those are extra dependencies for arquillian to start EAP 5 server -->
+                <dependency>
+                    <groupId>org.jboss.aspects</groupId>
+                    <artifactId>jboss-security-aspects</artifactId>
+                    <version>1.0.0.GA</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.man</groupId>
+                    <artifactId>jboss-managed</artifactId>
+                    <version>2.1.1.SP2</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>eap5xWithJbm</id>
+            <activation>
+                <property>
+                    <name>eap</name>
+                    <value>5xWithJbm</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>${eap5.client}</version>
+                    <type>pom</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
 
                 <!-- those are extra dependencies for arquillian to start EAP 5 server -->

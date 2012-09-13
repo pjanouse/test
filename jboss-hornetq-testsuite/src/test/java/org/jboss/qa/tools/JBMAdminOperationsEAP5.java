@@ -19,10 +19,10 @@ import java.util.*;
 /**
  * Implementation of the <code>JMSOperations</code> for EAP 5
  */
-public class HornetQAdminOperationsEAP5 implements JMSOperations {
+public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     // Logger
-    private static final Logger logger = Logger.getLogger(HornetQAdminOperationsEAP5.class);
+    private static final Logger logger = Logger.getLogger(JBMAdminOperationsEAP5.class);
 
     private Context ctx;
     private String jbossHome;
@@ -85,39 +85,74 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      *
      * @return path to the configuration file
      */
-    protected String getHornetQConfigurationFile() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
-        sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
-        sb.append("hornetq").append(File.separator).append("hornetq-configuration.xml");
-        return sb.toString();
+    protected String getMysqlConfigurationFile() {
+        return getDatabasePersistenceServiceConfigurationFile("mysql");
     }
-
 
     /**
      * Returns path to the HornetQ configuration file
      *
+     * @param database like "mysql"
      * @return path to the configuration file
      */
-    protected String getHornetQJmsConfigurationFile() {
+    protected String getDatabasePersistenceServiceConfigurationFile(String database) {
         StringBuilder sb = new StringBuilder();
         sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
         sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
-        sb.append("hornetq").append(File.separator).append("hornetq-jms.xml");
+        sb.append("messaging").append(File.separator).append(database).append("-persistence-service.xml");
         return sb.toString();
     }
 
     /**
-     * Retrun path to ra.xml. Configuration file of resource adapter.
      *
-     * @return path to ra.xml
+     * Gets path to mysql
+     *
+     * @return path
      */
-    protected String getRAConfigurationFile() {
+    protected String getMysqlDsConfigurationFile() {
+        return getDatabaseDsConfigurationFile("mysql");
+    }
 
+    /**
+     * Returns path to the databse-ds.xml
+     *
+     * @param database like "mysql"
+     * @return path to the configuration file
+     */
+    protected String getDatabaseDsConfigurationFile(String database) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator)
+        .append(this.profile).append(File.separator).append("deploy").append(File.separator)
+        .append(database).append("-ds.xml");
+        return sb.toString();
+    }
+
+    /**
+     * Returns path to the configuration file
+     *
+     * @return path to the configuration file
+     *
+     */
+    protected String getJmsDestinationConfigurationFile() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
         sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
-        sb.append("jms-ra.rar").append(File.separator).append("META-INF").append(File.separator).append("ra.xml");
+        sb.append("messaging").append(File.separator).append("destinations-service.xml");
+        return sb.toString();
+    }
+
+    /**
+     * Returns path to the configuration file
+     *
+     * @return path to the configuration file
+     *
+     */
+    protected String getJGroupsConfigurationFile() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.jbossHome).append(File.separator).append("server").append(File.separator);
+        sb.append(this.profile).append(File.separator).append("deploy").append(File.separator);
+        sb.append("cluster").append(File.separator).append("jgroups-channelfactory.sar").append(File.separator).
+        append("META-INF").append(File.separator).append("jgroups-channelfactory-stacks.xml");
         return sb.toString();
     }
 
@@ -135,34 +170,41 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         // try to remove it first
         removeJmsDestination(isQueue, destinationName);
 
-        String configurationFile = getHornetQJmsConfigurationFile();
+        String configurationFile = getJmsDestinationConfigurationFile();
 
         logger.info("Deploy destination: " + jndiName);
 
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
 
-            Element e;
+            Element e = doc.createElement("mbean");
+
             if (isQueue) {
-                e = doc.createElement("queue");
+                e.setAttribute("code", "org.jboss.jms.server.destination.QueueService");
+                e.setAttribute("name", "jboss.messaging.destination:service=Queue,name=" + destinationName);
+                e.setAttribute("xmbean-dd", "xmdesc/Queue-xmbean.xml");
             } else {
-                e = doc.createElement("topic");
+                e.setAttribute("code", "org.jboss.jms.server.destination.TopicService");
+                e.setAttribute("name", "jboss.messaging.destination:service=Topic,name=" + destinationName);
+                e.setAttribute("xmbean-dd", "xmdesc/Topic-xmbean.xml");
             }
 
-            e.setAttribute("name", destinationName);
-            Element entry = doc.createElement("entry");
-            entry.setAttribute("name", jndiName);
-            e.appendChild(entry);
+            Element depends = doc.createElement("depends");
+            depends.setAttribute("optional-attribute-name", "ServerPeer");
+            depends.setTextContent("jboss.messaging:service=ServerPeer");
+            e.appendChild(depends);
 
-            if (isQueue)    {
-                Element eDurable = doc.createElement("durable");
-                eDurable.setTextContent(String.valueOf(durable));
-                e.appendChild(eDurable);
-            }
+            Element dependsPostOffice = doc.createElement("depends");
+            dependsPostOffice.setTextContent("jboss.messaging:service=PostOffice");
+            e.appendChild(dependsPostOffice);
 
+            Element clustered = doc.createElement("attribute");
+            clustered.setAttribute("name", "Clustered");
+            clustered.setTextContent(String.valueOf(durable));
+            e.appendChild(clustered);
 
             XPath xpathInstance = XPathFactory.newInstance().newXPath();
-            Node node = (Node) xpathInstance.evaluate("//configuration", doc, XPathConstants.NODE);
+            Node node = (Node) xpathInstance.evaluate("//server", doc, XPathConstants.NODE);
             node.appendChild(e);
 
             XMLManipulation.saveDOMModel(doc, configurationFile);
@@ -178,13 +220,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param destinationName name of the destination
      */
     protected void removeJmsDestination(boolean isQueue, String destinationName) {
-        String configurationFile = getHornetQJmsConfigurationFile();
+        String configurationFile = getJmsDestinationConfigurationFile();
         try {
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Removing JMS Destination '%s', is queue? '%s'", destinationName, isQueue));
             }
             Document doc = XMLManipulation.getDOMModel(configurationFile);
-            XMLManipulation.removeNode("//configuration/*[@name='" + destinationName + "']", doc);
+            XMLManipulation.removeNode("//mbean/*[@name='" + destinationName + "']", doc);
             XMLManipulation.saveDOMModel(doc, configurationFile);
         } catch (Exception e) {
             logger.debug(e.getMessage(), e);
@@ -218,7 +260,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
         removeAddressSettings(address);
 
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
 
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -436,7 +478,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
 
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
 
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -492,7 +534,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void disableSecurity() {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
 
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -545,7 +587,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeAddressSettings(String address) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.removeNode("//address-setting[@match='" + address + "']", doc);
@@ -562,7 +604,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.removeNode("//broadcast-group[@name='" + nameOfTheBroadcastGroup + "']", doc);
@@ -574,7 +616,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeClusteringGroup(String clusterGroupName) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.removeNode("//cluster-connection[@name='" + clusterGroupName + "']", doc);
@@ -586,7 +628,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeDiscoveryGroup(String dggroup) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.removeNode("//discovery-group[@name='" + dggroup + "']", doc);
@@ -654,7 +696,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setBindingsDirectory(String path) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             logger.info("Set bindings directory to " + path + " in " + configurationFile);
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -683,7 +725,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setBroadCastGroup(String broadcastGroupName, String localBindAddress, int localBindPort, String groupAddress,
                                   int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             Map<String, String> attributes = new HashMap<String, String>();
@@ -726,7 +768,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers,
                                       int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
         // ignore connectorName for EAP5
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             Map<String, String> attributes = new HashMap<String, String>();
@@ -766,11 +808,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setClustered(boolean clustered) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             logger.info("Set clustered to " + clustered + " in " + configurationFile);
             Document doc = XMLManipulation.getDOMModel(configurationFile);
-            XMLManipulation.setNodeContent("//clustered", String.valueOf(clustered), doc);
+            XMLManipulation.setNodeContent("//attribute[@name='Clustered']", String.valueOf(clustered), doc);
             XMLManipulation.saveDOMModel(doc, configurationFile);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -800,7 +842,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setDiscoveryGroup(String name, String localBindAddress, String groupAddress, int groupPort, long refreshTimeout) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             Map<String, String> attributes = new HashMap<String, String>();
@@ -878,7 +920,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setJournalDirectory(String path) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             logger.info("Set journal directory to " + path + " in " + configurationFile);
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -916,7 +958,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setLargeMessagesDirectory(String path) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             logger.info("Set large-messages-directory directory to " + path + " in " + configurationFile);
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -949,7 +991,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setPagingDirectory(String path) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             logger.info("Set paging-directory directory to " + path + " in " + configurationFile);
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -978,7 +1020,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         logger.info("Profile is" + profile + ", persistenceEnabled is: " + persistenceEnabled);
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             String currentValue = XMLManipulation.getNodeContent("//configuration/clustered", doc);
@@ -1010,7 +1052,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setRedistributionDelay(long delay) {
-        String configurationFile = getHornetQConfigurationFile();
+        String configurationFile = getMysqlConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
             XMLManipulation.setNodeContent("//redistribution-delay", Long.toString(delay), doc);
@@ -1171,41 +1213,42 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha) {
 
-        String configurationFile = getRAConfigurationFile();
-
-        try {
-
-            Document doc = XMLManipulation.getDOMModel(configurationFile);
-
-            //child[contains(string(),'Likes')]
-            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectorClassName')]/..", doc);
-            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectionParameters')]/..", doc);
-            XMLManipulation.removeNode("//config-property/*[contains(string(),'HA')]/..", doc);
-
-            XPath xpathInstance = XPathFactory.newInstance().newXPath();
-            Node rootNode = (Node) xpathInstance.evaluate("//resourceadapter", doc, XPathConstants.NODE);
-            Node insertBeforeNode = (Node) xpathInstance.evaluate("//outbound-resourceadapter", doc, XPathConstants.NODE);
-
-            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectorClassName", "java.lang.String",
-                    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"), insertBeforeNode);
-
-            StringBuilder st = new StringBuilder();
-            for (String key : connectionParameters.keySet()) {
-                st.append("host=").append(key).append(";port=").append(connectionParameters.get(key)).append(",");
-            }
-            // remove last comma ","
-            st.deleteCharAt(st.length() - 1);
-            logger.info("Setting ConnectionParameters in ra.xml to: " + st);
-            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectionParameters", "java.lang.String",
-                    st.toString()), insertBeforeNode);
-            rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
-                    String.valueOf(ha)), insertBeforeNode);
-
-            XMLManipulation.saveDOMModel(doc, configurationFile);
-
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
+        logger.info("This operation is not supported: " + getMethodName());
+//        String configurationFile = getRAConfigurationFile();
+//
+//        try {
+//
+//            Document doc = XMLManipulation.getDOMModel(configurationFile);
+//
+//            //child[contains(string(),'Likes')]
+//            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectorClassName')]/..", doc);
+//            XMLManipulation.removeNode("//config-property/*[contains(string(),'ConnectionParameters')]/..", doc);
+//            XMLManipulation.removeNode("//config-property/*[contains(string(),'HA')]/..", doc);
+//
+//            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+//            Node rootNode = (Node) xpathInstance.evaluate("//resourceadapter", doc, XPathConstants.NODE);
+//            Node insertBeforeNode = (Node) xpathInstance.evaluate("//outbound-resourceadapter", doc, XPathConstants.NODE);
+//
+//            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectorClassName", "java.lang.String",
+//                    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"), insertBeforeNode);
+//
+//            StringBuilder st = new StringBuilder();
+//            for (String key : connectionParameters.keySet()) {
+//                st.append("host=").append(key).append(";port=").append(connectionParameters.get(key)).append(",");
+//            }
+//            // remove last comma ","
+//            st.deleteCharAt(st.length() - 1);
+//            logger.info("Setting ConnectionParameters in ra.xml to: " + st);
+//            rootNode.insertBefore(createConfigProperty(doc, "desc", "ConnectionParameters", "java.lang.String",
+//                    st.toString()), insertBeforeNode);
+//            rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
+//                    String.valueOf(ha)), insertBeforeNode);
+//
+//            XMLManipulation.saveDOMModel(doc, configurationFile);
+//
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//        }
     }
 
     /**
@@ -1238,7 +1281,30 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval) {
-        logger.info("This operation is not supported: " + getMethodName());
+
+        String configurationFile = getMysqlConfigurationFile();
+
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+            //child[contains(string(),'Likes')]
+            XMLManipulation.removeNode("//attribute[@name='KeepOldFailover']", doc);
+            XMLManipulation.removeNode("//attribute[@name='NodeStateRefreshInterval']", doc);
+
+            Map<String,String> attributes = new HashMap<String, String>();
+            attributes.put("name", "KeepOldFailoverModel");
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PostOffice']", "attribute", String.valueOf(keepOldFailover), doc, attributes);
+
+            attributes = new HashMap<String, String>();
+            attributes.put("name", "NodeStateRefreshInterval");
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PostOffice']", "attribute", String.valueOf(nodeStateRefreshInterval), doc, attributes);
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1250,18 +1316,163 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getMysqlConfigurationFile();
+
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+            //child[contains(string(),'Likes')]
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PersistenceManager']/attribute[@name='MaxRetry']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PersistenceManager']/attribute[@name='RetryInterval']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PersistenceManager']/attribute[@name='RetryOnConnectionFailure']", doc);
+
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PostOffice']/attribute[@name='MaxRetry']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PostOffice']/attribute[@name='RetryInterval']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=PostOffice']/attribute[@name='RetryOnConnectionFailure']", doc);
+
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=JMSUserManager']/attribute[@name='MaxRetry']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=JMSUserManager']/attribute[@name='RetryInterval']", doc);
+            XMLManipulation.removeNode("//mbean[@name='jboss.messaging:service=JMSUserManager']/attribute[@name='RetryOnConnectionFailure']", doc);
+
+            Map<String,String> attributes = new HashMap<String, String>();
+            attributes.put("name", "RetryOnConnectionFailure");
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PersistenceManager']", "attribute", String.valueOf(retryOnConnectionFailure), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PostOffice']", "attribute", String.valueOf(retryOnConnectionFailure), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=JMSUserManager']", "attribute", String.valueOf(retryOnConnectionFailure), doc, attributes);
+
+            attributes = new HashMap<String, String>();
+            attributes.put("name", "RetryInterval");
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PersistenceManager']", "attribute", String.valueOf(retryInterval), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PostOffice']", "attribute", String.valueOf(retryInterval), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=JMSUserManager']", "attribute", String.valueOf(retryInterval), doc, attributes);
+
+            attributes = new HashMap<String, String>();
+            attributes.put("name", "MaxRetry");
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PersistenceManager']", "attribute", String.valueOf(maxRetry), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=PostOffice']", "attribute", String.valueOf(maxRetry), doc, attributes);
+            XMLManipulation.addNode("//mbean[@name='jboss.messaging:service=JMSUserManager']", "attribute", String.valueOf(maxRetry), doc, attributes);
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
-     * Sets TUNNEL protocol for jgroups
+     * Sets TUNNEL protocol for jgroups.
+     *
+     * This will remove TCP or UDP + MPING, PING, TCPPING and replace by TUNNEL + PING
      *
      * @param gossipRouterHostname ip address of gosship router
      * @param gossipRouterPort     port of gosship router
      */
     @Override
     public void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort) {
-        logger.info("This operation is not supported: " + getMethodName());
+
+        String configurationFile = getJGroupsConfigurationFile();
+
+        try {
+
+            Document doc1 = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.saveDOMModel(doc1, configurationFile);
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+//            Element tunnelNode = doc.createElement("TUNNEL");
+//            tunnelNode.setAttribute("singleton_name", "tunnel");
+//            tunnelNode.setAttribute("router_host", gossipRouterHostname);
+//            tunnelNode.setAttribute("router_port", String.valueOf(gossipRouterPort));
+
+//            Element pingNode = doc.createElement("PING");
+//            pingNode.setAttribute("gossip_host", gossipRouterHostname);
+//            pingNode.setAttribute("gossip_port", String.valueOf(gossipRouterPort));
+//            pingNode.setAttribute("gossip_refresh", "2000");
+//            pingNode.setAttribute("timeout", String.valueOf(2000));
+//            pingNode.setAttribute("num_initial_members", String.valueOf(2));
+
+            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+            Node parent = null;
+            Node node =  (Node) xpathInstance.evaluate("//UDP", doc, XPathConstants.NODE);
+            while (node != null)    {
+                Element tunnelNode = doc.createElement("TUNNEL");
+                tunnelNode.setAttribute("singleton_name", "tunnel");
+                tunnelNode.setAttribute("router_host", gossipRouterHostname);
+                tunnelNode.setAttribute("router_port", String.valueOf(gossipRouterPort));
+
+                parent = node.getParentNode();
+                parent.replaceChild(tunnelNode, node);
+                XMLManipulation.saveDOMModel(doc, configurationFile);
+                doc = XMLManipulation.getDOMModel(configurationFile);
+                xpathInstance = XPathFactory.newInstance().newXPath();
+                node =  (Node) xpathInstance.evaluate("//UDP", doc, XPathConstants.NODE);
+            }
+
+            node =  (Node) xpathInstance.evaluate("//TCP", doc, XPathConstants.NODE);
+            while (node != null)    {
+                Element tunnelNode = doc.createElement("TUNNEL");
+                tunnelNode.setAttribute("singleton_name", "tunnel");
+                tunnelNode.setAttribute("router_host", gossipRouterHostname);
+                tunnelNode.setAttribute("router_port", String.valueOf(gossipRouterPort));
+
+                parent = node.getParentNode();
+                parent.replaceChild(tunnelNode, node);
+                XMLManipulation.saveDOMModel(doc, configurationFile);
+                doc = XMLManipulation.getDOMModel(configurationFile);
+                xpathInstance = XPathFactory.newInstance().newXPath();
+                node =  (Node) xpathInstance.evaluate("//TCP", doc, XPathConstants.NODE);
+            }
+
+            node =  (Node) xpathInstance.evaluate("//PING[not(@gossip_host)]", doc, XPathConstants.NODE);
+            while (node != null)    {
+                Element pingNode = doc.createElement("PING");
+                pingNode.setAttribute("gossip_host", gossipRouterHostname);
+                pingNode.setAttribute("gossip_port", String.valueOf(gossipRouterPort));
+                pingNode.setAttribute("gossip_refresh", "2000");
+                pingNode.setAttribute("timeout", String.valueOf(2000));
+                pingNode.setAttribute("num_initial_members", String.valueOf(2));
+
+                parent = node.getParentNode();
+                parent.replaceChild(pingNode, node);
+                XMLManipulation.saveDOMModel(doc, configurationFile);
+                doc = XMLManipulation.getDOMModel(configurationFile);
+                xpathInstance = XPathFactory.newInstance().newXPath();
+                node =  (Node) xpathInstance.evaluate("//PING[not(@gossip_host)]", doc, XPathConstants.NODE);
+            }
+
+            node =  (Node) xpathInstance.evaluate("//MPING", doc, XPathConstants.NODE);
+            while (node != null)    {
+                Element pingNode = doc.createElement("PING");
+                pingNode.setAttribute("gossip_host", gossipRouterHostname);
+                pingNode.setAttribute("gossip_port", String.valueOf(gossipRouterPort));
+                pingNode.setAttribute("gossip_refresh", "2000");
+                pingNode.setAttribute("timeout", String.valueOf(2000));
+                pingNode.setAttribute("num_initial_members", String.valueOf(2));
+
+                parent = node.getParentNode();
+                parent.replaceChild(pingNode, node);
+                XMLManipulation.saveDOMModel(doc, configurationFile);
+                doc = XMLManipulation.getDOMModel(configurationFile);
+                xpathInstance = XPathFactory.newInstance().newXPath();
+                node =  (Node) xpathInstance.evaluate("//MPING", doc, XPathConstants.NODE);
+            }
+
+            Element shun =  (Element) xpathInstance.evaluate("//*[@shun='true']", doc, XPathConstants.NODE);
+            while (shun != null)    {
+                shun.setAttribute("shun", "false");
+                XMLManipulation.saveDOMModel(doc, configurationFile);
+                doc = XMLManipulation.getDOMModel(configurationFile);
+                xpathInstance = XPathFactory.newInstance().newXPath();
+                shun =  (Element) xpathInstance.evaluate("//*[@shun='true']", doc, XPathConstants.NODE);
+            }
+
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+
     }
 
     /**
@@ -1272,7 +1483,23 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setDatabase(String databaseHostname, int databasePort) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getMysqlDsConfigurationFile();
+
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+            StringBuilder jdbcConnectionUrl = new StringBuilder();
+            jdbcConnectionUrl.append("jdbc:mysql://").append(databaseHostname).append(":")
+            .append(databasePort).append("/jbm");
+
+            XMLManipulation.setNodeContent("//connection-url", jdbcConnectionUrl.toString(), doc);
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
