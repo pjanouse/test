@@ -4,7 +4,7 @@
 
     <defaultProtocol type="Servlet 3.0"/>
     <group qualifier="cluster">
-        <container qualifier="node-1" default="true" mode="manual">
+        <container qualifier="node-1" default="true" >
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
                 <property name="javaVmArguments">-Xms64m -Xmx512m -XX:MaxPermSize=256m 
