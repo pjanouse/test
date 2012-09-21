@@ -13,8 +13,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
+        <appclient.version>6.0.1.ER2</appclient.version>
         <netty.version>3.2.6.Final</netty.version>
-        <hornetq.version>2.2.16.Final</hornetq.version>
+        <hornetq.version>2.2.19.Final</hornetq.version>
         <!--<eap5.client>5.1.2.GA-HornetQ-all-unsigned</eap5.client>-->
         <eap5.client>5.2.0.ER2-HornetQ</eap5.client>
 
@@ -352,22 +353,28 @@
                     <version>${arquillian.eap6x.container.version}</version>
                     <scope>test</scope>
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-appclient</artifactId>
+                    <version>${appclient.version}</version>
+                </dependency>
+
                 <!-- dependencies for HornetQ client -->
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-core-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-jms-client</artifactId>
-                    <version>${hornetq.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.netty</groupId>
-                    <artifactId>netty</artifactId>
-                    <version>${netty.version}</version>
-                </dependency>
+                <!--<dependency>-->
+                    <!--<groupId>org.hornetq</groupId>-->
+                    <!--<artifactId>hornetq-core-client</artifactId>-->
+                    <!--<version>${hornetq.version}</version>-->
+                <!--</dependency>-->
+                <!--<dependency>-->
+                    <!--<groupId>org.hornetq</groupId>-->
+                    <!--<artifactId>hornetq-jms-client</artifactId>-->
+                    <!--<version>${hornetq.version}</version>-->
+                <!--</dependency>-->
+                <!--<dependency>-->
+                    <!--<groupId>org.jboss.netty</groupId>-->
+                    <!--<artifactId>netty</artifactId>-->
+                    <!--<version>${netty.version}</version>-->
+                <!--</dependency>-->
             </dependencies>
         </profile>
         <profile>

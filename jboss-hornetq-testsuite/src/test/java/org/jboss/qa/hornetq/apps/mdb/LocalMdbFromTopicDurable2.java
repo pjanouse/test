@@ -4,7 +4,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jboss.ejb3.annotation.Depends;
 
-import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
 import javax.naming.InitialContext;
@@ -34,8 +33,8 @@ import javax.naming.NamingException;
 @Depends({"jboss.messaging.destination:service=Queue,name=OutQueue"})
 public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageListener {
 
-    @Resource(mappedName = "java:/JmsXA")
-    private ConnectionFactory cf;
+//    @Resource(mappedName = "java:/JmsXA")
+//    private ConnectionFactory cf;
 
 //    @Resource(mappedName = "queue/OutQueue")
 //    private Queue queue;
@@ -45,7 +44,7 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(LocalMdbFromTopicDurable2.class.getName());
-    private MessageDrivenContext context = null;
+//    private MessageDrivenContext context = null;
 
     public LocalMdbFromTopicDurable2() {
         super();
@@ -53,7 +52,7 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
 
     @Override
     public void setMessageDrivenContext(MessageDrivenContext ctx) {
-        this.context = ctx;
+//        this.context = ctx;
     }
 
     public void ejbCreate() {
@@ -65,10 +64,11 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
 
     @Override
     public void onMessage(Message message) {
-        InitialContext ctx = null;
+//        InitialContext ctx = null;
         InitialContext ctxRemote = null;
         Connection con = null;
         Session session = null;
+        ConnectionFactory cf = null;
 
         try {
             long time = System.currentTimeMillis();
@@ -81,6 +81,10 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
             log.log(Level.INFO, " Start of message:" + messageInfo);
 
+            ctxRemote = new InitialContext();
+
+            cf = (ConnectionFactory) ctxRemote.lookup("java:/JmsXA");
+
             con = cf.createConnection();
 
             con.start();
@@ -88,7 +92,7 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
-            ctxRemote = new InitialContext();
+
             Queue queue = (Queue) ctxRemote.lookup("queue/OutQueue");
             MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
@@ -100,7 +104,7 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
         } catch (Exception t) {
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
-            this.context.setRollbackOnly();
+//            this.context.setRollbackOnly();
 
         } finally {
             if (session != null) {
@@ -117,13 +121,13 @@ public class LocalMdbFromTopicDurable2 implements MessageDrivenBean, MessageList
                     log.log(Level.FATAL, e.getMessage(), e);
                 }
             }
-            if (ctx != null) {
-                try {
-                    ctx.close();
-                } catch (NamingException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
+//            if (ctx != null) {
+//                try {
+//                    ctx.close();
+//                } catch (NamingException e) {
+//                    log.log(Level.FATAL, e.getMessage(), e);
+//                }
+//            }
             if (ctxRemote != null) {
                 try {
                     ctxRemote.close();
