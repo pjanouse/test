@@ -27,10 +27,10 @@ import javax.naming.NamingException;
 public class MdbToDb implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private static ConnectionFactory cf;
+    private  ConnectionFactory cf;
 
     @Resource(mappedName = "java:/jms/queue/OutQueue0")
-    private static Queue queue;
+    private  Queue queue;
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbToDb.class.getName());

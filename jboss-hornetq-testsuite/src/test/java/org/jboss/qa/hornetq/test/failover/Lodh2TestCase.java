@@ -69,7 +69,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("mdb1.jar");
+        File target = new File("/tmp/mdb1.jar");
         if (target.exists()) {
             target.delete();
         }
@@ -89,7 +89,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("mdb2.jar");
+        File target = new File("/tmp/mdb2.jar");
         if (target.exists()) {
             target.delete();
         }

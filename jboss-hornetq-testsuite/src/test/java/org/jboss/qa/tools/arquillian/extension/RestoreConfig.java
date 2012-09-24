@@ -245,6 +245,8 @@ public class RestoreConfig {
                     logger.error("Backup for profile " + profileName + " does not exist. Configuration won't be restored.");
                     return;
                 }
+                // TODO NEPREPISUJ LOGY
+                // TODO NEMAZ PROFILE PO TESTU ALE PRED TESTEM
                 copyDirectory(backupProfileDirectory, originalProfileDirectory);
             }
         }

@@ -82,7 +82,10 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        deployer.undeploy("hornetQTestServlet");
+        try {
+            deployer.undeploy("hornetQTestServlet");
+        } catch (Exception ignore)  {}
+
         stopServer(CONTAINER1);
 
     }
@@ -142,15 +145,11 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      */
     private void prepareServer(String containerName, boolean preferFactoryRef) throws IOException {
 
-        controller.start(containerName);
-
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
 
         jmsAdminOperations.setFactoryRef(preferFactoryRef);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
 
     }
 

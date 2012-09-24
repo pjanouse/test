@@ -100,6 +100,10 @@ public class MdbWithRemoteOutQueueToContaniner2 implements MessageDrivenBean, Me
                 }
             }
 
+            if (cf == null) {
+                ctx = new InitialContext();
+                cf = (ConnectionFactory) ctx.lookup("java:/JmsXA");
+            }
             con = cf.createConnection();
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
