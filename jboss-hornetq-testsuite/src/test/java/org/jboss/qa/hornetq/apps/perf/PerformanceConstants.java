@@ -12,7 +12,7 @@ public interface PerformanceConstants {
     String MESSAGE_PARAM_FINISHED = "finished";
 
     // Actual counter - counter for cycles
-    String MESSAGE_PARAM_COUNTER = "counter";
+    String MESSAGE_PARAM_COUNTER = "messcounter";
 
     // Index of the message
     String MESSAGE_PARAM_INDEX = "index";

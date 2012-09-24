@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.apps.perf;
 
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -24,7 +25,7 @@ import javax.jms.*;
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class CounterMdb implements MessageListener {
-
+  //  static long ancounter = 0;
     // Logger
     private static final Logger log = Logger.getLogger(CounterMdb.class.getName());
 
@@ -73,10 +74,10 @@ public class CounterMdb implements MessageListener {
             if (created == null || created == 0) {
                 created = System.nanoTime();
             }
-            if (counter == null || counter == 0) {
+            if (counter == null) {
                 counter = 0;
             }
-            if (index == null || index == 0) {
+            if (index == null) {
                 index = 0;
             }
             if (maxCycles == null || maxCycles == 0) {
