@@ -8,11 +8,9 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple sender with client acknowledge session. Able to fail over.
@@ -290,7 +288,7 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("192.168.1.1", 4447, "jms/queue/InQueue", 10);
+        ProducerClientAck producer = new ProducerClientAck("10.34.3.191", 4447, "jms/queue/InQueue", 10);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
         producer.setMessageBuilder(new InfoMessageBuilder());

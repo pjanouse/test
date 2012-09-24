@@ -6,8 +6,6 @@ import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -36,10 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private static ConnectionFactory cf;
+    private  ConnectionFactory cf;
 
-    @Resource(name = "java:/jms/queue/OutQueue")
-    private static Queue queue;
+    @Resource(mappedName = "java:/jms/queue/OutQueue")
+    private  Queue queue;
 
     public static AtomicInteger globalCounter = new AtomicInteger();
 
@@ -68,8 +66,7 @@ public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, Me
 
     @Override
     public void onMessage(Message message) {
-        InitialContext ctx = null;
-        InitialContext ctxRemote = null;
+
         Connection con = null;
         Session session = null;
 
@@ -118,20 +115,7 @@ public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, Me
                     log.log(Level.FATAL, e.getMessage(), e);
                 }
             }
-            if (ctx != null) {
-                try {
-                    ctx.close();
-                } catch (NamingException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
-            if (ctxRemote != null) {
-                try {
-                    ctxRemote.close();
-                } catch (NamingException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
+
         }
     }
 }

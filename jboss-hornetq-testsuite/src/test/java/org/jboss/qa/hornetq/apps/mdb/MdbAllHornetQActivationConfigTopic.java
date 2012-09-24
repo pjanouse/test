@@ -36,10 +36,10 @@ import javax.naming.NamingException;
 public class MdbAllHornetQActivationConfigTopic implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private static ConnectionFactory cf;
+    private  ConnectionFactory cf;
 
     @Resource(name = "java:/jms/queue/OutQueue")
-    private static Queue queue;
+    private  Queue queue;
 
 //    @Resource(name = "queue/OutQueue")
 //    private static Queue queue;

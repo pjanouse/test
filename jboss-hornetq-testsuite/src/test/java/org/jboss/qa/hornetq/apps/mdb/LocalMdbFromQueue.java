@@ -6,8 +6,6 @@ import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,10 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private static ConnectionFactory cf;
+    private  ConnectionFactory cf;
 
-    @Resource(name = "java:/jms/queue/OutQueue")
-    private static Queue queue;
+    @Resource(mappedName = "java:/jms/queue/OutQueue")
+    private  Queue queue;
 
     public static AtomicInteger globalCounter = new AtomicInteger();
 
@@ -61,10 +59,9 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        InitialContext ctx = null;
-        InitialContext ctxRemote = null;
+
         Connection con = null;
-        Session session = null;
+        Session session;
 
         try {
             long time = System.currentTimeMillis();
@@ -94,16 +91,9 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
         } catch (Exception t) {
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
-            this.context.setRollbackOnly();
 
         } finally {
-            if (session != null) {
-                try {
-                    session.close();
-                } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
+
             if (con != null) {
                 try {
                     con.close();
@@ -111,20 +101,8 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
                     log.log(Level.FATAL, e.getMessage(), e);
                 }
             }
-            if (ctx != null) {
-                try {
-                    ctx.close();
-                } catch (NamingException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
-            if (ctxRemote != null) {
-                try {
-                    ctxRemote.close();
-                } catch (NamingException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
+
+
         }
     }
 }

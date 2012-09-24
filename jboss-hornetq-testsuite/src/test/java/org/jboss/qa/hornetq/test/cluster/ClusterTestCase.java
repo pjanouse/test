@@ -429,6 +429,11 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
+        File target = new File("/tmp/mdbOnQueue1.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -444,6 +449,11 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
+        File target = new File("/tmp/mdbOnQueue2.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
