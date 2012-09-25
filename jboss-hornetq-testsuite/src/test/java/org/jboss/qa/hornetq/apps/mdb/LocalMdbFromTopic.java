@@ -30,10 +30,10 @@ import javax.naming.NamingException;
 public class LocalMdbFromTopic implements MessageDrivenBean, MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private  ConnectionFactory cf;
+    private ConnectionFactory cf;
 
     @Resource(name = "java:/jms/queue/OutQueue")
-    private  Queue queue;
+    private Queue queue;
 
 //    @Resource(name = "queue/OutQueue")
 //    private static Queue queue;
