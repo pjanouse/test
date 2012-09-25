@@ -146,10 +146,10 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 60000, shutdown);
+        executeNodeFaillSequence(killSequence, 10000, shutdown);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 100000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 10, 10);
         receiver1.start();
         receiver1.join();
 
