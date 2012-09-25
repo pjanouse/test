@@ -23,17 +23,15 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.fail;
 
 /**
  * Basic performance test which is executed inside container.
  * <p/>
- * MDB consumes messages from <code>inQueue</code> and sends them back.
- * After defined count of cycles calculates time and sends messages into the <code>outQueue</code>.
- * Test client consumes all messages from <code>outQueue</code> and calculates statistics.
+ * MDB consumes messages from <code>inQueue</code> and sends them back. After defined count of cycles calculates time and sends
+ * messages into the <code>outQueue</code>. Test client consumes all messages from <code>outQueue</code> and calculates
+ * statistics.
  * <p/>
  * Configuration parameters:
  * <ul>
@@ -44,7 +42,7 @@ import static org.junit.Assert.fail;
  * <li>performance.large_messages_cycles - count of the used cycles inside the container for the each large message</li>
  * <li>performance.large_messages_length - length of the large messages (kb)</li>
  * </ul>
- *
+ * 
  * @author pslavice@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -87,8 +85,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Parses value from the system property
-     *
-     * @param sysPropName  name of the system property
+     * 
+     * @param sysPropName name of the system property
      * @param defaultValue default value
      * @return new value or default value for the given configuration parameter
      */
@@ -116,7 +114,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Prepares archive with the test MDB
-     *
+     * 
      * @return archive
      * @throws Exception if something is wrong
      */
@@ -131,7 +129,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Normal message (not large message), byte message
-     *
+     * 
      * @throws InterruptedException if something is wrong
      */
     @Test
@@ -143,7 +141,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Normal message (not large message), text message
-     *
+     * 
      * @throws InterruptedException if something is wrong
      */
     @Test
@@ -155,7 +153,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Large message, byte message
-     *
+     * 
      * @throws InterruptedException if something is wrong
      */
     @Test
@@ -167,7 +165,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Large message, text message
-     *
+     * 
      * @throws InterruptedException if something is wrong
      */
     @Test
@@ -179,9 +177,9 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Implementation of the test logic, logic is shared for all test scenarios
-     *
-     * @param messagesCount  total count of messages
-     * @param cyclesCount    defines how many times will be message returned into the inQueue
+     * 
+     * @param messagesCount total count of messages
+     * @param cyclesCount defines how many times will be message returned into the inQueue
      * @param messageBuilder implementation of {@link org.jboss.qa.hornetq.apps.MessageBuilder} used for test
      */
     private void testLogic(int messagesCount, int cyclesCount, MessageBuilder messageBuilder) {
@@ -237,47 +235,40 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             }
 
             // Receive messages from out queue
-            Map<Integer, Long> results = new HashMap<Integer, Long>(messagesCount);
             Queue outQueue = (Queue) context.lookup(OUT_QUEUE);
             MessageConsumer consumer = session.createConsumer(outQueue);
             Message msg;
             String messageType = null;
             long messageLength = 0;
+            long start = Long.MAX_VALUE;
+            long end = Long.MIN_VALUE;
+            int size = 0;
             while ((msg = consumer.receive(10000)) != null) {
                 try {
                     messageType = msg.getStringProperty(PerformanceConstants.MESSAGE_TYPE);
                     messageLength = msg.getLongProperty(PerformanceConstants.MESSAGE_LENGTH);
-                    int index = msg.getIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX);
-                    long start = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED);
-                    long end = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_FINISHED);
-                    long totalMs = (end - start) / 1000000;
-                    results.put(index, totalMs);
+                    long started = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED);
+                    long ended = msg.getLongProperty(PerformanceConstants.MESSAGE_PARAM_FINISHED);
+                    if (start > started)
+                        start = started;
+                    if (end < ended)
+                        end = ended;
+                    size++;
                 } catch (NumberFormatException e) {
                     log.error(e.getMessage(), e);
                 }
             }
-
-            // Calculate stats
-            long minValue = Long.MAX_VALUE;
-            long maxValue = Long.MIN_VALUE;
-            long sum = 0;
-            for (Integer index : results.keySet()) {
-                Long result = results.get(index);
-                minValue = (minValue > result) ? result : minValue;
-                maxValue = (maxValue < result) ? result : maxValue;
-                sum += result;
-            }
+            long sum = (end - start) / 1000000 / (messagesCount * cyclesCount);
             log.info("########################################################");
-            log.info("Type of the last message " + messageType);
+            log.info(" Type of the last message " + messageType);
             log.info(String.format(" Length of the last message : %s bytes", messageLength));
-            log.info(String.format(" Min time : %s ms", (minValue != Integer.MAX_VALUE) ? minValue : "??"));
-            log.info(String.format(" Max time : %s ms", (maxValue != Integer.MIN_VALUE) ? maxValue : "??"));
-            log.info(String.format(" Avg time : %s ms", (results != null && results.size() != 0) ? sum / results.size() : 0));
-            log.info(String.format(" Messages : %s", results.size()));
+            log.info(String.format(" Avg msg delivery time : %s ms", (size != 0) ? sum : 0));
+            log.info(String.format(" Messages : %s", size));
+            log.info(String.format(" Cycles : %s", cyclesCount));
             log.info("########################################################");
-            if (results.size() != messagesCount) {
-                log.error(String.format("Client has received %s messages but should receive %s, failing tests",
-                        results.size(), messagesCount));
+            if (size != messagesCount) {
+                log.error(String.format("Client has received %s messages but should receive %s, failing tests", size,
+                        messagesCount));
                 fail("Unexpected count of messages!");
             }
         } catch (Exception e) {
@@ -291,6 +282,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         jmsAdminOperations.removeQueue(OUT_QUEUE);
         jmsAdminOperations.close();
         log.info("Stopping container for test ....");
+        deployer.undeploy(MDB_DEPLOY);
         stopServer(CONTAINER1);
     }
 }
