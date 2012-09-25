@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -38,6 +39,7 @@ import java.util.Map;
  *
  * @author mnovak@redhat.com
  */
+@RestoreConfigAfterTest
 @RunWith(Arquillian.class)
 public class Lodh2TestCase extends HornetQTestCase {
 
@@ -51,12 +53,11 @@ public class Lodh2TestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
+
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
+
     String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -102,8 +103,9 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     @RunAsClient
-    public void testLodh2() throws Exception {
+    public void testLodh2kill() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER2);
         failureSequence.add(CONTAINER2);
@@ -118,6 +120,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     @RunAsClient
     public void testLodh2shutdown() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -134,8 +137,9 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     @RunAsClient
-    public void testLodh3() throws Exception {
+    public void testLodh3kill() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER1);
         failureSequence.add(CONTAINER3);
@@ -150,6 +154,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     @Test
     @CleanUpAfterTest
+    @RestoreConfigAfterTest
     @RunAsClient
     public void testLodh3shutdown() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -291,7 +296,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        if (!topologyCreated) {
+//        if (!topologyCreated) {
             prepareJmsServer(CONTAINER1, CONTAINER1_IP);
             prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
 
@@ -302,8 +307,8 @@ public class Lodh2TestCase extends HornetQTestCase {
                 copyApplicationPropertiesFiles();
             }
 
-            topologyCreated = true;
-        }
+//            topologyCreated = true;
+//        }
 
     }
 

@@ -8,7 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -122,9 +122,6 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
      * @throws Exception
      */
     public void testLodh(boolean shutdown) throws Exception {
@@ -135,7 +132,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageBuilder(new MixMessageBuilder(500 * 1024));
+        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         logger.info("Start producer.");
         producer1.start();
@@ -149,7 +146,7 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 10000, shutdown);
+        executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 100000, 10, 10);
@@ -162,6 +159,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
                 receiver1.getCount());
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
@@ -231,7 +229,6 @@ public class Lodh1TestCase extends HornetQTestCase {
      *
      * @param containerName    Name of the container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
@@ -248,7 +245,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 500 * 1024);
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
