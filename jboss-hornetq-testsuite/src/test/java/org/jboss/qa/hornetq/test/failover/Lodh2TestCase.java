@@ -8,11 +8,13 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -37,6 +39,7 @@ import java.util.Map;
  *
  * @author mnovak@redhat.com
  */
+@RestoreConfigAfterTest
 @RunWith(Arquillian.class)
 public class Lodh2TestCase extends HornetQTestCase {
 
@@ -50,12 +53,11 @@ public class Lodh2TestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static String outQueueFullJndiName = "java:/" + outQueueJndiName;
+
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
+
     String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -100,22 +102,75 @@ public class Lodh2TestCase extends HornetQTestCase {
      * Kills mdbs servers.
      */
     @Test
+    @CleanUpAfterTest
+    @RestoreConfigAfterTest
     @RunAsClient
-    public void testLodh2() throws Exception {
-        List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER4);
-        killSequence.add(CONTAINER4);
-        killSequence.add(CONTAINER4);
-        killSequence.add(CONTAINER4);
-        testRemoteJcaInCluster(killSequence);
+    public void testLodh2kill() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER4);
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER4);
+        testRemoteJcaInCluster(failureSequence, false);
+    }
+
+    /**
+     * Shutdown mdbs servers.
+     */
+    @Test
+    @CleanUpAfterTest
+    @RestoreConfigAfterTest
+    @RunAsClient
+    public void testLodh2shutdown() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER4);
+        failureSequence.add(CONTAINER2);
+        failureSequence.add(CONTAINER4);
+        testRemoteJcaInCluster(failureSequence, true);
+    }
+
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpAfterTest
+    @RestoreConfigAfterTest
+    @RunAsClient
+    public void testLodh3kill() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER1);
+        failureSequence.add(CONTAINER3);
+        failureSequence.add(CONTAINER1);
+        failureSequence.add(CONTAINER3);
+        failureSequence.add(CONTAINER1);
+        testRemoteJcaInCluster(failureSequence, false);
+    }
+
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpAfterTest
+    @RestoreConfigAfterTest
+    @RunAsClient
+    public void testLodh3shutdown() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER1);
+        failureSequence.add(CONTAINER3);
+        failureSequence.add(CONTAINER1);
+        failureSequence.add(CONTAINER3);
+        failureSequence.add(CONTAINER1);
+        testRemoteJcaInCluster(failureSequence, false);
     }
 
     /**
      * @throws Exception
      */
 //    @CleanUpAfterTest
-    public void testRemoteJcaInCluster(List<String> killSequence) throws Exception {
+    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
 
         prepareRemoteJcaTopology();
         // cluster A
@@ -125,28 +180,35 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        deployer.deploy("mdb1");
-        deployer.deploy("mdb2");
-
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producer2 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        producer1.setMessageBuilder(new MixMessageBuilder(1024 * 200));
-        producer2.setMessageBuilder(new MixMessageBuilder(1024 * 200));
+        producer1.setMessageBuilder(new ClientMixMessageBuilder(10,100));
+        producer2.setMessageBuilder(new ClientMixMessageBuilder(10,100));
 
         producer1.start();
         producer2.start();
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
-        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 10000, 10, 10);
+        // send a lot of messages to start paging
+        while ((producer1.getCounter() + producer2.getCounter()) < 10000)    {
+            Thread.sleep(3000);
+        }
 
-        receiver1.start();
-        receiver2.start();
+        // deploy mdbs
+        deployer.deploy("mdb1");
+        deployer.deploy("mdb2");
 
-//        executeKillSequence(killSequence, 20000);
+        executeFailureSequence(failureSequence, 20000, isShutdown);
 
         // Wait to send and receive some messages
         Thread.sleep(60 * 1000);
+
+        // set longer timeouts so xarecovery is done at least once
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, outQueueJndiName, 180000, 10, 10);
+        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 180000, 10, 10);
+
+        receiver1.start();
+        receiver2.start();
 
         producer1.stopSending();
         producer2.stopSending();
@@ -167,6 +229,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter() + producer2.getCounter(),
                 receiver1.getCount() + receiver2.getCount());
+        Assert.assertTrue("Receivers did not get any messages.",
+                receiver1.getCount() + receiver2.getCount() > 0);
 
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
@@ -180,19 +244,30 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * Executes kill sequence.
      *
-     * @param killSequence     map Contanier -> ContainerIP
+     * @param failureSequence     map Contanier -> ContainerIP
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
-    private void executeKillSequence(List<String> killSequence, long timeBetweenKills) throws InterruptedException {
+    private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {
 
-        for (String containerName : killSequence) {
-            Thread.sleep(timeBetweenKills);
-            killServer(containerName);
-            Thread.sleep(3000);
-            controller.kill(containerName);
-            logger.info("Start server: " + containerName);
-            controller.start(containerName);
-            logger.info("Server: " + containerName + " -- STARTED");
+        if (isShutdown) {
+            for (String containerName : failureSequence) {
+                Thread.sleep(timeBetweenKills);
+                stopServer(containerName);
+                Thread.sleep(3000);
+                logger.info("Start server: " + containerName);
+                controller.start(containerName);
+                logger.info("Server: " + containerName + " -- STARTED");
+            }
+        } else {
+            for (String containerName : failureSequence) {
+                Thread.sleep(timeBetweenKills);
+                killServer(containerName);
+                Thread.sleep(3000);
+                controller.kill(containerName);
+                logger.info("Start server: " + containerName);
+                controller.start(containerName);
+                logger.info("Server: " + containerName + " -- STARTED");
+            }
         }
     }
 
@@ -221,7 +296,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        if (!topologyCreated) {
+//        if (!topologyCreated) {
             prepareJmsServer(CONTAINER1, CONTAINER1_IP);
             prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
 
@@ -232,8 +307,8 @@ public class Lodh2TestCase extends HornetQTestCase {
                 copyApplicationPropertiesFiles();
             }
 
-            topologyCreated = true;
-        }
+//            topologyCreated = true;
+//        }
 
     }
 
@@ -304,7 +379,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
             jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
             jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
             jmsAdminOperations.close();
 

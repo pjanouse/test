@@ -32,10 +32,10 @@ public class InVM2RemoteCfMdb implements MessageListener {
     private static final Logger log = Logger.getLogger(InVM2RemoteCfMdb.class.getName());
 
     @Resource(mappedName = "java:/RemoteJmsXA")
-    private static ConnectionFactory cf;
+    private ConnectionFactory cf;
 
     @Resource(mappedName = "OutQueue")
-    private static Queue queue;
+    private Queue queue;
 
     @Resource
     private MessageDrivenContext context;
