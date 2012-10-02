@@ -192,7 +192,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
         controller.start(CONTAINER1);
 
-        // Sends all messages into the server
         Context context = null;
         Connection connection = null;
         Session session = null;
@@ -202,8 +201,22 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
             connection = cf.createConnection();
             connection.start();
-            Queue inQueue = (Queue) context.lookup(IN_QUEUE);
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Queue inQueue = (Queue) context.lookup(IN_QUEUE);
+            Queue outQueue = (Queue) context.lookup(OUT_QUEUE);
+            
+            //cleaning
+            MessageConsumer consumer = session.createConsumer(outQueue);
+            Message msg;
+            int size = 0;
+            while ((msg = consumer.receive(100)) != null) 
+                size++;
+            if (size > 0)
+                log.warn(String.format("Cleaned %s messages from output queue before test start!!!", size));
+            
+            consumer.close();
+
+            // Sends all messages into the server
             MessageProducer producer = session.createProducer(inQueue);
             log.info(String.format("We will send %s messages to server", messagesCount));
             for (int i = 0; i < messagesCount; i++) {
@@ -220,29 +233,30 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             log.info("  Deploying mdb for test ....");
             deployer.deploy(MDB_DEPLOY);
             log.info("  Receiving ....");
-            log.info(String.format("We should receive %s messages from server", messagesCount));
             long waitForMessagesStart = System.currentTimeMillis();
-            long messagesInQueue;
-            while ((messagesInQueue = jmsAdminOperations.getCountOfMessagesOnQueue(IN_QUEUE)) > 0L) {
-                Thread.sleep(100);
+            boolean wait = true;
+            QueueBrowser browser = session.createBrowser(outQueue);
+
+            while (wait) {
+                Thread.sleep(1000);
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("  %s messages in input queue", messagesInQueue));
+                    log.debug(" No messages in output queue");
                 }
+                wait =  !(browser.getEnumeration().hasMoreElements());
+
                 if ((System.currentTimeMillis() - waitForMessagesStart) / 1000 > MAX_WAIT_TIME) {
-                    log.warn(String.format("  %s messages in input queue", messagesInQueue));
-                    fail(String.format("Receive timeout, %s has still '%s' messages", IN_QUEUE, messagesInQueue));
+                    fail("Receive timeout, output queue has still no messages");
                 }
             }
 
             // Receive messages from out queue
-            Queue outQueue = (Queue) context.lookup(OUT_QUEUE);
-            MessageConsumer consumer = session.createConsumer(outQueue);
-            Message msg;
+            log.info(String.format("We should receive %s messages from server", messagesCount));
+            consumer = session.createConsumer(outQueue);
             String messageType = null;
             long messageLength = 0;
             long start = Long.MAX_VALUE;
             long end = Long.MIN_VALUE;
-            int size = 0;
+            size = 0;
             while ((msg = consumer.receive(10000)) != null) {
                 try {
                     messageType = msg.getStringProperty(PerformanceConstants.MESSAGE_TYPE);
@@ -258,6 +272,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                     log.error(e.getMessage(), e);
                 }
             }
+            consumer.close();
             long sum = (end - start) / 1000000 / (messagesCount * cyclesCount);
             log.info("########################################################");
             log.info(" Type of the last message " + messageType);
@@ -274,7 +289,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             fail(e.getMessage());
-        } finally {
+        } finally {            
             JMSTools.cleanupResources(context, connection, session);
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
