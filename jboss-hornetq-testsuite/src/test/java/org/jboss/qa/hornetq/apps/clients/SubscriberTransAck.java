@@ -5,10 +5,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -111,8 +109,9 @@ public class SubscriberTransAck extends Client {
 
                 if (count % commitAfter == 0) { // try to ack message
                     commitSession(session);
+                    listOfReceivedMessagesToBeCommited.clear();
                 } else { // i don't want to ack now
-                    logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi
+                    logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
@@ -120,7 +119,7 @@ public class SubscriberTransAck extends Client {
 
             commitSession(session);
 
-            logger.info("Subscriber for node: " + getHostname() + " and topic: " + topicNameJndi
+            logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                     + ". Received NULL - number of received messages: " + count);
 
             if (messageVerifier != null) {
@@ -158,32 +157,38 @@ public class SubscriberTransAck extends Client {
      * @throws JMSException
      */
     public void commitSession(Session session) throws Exception {
-        try {
 
-            session.commit();
+        int numberOfRetries = 0;
 
-            logger.info("Subscriber for node: " + getHostname() + ". Received message - count: "
-                    + count + " SENT COMMIT");
+        while (numberOfRetries < maxRetries) {
+            try {
+                session.commit();
 
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Received message - count: "
+                        + count + " SENT COMMIT");
 
-        } catch (TransactionRolledBackException ex) {
-            logger.error(" Subscriber - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage()
-                    + ". Subscriber for node: " + hostname
-                    + ". Received message - count: " + count + ", retrying receive", ex);
-            // all uncommited messges will be received again
-            count = count - listOfReceivedMessagesToBeCommited.size();
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
 
-        } catch (JMSException ex) {
-            throw new Exception("Subscriber got JMSException during commit and has underterministic result."
-                    + " Node: " + hostname +
-                    ". Received message - count: " + count + ", messages will be received again. Supposed to be commited.", ex);
+                return;
 
-        } finally {
-            listOfReceivedMessagesToBeCommited.clear();
+            } catch (TransactionRolledBackException ex) {
+                logger.error(" Subscriber - name: " + getSubscriberName() + " - - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
+                        + ". Received message - count: " + count + ", retrying receive", ex);
+                // all unacknowledge messges will be received again
+                ex.printStackTrace();
+                count = count - listOfReceivedMessagesToBeCommited.size();
+
+                return;
+
+            } catch (JMSException ex) {
+                logger.error(" Subscriber - name: " + getSubscriberName() + " -- JMSException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
+                        + ". Received message - count: " + count + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
+                ex.printStackTrace();
+                numberOfRetries++;
+            }
         }
 
-
+        throw new Exception("FAILURE - MaxRetry reached for Subscriber - name: " + getSubscriberName() + " - for node: " + hostname + " during commit");
     }
 
     /**
@@ -214,7 +219,7 @@ public class SubscriberTransAck extends Client {
             }
         }
 
-        throw new Exception("FAILURE - MaxRetry reached for subscriber for node: " + hostname);
+        throw new Exception("FAILURE - MaxRetry reached for subscriber - name: " + getSubscriberName() + " - for node: " + hostname);
     }
 
     /**

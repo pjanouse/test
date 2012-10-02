@@ -198,7 +198,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
         deployer.deploy("mdb2");
 
-        executeFailureSequence(failureSequence, 20000, isShutdown);
+        executeFailureSequence(failureSequence, 30000, isShutdown);
 
         // Wait to send and receive some messages
         Thread.sleep(60 * 1000);
@@ -324,11 +324,11 @@ public class Lodh2TestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
+        String groupAddress = "233.6.88.3";
 
         if (isEAP5()) {
 
             int port = 9876;
-            String groupAddress = "233.6.88.3";
             int groupPort = 9876;
             long broadcastPeriod = 500;
 
@@ -358,39 +358,39 @@ public class Lodh2TestCase extends HornetQTestCase {
 
 
             String messagingGroupSocketBindingName = "messaging-group";
-            String multicastAddress = "236.12.73.26";
 
             controller.start(containerName);
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
             jmsAdminOperations.setClustered(true);
-
             jmsAdminOperations.setPersistenceEnabled(true);
             jmsAdminOperations.setSharedStore(true);
-
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
             jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
             jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
+
             jmsAdminOperations.close();
 
             controller.stop(containerName);
+
             controller.start(containerName);
+
             jmsAdminOperations = this.getJMSOperations(containerName);
 
-            jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", multicastAddress, 55874);
+            jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
             deployDestinations(containerName);
 
             jmsAdminOperations.close();
+
             controller.stop(containerName);
         }
 
@@ -407,11 +407,12 @@ public class Lodh2TestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
+        String groupAddress = "233.6.88.5";
 
         if (isEAP5()) {
 
             int port = 9876;
-            String groupAddress = "233.6.88.5";
+
             int groupPort = 9876;
             long broadcastPeriod = 500;
 
@@ -460,6 +461,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
             jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);

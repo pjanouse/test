@@ -281,10 +281,20 @@ public class PublisherAutoAck extends Client {
         this.topicNameJndi = topicNameJndi;
     }
 
+
+
     public static void main(String[] args) throws InterruptedException {
         PublisherAutoAck p = new PublisherAutoAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", 100, "mnovakClientIdPublisher");
         p.start();
         p.join();
+    }
+
+    public MessageBuilder getMessageBuilder() {
+        return messageBuilder;
+    }
+
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 }
 

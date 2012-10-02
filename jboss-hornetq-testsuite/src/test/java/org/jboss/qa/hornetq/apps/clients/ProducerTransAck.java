@@ -7,11 +7,9 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple sender with transaction acknowledge session. Able to fail over.
@@ -347,9 +345,11 @@ public class ProducerTransAck extends Client {
                 resendMessages(producer);
 
             } catch (JMSException ex) {
-                logger.error("COMMIT Failed but transaction rollback exception was NOT thrown - Publisher for node: " + getHostname()
-                        + ". Sent message with property count: " + counter + ". Operation will not be retried.", ex);
-                return;
+                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
+                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
+                        + "Producer for node: " + getHostname()
+                        + ". Sent message with property count: " + counter, ex);
+                numberOfRetries++;
             }
 
         }
@@ -386,6 +386,10 @@ public class ProducerTransAck extends Client {
         producer.start();
 
         producer.join();
+    }
+
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 }
 

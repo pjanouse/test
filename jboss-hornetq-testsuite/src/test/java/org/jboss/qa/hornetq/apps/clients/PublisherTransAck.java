@@ -7,11 +7,9 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple sender with transaction acknowledge session. Able to fail over.
@@ -340,11 +338,11 @@ public class PublisherTransAck extends Client {
 
                 resendMessages(publisher);
             } catch (JMSException ex) {
-                throw new Exception("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
-                        + "is not able to determine whether commit was successful and ended with underterministic result. "
+                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
+                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
                         + "Publisher for node: " + getHostname()
-                        + ". Sent message with property count: " + counter
-                        + ". Operation will not be retried.", ex);
+                        + ". Sent message with property count: " + counter, ex);
+                numberOfRetries++;
             }
         }
         // maxretry reached then throw exception above
@@ -433,6 +431,10 @@ public class PublisherTransAck extends Client {
         this.clientId = clientId;
     }
 
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
+    }
+
     public static void main(String[] args) throws InterruptedException {
 
         PublisherTransAck publisher = new PublisherTransAck("192.168.1.1", 4447, "jms/topic/testTopic0", 20000, "supercoolclientId1");
@@ -441,5 +443,7 @@ public class PublisherTransAck extends Client {
 
         publisher.join();
     }
+
+
 }
 

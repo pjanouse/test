@@ -38,7 +38,7 @@ public class ReceiverClientAck extends Client {
      */
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
 
-        this(EAP6_CONTAINER, hostname, port, queueJndiName, 30000, 1000, 30);
+        this(EAP6_CONTAINER, hostname, port, queueJndiName, 30000, 10, 30);
 
     }
 
@@ -52,7 +52,7 @@ public class ReceiverClientAck extends Client {
      */
     public ReceiverClientAck(String container, String hostname, int port, String queueJndiName) {
 
-        this(container, hostname, port, queueJndiName, 30000, 1000, 30);
+        this(container, hostname, port, queueJndiName, 30000, 10, 30);
 
     }
 
@@ -98,10 +98,10 @@ public class ReceiverClientAck extends Client {
     public void run() {
 
         Context context = null;
-        ConnectionFactory cf = null;
+        ConnectionFactory cf;
         Connection conn = null;
-        Session session = null;
-        Queue queue = null;
+        Session session;
+        Queue queue;
 
         try {
 
@@ -119,7 +119,7 @@ public class ReceiverClientAck extends Client {
 
             MessageConsumer receiver = session.createConsumer(queue);
 
-            Message message = null;
+            Message message;
 
             Message lastMessage = null;
 
@@ -131,6 +131,9 @@ public class ReceiverClientAck extends Client {
 //                Thread.sleep(20);
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
+
+                    listOfReceivedMessagesToBeAcked.clear();
+
                 } else { // i don't want to ack now
                     logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                             + ". Received message - count: "
@@ -186,26 +189,41 @@ public class ReceiverClientAck extends Client {
      * @param message message to be acknowledged
      * @throws JMSException
      */
-    public void acknowledgeMessage(Message message) throws JMSException {
-        try {
+    public void acknowledgeMessage(Message message) throws Exception {
 
-            message.acknowledge();
+        int numberOfRetries = 0;
 
-            logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", message-counter: " + message.getStringProperty("counter")
-                    + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+        while (numberOfRetries < maxRetries) {
+            try {
+                message.acknowledge();
 
-        } catch (TransactionRolledBackException ex) {
-            logger.error("Exception thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID(), ex);
-            // all unacknowledge messges will be received again
-            ex.printStackTrace();
-            count = count - ackAfter;
+                logger.info("Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", message-counter: " + message.getStringProperty("counter")
+                        + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
+
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+
+                return;
+
+            } catch (TransactionRolledBackException ex) {
+                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+                // all unacknowledge messges will be received again
+                ex.printStackTrace();
+                count = count - listOfReceivedMessagesToBeAcked.size();
+
+                return;
+
+            } catch (JMSException ex) {
+                logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+                ex.printStackTrace();
+                numberOfRetries++;
+            }
         }
 
-        listOfReceivedMessagesToBeAcked.clear();
+        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
     }
 
     /**
@@ -219,7 +237,7 @@ public class ReceiverClientAck extends Client {
      */
     public Message receiveMessage(MessageConsumer consumer) throws Exception {
 
-        Message msg = null;
+        Message msg;
         int numberOfRetries = 0;
 
         // receive message with retry

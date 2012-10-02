@@ -57,4 +57,11 @@ public interface Clients {
      */
     public void stopClients();
 
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    public void setMessageBuilder(MessageBuilder messageBuilder);
+
 }

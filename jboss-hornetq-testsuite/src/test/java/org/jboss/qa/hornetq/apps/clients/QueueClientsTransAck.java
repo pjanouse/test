@@ -3,8 +3,8 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
@@ -43,6 +43,8 @@ public class QueueClientsTransAck implements Clients {
     private HashMap<String, FinalTestMessageVerifier> verifiers = new HashMap<String, FinalTestMessageVerifier>();
 
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+
+    private MessageBuilder messageBuilder;
 
     public QueueClientsTransAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
@@ -84,7 +86,7 @@ public class QueueClientsTransAck implements Clients {
 
             verifiers.put(getQueueJndiNamePrefix() + destinationNumber, queueTextMessageVerifier);
 
-            ProducerTransAck p = null;
+            ProducerTransAck p;
 
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
 
@@ -92,11 +94,15 @@ public class QueueClientsTransAck implements Clients {
 
                 p.setMessageVerifier(queueTextMessageVerifier);
 
+                if (messageBuilder != null) {
+                    p.setMessageBuilder(messageBuilder);
+                }
+
                 producers.add(p);
 
             }
 
-            ReceiverTransAck r = null;
+            ReceiverTransAck r;
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
@@ -208,6 +214,16 @@ public class QueueClientsTransAck implements Clients {
         for (ProducerTransAck producer : producers) {
             producer.stopSending();
         }
+    }
+
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    @Override
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     /**

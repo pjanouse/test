@@ -5,10 +5,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -133,6 +131,8 @@ public class ReceiverTransAck extends Client {
 
                     commitSession(session);
 
+                    listOfReceivedMessagesToBeCommited.clear();
+
                 } else { // i don't want to ack now
 
                     logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
@@ -181,30 +181,39 @@ public class ReceiverTransAck extends Client {
      * @param session session
      * @throws JMSException
      */
-    public void commitSession(Session session) throws JMSException {
-        try {
+    public void commitSession(Session session) throws Exception {
 
-            session.commit();
+        int numberOfRetries = 0;
 
-            logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + " SENT COMMIT");
+        while (numberOfRetries < maxRetries) {
+            try {
+                session.commit();
 
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                logger.info("Receiver for node: " + hostname + ". Received message - count: "
+                        + counter + " SENT COMMIT");
 
-        } catch (TransactionRolledBackException ex) {
-            logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-                    + ". Received message - count: " + counter + ", retrying receive", ex);
-            // all uncommited messges will be received again
-            counter = counter - listOfReceivedMessagesToBeCommited.size();
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
 
-        } catch (JMSException ex) {
-            logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-                    + ". Received message - count: " + counter + ", messages will be received again. Supposed to be commited.", ex);
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                return;
 
-        } finally {
-            listOfReceivedMessagesToBeCommited.clear();
+            } catch (TransactionRolledBackException ex) {
+                logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                        + ". Received message - count: " + counter + ", retrying receive", ex);
+                // all unacknowledge messges will be received again
+                ex.printStackTrace();
+                counter = counter - listOfReceivedMessagesToBeCommited.size();
+
+                return;
+
+            } catch (JMSException ex) {
+                logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                        + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
+                ex.printStackTrace();
+                numberOfRetries++;
+            }
         }
+
+        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
     }
 
     /**

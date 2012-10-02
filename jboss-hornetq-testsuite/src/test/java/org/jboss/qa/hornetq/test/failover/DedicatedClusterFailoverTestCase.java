@@ -345,6 +345,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -363,7 +364,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         controller.stop(containerName);
 
     }
@@ -393,6 +394,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -420,7 +422,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         controller.stop(containerName);
     }
@@ -453,5 +455,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
+        jmsAdminOperations.close();
     }
 }

@@ -48,7 +48,7 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(hostname, port, topicNameJndi, 30000, 1000, 30, clientId, subscriberName);
+        this(hostname, port, topicNameJndi, 30000, 10, 30, clientId, subscriberName);
 
     }
 
@@ -63,7 +63,7 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(container, hostname, port, topicNameJndi, 30000, 1000, 30, clientId, subscriberName);
+        this(container, hostname, port, topicNameJndi, 30000, 10, 30, clientId, subscriberName);
 
     }
 
@@ -128,6 +128,7 @@ public class SubscriberClientAck extends Client {
 
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
+                    listOfReceivedMessagesToBeAcked.clear();
                 } else { // i don't want to ack now
                     logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                             + ". Received message - count: "
@@ -180,26 +181,41 @@ public class SubscriberClientAck extends Client {
      * @param message message to be acknowledged
      * @throws JMSException
      */
-    public void acknowledgeMessage(Message message) throws JMSException {
-        try {
+    public void acknowledgeMessage(Message message) throws Exception {
 
-            message.acknowledge();
+        int numberOfRetries = 0;
 
-            logger.info("Subscriber for node: " + getHostname() + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
-            listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+        while (numberOfRetries < maxRetries) {
+            try {
+                message.acknowledge();
 
-        } catch (Exception ex) {
-            logger.error("Exception thrown during acknowledge. Subscriber: " + subscriberName + " for node: "
-                    + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID(), ex);
-            // all unacknowledge messges will be received again
-            count = count - listOfReceivedMessagesToBeAcked.size();
-        } finally {
+                logger.info("Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", message-counter: " + message.getStringProperty("counter")
+                        + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
-            listOfReceivedMessagesToBeAcked.clear();
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+
+                return;
+
+            } catch (TransactionRolledBackException ex) {
+                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+                // all unacknowledge messges will be received again
+                ex.printStackTrace();
+                count = count - listOfReceivedMessagesToBeAcked.size();
+
+                return;
+
+            } catch (JMSException ex) {
+                logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+                ex.printStackTrace();
+                numberOfRetries++;
+            }
         }
+
+        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
     }
 
     /**

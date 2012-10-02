@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
@@ -29,6 +30,7 @@ public class TopicClientsClientAck implements Clients {
     private List<PublisherClientAck> publishers = new ArrayList<PublisherClientAck>();
     private List<SubscriberClientAck> subscribers = new ArrayList<SubscriberClientAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private MessageBuilder messageBuilder;
 
     public TopicClientsClientAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -68,7 +70,7 @@ public class TopicClientsClientAck implements Clients {
 
         List<FinalTestMessageVerifier> topicTextMessageVerifiers = null;
 
-        FinalTestMessageVerifier verifier = null;
+        FinalTestMessageVerifier verifier;
 
         // create publishers and subscribers
         for (int destinationNumber = 0; destinationNumber < getNumberOfTopics(); destinationNumber++) {
@@ -96,7 +98,7 @@ public class TopicClientsClientAck implements Clients {
                 logger.info(subscriber + "was subscribed.");
             }
 
-            PublisherClientAck publisher = null;
+            PublisherClientAck publisher;
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
@@ -105,6 +107,10 @@ public class TopicClientsClientAck implements Clients {
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
                 publisher.setMessageVerifiers(topicTextMessageVerifiers);
+
+                if (messageBuilder != null) {
+                    publisher.setMessageBuilder(messageBuilder);
+                }
 
                 getPublishers().add(publisher);
 
@@ -215,6 +221,16 @@ public class TopicClientsClientAck implements Clients {
 
             publisher.stopSending();
         }
+    }
+
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    @Override
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     /**

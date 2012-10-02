@@ -921,7 +921,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
-        model.get("path").set(new File(path).getAbsolutePath() + File.separator + "journal");
+        model.get("path").set(path + File.separator + "journal");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -952,7 +952,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("path").set(new File(path).getAbsolutePath() + File.separator + "paging");
+        model.get("path").set(path + File.separator + "paging");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -983,7 +983,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
-        model.get("path").set(new File(path).getAbsolutePath() + File.separator + "large-messages");
+        model.get("path").set(path + File.separator + "large-messages");
 
         try {
             this.applyUpdate(model);
@@ -1017,7 +1017,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
-        model.get("path").set(new File(path).getAbsolutePath() + File.separator + "bindings");
+        model.get("path").set(path + File.separator + "bindings");
 
         try {
             this.applyUpdate(model);

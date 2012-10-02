@@ -80,9 +80,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     static {
         // Path to the journal
-        String tmpJournalA = System.getProperty("JOURNAL_DIRECTORY_A");
+        String tmpJournalA = System.getenv("JOURNAL_DIRECTORY_A");
         JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
-        String tmpJournalB = System.getProperty("JOURNAL_DIRECTORY_B");
+        String tmpJournalB = System.getenv("JOURNAL_DIRECTORY_B");
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
 
         // IP addresses for the servers

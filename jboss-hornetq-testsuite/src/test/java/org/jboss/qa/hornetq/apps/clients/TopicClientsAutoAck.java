@@ -3,8 +3,8 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
 import java.util.ArrayList;
@@ -30,6 +30,7 @@ public class TopicClientsAutoAck implements Clients {
     private List<PublisherAutoAck> publishers = new ArrayList<PublisherAutoAck>();
     private List<SubscriberAutoAck> subscribers = new ArrayList<SubscriberAutoAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private MessageBuilder messageBuilder;
 
     public TopicClientsAutoAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -100,6 +101,10 @@ public class TopicClientsAutoAck implements Clients {
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
                 publisher.setMessageVerifiers(topicTextMessageVerifiers);
+
+                if (messageBuilder != null) {
+                    publisher.setMessageBuilder(messageBuilder);
+                }
 
                 getPublishers().add(publisher);
 
@@ -210,6 +215,16 @@ public class TopicClientsAutoAck implements Clients {
 
             publisher.stopSending();
         }
+    }
+
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    @Override
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     /**

@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
@@ -48,6 +49,7 @@ public class QueueClientsAutoAck implements Clients {
     private String password = null;
 
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private MessageBuilder messageBuilder;
 
     public QueueClientsAutoAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
@@ -97,6 +99,10 @@ public class QueueClientsAutoAck implements Clients {
                 p = new ProducerAutoAck(container, getHostnameForProducers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber, getMessages());
 
                 p.setMessageVerifier(queueTextMessageVerifier);
+
+                if (messageBuilder != null) {
+                    p.setMessageBuilder(messageBuilder);
+                }
 
                 if (isSecurityEnabled()) {
                     p.setSecurityEnabled(true);
@@ -226,6 +232,16 @@ public class QueueClientsAutoAck implements Clients {
         for (ProducerAutoAck producer : producers) {
             producer.stopSending();
         }
+    }
+
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    @Override
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     /**

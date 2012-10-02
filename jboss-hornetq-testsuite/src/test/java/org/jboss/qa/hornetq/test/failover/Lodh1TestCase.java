@@ -36,7 +36,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh1TestCase.class);
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 8000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -142,14 +142,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 10000, shutdown);
+        executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 180000, 10, 10);
+        Thread.sleep(180000);
         receiver1.start();
         receiver1.join();
 

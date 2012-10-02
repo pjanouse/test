@@ -260,6 +260,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+        jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
@@ -282,7 +283,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.close();
 
@@ -320,6 +321,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setAllowFailback(true);
@@ -343,7 +345,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();

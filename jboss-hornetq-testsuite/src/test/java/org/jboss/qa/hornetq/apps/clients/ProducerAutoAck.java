@@ -351,4 +351,7 @@ public class ProducerAutoAck extends Client {
 
     }
 
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
+    }
 }

@@ -50,6 +50,7 @@ public class QueueClientsClientAck implements Clients {
 
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
 
+
     public QueueClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);

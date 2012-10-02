@@ -160,7 +160,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
-        log.info("Sending message " + whichProcess.toString() + " with counter " + this.counter);
+        log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID());
         return message;
     }
 }

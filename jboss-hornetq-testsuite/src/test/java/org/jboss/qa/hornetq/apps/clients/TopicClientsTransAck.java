@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 
@@ -29,6 +30,7 @@ public class TopicClientsTransAck implements Clients {
     private List<PublisherTransAck> publishers = new ArrayList<PublisherTransAck>();
     private List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private MessageBuilder messageBuilder;
 
     public TopicClientsTransAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -80,7 +82,7 @@ public class TopicClientsTransAck implements Clients {
             for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
 
                 subscriber = new SubscriberTransAck(container, getHostnameForSubscribers(), getJndiPort(),
-                        getDestionationJndiNamePrefix() + destinationNumber, 30000, 1000, 20,
+                        getDestionationJndiNamePrefix() + destinationNumber, 30000, 30, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
@@ -104,6 +106,10 @@ public class TopicClientsTransAck implements Clients {
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
                 p.setMessageVerifiers(topicTextMessageVerifiers);
+
+                if (messageBuilder != null) {
+                    p.setMessageBuilder(messageBuilder);
+                }
 
                 getPublishers().add(p);
 
@@ -214,6 +220,16 @@ public class TopicClientsTransAck implements Clients {
 
             publisher.stopSending();
         }
+    }
+
+    /**
+     * Sets message builder for producers/publishers
+     *
+     * @param messageBuilder message builder
+     */
+    @Override
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     /**
