@@ -5,13 +5,10 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.util.Properties;
 
 /**
  * Simple sender with client acknowledge session. Able to fail over.
@@ -101,10 +98,10 @@ public class SoakProducerClientAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                if (getCounter() % 1000 == 0) {
-                    logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
+//                if (getCounter() % 1000 == 0) {
+                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
-                }
+//                }
             }
 
             producer.close();

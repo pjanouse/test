@@ -21,7 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
+//                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "1")
+        })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
@@ -91,6 +93,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
         } catch (Exception t) {
             t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
+            context.setRollbackOnly();
 
         } finally {
 

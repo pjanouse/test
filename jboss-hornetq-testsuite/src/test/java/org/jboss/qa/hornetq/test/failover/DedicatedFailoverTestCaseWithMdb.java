@@ -6,11 +6,11 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteInQueueAndLocalOutQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -70,23 +70,21 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     @RunAsClient
-    @CleanUpAfterTest
+//    @CleanUpAfterTest
     @Test
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false);
     }
 
     @RunAsClient
-    @CleanUpAfterTest
+//    @CleanUpAfterTest
     @Test
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true);
     }
 
     /**
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
+     * @param shutdown shutdown server
      * @throws Exception
      */
     public void testFailoverWithRemoteJca(boolean shutdown) throws Exception {
@@ -97,16 +95,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producerToInQueue1.start();
         producerToInQueue1.join();
 
         controller.start(CONTAINER3);
         // start mdb server
         deployer.deploy("mdb1");
-
-//        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 180000, 100, 10);
-//        receiver1.start();
 
         Thread.sleep(15000);
 
@@ -115,6 +110,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         } else {
             killServer(CONTAINER1);
         }
+
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 180000, 100, 10);
+        receiver1.start();
 
 //        receiver1.join();
         Thread.sleep(350000);

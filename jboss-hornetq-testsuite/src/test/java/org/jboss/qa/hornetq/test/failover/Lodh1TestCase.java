@@ -8,14 +8,13 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -36,7 +35,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh1TestCase.class);
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 8000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -96,27 +95,27 @@ public class Lodh1TestCase extends HornetQTestCase {
         logger.info(ejbXml);
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
 
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+//    @CleanUpAfterTest
+//    @RestoreConfigAfterTest
     public void testKill() throws Exception {
         testLodh(false);
     }
 
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+//    @CleanUpAfterTest
+//    @RestoreConfigAfterTest
     public void testShutDown() throws Exception {
         testLodh(true);
     }
@@ -132,7 +131,8 @@ public class Lodh1TestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+//        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        producer1.setMessageBuilder(new TextMessageBuilder(10000));
 
         logger.info("Start producer.");
         producer1.start();
@@ -142,20 +142,21 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 60000, shutdown);
+        executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 180000, 10, 10);
-        Thread.sleep(180000);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 10, 10);
         receiver1.start();
         receiver1.join();
 
         logger.info("Number of sent messages: " + producer1.getCounter());
         logger.info("Number of received messages: " + receiver1.getCount());
+
+        Thread.sleep(600000);
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),

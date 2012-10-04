@@ -157,7 +157,7 @@ public class SoakTestCase extends HornetQTestCase {
         producerToInQueue2.start();
 
         // Wait to send and receive some messages
-        int testDuration = 72 * 60 * 60 * 1000;
+        int testDuration = 24 * 60 * 60 * 1000;
 //        int testDuration = 5 * 60 * 1000;
         String systemPropTestDuration = System.getProperty(SYSTEM_PROPERTY_TEST_DURATION);
         if (systemPropTestDuration != null && systemPropTestDuration.trim().length() > 0) {

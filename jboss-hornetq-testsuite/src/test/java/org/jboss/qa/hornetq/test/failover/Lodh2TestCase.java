@@ -46,7 +46,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 20000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -54,7 +54,6 @@ public class Lodh2TestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
 
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -189,10 +188,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         producer1.start();
         producer2.start();
 
-        // send a lot of messages to start paging
-        while ((producer1.getCounter() + producer2.getCounter()) < 10000)    {
-            Thread.sleep(3000);
-        }
+        producer1.join();
+        producer2.join();
 
         // deploy mdbs
         deployer.deploy("mdb1");
@@ -209,11 +206,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         receiver1.start();
         receiver2.start();
-
-        producer1.stopSending();
-        producer2.stopSending();
-        producer1.join();
-        producer2.join();
 
         receiver1.join();
         receiver2.join();

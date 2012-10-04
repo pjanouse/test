@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -31,7 +32,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
     private static final int BYTEMAN_PORT = 9091;
 
     static boolean topologyCreated = false;
@@ -277,7 +278,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverAutoAckQueueOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, false, true);
     }
@@ -287,6 +288,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverClientAckQueueOnShutdown() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
@@ -307,7 +309,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackAutoAckQueueOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, false, true);
     }
@@ -317,6 +319,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackClientAckQueueOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
@@ -326,7 +329,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, false, true);
     }
@@ -336,7 +339,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverAutoAckTopicOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true, true);
     }
@@ -346,7 +349,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true, true);
     }
@@ -356,7 +359,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true, true);
     }
@@ -366,7 +369,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackAutoAckTopicOnShutdown() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true, true);
     }
@@ -376,7 +379,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true, true);
     }
@@ -386,7 +389,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true, true);
     }
@@ -400,7 +403,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false);
     }
@@ -410,6 +413,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -420,7 +424,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -430,7 +434,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true);
     }
@@ -440,6 +444,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -449,7 +454,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -459,7 +464,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
@@ -469,7 +474,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -479,7 +484,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -489,7 +494,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
     }
@@ -499,7 +504,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -509,7 +514,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -541,7 +546,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        if (!topologyCreated) {
+//        if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
@@ -554,7 +559,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             stopServer(CONTAINER2);
 
             topologyCreated = true;
-        }
+//        }
 
     }
 
@@ -686,8 +691,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port     port of management interface - it should be 9999
+     * @param containerName container name
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -696,8 +700,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to managemant interface
-     * @param port       port of management interface - it should be 9999
+     * @param containerName container name
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
