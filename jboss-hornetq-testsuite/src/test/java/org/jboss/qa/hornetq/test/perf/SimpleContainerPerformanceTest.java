@@ -273,19 +273,21 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                 }
             }
             consumer.close();
-            long sum = (end - start) / 1000000 / (messagesCount * cyclesCount);
-            log.info("########################################################");
-            log.info(" Type of the last message " + messageType);
-            log.info(String.format(" Length of the last message : %s bytes", messageLength));
-            log.info(String.format(" Avg msg delivery time : %s ms", (size != 0) ? sum : 0));
-            log.info(String.format(" Messages : %s", size));
-            log.info(String.format(" Cycles : %s", cyclesCount));
-            log.info("########################################################");
             if (size != messagesCount) {
                 log.error(String.format("Client has received %s messages but should receive %s, failing tests", size,
                         messagesCount));
                 fail("Unexpected count of messages!");
             }
+            long sum = (end - start) / 1000000;
+            int cnt = messagesCount * cyclesCount;
+            log.info("########################################################");
+            log.info(" Type of the last message " + messageType);
+            log.info(String.format(" Length of the last message : %s bytes", messageLength));
+            log.info(String.format(" Total number of messages : %s", cnt));
+            log.info(String.format(" Total duration of delivery : %s ms", sum));
+            log.info(String.format(" Throughput (msg/sec) : %s ", cnt * 1000 / sum));
+            log.info(String.format(" Avg msg delivery time : %s ms",  sum / cnt));
+            log.info("########################################################");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             fail(e.getMessage());
