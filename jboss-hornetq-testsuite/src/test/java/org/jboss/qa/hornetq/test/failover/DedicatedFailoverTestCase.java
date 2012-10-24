@@ -413,7 +413,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+//    @CleanUpAfterTest @RestoreConfigAfterTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -588,7 +588,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
-        jmsAdminOperations.setClustered(true);
+//        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -607,12 +607,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+//        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+//        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -647,7 +647,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setBackup(true);
-        jmsAdminOperations.setClustered(true);
+//        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
@@ -670,12 +670,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+//        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+//        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");

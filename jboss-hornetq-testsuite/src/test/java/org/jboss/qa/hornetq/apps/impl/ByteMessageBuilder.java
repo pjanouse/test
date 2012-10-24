@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import javax.jms.BytesMessage;
 import javax.jms.Message;
 import javax.jms.Session;
+import java.util.UUID;
 
 /**
  * Creates new byte JMS messages with required size
@@ -42,6 +43,7 @@ public class ByteMessageBuilder implements MessageBuilder {
     public Message createMessage(Session session) throws Exception {
         BytesMessage message = session.createBytesMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         if (this.size > 0) {
             byte[] data = new byte[this.size];
             message.writeBytes(data);

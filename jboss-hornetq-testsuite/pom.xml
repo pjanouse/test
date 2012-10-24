@@ -18,7 +18,7 @@
 		<hornetq.version>2.2.19.Final</hornetq.version>
 		<!--<eap5.client>5.1.2.GA-HornetQ-all-unsigned</eap5.client> -->
 		<eap5.client>5.2.0.ER2-HornetQ</eap5.client>
-		<eap6.client>6.0.1.ER2</eap6.client>
+		<eap6.client>6.0.1.ER3</eap6.client>
 
 		<arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
 		<arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
@@ -122,13 +122,13 @@
 			<version>${version.byteman}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>${xalan.version}</version>
-			<scope>test</scope>
+		<!--<dependency>-->
+			<!--<groupId>xalan</groupId>-->
+			<!--<artifactId>xalan</artifactId>-->
+			<!--<version>${xalan.version}</version>-->
+			<!--<scope>test</scope>-->
 
-		</dependency>
+		<!--</dependency>-->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>

@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 
 import javax.ejb.*;
 import javax.jms.*;
-import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.File;
@@ -113,7 +112,9 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean, Me
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            queue = session.createQueue("OutQueue");
+            if (queue == null)  {
+                queue = session.createQueue("OutQueue");
+            }
 
             con.start();
 

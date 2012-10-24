@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 
 import javax.jms.*;
+import java.util.UUID;
 
 
 /**
@@ -160,6 +161,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID());
         return message;
     }

@@ -916,6 +916,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setJournalDirectory(String serverName, String path) {
+
+        removePath(serverName, "journal-directory");
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -947,6 +950,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setPagingDirectory(String serverName, String path) {
+
+        removePath(serverName, "paging-directory");
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -978,6 +984,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setLargeMessagesDirectory(String serverName, String path) {
+
+        removePath(serverName, "large-messages-directory");
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -1011,6 +1020,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setBindingsDirectory(String serverName, String path) {
 
+        removePath(serverName, "bindings-directory");
 
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1024,6 +1034,22 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void removePath(String serverName, String attributeName) {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", attributeName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**

@@ -336,7 +336,7 @@ public class ProducerTransAck extends Client {
 
                 return;
 
-            } catch (TransactionRolledBackException ex) {
+            } catch (JMSException ex) {
                 // if rollbackException then send all messages again and try commit
                 counter = counter - listOfMessagesToBeCommited.size();
                 numberOfRetries++;
@@ -344,12 +344,12 @@ public class ProducerTransAck extends Client {
                         + ". Sent message with property count: " + counter);
                 resendMessages(producer);
 
-            } catch (JMSException ex) {
-                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
-                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
-                        + "Producer for node: " + getHostname()
-                        + ". Sent message with property count: " + counter, ex);
-                numberOfRetries++;
+//            } catch (JMSException ex) {
+//                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
+//                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
+//                        + "Producer for node: " + getHostname()
+//                        + ". Sent message with property count: " + counter, ex);
+//                numberOfRetries++;
             }
 
         }

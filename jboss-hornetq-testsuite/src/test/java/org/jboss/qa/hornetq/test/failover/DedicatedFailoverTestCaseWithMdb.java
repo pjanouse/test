@@ -7,8 +7,8 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteInQueueAndLocalOutQueue;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.Archive;
@@ -17,14 +17,12 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 3000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -51,33 +49,58 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     String outQueueFullJndiName = "java:/" + outQueueJndiName;
     boolean topologyCreated = false;
 
+//    @Deployment(managed = false, testable = false, name = "mdb1")
+//    @TargetsContainer(CONTAINER3)
+//    public static Archive getDeployment1() throws Exception {
+//
+//        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
+//        mdbJar.addClasses(MdbWithRemoteInQueueAndLocalOutQueue.class);
+//        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+//        logger.info(mdbJar.toString(true));
+//
+//        //      Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        return mdbJar;
+//    }
+
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
     public static Archive getDeployment1() throws Exception {
 
+        File propertyFile = new File("mdb1.properties");
+        PrintWriter writer = new PrintWriter(propertyFile);
+        writer.println("remote-jms-server=" + CONTAINER1_IP);
+        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
-        mdbJar.addClasses(MdbWithRemoteInQueueAndLocalOutQueue.class);
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-
-        //      Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb.jar");
+        File target = new File("/tmp/mdb1.jar");
         if (target.exists()) {
             target.delete();
         }
         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
+
     }
 
     @RunAsClient
-//    @CleanUpAfterTest
     @Test
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false);
     }
 
     @RunAsClient
-//    @CleanUpAfterTest
+    @Test
+    public void testKillWithFailback() throws Exception {
+        testFailbackWithRemoteJca(false);
+    }
+
+    @RunAsClient
     @Test
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true);
@@ -95,7 +118,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(20));
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -111,15 +134,69 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             killServer(CONTAINER1);
         }
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 180000, 100, 10);
-        receiver1.start();
+        Thread.sleep(40000);
 
-//        receiver1.join();
-        Thread.sleep(350000);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
+        receiver1.start();
+        receiver1.join();
+
         logger.info("Producer: " + producerToInQueue1.getCounter());
-//        logger.info("Receiver: " + receiver1.getCount());
-//        Assert.assertEquals("There is different number of sent and received messages.",
-//                producerToInQueue1.getCounter(), receiver1.getCount());
+        logger.info("Receiver: " + receiver1.getCount());
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getCounter(), receiver1.getCount());
+
+        deployer.undeploy("mdb1");
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+
+    }
+
+    /**
+     * @param shutdown shutdown server
+     * @throws Exception
+     */
+    public void testFailbackWithRemoteJca(boolean shutdown) throws Exception {
+
+        prepareRemoteJcaTopology();
+        // start live-backup servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(20));
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        controller.start(CONTAINER3);
+
+        // start mdb server
+        deployer.deploy("mdb1");
+
+        Thread.sleep(15000);
+
+        if (shutdown) {
+            stopServer(CONTAINER1);
+        } else {
+            killServer(CONTAINER1);
+        }
+
+        Thread.sleep(60000);
+        controller.start(CONTAINER1);
+        logger.info("Container 1 started again");
+        Thread.sleep(20000);
+        logger.info("Container 2 stopped");
+        Thread.sleep(20000);
+
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
+        receiver1.start();
+        receiver1.join();
+        Thread.sleep(300000);
+
+        logger.info("Producer: " + producerToInQueue1.getCounter());
+        logger.info("Receiver: " + receiver1.getCount());
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getCounter(), receiver1.getCount());
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER3);
@@ -157,7 +234,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
-            prepareMdbServer(CONTAINER3, CONTAINER1_IP);
+            prepareMdbServer(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
 
             copyApplicationPropertiesFiles();
 
@@ -171,13 +248,14 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
+        String remoteConnectorNameBackup = "netty-remote-backup";
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
@@ -185,8 +263,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         jmsAdminOperations.setClustered(false);
-
-        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
@@ -208,9 +284,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", jmsBackupServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+        jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+
         List<String> connecotrList = new ArrayList();
         connecotrList.add(remoteConnectorName);
+        connecotrList.add(remoteConnectorNameBackup);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connecotrList);
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
@@ -251,6 +331,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
         jmsAdminOperations.setFailoverOnShutdown("RemoteConnectionFactory", true);
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setClustered(true);
@@ -281,7 +362,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.close();
 
@@ -320,7 +401,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalType("ASYNCIO");
-
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setAllowFailback(true);
 
@@ -343,7 +425,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();

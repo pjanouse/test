@@ -198,14 +198,14 @@ public class SubscriberClientAck extends Client {
 
                 return;
 
-            } catch (TransactionRolledBackException ex) {
-                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                        + count + ", messageId:" + message.getJMSMessageID(), ex);
-                // all unacknowledge messges will be received again
-                ex.printStackTrace();
-                count = count - listOfReceivedMessagesToBeAcked.size();
-
-                return;
+//            } catch (TransactionRolledBackException ex) {
+//                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+//                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+//                // all unacknowledge messges will be received again
+//                ex.printStackTrace();
+//                count = count - listOfReceivedMessagesToBeAcked.size();
+//
+//                return;
 
             } catch (JMSException ex) {
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "

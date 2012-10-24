@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import java.util.UUID;
 
 /**
  * Creates new byte JMS text messages with required size
@@ -42,6 +43,7 @@ public class TextMessageBuilder implements MessageBuilder {
     public Message createMessage(Session session) throws Exception {
         TextMessage message = session.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         if (this.size > 0) {
             message.setText(new String(new char[this.size]));
         }
