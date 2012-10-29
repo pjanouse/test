@@ -1,3 +1,8 @@
+//TODO write duplicate detection
+// problem when there is jmsexception during commit - was it successful?
+// so when jmsexception retry operation receive
+// when no message is duplicate (_HQ_DUPL_ID)
+//
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;

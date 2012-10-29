@@ -43,7 +43,8 @@ public class TextMessageBuilder implements MessageBuilder {
     public Message createMessage(Session session) throws Exception {
         TextMessage message = session.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
         if (this.size > 0) {
             message.setText(new String(new char[this.size]));
         }

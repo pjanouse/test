@@ -13,8 +13,8 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * @author mnovak@redhat.com
  */
-@RestoreConfigAfterTest
+@RestoreConfigBeforeTest
 @RunWith(Arquillian.class)
 public class Lodh2TestCase extends HornetQTestCase {
 
@@ -101,8 +101,8 @@ public class Lodh2TestCase extends HornetQTestCase {
      * Kills mdbs servers.
      */
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh2kill() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -118,8 +118,8 @@ public class Lodh2TestCase extends HornetQTestCase {
      * Shutdown mdbs servers.
      */
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh2shutdown() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -135,8 +135,8 @@ public class Lodh2TestCase extends HornetQTestCase {
      * Kills mdbs servers.
      */
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh3kill() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -152,8 +152,8 @@ public class Lodh2TestCase extends HornetQTestCase {
      * Kills mdbs servers.
      */
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh3shutdown() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
@@ -168,7 +168,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
-//    @CleanUpAfterTest
+//    @CleanUpBeforeTest
     public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
 
         prepareRemoteJcaTopology();
@@ -288,7 +288,6 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-//        if (!topologyCreated) {
             prepareJmsServer(CONTAINER1, CONTAINER1_IP);
             prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
 
@@ -298,9 +297,6 @@ public class Lodh2TestCase extends HornetQTestCase {
             if (isEAP6())   {
                 copyApplicationPropertiesFiles();
             }
-
-//            topologyCreated = true;
-//        }
 
     }
 

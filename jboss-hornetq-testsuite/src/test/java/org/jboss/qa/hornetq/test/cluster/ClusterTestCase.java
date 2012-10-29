@@ -14,6 +14,8 @@ import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -37,7 +39,7 @@ import java.io.File;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-//@RestoreConfigAfterTest
+@RestoreConfigBeforeTest
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
@@ -86,10 +88,10 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-//    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void clusterTest() throws Exception {
 
-//        prepareServers();
+        prepareServers();
 
         controller.start(CONTAINER2);
 
@@ -120,7 +122,7 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-//    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnQueue() throws Exception {
 
 //        prepareServers();
@@ -169,6 +171,7 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnTopicWithoutDifferentSubscription() throws Exception {
         clusterTestWithMdbOnTopic(false);
     }
@@ -180,6 +183,7 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnTopicWithDifferentSubscription() throws Exception {
         clusterTestWithMdbOnTopic(true);
     }

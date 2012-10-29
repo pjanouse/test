@@ -97,8 +97,9 @@ public class ProducerClientAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + counter
-                        + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
+                        + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID()
+                        + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
 
             }
 
@@ -157,16 +158,14 @@ public class ProducerClientAck extends Client {
 
                 counter++;
 
-                numberOfRetries = 0;
-
                 return;
 
             } catch (JMSException ex) {
 
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname
-                            + ". Sent message with property count: " + counter
-                            + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID(), ex);
+                            + ". Sent message with property count: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID()
+                            + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""), ex);
                 } catch (JMSException e) {
                 } // ignore 
 

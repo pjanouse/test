@@ -138,7 +138,8 @@ public class ReceiverClientAck extends Client {
                     logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                             + ". Received message - count: "
                             + count + ", message-counter: " + message.getStringProperty("counter")
-                            + ", messageId:" + message.getJMSMessageID());
+                            + ", messageId:" + message.getJMSMessageID()
+                            + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""));
                 }
 
                 // hold information about last message so we can ack it when null is received = queue empty
@@ -206,18 +207,20 @@ public class ReceiverClientAck extends Client {
 
                 return;
 
-//            } catch (TransactionRolledBackException ex) {
-//                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-//                        + count + ", messageId:" + message.getJMSMessageID(), ex);
-//                // all unacknowledge messges will be received again
-//                ex.printStackTrace();
-//                count = count - listOfReceivedMessagesToBeAcked.size();
-//
-//                return;
+            } catch (TransactionRolledBackException ex) {
+                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                        + count + ", messageId:" + message.getJMSMessageID()
+                        + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""), ex);
+                // all unacknowledge messges will be received again
+                ex.printStackTrace();
+                count = count - listOfReceivedMessagesToBeAcked.size();
+
+                return;
 
             } catch (JMSException ex) {
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                        + count + ", messageId:" + message.getJMSMessageID(), ex);
+                        + count + ", messageId:" + message.getJMSMessageID()
+                        + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""), ex);
                 ex.printStackTrace();
                 numberOfRetries++;
             }

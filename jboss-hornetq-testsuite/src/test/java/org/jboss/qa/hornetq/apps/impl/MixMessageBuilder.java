@@ -75,7 +75,8 @@ public class MixMessageBuilder implements MessageBuilder {
 
         }
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
         return message;
     }
 }

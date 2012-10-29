@@ -42,8 +42,9 @@ public class ByteMessageBuilder implements MessageBuilder {
     @Override
     public Message createMessage(Session session) throws Exception {
         BytesMessage message = session.createBytesMessage();
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+
         if (this.size > 0) {
             byte[] data = new byte[this.size];
             message.writeBytes(data);

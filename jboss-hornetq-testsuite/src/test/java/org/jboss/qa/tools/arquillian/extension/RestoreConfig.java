@@ -7,8 +7,10 @@ import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.After;
 import org.jboss.arquillian.test.spi.event.suite.AfterClass;
+import org.jboss.arquillian.test.spi.event.suite.Before;
 import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +20,9 @@ import java.nio.channels.FileChannel;
 import java.util.Map;
 
 /**
- * Saves configuration before test class and then restores after each test which is annotated by @RestoreConfigAfterTest
+ * Saves configuration before @TestClass - ALWAYS
+ * Restores after each test which is annotated by @RestoreConfigAfterTest
+ * Restores before test which is annotated by @RestoreConfigBeforeTest
  *
  * @author mnovak@redhat.com
  */
@@ -133,18 +137,18 @@ public class RestoreConfig {
     }
 
     /**
-     * Restore configuration of all containers after test method annotated by @RestoreConfigAfterTest.
+     * Restore configuration of all containers after test class. Must be annotated by @RestoreConfigAfterTest.
      *
      * @param event      when to backup configuration
      * @param descriptor arquillian.xml
      * @throws IOException
      */
-    public void restoreConfiguration(@Observes After event, ArquillianDescriptor descriptor) throws IOException {
+    public void restoreConfigurationAfterTestClass(@Observes AfterClass event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no RestoreConfigAfterTest annotation then do nothing
-        if (event.getTestMethod().getAnnotation(RestoreConfigAfterTest.class) == null) return;
+        if (event.getTestClass().getAnnotation(RestoreConfigAfterTest.class) == null) return;
 
-        logger.info("Restoring configuration after test: " + event.getTestMethod().getName());
+        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
     }
@@ -156,15 +160,34 @@ public class RestoreConfig {
      * @param descriptor arquillian.xml
      * @throws IOException
      */
-    public void restoreConfiguration(@Observes AfterClass event, ArquillianDescriptor descriptor) throws IOException {
+    public void restoreConfigurationAfterTest(@Observes After event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no RestoreConfigAfterTest annotation then do nothing
-        if (event.getTestClass().getAnnotation(RestoreConfigAfterTest.class) == null) return;
+        if (event.getTestMethod().getAnnotation(RestoreConfigAfterTest.class) == null) return;
 
         logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
     }
+
+    /**
+     * Restore configuration of all containers after test class. Must be annotated by @RestoreConfigAfterTest.
+     *
+     * @param event      when to backup configuration
+     * @param descriptor arquillian.xml
+     * @throws IOException
+     */
+    public void restoreConfigurationBeforeTest(@Observes Before event, ArquillianDescriptor descriptor) throws IOException {
+
+        // if there is no RestoreConfigBeforeTest annotation then do nothing
+        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) return;
+
+        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
+
+        restoreConfiguration(descriptor);
+    }
+
+
 
     private void restoreConfiguration(ArquillianDescriptor descriptor) throws IOException {
 

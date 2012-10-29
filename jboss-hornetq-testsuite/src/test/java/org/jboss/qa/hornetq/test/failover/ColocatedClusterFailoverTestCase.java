@@ -10,7 +10,8 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -26,7 +27,6 @@ import java.io.File;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-//@RestoreConfigAfterTest
 public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ColocatedClusterFailoverTestCase.class);
@@ -36,8 +36,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
     private static final int BYTEMAN_PORT = 9091;
-
-    static boolean topologyCreated = false;
 
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
@@ -58,16 +56,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
-
-    /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     *
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
-     * @throws Exception
-     */
     @BMRules({
             @BMRule(name = "Setup counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
@@ -84,6 +72,22 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                     condition = "readCounter(\"counter\")>553",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
+        testFail(acknowledge, failback, topic, false);
+    }
+
+    public void testFailoverWithShutDown(int acknowledge, boolean failback, boolean topic) throws Exception {
+        testFail(acknowledge, failback, topic, true);
+    }
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @param acknowledge acknowledge type
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
+     */
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
         prepareColocatedTopologyInCluster();
 
@@ -98,7 +102,14 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
-        controller.kill(CONTAINER1);
+        if (shutdown)   {
+
+            Thread.sleep(10000); // give some time to clients to failover
+
+            controller.stop(CONTAINER1);
+        } else {
+            controller.kill(CONTAINER1);
+        }
 
         Thread.sleep(10000); // give some time to clients to failover
 
@@ -165,6 +176,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false);
     }
@@ -174,9 +186,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueShutDown() throws Exception {
+
+        testFailoverWithShutDown(Session.CLIENT_ACKNOWLEDGE, false, false);
     }
 
     /**
@@ -184,6 +208,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -193,6 +218,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true);
     }
@@ -202,6 +228,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -211,6 +238,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -220,6 +248,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
@@ -229,6 +258,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -238,6 +268,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -247,6 +278,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
     }
@@ -256,6 +288,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -265,7 +298,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -297,7 +330,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareColocatedTopologyInCluster() {
-        if (!topologyCreated) {
+
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             prepareColocatedBackupServer(CONTAINER1, CONTAINER1_IP, "backup", JOURNAL_DIRECTORY_B);
 
@@ -307,14 +340,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             // deploy destinations 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
-            deployDestinations(CONTAINER1, "backup");
             stopServer(CONTAINER1);
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
-            deployDestinations(CONTAINER2, "backup");
             stopServer(CONTAINER2);
-            topologyCreated = true;
-        }
+
+
     }
 
     /**
@@ -347,9 +378,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
+        jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
+
+        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -413,7 +447,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setAllowFailback(backupServerName, true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(backupServerName, "ASYNCIO");
 
         jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
         jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
@@ -424,8 +458,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         jmsAdminOperations.close();
 
         controller.stop(containerName);

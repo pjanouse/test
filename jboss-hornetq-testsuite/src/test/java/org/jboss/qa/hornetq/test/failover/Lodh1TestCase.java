@@ -8,10 +8,12 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -35,7 +37,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh1TestCase.class);
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -106,16 +108,16 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     @RunAsClient
     @Test
-//    @CleanUpAfterTest
-//    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testKill() throws Exception {
         testLodh(false);
     }
 
     @RunAsClient
     @Test
-//    @CleanUpAfterTest
-//    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testShutDown() throws Exception {
         testLodh(true);
     }
@@ -131,8 +133,8 @@ public class Lodh1TestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-//        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        producer1.setMessageBuilder(new TextMessageBuilder(10000));
+        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+//        producer1.setMessageBuilder(new TextMessageBuilder(10000));
 
         logger.info("Start producer.");
         producer1.start();
@@ -142,21 +144,19 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 20000, shutdown);
+        executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 400000, 10, 10);
         receiver1.start();
         receiver1.join();
 
         logger.info("Number of sent messages: " + producer1.getCounter());
         logger.info("Number of received messages: " + receiver1.getCount());
-
-        Thread.sleep(600000);
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
@@ -237,9 +237,9 @@ public class Lodh1TestCase extends HornetQTestCase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
+//        jmsAdminOperations.setInetAddress("public", bindingAddress);
+//        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
+//        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(false);
 
@@ -247,7 +247,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 500 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 *1024);
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);

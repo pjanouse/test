@@ -1158,4 +1158,9 @@ public interface JMSOperations {
      * @param databasePort  port
      */
     void setDatabase(String databaseHostname, int databasePort);
+
+    void removeAddressSettings(String serverName, String address);
+
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                            long redistributionDelay, long pageSizeBytes);
 }

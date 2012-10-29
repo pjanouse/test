@@ -14,7 +14,6 @@ import java.util.*;
 /**
  * This class observers jms clients and store their sent and received messages.
  * <p/>
- * //TODO Then it's able to verify for example whether there are no duplicated or lost messages. Or different number of messages.
  *
  * @author mnovak@redhat.com
  */
@@ -119,11 +118,12 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
         Map<String, Message> sentMessageIds = new HashMap<String, Message>();
 
         for (Message message : sentMessages) {
-            sentMessageIds.put(message.getJMSMessageID(), message);
+
+            sentMessageIds.put(message.getStringProperty("_HQ_DUPL_ID"), message);
         }
 
         for (Message message : receivedMessages) {
-            sentMessageIds.remove(message.getJMSMessageID());
+            sentMessageIds.remove(message.getStringProperty("_HQ_DUPL_ID"));
         }
 
         List<Message> listOfLostMessages = new ArrayList<Message>();

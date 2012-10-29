@@ -8,8 +8,8 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -24,13 +24,12 @@ import javax.jms.Session;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-//@RestoreConfigAfterTest
 public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
     private static final int BYTEMAN_PORT = 9091;
@@ -273,22 +272,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         return clients;
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailoverAutoAckQueueOnShutdown() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, false, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckQueueOnShutdown() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false, false, true);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdown() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
@@ -299,27 +298,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, false, true);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailbackAutoAckQueueOnShutdown() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, false, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckQueueOnShutdown() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true, false, true);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckQueueOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
@@ -329,27 +328,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, false, true);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailoverAutoAckTopicOnShutdown() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, true, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckTopicOnShutdown() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false, true, true);
+//    }
 
     /**
      * Start simple failover test with client acknowledge on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true, true);
     }
@@ -359,27 +358,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true, true);
     }
 
-    /**
-     * Start simple failback test with auto acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailbackAutoAckTopicOnShutdown() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, true, true);
-    }
+//    /**
+//     * Start simple failback test with auto acknowledge on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckTopicOnShutdown() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true, true, true);
+//    }
 
     /**
      * Start simple failback test with client acknowledge on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true, true);
     }
@@ -389,7 +388,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true, true);
     }
@@ -398,22 +397,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     // TEST KILL ////////////////////////
     ////////////////////////////////////////////////////////
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailoverAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckQueue() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
      */
     @Test
     @RunAsClient
-//    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -424,27 +423,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailbackAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckQueue() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -454,27 +453,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailoverAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckTopic() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
+//    }
 
     /**
      * Start simple failover test with client acknowledge on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -484,27 +483,27 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
 
-    /**
-     * Start simple failback test with auto acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
-    public void testFailbackAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
-    }
+//    /**
+//     * Start simple failback test with auto acknowledge on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckTopic() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
+//    }
 
     /**
      * Start simple failback test with client acknowledge on queues
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -514,7 +513,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -588,7 +587,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
-//        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -607,12 +606,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-//        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-//        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -647,7 +646,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setBackup(true);
-//        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
@@ -670,12 +669,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-//        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-//        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");

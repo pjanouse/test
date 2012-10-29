@@ -2062,13 +2062,24 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      *
      * @param address address specification
      */
-    @Override
     public void removeAddressSettings(String address) {
+        removeAddressSettings("default", address);
+    }
+
+    /**
+     * Removes address settings
+     *
+     * @param serverName name of the server
+     * @param address address specification
+     *
+     */
+    @Override
+    public void removeAddressSettings(String serverName, String address) {
         try {
             ModelNode setAddressAttributes = new ModelNode();
             setAddressAttributes.get(ClientConstants.OP).set("remove");
             setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-            setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
             setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
             try {
                 this.applyUpdate(setAddressAttributes);
@@ -2095,10 +2106,27 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes) {
+        addAddressSettings("default", address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
+    }
+    /**
+     * Adds address settings
+     *
+     * @param address             address specification
+     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes        The max bytes size
+     * @param redeliveryDelay     Defines how long to wait before attempting
+     *                            redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last
+     *                            consumer is closed on a queue before redistributing any messages
+     * @param pageSizeBytes       The paging size
+     */
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                                   long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = new ModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
         setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
         setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);

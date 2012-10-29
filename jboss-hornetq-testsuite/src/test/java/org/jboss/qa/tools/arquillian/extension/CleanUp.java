@@ -6,13 +6,16 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.After;
+import org.jboss.arquillian.test.spi.event.suite.Before;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
 /**
- * Removed tmp, data, log directory after each test which is annotated by @CleanUpAfterTest
+ * Removed tmp, data, log directory after each test which is annotated by @CleanUpAfterTest or @CleanUpBeforeTest
  *
  * @author mnovak@redhat.com
  */
@@ -30,9 +33,29 @@ public class CleanUp {
     public void cleanUpAfterTest(@Observes After event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no CleanUpAfterTest annotation then do nothing
-        if (event.getTestMethod().getAnnotation(org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest.class) == null)
+        if (event.getTestMethod().getAnnotation(CleanUpAfterTest.class) == null)
             return;
 
+        cleanUp(descriptor);
+    }
+
+    /**
+     * Deletes log, tmp, data after all tests annotated by @CleanUp.
+     *
+     * @param event      when to delete
+     * @param descriptor arquillian.xml
+     * @throws IOException
+     */
+    public void cleanUpBeforeTest(@Observes Before event, ArquillianDescriptor descriptor) throws IOException {
+
+        // if there is no CleanUpAfterTest annotation then do nothing
+        if (event.getTestMethod().getAnnotation(CleanUpBeforeTest.class) == null)
+            return;
+
+        cleanUp(descriptor);
+    }
+
+    private void cleanUp(ArquillianDescriptor descriptor)  {
         Map<String, String> containerProperties;
         String jbossHome;
 

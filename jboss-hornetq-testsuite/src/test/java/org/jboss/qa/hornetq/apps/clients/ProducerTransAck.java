@@ -172,7 +172,7 @@ public class ProducerTransAck extends Client {
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname
                             + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID());
+                            + ", messageId:" + msg.getJMSMessageID(), ex);
                 } catch (JMSException ignored) {
                 } // ignore
 
@@ -336,20 +336,20 @@ public class ProducerTransAck extends Client {
 
                 return;
 
-            } catch (JMSException ex) {
+            } catch (TransactionRolledBackException ex) {
                 // if rollbackException then send all messages again and try commit
                 counter = counter - listOfMessagesToBeCommited.size();
                 numberOfRetries++;
                 logger.info("COMMIT Failed - Producer for node: " + hostname
-                        + ". Sent message with property count: " + counter);
+                        + ". Sent message with property count: " + counter, ex);
                 resendMessages(producer);
 
-//            } catch (JMSException ex) {
-//                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
-//                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
-//                        + "Producer for node: " + getHostname()
-//                        + ". Sent message with property count: " + counter, ex);
-//                numberOfRetries++;
+            } catch (JMSException ex) {
+                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
+                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
+                        + "Producer for node: " + getHostname()
+                        + ". Sent message with property count: " + counter, ex);
+                numberOfRetries++;
             }
 
         }
