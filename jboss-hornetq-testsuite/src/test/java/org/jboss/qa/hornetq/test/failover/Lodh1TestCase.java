@@ -229,8 +229,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
+     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param bindingAddress says on which ip container will be binded
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
@@ -249,7 +249,18 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 *1024);
 
+        try {
+            jmsAdminOperations.removeQueue(inQueueName);
+        } catch (Exception e) {
+            // Ignore it
+        }
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+
+        try {
+            jmsAdminOperations.removeQueue(outQueueName);
+        } catch (Exception e) {
+            // Ignore it
+        }
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
 
