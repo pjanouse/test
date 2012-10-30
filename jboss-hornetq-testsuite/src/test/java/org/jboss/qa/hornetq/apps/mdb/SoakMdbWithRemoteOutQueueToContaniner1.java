@@ -41,7 +41,7 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
     static {
         try {
             Properties prop = new Properties();
-            File propFile = new File("mdb1.properties");
+            File propFile = new File(System.getProperty("jboss.home.dir") + File.separator + "mdb1.properties");
             log.info("Location of property file (mdb1) is: " + propFile.getAbsolutePath());
             prop.load(new FileInputStream(propFile));
             hostname = prop.getProperty("remote-jms-server");

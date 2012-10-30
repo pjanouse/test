@@ -19,6 +19,26 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     // Counter of messages
     private int counter = 0;
 
+    private boolean addDuplicatedHeader = true;
+
+    /**
+     *
+     * @return if header for message duplication will be added
+     */
+    public boolean isAddDuplicatedHeader() {
+        return addDuplicatedHeader;
+    }
+
+    /**
+     *
+     * if header for message duplication will be added
+     *
+     * @param addDuplicatedHeader
+     */
+    public void setAddDuplicatedHeader(boolean addDuplicatedHeader) {
+        this.addDuplicatedHeader = addDuplicatedHeader;
+    }
+
     private enum MessageType {
         BYTE, TEXT, OBJECT, MAP, STREAM,
         LARGE_BYTE, LARGE_TEXT, LARGE_OBJECT, LARGE_MAP, STREAM_LARGE
@@ -161,8 +181,12 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
-        //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
+
+        if (addDuplicatedHeader)    {
+                message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        }
+
+//        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
         "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
         return message;

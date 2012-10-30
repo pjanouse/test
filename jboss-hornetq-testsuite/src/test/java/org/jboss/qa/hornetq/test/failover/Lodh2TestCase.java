@@ -18,6 +18,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTes
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -41,12 +42,12 @@ import java.util.Map;
  */
 @RestoreConfigBeforeTest
 @RunWith(Arquillian.class)
-public class Lodh2TestCase extends HornetQTestCase {
+    public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 20000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -62,18 +63,20 @@ public class Lodh2TestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
 
-        File propertyFile = new File("mdb1.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER1_IP);
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+//        mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         File target = new File("/tmp/mdb1.jar");
         if (target.exists()) {
             target.delete();
         }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -82,7 +85,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File("mdb2.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER3_IP);
         writer.close();
@@ -94,7 +97,21 @@ public class Lodh2TestCase extends HornetQTestCase {
         if (target.exists()) {
             target.delete();
         }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
+    }
+
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testSimpleLodh2kill() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER2);
+        testRemoteJcaInCluster(failureSequence, false);
     }
 
     /**
@@ -168,7 +185,6 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
-//    @CleanUpBeforeTest
     public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
 
         prepareRemoteJcaTopology();
@@ -180,16 +196,12 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER4);
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        SoakProducerClientAck producer2 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        producer1.setMessageBuilder(new ClientMixMessageBuilder(10,100));
-        producer2.setMessageBuilder(new ClientMixMessageBuilder(10,100));
-
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
+        builder.setAddDuplicatedHeader(false);
+        producer1.setMessageBuilder(builder);
         producer1.start();
-        producer2.start();
-
         producer1.join();
-        producer2.join();
 
         // deploy mdbs
         deployer.deploy("mdb1");
@@ -201,28 +213,23 @@ public class Lodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, outQueueJndiName, 180000, 10, 10);
-        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 180000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 300000, 10, 10);
 
         receiver1.start();
-        receiver2.start();
 
         receiver1.join();
-        receiver2.join();
 
-        logger.info("Number of sent messages: " + (producer1.getCounter() + producer2.getCounter())
-                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages, "
-                + ", Producer to jms2 server sent: " + producer2.getCounter() + " messages.");
+        logger.info("Number of sent messages: " + (producer1.getCounter()
+                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages"));
 
-        logger.info("Number of received messages: " + (receiver1.getCount() + receiver2.getCount())
-                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages, "
-                + ", Consumer from jms2 server received: " + receiver2.getCount() + " messages.");
+        logger.info("Number of received messages: " + (receiver1.getCount()
+                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
+
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter() + producer2.getCounter(),
-                receiver1.getCount() + receiver2.getCount());
+                producer1.getCounter(), receiver1.getCount());
         Assert.assertTrue("Receivers did not get any messages.",
-                receiver1.getCount() + receiver2.getCount() > 0);
+                receiver1.getCount() > 0);
 
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
@@ -230,7 +237,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         stopServer(CONTAINER4);
         stopServer(CONTAINER1);
         stopServer(CONTAINER3);
-
     }
 
     /**
@@ -297,7 +303,6 @@ public class Lodh2TestCase extends HornetQTestCase {
             if (isEAP6())   {
                 copyApplicationPropertiesFiles();
             }
-
     }
 
     /**
@@ -411,7 +416,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setClustered(false);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
@@ -440,7 +445,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setClustered(false);
 
             jmsAdminOperations.setPersistenceEnabled(true);
             jmsAdminOperations.setSharedStore(true);

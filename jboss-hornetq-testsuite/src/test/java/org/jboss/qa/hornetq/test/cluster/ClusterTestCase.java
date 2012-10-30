@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
@@ -25,7 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.Session;
+import javax.jms.*;
+import javax.naming.Context;
 import java.io.File;
 
 /**
@@ -111,6 +113,114 @@ public class ClusterTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER1);
 
+        stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void clusterTestWitDuplicateId() throws Exception {
+
+        prepareServers();
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer1.setMessageBuilder(new ClientMixMessageBuilder(10,100));
+        producer1.start();
+        producer1.join();
+
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, 10000, 10, 10);
+        receiver1.start();
+        receiver1.join();
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void clusterTestWitoutDuplicateIdWithInterruption() throws Exception {
+
+        prepareServers();
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        // send messages without dup id -> load-balance to node 2
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
+        builder.setAddDuplicatedHeader(false);
+        producer1.setMessageBuilder(builder);
+        producer1.start();
+        producer1.join();
+
+        // receive more then half message so some load-balanced messages gets back
+        Context context = null;
+        ConnectionFactory cf;
+        Connection conn = null;
+        Session session;
+        Queue queue;
+
+        try {
+
+            context = getContext(CONTAINER1_IP, getJNDIPort());
+
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+
+            conn = cf.createConnection();
+
+            conn.start();
+
+            queue = (Queue) context.lookup(inQueueJndiNameForMdb);
+
+            session = conn.createSession(true, Session.SESSION_TRANSACTED);
+
+            MessageConsumer receiver = session.createConsumer(queue);
+
+            Message message;
+
+            int count = 0;
+            while (count < NUMBER_OF_MESSAGES_PER_PRODUCER) {
+                receiver.receive(10000);
+                count++;
+                log.info("Receiver got message: " + count);
+            }
+            session.rollback();
+
+        } catch (JMSException ex)   {
+            log.error("Error occurred during receiving.", ex);
+        } finally {
+            if (conn != null)   {
+                conn.close();
+            }
+        }
+
+        // receive  some of them from first server and kill receiver -> only some of them gets back to
+        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), inQueueJndiNameForMdb, 10000, 10, 10);
+        receiver2.start();
+        receiver2.join();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getCount());
+        stopServer(CONTAINER1);
         stopServer(CONTAINER2);
 
     }
@@ -433,7 +543,7 @@ public class ClusterTestCase extends HornetQTestCase {
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
         jmsAdminOperations.close();
         controller.stop(containerName);
 
