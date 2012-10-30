@@ -1,12 +1,11 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -22,7 +21,7 @@ public class SoakReceiverClientAck extends Client {
     private String queueNameJndi = "jms/queue/testQueue0";
     private long receiveTimeOut;
     private int ackAfter;
-    //    private List<String> listOfReceivedMessages = new ArrayList<String>();;
+    private List<String> listOfReceivedMessages = new ArrayList<String>();;
 //    private List<String> listOfReceivedMessagesToBeAcked = new ArrayList<String>();
     private int count = 0;
     private Exception exception = null;
@@ -121,7 +120,7 @@ public class SoakReceiverClientAck extends Client {
                             + count + ", message-counter: " + message.getStringProperty("counter")
                             + ", messageId:" + message.getJMSMessageID());
                 }
-
+                listOfReceivedMessages.add(message.getStringProperty("_HQ_DUPL_ID"));
                 // hold information about last message so we can ack it when null is received = queue empty
                 lastMessage = message;
             }
@@ -272,19 +271,19 @@ public class SoakReceiverClientAck extends Client {
         this.queueNameJndi = queueNameJndi;
     }
 
-//    /**
-//     * @return the listOfReceivedMessages
-//     */
-//    public List<String> getListOfReceivedMessages() {
-//        return listOfReceivedMessages;
-//    }
-//
-//    /**
-//     * @param listOfReceivedMessages the listOfReceivedMessages to set
-//     */
-//    public void setListOfReceivedMessages(List<String> listOfReceivedMessages) {
-//        this.listOfReceivedMessages = listOfReceivedMessages;
-//    }
+    /**
+     * @return the listOfReceivedMessages
+     */
+    public List<String> getListOfReceivedMessages() {
+        return listOfReceivedMessages;
+    }
+
+    /**
+     * @param listOfReceivedMessages the listOfReceivedMessages to set
+     */
+    public void setListOfReceivedMessages(List<String> listOfReceivedMessages) {
+        this.listOfReceivedMessages = listOfReceivedMessages;
+    }
 
     /**
      * @return the exception

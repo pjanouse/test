@@ -9,6 +9,8 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple sender with client acknowledge session. Able to fail over.
@@ -29,7 +31,7 @@ public class SoakProducerClientAck extends Client {
     private String queueNameJndi = "jms/queue/testQueue1";
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    //    private List<String> listOfSentMessages = new ArrayList<String>();
+    private List<String> listOfSentMessages = new ArrayList<String>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
@@ -151,7 +153,9 @@ public class SoakProducerClientAck extends Client {
 
                 producer.send(msg);
 
-//                listOfSentMessages.add(msg.getJMSMessageID());
+                if (msg.getStringProperty("_HQ_DUPL_ID") != null)   {
+                    listOfSentMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
+                }
 
                 setCounter(getCounter() + 1);
 
@@ -242,21 +246,21 @@ public class SoakProducerClientAck extends Client {
         this.messages = messages;
     }
 
-//    /**
-//     * List of messageIds.
-//     * 
-//     * @return the listOfSentMessages
-//     */
-//    public List<String> getListOfSentMessages() {
-//        return listOfSentMessages;
-//    }
-//
-//    /**
-//     * @param listOfSentMessages the listOfSentMessages to set
-//     */
-//    public void setListOfSentMessages(List<String> listOfSentMessages) {
-//        this.listOfSentMessages = listOfSentMessages;
-//    }
+    /**
+     * List of messageIds.
+     *
+     * @return the listOfSentMessages
+     */
+    public List<String> getListOfSentMessages() {
+        return listOfSentMessages;
+    }
+
+    /**
+     * @param listOfSentMessages the listOfSentMessages to set
+     */
+    public void setListOfSentMessages(List<String> listOfSentMessages) {
+        this.listOfSentMessages = listOfSentMessages;
+    }
 
     /**
      * @return the messageVerifier

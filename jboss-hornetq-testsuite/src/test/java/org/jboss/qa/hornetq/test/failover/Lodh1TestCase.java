@@ -26,7 +26,9 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author mnovak@redhat.com
@@ -151,7 +153,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 400000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -163,9 +165,50 @@ public class Lodh1TestCase extends HornetQTestCase {
                 receiver1.getCount());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
+        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
+        for (String dupId : lostMessages) {
+            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
+        }
+
+        List<String> duplicatedMessages = checkDuplicatedMessages(receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are duplicated messages. Check logs for details.", 0, duplicatedMessages.size());
+        for (String dupId : duplicatedMessages) {
+            logger.info("Duplicated message - _HQ_DUPL_ID=" + dupId);
+        }
+
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
 
+    }
+
+    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
+
+        //get lost messages
+        List<String> listOfLostMessages = new ArrayList<String>();
+
+        for (String duplicateId : listOfSentMessages) {
+            if (!listOfReceivedMessages.contains(duplicateId)) {
+                listOfLostMessages.add(duplicateId);
+            }
+        }
+        return listOfLostMessages;
+    }
+
+    private List<String> checkDuplicatedMessages(List<String> listOfReceivedMessages) {
+
+        //get lost messages
+        List<String> listOfDuplicatedMessages = new ArrayList<String>();
+
+        Set<String> setOfDuplicatedMessages = new HashSet<String>();
+
+        for (String duplicateId : listOfReceivedMessages) {
+            // add returns false when this message is there twice=duplicated
+            if (!setOfDuplicatedMessages.add(duplicateId))   {
+                listOfDuplicatedMessages.add(duplicateId);
+            }
+        }
+        return listOfDuplicatedMessages;
     }
 
     /**
