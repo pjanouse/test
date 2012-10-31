@@ -26,9 +26,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author mnovak@redhat.com
@@ -202,12 +200,17 @@ public class Lodh1TestCase extends HornetQTestCase {
         //get lost messages
         List<String> listOfDuplicatedMessages = new ArrayList<String>();
 
-        Set<String> setOfDuplicatedMessages = new HashSet<String>();
+        for (String id : listOfReceivedMessages)  {
+            listOfDuplicatedMessages.add(id);
+        }
 
-        for (String duplicateId : listOfReceivedMessages) {
-            // add returns false when this message is there twice=duplicated
-            if (!setOfDuplicatedMessages.add(duplicateId))   {
-                listOfDuplicatedMessages.add(duplicateId);
+        for (String id : listOfReceivedMessages) {
+            for (String idDup : listOfDuplicatedMessages) {
+                if (id.equalsIgnoreCase(idDup))   {
+                    // remove first occurencs from dup list
+                    listOfDuplicatedMessages.remove(idDup);
+                    break;
+                }
             }
         }
         return listOfDuplicatedMessages;
