@@ -104,15 +104,8 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
             } catch (Exception e) {
                 log.log(Level.ERROR, e.getMessage(), e);
             }
-            String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-//            log.log(Level.INFO, " Start of message:" + messageInfo);
 
-            for (int i = 0; i < (5 + 5 * Math.random()); i++) {
-                try {
-                    Thread.sleep((int) (10 + 10 * Math.random()));
-                } catch (InterruptedException ex) {
-                }
-            }
+            String messageInfo = message.getJMSMessageID() + ", count:" + counter;
 
             con = cf.createConnection();
 
@@ -126,7 +119,7 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-//            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
 

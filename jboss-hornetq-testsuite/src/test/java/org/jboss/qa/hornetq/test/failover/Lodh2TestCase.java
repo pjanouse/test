@@ -47,7 +47,7 @@ import java.util.Map;
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -111,6 +111,19 @@ import java.util.Map;
     public void testSimpleLodh2kill() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER2);
+        testRemoteJcaInCluster(failureSequence, false);
+    }
+
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testSimpleLodh3kill() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER1);
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -213,7 +226,7 @@ import java.util.Map;
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 400000, 10, 10);
 
         receiver1.start();
 
@@ -466,6 +479,7 @@ import java.util.Map;
             jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             jmsAdminOperations.close();
             controller.stop(containerName);
         }

@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
-//                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "1")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
@@ -35,9 +34,6 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
     private  Queue queue;
 
     public static AtomicInteger globalCounter = new AtomicInteger();
-
-//    @Resource(name = "queue/OutQueue")
-//    private static Queue queue;
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(LocalMdbFromQueue.class.getName());
@@ -74,7 +70,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
                 log.log(Level.ERROR, e.getMessage(), e);
             }
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-            log.log(Level.INFO, " Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
+            log.log(Level.DEBUG, " Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
 
             con = cf.createConnection();
 
@@ -88,7 +84,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.log(Level.DEBUG, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
             t.printStackTrace();
