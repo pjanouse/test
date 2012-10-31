@@ -115,7 +115,7 @@ import java.util.Map;
     }
 
     /**
-     * Kills mdbs servers.
+     * Kills jms servers.
      */
     @Test
     @CleanUpBeforeTest
@@ -125,6 +125,19 @@ import java.util.Map;
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER1);
         testRemoteJcaInCluster(failureSequence, false);
+    }
+
+    /**
+     * Shutdown jms servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testSimpleLodh3Shutdown() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER1);
+        testRemoteJcaInCluster(failureSequence, true);
     }
 
     /**

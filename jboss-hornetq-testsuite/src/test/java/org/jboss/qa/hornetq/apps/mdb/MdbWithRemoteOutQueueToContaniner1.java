@@ -52,7 +52,7 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
 
-            log.info(" Start of message:" + messageInfo);
+            log.debug(" Start of message:" + messageInfo);
 
             for (int i = 0; i < (5 + 5 * Math.random()); i++) {
                 try {
@@ -77,7 +77,7 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.info(" End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.debug(" End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
             log.error(t.getMessage(), t);
