@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A MdbWithRemoteOutQueueToContaniner2 used for lodh tests. Used in RemoteJcaTestCase.
@@ -26,6 +27,7 @@ public class MdbWithRemoteOutQueueToContaniner2 implements MessageListener {
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbWithRemoteOutQueueToContaniner2.class.getName());
+    public static AtomicInteger numberOfProcessedMessages= new AtomicInteger();
     private Queue queue = null;
 
     @Resource(mappedName = "java:/JmsXA")
@@ -78,7 +80,8 @@ public class MdbWithRemoteOutQueueToContaniner2 implements MessageListener {
             sender.send(newMessage);
 
             log.debug(" End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
-
+            numberOfProcessedMessages.incrementAndGet();
+            if (numberOfProcessedMessages.get() % 100 == 0) log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
         } catch (Exception t) {
             log.error(t.getMessage(), t);
             this.context.setRollbackOnly();
