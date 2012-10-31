@@ -96,8 +96,10 @@ public class Lodh5TestCase extends HornetQTestCase {
             controller.start(CONTAINER1);
             Thread.sleep(60000);
         }
-
-        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER) {
+        // 5 min
+        long howLongToWait = 300000;
+        long startTime = System.currentTimeMillis();
+        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
 
