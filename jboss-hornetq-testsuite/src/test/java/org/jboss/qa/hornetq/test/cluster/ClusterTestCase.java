@@ -235,7 +235,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnQueue() throws Exception {
 
-//        prepareServers();
+        prepareServers();
 
         controller.start(CONTAINER2);
 
