@@ -182,7 +182,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
 
-        if (addDuplicatedHeader)    {
+        if (isAddDuplicatedHeader())    {
                 message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         }
 

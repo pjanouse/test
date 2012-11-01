@@ -1163,4 +1163,12 @@ public interface JMSOperations {
 
     void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
                             long redistributionDelay, long pageSizeBytes);
+
+    /**
+     *
+     * Sets transaction node identifier.
+     *
+     * @param i
+     */
+    void setNodeIdentifier(int i);
 }

@@ -2141,6 +2141,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Sets transaction node identifier.
+     *
+     * @param i
+     */
+    @Override
+    public void setNodeIdentifier(int i) {
+
+        ModelNode setNodeIdentifier = new ModelNode();
+        setNodeIdentifier.get(ClientConstants.OP).set("write-attribute");
+        setNodeIdentifier.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
+        setNodeIdentifier.get("name").set("node-identifier");
+        setNodeIdentifier.get("value").set(i);
+        try {
+            this.applyUpdate(setNodeIdentifier);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Adds loop back-address type of the given interface of the given name.
      * <p/>
      * Removes inet-address type as a side effect.

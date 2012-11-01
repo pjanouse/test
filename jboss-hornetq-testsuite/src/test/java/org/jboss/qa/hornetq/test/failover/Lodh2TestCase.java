@@ -27,10 +27,7 @@ import org.junit.runner.RunWith;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is modified lodh 2 (kill/shutdown mdb servers) test case which is
@@ -47,7 +44,7 @@ import java.util.Map;
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -239,7 +236,7 @@ import java.util.Map;
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 400000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 300000, 10, 10);
 
         receiver1.start();
 
@@ -257,6 +254,19 @@ import java.util.Map;
         Assert.assertTrue("Receivers did not get any messages.",
                 receiver1.getCount() > 0);
 
+        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
+        for (String dupId : lostMessages) {
+            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
+        }
+
+        List<String> duplicatedMessages = checkDuplicatedMessages(receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are duplicated messages. Check logs for details.", 0, duplicatedMessages.size());
+        for (String dupId : duplicatedMessages) {
+            logger.info("Duplicated message - _HQ_DUPL_ID=" + dupId);
+        }
+
+
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
         stopServer(CONTAINER2);
@@ -264,6 +274,41 @@ import java.util.Map;
         stopServer(CONTAINER1);
         stopServer(CONTAINER3);
     }
+
+    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
+
+        //get lost messages
+        List<String> listOfLostMessages = new ArrayList<String>();
+
+        for (String duplicateId : listOfSentMessages) {
+            if (!listOfReceivedMessages.contains(duplicateId)) {
+                listOfLostMessages.add(duplicateId);
+            }
+        }
+        return listOfLostMessages;
+    }
+
+    private List<String> checkDuplicatedMessages(List<String> listOfReceivedMessages) {
+
+        //get lost messages
+        List<String> listOfDuplicatedMessages = new ArrayList<String>();
+
+        for (String id : listOfReceivedMessages)  {
+            listOfDuplicatedMessages.add(id);
+        }
+
+        for (String id : listOfReceivedMessages) {
+            for (String idDup : listOfDuplicatedMessages) {
+                if (id.equalsIgnoreCase(idDup))   {
+                    // remove first occurencs from dup list
+                    listOfDuplicatedMessages.remove(idDup);
+                    break;
+                }
+            }
+        }
+        return listOfDuplicatedMessages;
+    }
+
 
     /**
      * Executes kill sequence.
@@ -396,7 +441,7 @@ import java.util.Map;
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
             jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-
+            jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
             jmsAdminOperations.close();
 
             controller.stop(containerName);
@@ -485,6 +530,8 @@ import java.util.Map;
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+            jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);

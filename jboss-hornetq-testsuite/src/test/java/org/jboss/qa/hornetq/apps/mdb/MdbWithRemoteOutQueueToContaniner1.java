@@ -79,7 +79,8 @@ public class MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.debug(" End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.debug("End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+
             if (numberOfProcessedMessages.incrementAndGet() % 100 == 0) log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {

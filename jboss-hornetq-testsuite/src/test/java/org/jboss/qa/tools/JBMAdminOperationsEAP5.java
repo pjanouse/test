@@ -1513,6 +1513,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
+     * Sets transaction node identifier.
+     *
+     * @param i
+     */
+    @Override
+    public void setNodeIdentifier(int i) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
      * @param doc
      * @param description
      * @param configPropertyName
