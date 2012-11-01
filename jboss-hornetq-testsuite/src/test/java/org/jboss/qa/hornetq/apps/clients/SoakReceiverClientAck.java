@@ -115,7 +115,7 @@ public class SoakReceiverClientAck extends Client {
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
                 } else { // i don't want to ack now
-                    logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                    logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                             + ". Received message - count: "
                             + count + ", message-counter: " + message.getStringProperty("counter")
                             + ", messageId:" + message.getJMSMessageID());
@@ -176,7 +176,6 @@ public class SoakReceiverClientAck extends Client {
         } catch (Exception ex) {
             logger.error("Exception thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                     + count + ", messageId:" + message.getJMSMessageID());
-            // all unacknowledge messges will be received again
             ex.printStackTrace();
             setCount(count - ackAfter);
         }

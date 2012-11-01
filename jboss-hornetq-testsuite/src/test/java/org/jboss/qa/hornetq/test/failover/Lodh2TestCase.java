@@ -260,12 +260,6 @@ import java.util.*;
             logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
         }
 
-        List<String> duplicatedMessages = checkDuplicatedMessages(receiver1.getListOfReceivedMessages());
-        Assert.assertEquals("There are duplicated messages. Check logs for details.", 0, duplicatedMessages.size());
-        for (String dupId : duplicatedMessages) {
-            logger.info("Duplicated message - _HQ_DUPL_ID=" + dupId);
-        }
-
 
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
@@ -287,28 +281,6 @@ import java.util.*;
         }
         return listOfLostMessages;
     }
-
-    private List<String> checkDuplicatedMessages(List<String> listOfReceivedMessages) {
-
-        //get lost messages
-        List<String> listOfDuplicatedMessages = new ArrayList<String>();
-
-        for (String id : listOfReceivedMessages)  {
-            listOfDuplicatedMessages.add(id);
-        }
-
-        for (String id : listOfReceivedMessages) {
-            for (String idDup : listOfDuplicatedMessages) {
-                if (id.equalsIgnoreCase(idDup))   {
-                    // remove first occurencs from dup list
-                    listOfDuplicatedMessages.remove(idDup);
-                    break;
-                }
-            }
-        }
-        return listOfDuplicatedMessages;
-    }
-
 
     /**
      * Executes kill sequence.

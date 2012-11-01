@@ -101,7 +101,7 @@ public class SoakProducerClientAck extends Client {
                 sendMessage(producer, msg);
 
 //                if (getCounter() % 1000 == 0) {
-                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
+                logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
 //                }
             }
