@@ -1,3 +1,4 @@
+// TODO allow dups message heders once JBPAPP-10296 gets to release
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
@@ -345,6 +346,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         // Send messages into input node
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         if (messageBuilder != null) {
+            messageBuilder.setAddDuplicatedHeader(false);
             client1.setMessageBuilder(messageBuilder);
         }
         client1.sendMessages(TEST_QUEUE_IN_JNDI);
@@ -497,6 +499,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
 
         // Send messages into input node
+        messageBuilder.setAddDuplicatedHeader(false);
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
@@ -566,6 +569,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         // Send messages into input node
+        messageBuilder.setAddDuplicatedHeader(false);
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
