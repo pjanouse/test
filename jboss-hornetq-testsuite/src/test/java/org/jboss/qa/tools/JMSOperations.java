@@ -1171,4 +1171,6 @@ public interface JMSOperations {
      * @param i
      */
     void setNodeIdentifier(int i);
+
+    void setAuthenticationForNullUsers(boolean b);
 }

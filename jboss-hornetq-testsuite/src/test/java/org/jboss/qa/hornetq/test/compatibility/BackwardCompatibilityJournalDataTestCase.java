@@ -133,7 +133,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy("mdb1");
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         deployer.undeploy("mdb1");
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
@@ -272,6 +272,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.setNodeIdentifier(12);
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -358,6 +359,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.setNodeIdentifier(22);
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);

@@ -1295,6 +1295,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setAuthenticationForNullUsers(boolean b) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @param doc
      * @param description

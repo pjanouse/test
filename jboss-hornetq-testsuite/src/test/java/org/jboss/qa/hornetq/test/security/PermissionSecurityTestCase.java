@@ -277,6 +277,9 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
+        // set authentication for null users
+        jmsAdminOperations.setAuthenticationForNullUsers(true);
+
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
@@ -305,6 +308,8 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
 
+        jmsAdminOperations.close();
+
         // TODO it's hard to write admin operation for security so this hack
         // copy application-users.properties
         // copy application-roles.properties
@@ -325,8 +330,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port     port of management interface - it should be 9999
+     * @param containerName container name
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -335,8 +339,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to managemant interface
-     * @param port       port of management interface - it should be 9999
+     * @param containerName container name
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
@@ -349,6 +352,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
 //            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
         }
+        jmsAdminOperations.close();
     }
 
     /**

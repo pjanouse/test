@@ -14,10 +14,8 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.HashMap;
-import java.util.Properties;
 
 /**
  * Simple sender with auto acknowledge session. Able to fail over.
@@ -90,7 +88,7 @@ public class SecurityClient extends Client {
 
         context = getContext(hostname, port);
 
-        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+        cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
         con = getConnection();
 
