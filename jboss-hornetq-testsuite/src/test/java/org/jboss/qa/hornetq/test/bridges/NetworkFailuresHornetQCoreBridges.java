@@ -13,8 +13,8 @@ import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.MulticastProxy;
 import org.jboss.qa.tools.SimpleProxyServer;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,126 +97,127 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverMixMessages() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testNetworkFailoverSmallMessages() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverLargeMessages() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverMixMessages1recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverSmallMessages1recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverLargeMessages1recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverMixMessages5recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverSmallMessages5recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverLargeMessages5recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverMixMessages() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverSmallMessages() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverLargeMessages() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverMixMessages1recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverSmallMessages1recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverLargeMessages1recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverMixMessages5recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverSmallMessages5recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), 5, 2);
     }
 
     @Test
     @RunAsClient
-    @CleanUpAfterTest @RestoreConfigAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverLargeMessages5recAttempts() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
     }
