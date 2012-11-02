@@ -41,7 +41,6 @@ import java.io.File;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@RestoreConfigBeforeTest
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
@@ -65,7 +64,6 @@ public class ClusterTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
-    String jndiContextPrefix = "java:jboss/exported/";
 
     // InQueue and OutQueue for mdb
     String inQueueNameForMdb = "InQueue";
@@ -439,51 +437,14 @@ public class ClusterTestCase extends HornetQTestCase {
         return clients;
     }
 
-    @Before
     public void prepareServers() {
+
             prepareServer(CONTAINER1);
             prepareServer(CONTAINER2);
 
-            // deploy destinations 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2);
-            stopServer(CONTAINER2);
-
     }
 
-    /**
-     * Deploys destinations to server which is currently running.
-     */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
-    }
 
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param serverName server name of the hornetq server
-     */
-    private void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
-        }
-
-        jmsAdminOperations.createQueue(serverName, inQueueNameForMdb, inQueueJndiNameForMdb, true);
-        jmsAdminOperations.createQueue(serverName, outQueueNameForMdb, outQueueJndiNameForMdb, true);
-        jmsAdminOperations.createTopic(serverName, inTopicNameForMdb, inTopicJndiNameForMdb);
-        jmsAdminOperations.createTopic(serverName, outTopicNameForMdb, outTopicJndiNameForMdb);
-        jmsAdminOperations.close();
-    }
 
     /**
      * Prepares server for topology.
@@ -502,19 +463,8 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-//        jmsAdminOperations.setLoopBackAddressType("public", bindingAddress);
-//        jmsAdminOperations.setLoopBackAddressType("unsecure", bindingAddress);
-//        jmsAdminOperations.setLoopBackAddressType("management", bindingAddress);
-//        jmsAdminOperations.setInetAddress("public", bindingAddress);
-//        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-//        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
-//        jmsAdminOperations.setBindingsDirectory(journalDirectory);
-//        jmsAdminOperations.setPagingDirectory(journalDirectory);
-//        jmsAdminOperations.setJournalDirectory(journalDirectory);
-//        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
-
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
@@ -539,6 +489,19 @@ public class ClusterTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
+        jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
+        jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
+        jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
+
         jmsAdminOperations.close();
         controller.stop(containerName);
 

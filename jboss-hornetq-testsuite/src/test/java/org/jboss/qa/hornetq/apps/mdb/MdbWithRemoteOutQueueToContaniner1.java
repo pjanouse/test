@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
+public class    MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbWithRemoteOutQueueToContaniner1.class.getName());

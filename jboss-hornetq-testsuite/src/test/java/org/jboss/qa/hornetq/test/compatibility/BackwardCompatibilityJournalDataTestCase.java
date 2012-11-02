@@ -122,7 +122,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy("mdb1");
-        Thread.sleep(10000);
+        Thread.sleep(20000);
         deployer.undeploy("mdb1");
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);

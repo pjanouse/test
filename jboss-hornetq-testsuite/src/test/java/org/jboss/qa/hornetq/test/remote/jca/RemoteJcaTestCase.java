@@ -8,11 +8,15 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -44,7 +48,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-    static boolean topologyCreated = false;
+
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
@@ -52,10 +56,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
 
-        File propertyFile = new File("mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -68,10 +68,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File("mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER3_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -84,7 +80,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testRemoteJcaInCluster() throws Exception {
 
         prepareRemoteJcaTopology();
@@ -139,7 +135,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testRemoteJca() throws Exception {
 
         prepareRemoteJcaTopology();
@@ -177,6 +173,54 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testUndeployStopStartDeployMdb() throws Exception {
+
+        prepareRemoteJcaTopology();
+
+        controller.start(CONTAINER1);//jms server
+        controller.start(CONTAINER2);// mdb server
+
+        deployer.undeploy("mdb1");
+
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, 1000);
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+        deployer.deploy("mdb1");
+        Thread.sleep(20000);
+        deployer.undeploy("mdb1");
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+
+        // Start newer version of EAP and client with older version of EAP
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        deployer.deploy("mdb1");
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, 1000);
+        producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
+        producerToInQueue2.start();
+        producerToInQueue2.join();
+
+        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 10000, 10, 5);
+        receiverClientAck.start();
+        receiverClientAck.join();
+        logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
+        Assert.assertEquals("Number of sent and received messages should be equal.", 2 * 1000, receiverClientAck.getCount());
+
+        deployer.undeploy("mdb1");
+
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+
+    }
+
+    /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
      *
@@ -200,7 +244,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        if (!topologyCreated) {
             prepareJmsServer(CONTAINER1);
             prepareMdbServer(CONTAINER2, CONTAINER1_IP);
 
@@ -216,9 +259,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             stopServer(CONTAINER3);
 
             copyApplicationPropertiesFiles();
-
-            topologyCreated = true;
-        }
 
     }
 
