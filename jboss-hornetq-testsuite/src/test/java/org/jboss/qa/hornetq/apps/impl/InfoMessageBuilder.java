@@ -25,4 +25,14 @@ public class InfoMessageBuilder implements MessageBuilder {
                 "cool-address" + randomLong));
     }
 
+    @Override
+    public void setAddDuplicatedHeader(boolean duplHeader) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isAddDuplicatedHeader() {
+        throw new UnsupportedOperationException();
+    }
+
 }
