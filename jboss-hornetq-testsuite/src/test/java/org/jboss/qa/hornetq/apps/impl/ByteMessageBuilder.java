@@ -20,6 +20,27 @@ public class ByteMessageBuilder implements MessageBuilder {
     // Required size
     private int size;
 
+    private boolean addDuplicatedHeader = true;
+
+    /**
+     *
+     * @return if header for message duplication will be added
+     */
+    public boolean isAddDuplicatedHeader() {
+        return addDuplicatedHeader;
+    }
+
+    /**
+     *
+     * if header for message duplication will be added
+     *
+     * @param addDuplicatedHeader
+     */
+    public void setAddDuplicatedHeader(boolean addDuplicatedHeader) {
+        this.addDuplicatedHeader = addDuplicatedHeader;
+    }
+
+
     public ByteMessageBuilder() {
         this.size = 0;
     }
@@ -44,6 +65,9 @@ public class ByteMessageBuilder implements MessageBuilder {
         BytesMessage message = session.createBytesMessage();
         message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
+        if (isAddDuplicatedHeader())    {
+            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        }
 
         if (this.size > 0) {
             byte[] data = new byte[this.size];
@@ -52,3 +76,4 @@ public class ByteMessageBuilder implements MessageBuilder {
         return message;
     }
 }
+

@@ -25,6 +25,27 @@ public class MixMessageBuilder implements MessageBuilder {
     // Required size
     private int size;
 
+    private boolean addDuplicatedHeader = true;
+
+    /**
+     *
+     * @return if header for message duplication will be added
+     */
+    public boolean isAddDuplicatedHeader() {
+        return addDuplicatedHeader;
+    }
+
+    /**
+     *
+     * if header for message duplication will be added
+     *
+     * @param addDuplicatedHeader
+     */
+    public void setAddDuplicatedHeader(boolean addDuplicatedHeader) {
+        this.addDuplicatedHeader = addDuplicatedHeader;
+    }
+
+
     public MixMessageBuilder() {
         this.size = 0;
     }
@@ -76,7 +97,9 @@ public class MixMessageBuilder implements MessageBuilder {
         }
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
+        if (isAddDuplicatedHeader())    {
+            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+        }
         return message;
     }
 }
