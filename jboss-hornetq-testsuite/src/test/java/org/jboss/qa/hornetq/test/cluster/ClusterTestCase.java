@@ -60,9 +60,6 @@ public class ClusterTestCase extends HornetQTestCase {
 
     private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
 
-    private static boolean topologyCreated = false;
-
-
 
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
@@ -173,7 +170,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.join();
 
         // receive more then half message so some load-balanced messages gets back
-        Context context = null;
+        Context context;
         ConnectionFactory cf;
         Connection conn = null;
         Session session;
@@ -444,7 +441,6 @@ public class ClusterTestCase extends HornetQTestCase {
 
     @Before
     public void prepareServers() {
-        if (!topologyCreated) {
             prepareServer(CONTAINER1);
             prepareServer(CONTAINER2);
 
@@ -455,8 +451,7 @@ public class ClusterTestCase extends HornetQTestCase {
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
             stopServer(CONTAINER2);
-            topologyCreated = true;
-        }
+
     }
 
     /**
