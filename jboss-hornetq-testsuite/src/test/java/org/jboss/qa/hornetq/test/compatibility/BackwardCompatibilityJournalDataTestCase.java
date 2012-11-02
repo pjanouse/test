@@ -23,9 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,10 +82,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
 
-        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -100,10 +94,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File("mdb2.properties");
-        PrintWriter writer = new PrintWriter(getJbossHome(CONTAINER4) + File.separator + propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER3_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -127,7 +117,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
 
-        // this is client with libs from Container 1 server which is older version of EAP
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
@@ -141,7 +130,11 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         // Start newer version of EAP and client with older version of EAP
         controller.start(CONTAINER3);
         controller.start(CONTAINER4);
-        deployer.undeploy("mdb2");
+        try {
+            deployer.undeploy("mdb2");
+        } catch (Exception ignore)  {
+            // ignore
+        }
         deployer.deploy("mdb2");
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
