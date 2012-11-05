@@ -84,7 +84,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      */
     @Before
     public void stopAllServers() throws Exception {
-//        prepareServers();
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
@@ -250,6 +249,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         Thread.sleep(60000);
         // A1 producer
         SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        //TODO MAKE THIS TRUE WHEN DUPS LOST MESSAGES OK IN CLUSTER
+        messageBuilder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(messageBuilder);
         // B1 consumer
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, relativeJndiInQueueName, 2 * timeBetweenFails, 10, 10);
@@ -259,7 +260,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         receiver1.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(5 * 1000);
+        Thread.sleep(15 * 1000);
 
         executeNetworkFails(timeBetweenFails, numberOfFails);
 

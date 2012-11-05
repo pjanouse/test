@@ -525,7 +525,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1)
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createDeploymentMdbOnQueue1() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
@@ -545,7 +545,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE2)
     @TargetsContainer(CONTAINER2)
     public static JavaArchive createDeploymentMdbOnQueue2() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
