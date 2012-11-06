@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.apps.mdb;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -30,24 +29,14 @@ public class SimpleMdbToDb implements MessageListener {
     private Connection connection;
     private DataSource dataSource;
     public static AtomicInteger counter = new AtomicInteger();
+
     // used for the transaction rollback
     @Resource
     private MessageDrivenContext context;
 
     @Resource(name = "lodhDb", mappedName = "java:/jdbc/lodhDS")
-//    @Resource(name = "lodhDb", mappedName = "java:/jdbc/mysqlDS")
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    @PostConstruct
-    public void initialize() {
-//        try {
-//            connection = dataSource.getConnection();
-////            connection.setAutoCommit(false);
-//        } catch (SQLException sqle) {
-//            sqle.printStackTrace();
-//        }
     }
 
     @PreDestroy
@@ -66,15 +55,21 @@ public class SimpleMdbToDb implements MessageListener {
             connection = dataSource.getConnection();
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
             int count = counter.incrementAndGet();
-            log.info("messageInfo " + messageInfo.getName() + ", counter: " + count);
             processMessageInfo(message, messageInfo, count);
+            log.info("MDB is processing message: " + messageInfo.getName() + ", counter: " + count);
 
         } catch (JMSException jmse) {
+            context.setRollbackOnly();
             jmse.printStackTrace();
-            context.setRollbackOnly();
+            try {
+                log.error("JMSException thrown during processing of message: " + message.getJMSMessageID(), jmse);
+            } catch (JMSException ignore) {}
         } catch (SQLException sqle) {
-            sqle.printStackTrace();
             context.setRollbackOnly();
+            sqle.printStackTrace();
+            try {
+                log.error("SQLException thrown during processing of message: " + message.getJMSMessageID(), sqle);
+            } catch (JMSException ignore) {}
         } finally {
             if (connection != null) {
                 try {

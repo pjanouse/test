@@ -64,9 +64,6 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
      * @throws Exception
      */
     @RunAsClient
@@ -81,6 +78,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         countRecords();
 
         ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.start();
         producer.join();
@@ -141,7 +139,6 @@ public class Lodh5TestCase extends HornetQTestCase {
      *
      * @param containerName    Name of the container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
