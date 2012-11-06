@@ -173,6 +173,8 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
+        jmsAdminOperations.setNodeIdentifier(23);
+
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
         controller.stop(containerName);
