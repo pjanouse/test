@@ -22,7 +22,7 @@
 		<eap6.client>6.0.1.ER3</eap6.client>
         <eap6.controller.client>6.0.1.ER3</eap6.controller.client>
 
-		<arquillian.version>1.0.3.Final-SNAPSHOT</arquillian.version>
+		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
 		<arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
 		<version.byteman>2.0.0</version.byteman>
@@ -365,7 +365,8 @@
 					<groupId>org.jboss.as</groupId>
 					<artifactId>jboss-as-arquillian-container-managed</artifactId>
 					<version>${arquillian.eap6x.container.version}</version>
-					<scope>test</scope>
+                    <!--<version>7.1.3.Final-redhat-3</version>-->
+                    <scope>test</scope>
 				</dependency>
 
 				<dependency>
