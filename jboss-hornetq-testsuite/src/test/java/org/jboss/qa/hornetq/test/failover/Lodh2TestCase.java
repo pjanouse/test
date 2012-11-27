@@ -6,9 +6,9 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbListenningOnNonDurableTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -48,6 +48,9 @@ import java.util.*;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
+    // inTopic
+    static String inTopicName = "InTopic";
+    static String inTopicJndiName = "jms/topic/" + inTopicName;
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
@@ -91,6 +94,22 @@ import java.util.*;
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         File target = new File("/tmp/mdb2.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+
+    @Deployment(managed = false, testable = false, name = "nonDurableMdbOnTopic")
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
+        mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        File target = new File("/tmp/nonDurableMdbOnTopic.jar");
         if (target.exists()) {
             target.delete();
         }
@@ -155,6 +174,20 @@ import java.util.*;
     }
 
     /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testLodh2killWithTempTopic() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER2);
+        testRemoteJcaWithTopic(failureSequence, false, false);
+
+    }
+
+    /**
      * Shutdown mdbs servers.
      */
     @Test
@@ -168,6 +201,20 @@ import java.util.*;
         failureSequence.add(CONTAINER4);
         failureSequence.add(CONTAINER2);
         failureSequence.add(CONTAINER4);
+        testRemoteJcaInCluster(failureSequence, true);
+    }
+
+    /**
+     * Shutdown mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testShutdownOfJmsServers() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER1);
+        failureSequence.add(CONTAINER2);
         testRemoteJcaInCluster(failureSequence, true);
     }
 
@@ -208,6 +255,75 @@ import java.util.*;
     /**
      * @throws Exception
      */
+    public void testRemoteJcaWithTopic(List<String> failureSequence, boolean isShutdown, boolean isDurable) throws Exception {
+
+        prepareRemoteJcaTopology();
+        // jms server
+        controller.start(CONTAINER1);
+
+        // mdb server
+        controller.start(CONTAINER2);
+
+        if (!isDurable) {
+            deployer.deploy("nonDurableMdbOnTopic");
+            Thread.sleep(5000);
+        }
+
+        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER,  "clientId-myPublisher");
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
+        builder.setAddDuplicatedHeader(false);
+        producer1.setMessageBuilder(builder);
+        producer1.start();
+
+        // deploy mdbs
+        if (isDurable)  {
+            throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
+        }
+
+        executeFailureSequence(failureSequence, 30000, isShutdown);
+
+        // Wait to send and receive some messages
+        Thread.sleep(60 * 1000);
+
+        // set longer timeouts so xarecovery is done at least once
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 10, 10);
+
+        receiver1.start();
+
+        producer1.join();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + (producer1.getMessages()
+                + ", Producer to jms1 server sent: " + producer1.getMessages() + " messages"));
+
+        logger.info("Number of received messages: " + (receiver1.getCount()
+                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
+
+        if (isDurable)  {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getMessages(), receiver1.getCount());
+            Assert.assertTrue("Receivers did not get any messages.",
+                    receiver1.getCount() > 0);
+
+        } else {
+
+            Assert.assertEquals("There SHOULD be different number of sent and received messages.",
+                    producer1.getMessages() > receiver1.getCount());
+            Assert.assertTrue("Receivers did not get any messages.",
+                    receiver1.getCount() > 0);
+            deployer.undeploy("nonDurableMdbOnTopic");
+        }
+
+
+
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+
+    }
+
+    /**
+     * @throws Exception
+     */
     public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
 
         prepareRemoteJcaTopology();
@@ -218,7 +334,7 @@ import java.util.*;
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
         builder.setAddDuplicatedHeader(false);
@@ -236,7 +352,7 @@ import java.util.*;
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, 4447, outQueueJndiName, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 300000, 10, 10);
 
         receiver1.start();
 
@@ -382,13 +498,11 @@ import java.util.*;
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
             jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024 * 1024, 0, 0, 1024 * 1024);
-
-            jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
-            jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
             jmsAdminOperations.close();
 
+            deployDestinations(containerName);
 
         } else {
 
@@ -423,9 +537,10 @@ import java.util.*;
             jmsAdminOperations = this.getJMSOperations(containerName);
 
             jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
-            deployDestinations(containerName);
 
             jmsAdminOperations.close();
+
+            deployDestinations(containerName);
 
             controller.stop(containerName);
         }
@@ -568,6 +683,7 @@ import java.util.*;
 
         jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
 
         jmsAdminOperations.close();

@@ -46,7 +46,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     // queue for receive messages out
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
-    String outQueueFullJndiName = "java:/" + outQueueJndiName;
     boolean topologyCreated = false;
 
 //    @Deployment(managed = false, testable = false, name = "mdb1")
@@ -362,7 +361,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
         jmsAdminOperations.close();
 
@@ -425,7 +424,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();

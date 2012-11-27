@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.test.JMSTools;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 
