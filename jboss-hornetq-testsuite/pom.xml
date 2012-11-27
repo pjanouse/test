@@ -18,7 +18,7 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
-		<eap5.client>5.2.0.ER5-HornetQ</eap5.client>
+		<eap5.client>5.2.0.ER5-HORNETQ</eap5.client>
 		<eap6.client>6.0.1.ER4</eap6.client>
         <eap6.controller.client>6.0.1.ER3</eap6.controller.client>
 
@@ -191,6 +191,7 @@
 		<profile>
 			<id>eap5x</id>
 			<activation>
+                <activeByDefault>false</activeByDefault>
 				<property>
 					<name>eap</name>
 					<value>5x</value>
@@ -230,6 +231,7 @@
 		<profile>
 			<id>eap5xWithJbm</id>
 			<activation>
+                <activeByDefault>false</activeByDefault>
 				<property>
 					<name>eap</name>
 					<value>5xWithJbm</value>
@@ -283,6 +285,7 @@
 		<profile>
 			<id>eap5x-backward-compatibility</id>
 			<activation>
+                <activeByDefault>false</activeByDefault>
 				<property>
 					<name>eap</name>
 					<value>5x</value>
