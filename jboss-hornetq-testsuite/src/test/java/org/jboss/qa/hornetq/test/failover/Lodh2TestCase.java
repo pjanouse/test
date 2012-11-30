@@ -44,7 +44,7 @@ import java.util.*;
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -62,14 +62,12 @@ import java.util.*;
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
-
         File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER1_IP);
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
-//        mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         File target = new File("/tmp/mdb1.jar");

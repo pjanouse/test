@@ -567,6 +567,15 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return JBOSS_HOME as specified in arquillian.xml or null
      */
     public static String getJbossHome(String containerName) {
+//        long startTime = System.currentTimeMillis();
+//        while(arquillianDescriptor == null && (System.currentTimeMillis() - startTime < 60000))    {
+//            log.error("Arquillian descriptor is NULL. Wait...");
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                //ignore
+//            }
+//        }
         for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
                 if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
