@@ -373,9 +373,10 @@
 				</dependency>
 
 				<dependency>
-					<groupId>eap</groupId>
-					<artifactId>eap-client</artifactId>
+					<groupId>org.jboss.as</groupId>
+					<artifactId>jboss-as-client</artifactId>
 					<version>${eap6.client}</version>
+                    <type>jar</type>
                     <scope>test</scope>
 				</dependency>
 
