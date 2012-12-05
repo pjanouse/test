@@ -181,6 +181,11 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, ++this.counter);
+        if (counter % 2 == 0) {
+            message.setStringProperty("color", "RED");
+        } else {
+            message.setStringProperty("color", "GREEN");
+        }
 
         if (isAddDuplicatedHeader())    {
                 message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));

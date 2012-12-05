@@ -10,7 +10,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
+import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
@@ -155,7 +155,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws NamingException if something goes wrong
      */
     private Context getEAP6Context(String hostName, int port) throws NamingException {
-        JMSTools jmsTools = new JMSTools();
         return  JMSTools.getEAP6Context(hostName, port);
     }
 
@@ -168,7 +167,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws NamingException if something goes wrong
      */
     private Context getEAP5Context(String hostName, int port) throws NamingException {
-        JMSTools jmsTools = new JMSTools();
         return  JMSTools.getEAP5Context(hostName, port);
     }
 
@@ -333,7 +331,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param descriptor instance of the description
      */
     @SuppressWarnings("unused")
-    public void setArquillianDescriptor(@Observes BeforeClass event, ArquillianDescriptor descriptor) {
+    public void setArquillianDescriptor(@Observes BeforeSuite event, ArquillianDescriptor descriptor) {
         arquillianDescriptor = descriptor;
     }
 

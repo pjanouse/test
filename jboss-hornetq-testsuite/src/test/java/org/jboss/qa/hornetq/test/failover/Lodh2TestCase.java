@@ -6,11 +6,11 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakPublisherClientAck;
+import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.mdb.MdbListenningOnNonDurableTopic;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
+import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -99,6 +99,39 @@ import java.util.*;
         return mdbJar;
     }
 
+
+    @Deployment(managed = false, testable = false, name = "mdb1WithFilter")
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeploymentWithFilter1() throws Exception {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        File target = new File("/tmp/mdb1.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb2WithFilter")
+    @TargetsContainer(CONTAINER4)
+    public static Archive getDeploymentWithFilter2() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        File target = new File("/tmp/mdb2.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+
     @Deployment(managed = false, testable = false, name = "nonDurableMdbOnTopic")
     @TargetsContainer(CONTAINER2)
     public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
@@ -123,6 +156,19 @@ import java.util.*;
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2kill() throws Exception {
+        List<String> failureSequence = new ArrayList<String>();
+        failureSequence.add(CONTAINER2);
+        testRemoteJcaInCluster(failureSequence, false);
+    }
+
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testSimpleLodh2killWithFilters() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER2);
         testRemoteJcaInCluster(failureSequence, false);
@@ -319,10 +365,14 @@ import java.util.*;
 
     }
 
+    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
+        testRemoteJcaInCluster(failureSequence, isShutdown, false);
+    }
+
     /**
      * @throws Exception
      */
-    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
+    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown, boolean isFiltered) throws Exception {
 
         prepareRemoteJcaTopology();
         // cluster A
@@ -334,15 +384,20 @@ import java.util.*;
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
-        builder.setAddDuplicatedHeader(false);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(1,100);
+        builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
         producer1.start();
         producer1.join();
 
         // deploy mdbs
-        deployer.deploy("mdb1");
-        deployer.deploy("mdb2");
+        if (isFiltered) {
+            deployer.deploy("mdb1WithFilter");
+            deployer.deploy("mdb2WithFilter");
+        } else {
+            deployer.deploy("mdb1");
+            deployer.deploy("mdb2");
+        }
 
         executeFailureSequence(failureSequence, 30000, isShutdown);
 
@@ -374,9 +429,14 @@ import java.util.*;
             logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
         }
 
+        if (isFiltered) {
+            deployer.undeploy("mdb1WithFilter");
+            deployer.undeploy("mdb2WithFilter");
+        } else {
+            deployer.undeploy("mdb1");
+            deployer.undeploy("mdb2");
+        }
 
-        deployer.undeploy("mdb1");
-        deployer.undeploy("mdb2");
         stopServer(CONTAINER2);
         stopServer(CONTAINER4);
         stopServer(CONTAINER1);
@@ -384,13 +444,19 @@ import java.util.*;
     }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-
+        // TODO optimize or use some libraries
         //get lost messages
         List<String> listOfLostMessages = new ArrayList<String>();
-
-        for (String duplicateId : listOfSentMessages) {
-            if (!listOfReceivedMessages.contains(duplicateId)) {
-                listOfLostMessages.add(duplicateId);
+        boolean messageIdIsMissing = false;
+        for (String sentMessageId : listOfSentMessages) {
+            for (String receivedMessageId : listOfReceivedMessages) {
+                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
+                    messageIdIsMissing = true;
+                }
+            }
+            if (messageIdIsMissing) {
+                listOfLostMessages.add(sentMessageId);
+                messageIdIsMissing = false;
             }
         }
         return listOfLostMessages;

@@ -168,7 +168,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.join();
 
         // receive more then half message so some load-balanced messages gets back
-        Context context;
+        Context context = null;
         ConnectionFactory cf;
         Connection conn = null;
         Session session;
@@ -206,10 +206,14 @@ public class ClusterTestCase extends HornetQTestCase {
             if (conn != null)   {
                 conn.close();
             }
+            if (context != null)    {
+                context.close();
+            }
+
         }
 
         // receive  some of them from first server and kill receiver -> only some of them gets back to
-        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), inQueueJndiNameForMdb, 10000, 10, 10);
+        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), inQueueJndiNameForMdb, 100000, 10, 10);
         receiver2.start();
         receiver2.join();
 
@@ -261,6 +265,10 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        deployer.undeploy(MDB_ON_QUEUE1);
+
+        deployer.undeploy(MDB_ON_QUEUE2);
 
         stopServer(CONTAINER1);
 
