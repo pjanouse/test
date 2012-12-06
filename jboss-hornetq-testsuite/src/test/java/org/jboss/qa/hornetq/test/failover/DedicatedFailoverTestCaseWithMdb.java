@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -37,7 +39,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 3000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -71,24 +73,28 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     @RunAsClient
     @Test
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false);
     }
 
     @RunAsClient
     @Test
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testKillWithFailback() throws Exception {
         testFailbackWithRemoteJca(false);
     }
 
     @RunAsClient
     @Test
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testShutdownWithFailback() throws Exception {
         testFailbackWithRemoteJca(true);
     }
 
     @RunAsClient
     @Test
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true);
     }
@@ -161,8 +167,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         deployer.deploy("mdb1");
         logger.info("MDB was deployed to mdb server - container 3");
 
-        Thread.sleep(15000);
-
         if (shutdown) {
             stopServer(CONTAINER1);
             logger.info("Container 1 shut downed.");
@@ -171,8 +175,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-
-        Thread.sleep(60000);
+        Thread.sleep(300000);
         try {
             controller.stop(CONTAINER1);
         } catch (Exception ex)  {}
@@ -249,7 +252,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
 
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
@@ -257,9 +259,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             prepareMdbServer(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
 
             copyApplicationPropertiesFiles();
-
-            topologyCreated = true;
-        }
 
     }
 
