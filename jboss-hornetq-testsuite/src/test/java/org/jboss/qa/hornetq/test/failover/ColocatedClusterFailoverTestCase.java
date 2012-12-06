@@ -128,7 +128,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.stopClients();
 
-        while (!clients.isFinished()) {
+        long startTime = System.currentTimeMillis();
+        while (!clients.isFinished() && (System.currentTimeMillis() - startTime) < 600000) {
             Thread.sleep(1000);
         }
 

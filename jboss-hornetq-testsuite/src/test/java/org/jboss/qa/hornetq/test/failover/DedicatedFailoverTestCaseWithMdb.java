@@ -166,6 +166,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start mdb server
         deployer.deploy("mdb1");
         logger.info("MDB was deployed to mdb server - container 3");
+        Thread.sleep(40000);
 
         if (shutdown) {
             stopServer(CONTAINER1);
