@@ -7,7 +7,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -48,24 +48,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     String outQueueJndiName = "jms/queue/" + outQueueName;
     boolean topologyCreated = false;
 
-//    @Deployment(managed = false, testable = false, name = "mdb1")
-//    @TargetsContainer(CONTAINER3)
-//    public static Archive getDeployment1() throws Exception {
-//
-//        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
-//        mdbJar.addClasses(MdbWithRemoteInQueueAndLocalOutQueue.class);
-//        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-//        logger.info(mdbJar.toString(true));
-//
-//        //      Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
-//        return mdbJar;
-//    }
-
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
     public static Archive getDeployment1() throws Exception {
@@ -101,6 +83,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     @RunAsClient
     @Test
+    public void testShutdownWithFailback() throws Exception {
+        testFailbackWithRemoteJca(true);
+    }
+
+    @RunAsClient
+    @Test
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true);
     }
@@ -117,7 +105,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(20));
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 100));
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -125,7 +113,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start mdb server
         deployer.deploy("mdb1");
 
-        Thread.sleep(15000);
+        Thread.sleep(30000);
 
         if (shutdown) {
             stopServer(CONTAINER1);
@@ -162,8 +150,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(20));
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 100));
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -171,37 +159,70 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         // start mdb server
         deployer.deploy("mdb1");
+        logger.info("MDB was deployed to mdb server - container 3");
 
         Thread.sleep(15000);
 
         if (shutdown) {
             stopServer(CONTAINER1);
+            logger.info("Container 1 shut downed.");
         } else {
             killServer(CONTAINER1);
+            logger.info("Container 1 killed.");
         }
 
+
         Thread.sleep(60000);
+        try {
+            controller.stop(CONTAINER1);
+        } catch (Exception ex)  {}
         controller.start(CONTAINER1);
         logger.info("Container 1 started again");
-        Thread.sleep(20000);
-        logger.info("Container 2 stopped");
-        Thread.sleep(20000);
+        Thread.sleep(60000);
+//        logger.info("Container 2 stopped");
+//        stopServer(CONTAINER2);
+//        Thread.sleep(20000);
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 100, 10);
         receiver1.start();
         receiver1.join();
-        Thread.sleep(300000);
 
         logger.info("Producer: " + producerToInQueue1.getCounter());
         logger.info("Receiver: " + receiver1.getCount());
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getCounter(), receiver1.getCount());
 
+        List<String> lostMessages = checkLostMessages(producerToInQueue1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
+        for (String dupId : lostMessages) {
+            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
+        }
+
+
+        logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
         deployer.undeploy("mdb1");
         stopServer(CONTAINER3);
-        stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
+    }
+
+    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
+        // TODO optimize or use some libraries
+        //get lost messages
+        List<String> listOfLostMessages = new ArrayList<String>();
+        boolean messageIdIsMissing = false;
+        for (String sentMessageId : listOfSentMessages) {
+            for (String receivedMessageId : listOfReceivedMessages) {
+                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
+                    messageIdIsMissing = true;
+                }
+            }
+            if (messageIdIsMissing) {
+                listOfLostMessages.add(sentMessageId);
+                messageIdIsMissing = false;
+            }
+        }
+        return listOfLostMessages;
     }
 
     /**

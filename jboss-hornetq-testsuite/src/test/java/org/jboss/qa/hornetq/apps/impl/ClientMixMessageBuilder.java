@@ -192,8 +192,13 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
 //        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
-        log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-        "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
+        if (counter % 100 ==0)  {
+            log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
+                "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
+        } else {
+            log.debug("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
+                    "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
+        }
         return message;
     }
 }
