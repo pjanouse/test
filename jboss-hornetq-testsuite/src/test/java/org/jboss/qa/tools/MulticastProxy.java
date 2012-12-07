@@ -127,10 +127,16 @@ public class MulticastProxy extends Thread {
 //        proxy1.start();
 //        proxy2.start();
 
-        MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.2", 9876);
+        MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.4", 9876);
         mp12.start();
-        MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.1", 9876);
+        MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.3", 9876);
         mp21.start();
+
+        ControllableProxy proxy1 = new SimpleProxyServer("192.168.40.2", 5445, 43812);
+        ControllableProxy proxy2 = new SimpleProxyServer("10.34.3.115", 5445, 43821);
+        proxy1.start();
+        proxy2.start();
+
         mp21.join();
         mp12.join();
 

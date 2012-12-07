@@ -308,10 +308,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
-        List<String> connecotrList = new ArrayList();
-        connecotrList.add(remoteConnectorName);
-        connecotrList.add(remoteConnectorNameBackup);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connecotrList);
+        List<String> connectorList = new ArrayList();
+        connectorList.add(remoteConnectorName);
+        connectorList.add(remoteConnectorNameBackup);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);

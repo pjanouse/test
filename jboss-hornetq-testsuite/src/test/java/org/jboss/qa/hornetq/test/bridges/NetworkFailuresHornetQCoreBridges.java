@@ -75,8 +75,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     ControllableProxy proxy1;
     ControllableProxy proxy2;
-    MulticastProxy mp1;
-    MulticastProxy mp2;
+    MulticastProxy mp12;
+    MulticastProxy mp21;
 
 
     /**
@@ -90,8 +90,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         stopServer(CONTAINER4);
         if (proxy1 != null) proxy1.stop();
         if (proxy2 != null) proxy2.stop();
-        if (mp1 != null) mp1.setStop(true);
-        if (mp2 != null) mp2.setStop(true);
+        if (mp12 != null) mp12.setStop(true);
+        if (mp21 != null) mp21.setStop(true);
     }
 
     @Test
@@ -248,12 +248,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         controller.start(CONTAINER2); // B1
         Thread.sleep(60000);
         // A1 producer
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         //TODO MAKE THIS TRUE WHEN DUPS LOST MESSAGES OK IN CLUSTER
-        messageBuilder.setAddDuplicatedHeader(false);
-        producer1.setMessageBuilder(messageBuilder);
+        if (messageBuilder != null) {
+            messageBuilder.setAddDuplicatedHeader(true);
+            producer1.setMessageBuilder(messageBuilder);
+        }
         // B1 consumer
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, relativeJndiInQueueName, 2 * timeBetweenFails, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, 2 * timeBetweenFails, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -300,35 +302,36 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
         proxy1.start();
         proxy2.start();
-        mp1 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+        mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                 discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-        mp2 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+        mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                 discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-        mp1.start();
-        mp2.start();
+        mp12.start();
+        mp21.start();
 
         log.info("All proxies started.");
 
         for (int i = 0; i < numberOfFails; i++) {
+
             Thread.sleep(timeBetweenFails);
             log.info("Stop all proxies.");
             proxy1.stop();
             proxy2.stop();
 
-            mp1.setStop(true);
-            mp2.setStop(true);
+            mp12.setStop(true);
+            mp21.setStop(true);
             log.info("All proxies stopped.");
 
             Thread.sleep(timeBetweenFails);
             log.info("Start all proxies.");
             proxy1.start();
             proxy2.start();
-            mp1 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                    discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-            mp2 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+            mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                     discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-            mp1.start();
-            mp2.start();
+            mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                    discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+            mp12.start();
+            mp21.start();
             log.info("All proxies started.");
 
         }
@@ -344,9 +347,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         prepareClusterServer(CONTAINER1, CONTAINER1_IP, proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                 discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-        prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-
+        prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
     }
 
     /**

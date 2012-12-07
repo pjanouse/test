@@ -12,8 +12,6 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
@@ -51,26 +49,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback) throws Exception {
-
         testFailover(acknowledge, failback, false);
-
     }
 
-    @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>553",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFail(acknowledge, failback, topic, false);
     }
@@ -107,7 +88,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         if (shutdown)   {
             controller.stop(CONTAINER1);
         } else {
-            controller.kill(CONTAINER1);
+            killServer(CONTAINER1);
         }
 
         Thread.sleep(60000); // give some time for clients to failover
@@ -128,6 +109,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         clients.stopClients();
 
         long startTime = System.currentTimeMillis();
+
         while (!clients.isFinished()) {
             Thread.sleep(1000);
             if ((System.currentTimeMillis() - startTime) < 600000) {
@@ -347,8 +329,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.start(CONTAINER2);
             deployDestinations(CONTAINER2);
             stopServer(CONTAINER2);
-
-
     }
 
     /**
