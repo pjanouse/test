@@ -303,9 +303,9 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         proxy1.start();
         proxy2.start();
         mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-        mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                 discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
+        mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
         mp12.start();
         mp21.start();
 

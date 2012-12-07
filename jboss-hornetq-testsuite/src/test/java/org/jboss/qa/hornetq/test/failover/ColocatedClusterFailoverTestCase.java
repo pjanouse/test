@@ -112,7 +112,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         while (!clients.isFinished()) {
             Thread.sleep(1000);
-            if ((System.currentTimeMillis() - startTime) < 600000) {
+            if ((System.currentTimeMillis() - startTime) > 600000) {
                 Assert.fail("Clients did not stop and test was terminated. There is 10 min timeout.");
             }
         }
