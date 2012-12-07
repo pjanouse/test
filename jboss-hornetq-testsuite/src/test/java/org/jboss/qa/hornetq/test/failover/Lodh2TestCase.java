@@ -351,7 +351,7 @@ import java.util.*;
 
         } else {
 
-            Assert.assertEquals("There SHOULD be different number of sent and received messages.",
+            Assert.assertTrue("There SHOULD be different number of sent and received messages.",
                     producer1.getMessages() > receiver1.getCount());
             Assert.assertTrue("Receivers did not get any messages.",
                     receiver1.getCount() > 0);

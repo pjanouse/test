@@ -46,16 +46,6 @@ public class    MdbListenningOnNonDurableTopic implements MessageListener {
         try {
 
             long time = System.currentTimeMillis();
-            int counter = 0;
-            try {
-                counter = message.getIntProperty("count");
-            } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
-            }
-
-            String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-
-            log.debug(" Start of message:" + messageInfo);
 
             for (int i = 0; i < (5 + 5 * Math.random()); i++) {
                 try {
@@ -80,9 +70,12 @@ public class    MdbListenningOnNonDurableTopic implements MessageListener {
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.debug("End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
-
-            if (numberOfProcessedMessages.incrementAndGet() % 100 == 0) log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            int count = 0;
+            if ((count = numberOfProcessedMessages.incrementAndGet()) % 100 == 0) {
+                log.info("End of " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+            } else {
+                log.debug("End of " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+            }
 
         } catch (Exception t) {
             log.error(t.getMessage(), t);

@@ -102,16 +102,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
+        Thread.sleep(30000); // give some time for clients to start
+
         if (shutdown)   {
-
-            Thread.sleep(10000); // give some time to clients to failover
-
             controller.stop(CONTAINER1);
         } else {
             controller.kill(CONTAINER1);
         }
 
-        Thread.sleep(10000); // give some time to clients to failover
+        Thread.sleep(60000); // give some time for clients to failover
 
         if (failback) {
             logger.info("########################################");
@@ -129,8 +128,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         clients.stopClients();
 
         long startTime = System.currentTimeMillis();
-        while (!clients.isFinished() && (System.currentTimeMillis() - startTime) < 600000) {
+        while (!clients.isFinished()) {
             Thread.sleep(1000);
+            if ((System.currentTimeMillis() - startTime) < 600000) {
+                Assert.fail("Clients did not stop and test was terminated. There is 10 min timeout.");
+            }
         }
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
