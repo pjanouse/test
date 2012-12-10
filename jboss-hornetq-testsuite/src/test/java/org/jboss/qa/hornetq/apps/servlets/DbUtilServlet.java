@@ -78,6 +78,8 @@ public class DbUtilServlet extends HttpServlet {
                     countAll(out);
                 } else if (op.equals("insertRecord")) {
                     insertRecord(out);
+                } else if (op.equals("printAll")) {
+                    printAll(out);
                 } else {
                     out.println("Operation: " + op + " is not supoported.");
                 }
@@ -197,5 +199,34 @@ public class DbUtilServlet extends HttpServlet {
         }
 
         return result;
+    }
+
+    public void printAll(PrintWriter out) {
+
+        String result = null;
+        Connection connection = null;
+        try {
+
+            connection = getConnection();
+            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT * FROM MESSAGE_INFO2");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result = rs.getString(1);
+                out.print(result + ",");
+            }
+            rs.close();
+            ps.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                }
+            }
+        }
+
     }
 }

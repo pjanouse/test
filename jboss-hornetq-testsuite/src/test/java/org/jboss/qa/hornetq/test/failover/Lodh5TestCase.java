@@ -24,7 +24,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.Message;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +39,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -95,17 +98,44 @@ public class Lodh5TestCase extends HornetQTestCase {
             Thread.sleep(60000);
         }
         // 5 min
-        long howLongToWait = 600000;
+        long howLongToWait = 60000;
         long startTime = System.currentTimeMillis();
         while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
-
         Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        List<String> listOfSentMessages = new ArrayList<String>();
+        for (Message m : producer.getListOfSentMessages())  {
+            listOfSentMessages.add(m.getJMSMessageID());
+        }
+        List<String> lostMessages = checkLostMessages(listOfSentMessages, printAll());
+        for (String m : lostMessages)   {
+            logger.info("Lost Message: " + m);
+        }
 
         deployer.undeploy("mdbToDb");
         stopServer(CONTAINER1);
 
+    }
+
+    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
+        // TODO optimize or use some libraries
+        //get lost messages
+        List<String> listOfLostMessages = new ArrayList<String>();
+        boolean messageIdIsMissing = false;
+        for (String sentMessageId : listOfSentMessages) {
+            for (String receivedMessageId : listOfReceivedMessages) {
+                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
+                    messageIdIsMissing = true;
+                }
+            }
+            if (messageIdIsMissing) {
+                listOfLostMessages.add(sentMessageId);
+                messageIdIsMissing = false;
+            }
+        }
+        return listOfLostMessages;
     }
 
     /**
@@ -218,6 +248,32 @@ public class Lodh5TestCase extends HornetQTestCase {
         dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
 
         return dbUtilServlet;
+    }
+
+    public List<String> printAll() throws Exception {
+
+        List<String> messageIds = new ArrayList<String>();
+
+        try {
+            deployer.deploy("dbUtilServlet");
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 10, TimeUnit.SECONDS);
+            deployer.undeploy("dbUtilServlet");
+
+            logger.info("Print all messages: " + response);
+
+            StringTokenizer st = new StringTokenizer(response, ",");
+
+            while (st.hasMoreTokens()) {
+                messageIds.add("ID:" + st.nextToken());
+            }
+
+            logger.info("Number of records: " + messageIds.size());
+
+        } finally {
+            deployer.undeploy("dbUtilServlet");
+        }
+
+        return messageIds;
     }
 
     public int countRecords() throws Exception {
