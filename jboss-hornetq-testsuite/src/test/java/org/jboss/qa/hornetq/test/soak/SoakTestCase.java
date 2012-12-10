@@ -10,7 +10,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -92,7 +92,7 @@ public class SoakTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File("mdb1.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER1_IP);
         writer.close();
@@ -113,7 +113,7 @@ public class SoakTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = "mdb2")
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
-        File propertyFile = new File("mdb2.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER3_IP);
         writer.close();
@@ -150,8 +150,8 @@ public class SoakTestCase extends HornetQTestCase {
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
-        producerToInQueue2.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 104));
+        producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(1, 104));
 
         producerToInQueue1.start();
         producerToInQueue2.start();
@@ -374,8 +374,7 @@ public class SoakTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to management interface
-     * @param port     port of management interface - it should be 9999
+     * @param containerName container name
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -384,8 +383,7 @@ public class SoakTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to management interface
-     * @param port       port of management interface - it should be 9999
+     * @param containerName container name
      * @param serverName server name of the HornetQ server
      */
     private void deployDestinations(String containerName, String serverName) {
