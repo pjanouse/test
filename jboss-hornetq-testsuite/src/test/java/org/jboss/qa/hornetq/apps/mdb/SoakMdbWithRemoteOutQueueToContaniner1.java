@@ -11,6 +11,7 @@ import javax.naming.NamingException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A SoakMdbWithRemoteOutQueueToContaniner1 used for lodh tests. Used in RemoteJcaTestCase.
@@ -37,6 +38,8 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
     private static InitialContext ctxRemote = null;
     private static Queue queue = null;
     private static ConnectionFactory cf = null;
+
+    public static AtomicInteger numberOfProcessedMessages= new AtomicInteger();
 
     static {
         try {
@@ -119,7 +122,9 @@ public class SoakMdbWithRemoteOutQueueToContaniner1 implements MessageDrivenBean
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            if (numberOfProcessedMessages.incrementAndGet() % 1000 == 0) {
+                log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            }
 
         } catch (Exception t) {
 
