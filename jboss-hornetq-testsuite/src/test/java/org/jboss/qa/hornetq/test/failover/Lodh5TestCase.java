@@ -169,7 +169,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "BLOCK", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.setNodeIdentifier(23);
 
