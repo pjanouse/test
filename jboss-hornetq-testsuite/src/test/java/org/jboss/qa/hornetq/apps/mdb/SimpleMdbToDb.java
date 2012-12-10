@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.apps.mdb;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.JMSException;
@@ -37,16 +36,6 @@ public class SimpleMdbToDb implements MessageListener {
     @Resource(name = "lodhDb", mappedName = "java:/jdbc/lodhDS")
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    @PreDestroy
-    public void cleanup() {
-        try {
-            connection.close();
-            connection = null;
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
     }
 
     @Override

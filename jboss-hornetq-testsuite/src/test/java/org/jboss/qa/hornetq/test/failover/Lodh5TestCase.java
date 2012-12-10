@@ -36,7 +36,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -103,6 +103,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
+        deployer.undeploy("mdbToDb");
         stopServer(CONTAINER1);
 
     }
@@ -160,9 +161,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
-        jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, true, "oracle", "TRANSACTION_READ_COMMITTED",
+        jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, false, "oracle", "TRANSACTION_READ_COMMITTED",
                 "oracle.jdbc.xa.client.OracleXADataSource", false, true);
-        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
+        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
 
@@ -173,6 +174,8 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.setNodeIdentifier(23);
 
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
+
+        jmsAdminOperations.close();
 
         controller.stop(containerName);
 
