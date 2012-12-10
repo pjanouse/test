@@ -130,7 +130,7 @@ public class SoakMdbWithRemoteOutQueueToContaniner2 implements MessageDrivenBean
             sender.send(newMessage);
 
             if (numberOfProcessedMessages.incrementAndGet() % 1000 == 0) {
-                log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+                log.info(" End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
             }
 
         } catch (Exception t) {
