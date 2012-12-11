@@ -45,7 +45,7 @@ public class SimpleMdbToDb implements MessageListener {
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
             int count = counter.incrementAndGet();
             processMessageInfo(message, messageInfo, count);
-            log.info("MDB is processing message: " + messageInfo.getName() + ", counter: " + count);
+            log.info("MDB is processing message: " + messageInfo.getName() + ", counter: " + count + ", messageId: " + message.getJMSMessageID());
 
         } catch (JMSException jmse) {
             context.setRollbackOnly();

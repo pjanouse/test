@@ -93,16 +93,14 @@ public class Lodh5TestCase extends HornetQTestCase {
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
             controller.start(CONTAINER1);
-            Thread.sleep(60000);
+            Thread.sleep(10000);
         }
         // 5 min
-        long howLongToWait = 600000;
+        long howLongToWait = 1200000;
         long startTime = System.currentTimeMillis();
         while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
-
-        Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
@@ -113,7 +111,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         for (String m : lostMessages) {
             logger.info("Lost Message: " + m);
         }
-
+        Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
         deployer.undeploy("mdbToDb");
         stopServer(CONTAINER1);
 
