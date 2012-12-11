@@ -113,7 +113,7 @@ public class SoakTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = "mdb2")
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb2.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + CONTAINER3_IP);
         writer.close();
