@@ -78,7 +78,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     MulticastProxy mp12;
     MulticastProxy mp21;
 
-
     /**
      * Stops all servers
      */

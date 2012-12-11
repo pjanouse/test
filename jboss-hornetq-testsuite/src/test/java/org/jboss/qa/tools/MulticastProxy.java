@@ -40,7 +40,6 @@ public class MulticastProxy extends Thread {
         this.sourceMulticastPort = sourceMulticastPort;
         this.destinationMulticastGroup = destinationMulticastGroup;
         this.destinationMulticastPort = destinationMulticastPort;
-
     }
 
     public void run() {

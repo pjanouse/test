@@ -10,7 +10,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -150,8 +150,8 @@ public class SoakTestCase extends HornetQTestCase {
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 104));
-        producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(1, 104));
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(104));
+        producerToInQueue2.setMessageBuilder(new TextMessageBuilder(104));
 
         producerToInQueue1.start();
         producerToInQueue2.start();
