@@ -98,12 +98,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
+            Thread.sleep(60000); // give it some time
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
             stopServer(CONTAINER2);
-            Thread.sleep(5000); // give some time to clients to do failback
+            Thread.sleep(50000); // give some time to clients to do failback
         }
 
         clients.stopClients();

@@ -26,9 +26,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Message;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,7 +37,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -108,11 +106,11 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
-        for (Message m : producer.getListOfSentMessages())  {
+        for (Message m : producer.getListOfSentMessages()) {
             listOfSentMessages.add(m.getJMSMessageID());
         }
         List<String> lostMessages = checkLostMessages(listOfSentMessages, printAll());
-        for (String m : lostMessages)   {
+        for (String m : lostMessages) {
             logger.info("Lost Message: " + m);
         }
 
@@ -121,21 +119,40 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     }
 
+//    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
+//        // TODO optimize or use some libraries
+//        //get lost messages
+//        List<String> listOfLostMessages = new ArrayList<String>();
+//        boolean messageWasReceived = false;
+//        for (String sentMessageId : listOfSentMessages) {
+//            for (String receivedMessageId : listOfReceivedMessages) {
+//                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
+//                    messageWasReceived = true;
+//                    break;
+//                }
+//            }
+//            if (!messageWasReceived) {
+//                listOfLostMessages.add(sentMessageId);
+//                messageWasReceived = false;
+//            }
+//        }
+//        return listOfLostMessages;
+//    }
+
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-        // TODO optimize or use some libraries
         //get lost messages
         List<String> listOfLostMessages = new ArrayList<String>();
-        boolean messageWasReceived = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+
+        for (String id : listOfReceivedMessages) {
+            setOfReceivedMessages.add(id);
+        }
+
         for (String sentMessageId : listOfSentMessages) {
-            for (String receivedMessageId : listOfReceivedMessages) {
-                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
-                    messageWasReceived = true;
-                    break;
-                }
-            }
-            if (!messageWasReceived) {
+            // if true then message can be added and it means that it's lost
+            if (setOfReceivedMessages.add(sentMessageId)) {
                 listOfLostMessages.add(sentMessageId);
-                messageWasReceived = false;
             }
         }
         return listOfLostMessages;
@@ -160,6 +177,7 @@ public class Lodh5TestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
+
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
@@ -171,8 +189,8 @@ public class Lodh5TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
+     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param bindingAddress says on which ip container will be binded
      */
     private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
 
