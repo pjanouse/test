@@ -2840,8 +2840,18 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addLoggerCategory(String category, String level) {
-
         ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("logger", category);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("logger", category);
