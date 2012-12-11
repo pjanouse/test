@@ -60,8 +60,6 @@ public class DbUtilServlet extends HttpServlet {
      *
      * @param request
      * @param response
-     * @param queueIn
-     * @param queueOut
      * @throws ServletException
      * @throws IOException
      */
@@ -116,11 +114,10 @@ public class DbUtilServlet extends HttpServlet {
         try {
 
             String sql = "create table MESSAGE_INFO2 (MESSAGE_ID VARCHAR(50) primary key, MESSAGE_NAME VARCHAR(50), MESSAGE_ADDRESS VARCHAR(50))";
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
             log.info("SQL command: " + sql + " executed.");
-//            connection.commit();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -227,6 +224,5 @@ public class DbUtilServlet extends HttpServlet {
                 }
             }
         }
-
     }
 }

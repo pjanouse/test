@@ -39,7 +39,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -103,8 +103,10 @@ public class Lodh5TestCase extends HornetQTestCase {
         while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
+
         Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
+        logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
         for (Message m : producer.getListOfSentMessages())  {
             listOfSentMessages.add(m.getJMSMessageID());
@@ -123,16 +125,17 @@ public class Lodh5TestCase extends HornetQTestCase {
         // TODO optimize or use some libraries
         //get lost messages
         List<String> listOfLostMessages = new ArrayList<String>();
-        boolean messageIdIsMissing = false;
+        boolean messageWasReceived = false;
         for (String sentMessageId : listOfSentMessages) {
             for (String receivedMessageId : listOfReceivedMessages) {
                 if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
-                    messageIdIsMissing = true;
+                    messageWasReceived = true;
+                    break;
                 }
             }
-            if (messageIdIsMissing) {
+            if (!messageWasReceived) {
                 listOfLostMessages.add(sentMessageId);
-                messageIdIsMissing = false;
+                messageWasReceived = false;
             }
         }
         return listOfLostMessages;
@@ -264,7 +267,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             StringTokenizer st = new StringTokenizer(response, ",");
 
             while (st.hasMoreTokens()) {
-                messageIds.add("ID:" + st.nextToken());
+                messageIds.add(st.nextToken());
             }
 
             logger.info("Number of records: " + messageIds.size());
