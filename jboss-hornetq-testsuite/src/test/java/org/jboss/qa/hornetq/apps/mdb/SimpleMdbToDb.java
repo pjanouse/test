@@ -45,13 +45,14 @@ public class SimpleMdbToDb implements MessageListener {
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
             String hqInternalMessageCounter = null;
             try {
-                hqInternalMessageCounter =  message.getStringProperty();
-            } catch (Exception) {
+                hqInternalMessageCounter =  message.getStringProperty("count");
+            } catch (Exception e) {
                 log.warn("No hqInternalMessageCounter \"count\" is defined in message");
             }
             int count = counter.incrementAndGet();
             processMessageInfo(message, messageInfo, count);
-            log.info("MDB is processing message: " + messageInfo.getName() + ", counter: " + count + ", messageId: " + message.getJMSMessageID()) + ", hqInternalMessageCounter: " + hqInternalMessageCounter;
+            log.info("MDB is processing message: " + messageInfo.getName() + ", counter: " + count + ", messageId: " + message.getJMSMessageID()
+                    + ", hqInternalMessageCounter: " + hqInternalMessageCounter);
 
         } catch (JMSException jmse) {
             context.setRollbackOnly();
