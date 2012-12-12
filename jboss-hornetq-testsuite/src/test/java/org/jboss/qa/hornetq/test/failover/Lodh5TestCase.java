@@ -243,7 +243,8 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "BLOCK", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
 //        jmsAdminOperations.setLoggingLevelForConsole("TRACE");
 
         jmsAdminOperations.setNodeIdentifier(23);
