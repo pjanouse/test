@@ -2864,7 +2864,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Operation remove catogory was not completed.", e);
         }
 
         model = new ModelNode();
