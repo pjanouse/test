@@ -215,6 +215,30 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-prefill", "true"); // <prefill>true</prefill>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "background-validation", "false"); //<background-validation>false</background-validation>
+//        jmsAdminOperations.addDatasourceProperty("lodhDb", "query-timeout", "true"); //<set-tx-query-timeout>true</set-tx-query-timeout>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
+        jmsAdminOperations.addDatasourceProperty("lodhDb", "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
+
+/**
+ *
+
+ <security>
+ <user-name>MESSAGING</user-name>
+ <password>MESSAGING</password>
+ </security>
+
+*/
 
 
         jmsAdminOperations.removeAddressSettings("#");
@@ -277,7 +301,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 10, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 20, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Print all messages: " + response);
@@ -302,7 +326,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 10, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
@@ -334,7 +358,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 10, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 20, TimeUnit.SECONDS);
 
             logger.info("Response is: " + response);
         } finally {

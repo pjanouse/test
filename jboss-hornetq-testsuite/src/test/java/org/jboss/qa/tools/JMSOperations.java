@@ -1173,4 +1173,6 @@ public interface JMSOperations {
     void setNodeIdentifier(int i);
 
     void setAuthenticationForNullUsers(boolean b);
+
+    void addDatasourceProperty(String lodhDb, String propertyName, String value);
 }

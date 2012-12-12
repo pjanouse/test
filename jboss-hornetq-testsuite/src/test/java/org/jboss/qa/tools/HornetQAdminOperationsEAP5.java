@@ -1300,6 +1300,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addDatasourceProperty(String lodhDb, String propertyName, String value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @param doc
      * @param description

@@ -42,7 +42,6 @@ public class SimpleMdbToDb implements MessageListener {
     public void onMessage(Message message) {
         try {
             connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
             int count = counter.incrementAndGet();
             processMessageInfo(message, messageInfo, count);
