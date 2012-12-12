@@ -47,7 +47,7 @@ public class SimpleMdbToDb implements MessageListener {
             try {
                 hqInternalMessageCounter =  message.getStringProperty("count");
             } catch (Exception e) {
-                log.warn("No hqInternalMessageCounter \"count\" is defined in message");
+                log.warn("No hqInternalMessageCounter \"count\" property is defined in message");
             }
             int count = counter.incrementAndGet();
             processMessageInfo(message, messageInfo, count);
