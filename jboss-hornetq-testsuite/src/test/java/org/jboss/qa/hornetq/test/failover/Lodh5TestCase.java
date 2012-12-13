@@ -212,7 +212,8 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
         jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, false, "oracle", "TRANSACTION_READ_COMMITTED",
                 "oracle.jdbc.xa.client.OracleXADataSource", false, true);
-        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
+//        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
+        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
         jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
         jmsAdminOperations.addDatasourceProperty("lodhDb", "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
