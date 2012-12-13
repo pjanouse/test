@@ -20,11 +20,11 @@ public class PrintJournal {
 
     public static void main(String args[]) {
 
-
-
         String command = "java -cp $JBOSS_HOME/modules/org/hornetq/main/*" +
                 ":$JBOSS_HOME/modules/org/jboss/netty/main/* " +
-                "org.hornetq.core.persistence.impl.journal.PrintData $JBOSS_HOME/standalone/data/messagingbindings $JBOSS_HOME/standalone/data/messagingjournal >  log_after_shutdown.txt";
+                "org.hornetq.core.persistence.impl.journal.PrintData " +
+                "$JBOSS_HOME/standalone/data/messagingbindings " +
+                "$JBOSS_HOME/standalone/data/messagingjournal >  log_after_shutdown.txt";
 
         try {
 
