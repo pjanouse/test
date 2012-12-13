@@ -230,19 +230,8 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addDatasourceProperty("lodhDb", "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
         jmsAdminOperations.addDatasourceProperty("lodhDb", "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
 
-/**
- *
-
- <security>
- <user-name>MESSAGING</user-name>
- <password>MESSAGING</password>
- </security>
-
-*/
-
-
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "BLOCK", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
         jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
         jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
         jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
