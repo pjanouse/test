@@ -93,8 +93,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
-            PrintJournal.printJournal(CONTAINER1, "journal_content_after_kill.txt");
+            PrintJournal.printJournal(CONTAINER1, "journal_content_after_kill1.txt");
             controller.start(CONTAINER1);
+            PrintJournal.printJournal(CONTAINER1, "journal_content_after_restart2.txt");
             Thread.sleep(10000);
         }
         // 5 min
@@ -103,6 +104,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
+        PrintJournal.printJournal(CONTAINER1, "journal_content_before_shutdown3.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
@@ -116,6 +118,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
         deployer.undeploy("mdbToDb");
         stopServer(CONTAINER1);
+        PrintJournal.printJournal(CONTAINER1, "journal_content_after_shutdown4.txt");
 
     }
 
