@@ -253,7 +253,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
         jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
         jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
-        jmsAdminOperations.setLoggingLevelForConsole("TRACE");
+//        jmsAdminOperations.setLoggingLevelForConsole("TRACE");
 
         jmsAdminOperations.setNodeIdentifier(23);
 
