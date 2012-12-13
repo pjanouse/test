@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.HttpRequest;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.PrintJournal;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -92,11 +93,12 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
+            PrintJournal.printJournal(CONTAINER1, "journal_content_after_kill.txt");
             controller.start(CONTAINER1);
             Thread.sleep(10000);
         }
         // 5 min
-        long howLongToWait = 600000;
+        long howLongToWait = 300000;
         long startTime = System.currentTimeMillis();
         while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
@@ -111,31 +113,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         for (String m : lostMessages) {
             logger.info("Lost Message: " + m);
         }
-        Assert.assertEquals(countRecords(), NUMBER_OF_MESSAGES_PER_PRODUCER);
+        Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
         deployer.undeploy("mdbToDb");
         stopServer(CONTAINER1);
 
     }
-
-//    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-//        // TODO optimize or use some libraries
-//        //get lost messages
-//        List<String> listOfLostMessages = new ArrayList<String>();
-//        boolean messageWasReceived = false;
-//        for (String sentMessageId : listOfSentMessages) {
-//            for (String receivedMessageId : listOfReceivedMessages) {
-//                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
-//                    messageWasReceived = true;
-//                    break;
-//                }
-//            }
-//            if (!messageWasReceived) {
-//                listOfLostMessages.add(sentMessageId);
-//                messageWasReceived = false;
-//            }
-//        }
-//        return listOfLostMessages;
-//    }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
         //get lost messages
