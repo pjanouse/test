@@ -38,7 +38,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -164,7 +164,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "mysql55");
             topologyCreated = true;
         }
     }
@@ -175,16 +175,9 @@ public class Lodh5TestCase extends HornetQTestCase {
      * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
+    private void prepareJmsServer(String containerName, String bindingAddress, String database) throws IOException {
 
         controller.start(containerName);
-
-        File oracleModuleDir = new File("src/test/resources/org/jboss/hornetq/configuration/modules/oracle");
-        logger.info("source: " + oracleModuleDir.getAbsolutePath());
-        File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
-                + "com" + File.separator + "oracle");
-        logger.info("target: " + targetDir.getAbsolutePath());
-        copyFolder(oracleModuleDir, targetDir);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
@@ -194,33 +187,72 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
-        jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, false, "oracle", "TRANSACTION_READ_COMMITTED",
-                "oracle.jdbc.xa.client.OracleXADataSource", false, true);
+
+        if ("oracle11gr2".equalsIgnoreCase(database)) {
+
+
+            /** ORACLE 11GR2 XA DATASOURCE **/
+            File oracleModuleDir = new File("src/test/resources/org/jboss/hornetq/configuration/modules/oracle");
+            logger.info("source: " + oracleModuleDir.getAbsolutePath());
+            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
+                    + "com" + File.separator + "oracle");
+            logger.info("target: " + targetDir.getAbsolutePath());
+            copyFolder(oracleModuleDir, targetDir);
+
+            jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, false, "oracle", "TRANSACTION_READ_COMMITTED",
+                    "oracle.jdbc.xa.client.OracleXADataSource", false, true);
 //        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
-        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
-        jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
-        jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-prefill", "true"); // <prefill>true</prefill>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "background-validation", "false"); //<background-validation>false</background-validation>
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-prefill", "true"); // <prefill>true</prefill>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "background-validation", "false"); //<background-validation>false</background-validation>
 //        jmsAdminOperations.addDatasourceProperty("lodhDb", "query-timeout", "true"); //<set-tx-query-timeout>true</set-tx-query-timeout>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
-        jmsAdminOperations.addDatasourceProperty("lodhDb", "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
+            jmsAdminOperations.addDatasourceProperty("lodhDb", "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
+        } else if ("mysql55".equalsIgnoreCase(database)) {
+            /** MYSQL DS XA DATASOURCE **/
+            /**
+             * <xa-datasource jndi-name="java:jboss/datasources/MySqlXADS" enabled="true" use-java-context="true" pool-name="MySqlXADS">
+             <xa-datasource-property name="ServerName">localhost</xa-datasource-property>
+             <xa-datasource-property name="DatabaseName">test</xa-datasource-property>
+             <xa-datasource-property name="User">root</xa-datasource-property>
+             <xa-datasource-property name="Password"></xa-datasource-property>
+             <driver>
+             mysql
+             </driver>
+             </xa-datasource>
+             */
+            File mysqlModuleDir = new File("src/test/resources/com/mysql");
+            logger.info("source: " + mysqlModuleDir.getAbsolutePath());
+            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
+                    + "com" + File.separator + "mysql");
+            logger.info("target: " + targetDir.getAbsolutePath());
+            copyFolder(mysqlModuleDir, targetDir);
+            jmsAdminOperations.createJDBCDriver("mysql", "com.mysql.jdbc", "com.mysql.jdbc.Driver", "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource");
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", true, false, "mysql", "TRANSACTION_READ_COMMITTED",
+                    "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource", false, true);
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "ServerName", "db01.mw.lab.eng.bos.redhat.com");
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "DatabaseName", "messaging");
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "messaging");
+            jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "messaging");
+        }
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0,  1024);
-        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-        jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
+//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
 //        jmsAdminOperations.setLoggingLevelForConsole("TRACE");
 
         jmsAdminOperations.setNodeIdentifier(23);
