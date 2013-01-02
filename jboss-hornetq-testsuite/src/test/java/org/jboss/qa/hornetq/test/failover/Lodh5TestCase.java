@@ -246,6 +246,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.addXADatasourceProperty("lodhDb", "DatabaseName", "messaging");
             jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "messaging");
             jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "messaging");
+            jmsAdminOperations.setNodeIdentifier(14);
         }
 
         jmsAdminOperations.removeAddressSettings("#");
