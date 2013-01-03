@@ -360,7 +360,7 @@ public class ReceiverClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverClientAck receiver = new ReceiverClientAck("192.168.1.1", 4447, "jms/queue/OutQueue", 1000, 10, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck("10.34.3.191", 4447, "jms/queue/testQueue0", 100000, 10, 40);
 
         receiver.start();
 

@@ -18,7 +18,7 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
-		<eap5.client>5.2.0.ER5-HORNETQ</eap5.client>
+		<eap5.client>5.2.0.ER6-HORNETQ</eap5.client>
 		<eap6.client>6.0.1.ER4.2</eap6.client>
         <eap6.controller.client>6.0.1.ER4.2</eap6.controller.client>
 
