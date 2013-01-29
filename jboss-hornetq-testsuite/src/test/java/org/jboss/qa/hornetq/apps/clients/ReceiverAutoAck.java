@@ -5,10 +5,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Simple receiver with auto acknowledge session. ABLE to failover.
@@ -128,7 +126,7 @@ public class ReceiverAutoAck extends Client {
 
                 count++;
 
-                logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
+                logger.debug("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
                         + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID());
             }

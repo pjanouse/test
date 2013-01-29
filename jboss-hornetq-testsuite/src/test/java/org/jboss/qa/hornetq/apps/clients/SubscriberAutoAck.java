@@ -120,7 +120,7 @@ public class SubscriberAutoAck extends Client {
 
                 count++;
 
-                logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                         + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID());
             }
