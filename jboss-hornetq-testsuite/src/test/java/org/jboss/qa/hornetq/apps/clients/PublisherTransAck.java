@@ -338,12 +338,19 @@ public class PublisherTransAck extends Client {
 
                 resendMessages(publisher);
             } catch (JMSException ex) {
-                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
-                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
-                        + "Publisher for node: " + getHostname()
+                if (numberOfRetries > 0)    {
+                    // this is actually JMSException called because we sent duplicates
+                    logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter, ex);
+                    return;
+                } else {
+                    logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
+                        + "is not able to determine whether commit was successful. Commit will be retried and messages WILL BE resent. " +
+                        "Server will throw away all duplicates. Publisher for node: " + getHostname()
                         + ". Sent message with property count: " + counter, ex);
-                session.rollback();
-                numberOfRetries++;
+                    numberOfRetries++;
+                    resendMessages(publisher);
+                }
             }
         }
         // maxretry reached then throw exception above

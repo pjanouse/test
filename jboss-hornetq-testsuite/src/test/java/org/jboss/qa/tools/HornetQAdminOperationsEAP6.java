@@ -703,7 +703,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Setting clustered attribute failed.", e);
         }
     }
 

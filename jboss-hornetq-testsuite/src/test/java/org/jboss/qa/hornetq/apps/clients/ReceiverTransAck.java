@@ -7,7 +7,9 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -27,6 +29,8 @@ public class ReceiverTransAck extends Client {
     private List<Message> listOfReceivedMessages = new ArrayList<Message>();
     ;
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
+    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
+
     private Exception exception = null;
 
     private int counter = 0;
@@ -188,12 +192,28 @@ public class ReceiverTransAck extends Client {
 
         while (numberOfRetries < maxRetries) {
             try {
+
+                // if dups_id is used then check if we got duplicates after last failed ack
+                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).getStringProperty("_HQ_DUPL_ID") != null
+                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
+                    if (areThereDuplicates())  {
+                        // decrease counter
+                        // add just new messages
+                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
+                    } else {
+                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                    }
+                    setOfReceivedMessagesWithPossibleDuplicates.clear();
+                }
+
                 session.commit();
 
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + counter + " SENT COMMIT");
 
-                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                if (numberOfRetries == 0 ) {
+                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                }
 
                 return;
 
@@ -207,6 +227,9 @@ public class ReceiverTransAck extends Client {
                 return;
 
             } catch (JMSException ex) {
+
+                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
+
                 logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
                         + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
                 ex.printStackTrace();
@@ -215,6 +238,21 @@ public class ReceiverTransAck extends Client {
         }
 
         throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
+    }
+
+    private boolean areThereDuplicates() throws JMSException {
+        boolean isDup = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+        for (Message m : listOfReceivedMessagesToBeCommited)    {
+            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+        }
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
+            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+                isDup=true;
+            }
+        }
+        return isDup;
     }
 
     /**

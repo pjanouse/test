@@ -7,7 +7,9 @@ import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -37,6 +39,7 @@ public class SubscriberClientAck extends Client {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
+    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -188,13 +191,30 @@ public class SubscriberClientAck extends Client {
 
         while (numberOfRetries < maxRetries) {
             try {
+
+                // if dups_id is used then check if we got duplicates after last failed ack
+                if (numberOfRetries == 0 && message.getStringProperty("_HQ_DUPL_ID") != null
+                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
+                    if (areThereDuplicates())  {
+                        // decrease counter
+                        // add just new messages
+                        count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
+
+                    } else {
+                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                    }
+                    setOfReceivedMessagesWithPossibleDuplicates.clear();
+                }
+
                 message.acknowledge();
 
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", message-counter: " + message.getStringProperty("counter")
                         + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
-                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+                if (numberOfRetries == 0)    {
+                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+                }
 
                 return;
 
@@ -208,6 +228,10 @@ public class SubscriberClientAck extends Client {
                 return;
 
             } catch (JMSException ex) {
+                // now it's screwed because we don't have response for sent ACK
+                // next receive can have duplicates or new messages
+                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeAcked);
+
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID(), ex);
                 ex.printStackTrace();
@@ -216,6 +240,21 @@ public class SubscriberClientAck extends Client {
         }
 
         throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
+    }
+
+    private boolean areThereDuplicates() throws JMSException {
+        boolean isDup = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+        for (Message m : listOfReceivedMessagesToBeAcked)    {
+            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+        }
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
+            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+                isDup=true;
+            }
+        }
+        return isDup;
     }
 
     /**

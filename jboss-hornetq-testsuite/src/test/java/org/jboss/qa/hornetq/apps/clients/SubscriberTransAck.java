@@ -11,7 +11,9 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
@@ -41,6 +43,8 @@ public class SubscriberTransAck extends Client {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
+    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
+
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -167,12 +171,30 @@ public class SubscriberTransAck extends Client {
 
         while (numberOfRetries < maxRetries) {
             try {
+
+                // if dups_id is used then check if we got duplicates after last failed ack
+                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).getStringProperty("_HQ_DUPL_ID") != null
+                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
+                    if (areThereDuplicates())  {
+                        // decrease counter
+                        // add just new messages
+                        count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
+                    } else {
+                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                        logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Adding messages: " +
+                            setOfReceivedMessagesWithPossibleDuplicates.toString());
+                    }
+                    setOfReceivedMessagesWithPossibleDuplicates.clear();
+                }
+
                 session.commit();
 
                 logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Received message - count: "
                         + count + " SENT COMMIT");
 
-                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                if (numberOfRetries == 0)   {
+                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                }
 
                 return;
 
@@ -186,6 +208,9 @@ public class SubscriberTransAck extends Client {
                 return;
 
             } catch (JMSException ex) {
+
+                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
+
                 logger.error(" Subscriber - name: " + getSubscriberName() + " -- JMSException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
                         + ". Received message - count: " + count + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
                 ex.printStackTrace();
@@ -194,6 +219,27 @@ public class SubscriberTransAck extends Client {
         }
 
         throw new Exception("FAILURE - MaxRetry reached for Subscriber - name: " + getSubscriberName() + " - for node: " + hostname + " during commit");
+    }
+
+    private boolean areThereDuplicates() throws JMSException {
+        boolean isDup = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+        for (Message m : listOfReceivedMessagesToBeCommited)    {
+            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+        }
+
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
+            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+                isDup=true;
+            }
+        }
+
+        if (isDup)  {
+            logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + hostname + " detected duplicates after failover.");
+        }
+
+        return isDup;
     }
 
     /**

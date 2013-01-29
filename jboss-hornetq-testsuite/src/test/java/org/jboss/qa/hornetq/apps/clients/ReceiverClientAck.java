@@ -6,7 +6,9 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -28,6 +30,9 @@ public class ReceiverClientAck extends Client {
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
+    private boolean possibleDuplicates = false;
+    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
+
 
     /**
      * Creates a receiver to queue with client acknowledge.
@@ -128,7 +133,7 @@ public class ReceiverClientAck extends Client {
                 listOfReceivedMessagesToBeAcked.add(message);
 
                 count++;
-//                Thread.sleep(20);
+
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
 
@@ -197,13 +202,28 @@ public class ReceiverClientAck extends Client {
 
         while (numberOfRetries < maxRetries) {
             try {
+                // if dups_id is used then check if we got duplicates after last failed ack
+                if (numberOfRetries == 0 && message.getStringProperty("_HQ_DUPL_ID") != null && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
+                    if (areThereDuplicates())  {
+                        // decrease counter
+                        // add just new messages
+                        count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
+
+                    } else {
+                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                    }
+                    setOfReceivedMessagesWithPossibleDuplicates.clear();
+                }
+
                 message.acknowledge();
 
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", message-counter: " + message.getStringProperty("counter")
                         + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
-                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+                if (numberOfRetries == 0)    {
+                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+                }
 
                 return;
 
@@ -218,15 +238,35 @@ public class ReceiverClientAck extends Client {
                 return;
 
             } catch (JMSException ex) {
+                // now it's screwed because we don't have response for sent ACK
+                // next receive can have duplicates or new messages
+                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeAcked);
+
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID()
                         + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""), ex);
+
                 ex.printStackTrace();
                 numberOfRetries++;
             }
         }
 
         throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
+    }
+
+    private boolean areThereDuplicates() throws JMSException {
+        boolean isDup = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+        for (Message m : listOfReceivedMessagesToBeAcked)    {
+            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+        }
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
+            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+                isDup=true;
+            }
+        }
+        return isDup;
     }
 
     /**
@@ -360,7 +400,7 @@ public class ReceiverClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverClientAck receiver = new ReceiverClientAck("10.34.3.191", 4447, "jms/queue/testQueue0", 100000, 10, 40);
+        ReceiverClientAck receiver = new ReceiverClientAck("10.34.3.189", 4447, "jms/queue/testQueue0", 100000, 10, 40);
 
         receiver.start();
 

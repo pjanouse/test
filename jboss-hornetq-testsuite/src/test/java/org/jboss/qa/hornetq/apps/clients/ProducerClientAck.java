@@ -3,7 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -98,7 +98,7 @@ public class ProducerClientAck extends Client {
                 sendMessage(producer, msg);
 
                 logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
-                        + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID()
+                        + msg.getStringProperty("count") + ", messageId:" + msg.getJMSMessageID()
                         + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
 
             }
@@ -287,10 +287,12 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("10.34.3.191", 4447, "jms/queue/testQueue0", 10000);
+        ProducerClientAck producer = new ProducerClientAck("10.34.3.189", 4447, "jms/queue/testQueue0", 10000);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
-        producer.setMessageBuilder(new InfoMessageBuilder());
+        MessageBuilder builder = new ClientMixMessageBuilder(1, 10);
+        builder.setAddDuplicatedHeader(true);
+        producer.setMessageBuilder(builder);
         producer.start();
 
         producer.join();
