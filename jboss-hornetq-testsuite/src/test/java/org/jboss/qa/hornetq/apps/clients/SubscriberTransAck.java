@@ -120,7 +120,7 @@ public class SubscriberTransAck extends Client {
                     commitSession(session);
                     listOfReceivedMessagesToBeCommited.clear();
                 } else { // i don't want to ack now
-                    logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
+                    logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }

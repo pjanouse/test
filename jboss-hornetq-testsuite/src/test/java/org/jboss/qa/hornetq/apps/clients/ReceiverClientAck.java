@@ -140,7 +140,7 @@ public class ReceiverClientAck extends Client {
                     listOfReceivedMessagesToBeAcked.clear();
 
                 } else { // i don't want to ack now
-                    logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                    logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                             + ". Received message - count: "
                             + count + ", message-counter: " + message.getStringProperty("counter")
                             + ", messageId:" + message.getJMSMessageID()

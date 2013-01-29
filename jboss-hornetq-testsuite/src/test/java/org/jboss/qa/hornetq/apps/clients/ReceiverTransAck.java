@@ -140,7 +140,7 @@ public class ReceiverTransAck extends Client {
 
                 } else { // i don't want to ack now
 
-                    logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                    logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                             + ". Received message - count: "
                             + counter + ", messageId:" + message.getJMSMessageID());
                 }

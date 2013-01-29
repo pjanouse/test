@@ -430,8 +430,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname ip address where to bind to managemant interface
-     * @param port     port of management interface - it should be 9999
+     * @param containerName
      */
     private void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
@@ -440,8 +439,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname   ip address where to bind to managemant interface
-     * @param port       port of management interface - it should be 9999
+     * @param containerName
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {

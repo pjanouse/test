@@ -133,7 +133,7 @@ public class SubscriberClientAck extends Client {
                     acknowledgeMessage(message);
                     listOfReceivedMessagesToBeAcked.clear();
                 } else { // i don't want to ack now
-                    logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                    logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                             + ". Received message - count: "
                             + count + ", messageId:" + message.getJMSMessageID());
                 }
