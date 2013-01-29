@@ -166,7 +166,7 @@ public class PublisherTransAck extends Client {
 
                 counter++;
 
-                logger.info("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
 
                 listOfMessagesToBeCommited.add(msg);
 

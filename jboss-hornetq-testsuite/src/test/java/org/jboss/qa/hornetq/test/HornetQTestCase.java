@@ -384,7 +384,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             deployer.undeploy(killerServletName);
         } catch (Exception ex) {
-            log.debug("Killer servlet %s was not deployed and it ");
+            log.debug("Killer servlet was not deployed. Deploye it.");
         }
         deployer.deploy(killerServletName);
         HttpRequest.get("http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);

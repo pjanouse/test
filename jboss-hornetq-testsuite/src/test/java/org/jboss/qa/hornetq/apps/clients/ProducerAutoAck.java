@@ -96,7 +96,7 @@ public class ProducerAutoAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                logger.info("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.debug("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 

@@ -90,7 +90,7 @@ public class PublisherAutoAck extends Client {
                 // send message in while cycle
                 sendMessage(publisher, msg);
 
-                logger.info("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.debug("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 

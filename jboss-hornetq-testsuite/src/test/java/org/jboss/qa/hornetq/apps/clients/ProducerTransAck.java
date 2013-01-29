@@ -159,7 +159,7 @@ public class ProducerTransAck extends Client {
 
                 counter++;
 
-                logger.info("Producer for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.debug("Producer for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
 
                 listOfMessagesToBeCommited.add(msg);
 
