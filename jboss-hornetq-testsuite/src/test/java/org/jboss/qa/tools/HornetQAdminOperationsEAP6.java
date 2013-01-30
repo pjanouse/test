@@ -400,8 +400,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Sets connector on pooled connection factory transaction=xa,
      * entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
      *
-     * @param connectionFactoryName name of the pooled connection factory like
-     *                              "hornetq-ra"
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
      * @param connectorName         name of the connector like "remote-connector"
      */
     @Override
@@ -419,7 +418,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         modelnew.get(connectorName).clear();
-        model.get("value").set(modelnew);
+        model.get("connector").set(modelnew);
 
         System.out.println(model.toString());
 
