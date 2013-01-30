@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -31,7 +32,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 10;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 5;
     private static final int BYTEMAN_PORT = 9091;
 
     static boolean topologyCreated = false;
@@ -77,7 +78,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>333",
+                    condition = "readCounter(\"counter\")>3333",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFailover(acknowledge, failback, topic, false);
@@ -100,7 +101,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         // install rule to first server
         if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
@@ -108,29 +109,30 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Clients clients = createClients(acknowledge, topic);
         clients.startClients();
 
+        Thread.sleep(10000);
+
         if (!shutdown) {
             controller.kill(CONTAINER1);
         } else {
-            Thread.sleep(15000);
             stopServer(CONTAINER1);
         }
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(10000); // give some time to clients to failover
+        Thread.sleep(20000); // give some time to clients to failover
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
+            Thread.sleep(10000); // give it some time
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
             stopServer(CONTAINER2);
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         clients.stopClients();
 
         while (!clients.isFinished()) {
@@ -267,6 +269,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
+            clients.setMessageBuilder(new TextMessageBuilder(1));
         }
 
         return clients;
