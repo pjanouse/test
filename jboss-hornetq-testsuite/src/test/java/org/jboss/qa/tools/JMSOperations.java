@@ -632,6 +632,16 @@ public interface JMSOperations {
      */
     void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod, String connectorName, String backupConnectorName);
 
+     /**
+     * 
+     * @param name                a unique name for the broadcast group - mandatory
+     * @param jgroupsStack        jgroups protocol stack
+     * @param jgroupsChannel      the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod     period in miliseconds between consecutive broadcasts
+     * @param connectorName       a pair connector
+     */
+    void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName);    
+    
     /**
      * Sets cluster configuration.
      *
@@ -785,6 +795,19 @@ public interface JMSOperations {
      */
     void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout);
 
+    /**
+     * Discovery group defines how connector information is received from a
+     * multicast address.
+     *
+     * @param name           A unique name for the discovery group - mandatory.
+     * @param refreshTimeout Period the discovery group waits after receiving
+     *                       the last broadcast from a particular server before removing that servers
+     *                       connector pair entry from its list.
+     * @param jgroupsStack   jgroups protocol stack
+     * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
+     */
+    void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel);
+    
     /**
      * Sets ha attribute.
      *
