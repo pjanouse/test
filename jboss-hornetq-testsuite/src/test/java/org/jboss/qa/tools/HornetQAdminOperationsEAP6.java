@@ -1292,6 +1292,47 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * A broadcast group is the means by which a server broadcasts connectors
+     * over the network. A connector defines a way in which a client (or other
+     * server) can make connections to the server.
+     * 
+     * @param name                a unique name for the broadcast group - mandatory
+     * @param jgroupsStack        jgroups protocol stack
+     * @param jgroupsChannel      the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod     period in miliseconds between consecutive broadcasts
+     * @param connectorName       a pair connector
+     */    
+    @Override
+    public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+    
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
+        
+        if(!isEmpty(jgroupsStack)) {
+    	    model.get("jgroups-stack").set(jgroupsStack);
+        }
+        
+        if(!isEmpty(jgroupsChannel)) {
+    	    model.get("jgroups-channel").set(jgroupsChannel);
+        }
+        
+        if(!isEmpty(broadcastPeriod)) {
+    	    model.get("broadcast-period").set(broadcastPeriod);
+        }
+        
+    	model.get("connectors").add(connectorName);
+        
+        try{
+    	    this.applyUpdate(model);
+        } catch(Exception e) {
+    	    throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Discovery group defines how connector information is received from a
@@ -1411,6 +1452,45 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
+    }
+    
+    /**
+     * Discovery group defines how connector information is received from a
+     * multicast address.
+     *
+     * @param name           A unique name for the discovery group - mandatory.
+     * @param refreshTimeout Period the discovery group waits after receiving
+     *                       the last broadcast from a particular server before removing that servers
+     *                       connector pair entry from its list.
+     * @param jgroupsStack   jgroups protocol stack
+     * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
+     */
+    @Override
+    public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel){
+    
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
+        
+        if(!isEmpty(jgroupsStack)) {
+    	    model.get("jgroups-stack").set(jgroupsStack);
+        }
+        
+        if(!isEmpty(jgroupsChannel)) {
+    	    model.get("jgroups-channel").set(jgroupsChannel);
+        }
+        
+        if (!isEmpty(refreshTimeout)) {
+    	    model.get("refresh-timeout").set(refreshTimeout);
+        }
+        
+        try {
+    	    this.applyUpdate(model);
+        } catch (Exception e) {
+    	    throw new RuntimeException(e);
+    	}
     }
 
     /**
