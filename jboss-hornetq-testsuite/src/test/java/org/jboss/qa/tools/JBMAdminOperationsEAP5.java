@@ -763,6 +763,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod, String connectorName, String backupConnectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
+    
+    @Override
+    public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+    	logger.info("This operation is not supported: " + getMethodName());
+    }
 
     @Override
     public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers,
@@ -873,6 +878,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel){
+	logger.info("This operation is not supported: " + getMethodName());
+    }
+    
     @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
