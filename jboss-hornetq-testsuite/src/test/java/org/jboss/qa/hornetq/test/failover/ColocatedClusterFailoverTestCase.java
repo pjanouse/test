@@ -33,8 +33,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
+    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     private static final int BYTEMAN_PORT = 9091;
 
     String queueNamePrefix = "testQueue";
@@ -97,7 +97,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
-        Thread.sleep(30000); // give some time for clients to start
+        Thread.sleep(10000); // give some time for clients to start
 
         if (shutdown)   {
             controller.stop(CONTAINER1);
@@ -107,19 +107,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.kill(CONTAINER1);
         }
 
-        Thread.sleep(60000); // give some time for clients to failover
+        Thread.sleep(20000); // give some time for clients to failover
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(60000); // give it some time
+            Thread.sleep(20000); // give it some time
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
             stopServer(CONTAINER2);
-            Thread.sleep(50000); // give some time to clients to do failback
+            Thread.sleep(20000); // give some time to clients to do failback
         }
 
         clients.stopClients();
@@ -168,6 +168,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         clients.setMessageBuilder(messageBuilder);
+        clients.setProducedMessagesCommitAfter(10);
+        clients.setReceivedMessagesAckCommitAfter(5);
 
         return clients;
     }
