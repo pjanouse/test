@@ -398,9 +398,18 @@ public class ReceiverClientAck extends Client {
         this.exception = exception;
     }
 
+
+    public int getAckAfter() {
+        return ackAfter;
+    }
+
+    public void setAckAfter(int ackAfter) {
+        this.ackAfter = ackAfter;
+    }
+
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverClientAck receiver = new ReceiverClientAck("10.34.3.189", 4447, "jms/queue/testQueue0", 100000, 10, 40);
+        ReceiverClientAck receiver = new ReceiverClientAck("10.34.3.191", 4447, "jms/queue/testQueue0", 1000, 10, 40);
 
         receiver.start();
 

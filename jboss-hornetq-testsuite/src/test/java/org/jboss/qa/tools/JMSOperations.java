@@ -1198,4 +1198,12 @@ public interface JMSOperations {
     void setAuthenticationForNullUsers(boolean b);
 
     void addDatasourceProperty(String lodhDb, String propertyName, String value);
+
+    void setBackupGroupName(String nameOfBackupGroup);
+
+    void setBackupGroupName(String nameOfBackupGroup, String serverName);
+
+    void setCheckForLiveServer(boolean b);
+
+    void setCheckForLiveServer(boolean b, String serverName);
 }

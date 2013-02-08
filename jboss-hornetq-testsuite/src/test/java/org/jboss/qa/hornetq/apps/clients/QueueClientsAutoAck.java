@@ -245,6 +245,24 @@ public class QueueClientsAutoAck implements Clients {
     }
 
     /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    @Override
+    public void setReceivedMessagesAckCommitAfter(int ackAfter) {
+        logger.info("This values can't be set for Auto acknowledge.");
+    }
+
+    /**
+     * For client_ack and session trans.
+     * Producer/Publisher will ack/commit after x messages
+     */
+    @Override
+    public void setProducedMessagesCommitAfter(int commitAfter) {
+        logger.info("This values can't be set for Auto acknowledge.");
+    }
+
+    /**
      * @return the jndiPort
      */
     @Override

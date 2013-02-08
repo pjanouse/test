@@ -46,6 +46,9 @@ public class QueueClientsTransAck implements Clients {
 
     private MessageBuilder messageBuilder;
 
+    private int receivedMessagesAckAfter = 1000;
+    private int producedMessagesAckAfter = 1000;
+
     public QueueClientsTransAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 1000);
@@ -98,6 +101,8 @@ public class QueueClientsTransAck implements Clients {
                     p.setMessageBuilder(messageBuilder);
                 }
 
+                p.setCommitAfter(producedMessagesAckAfter);
+
                 producers.add(p);
 
             }
@@ -109,6 +114,8 @@ public class QueueClientsTransAck implements Clients {
                 r = new ReceiverTransAck(container, getHostnameForConsumers(), getJndiPort(), getQueueJndiNamePrefix() + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
+
+                r.setCommitAfter(receivedMessagesAckAfter);
 
                 receivers.add(r);
             }
@@ -341,6 +348,24 @@ public class QueueClientsTransAck implements Clients {
      */
     public void setHostnameForConsumers(String hostnameForConsumers) {
         this.hostnameForConsumers = hostnameForConsumers;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    @Override
+    public void setReceivedMessagesAckCommitAfter(int ackAfter) {
+        receivedMessagesAckAfter = ackAfter;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * Producer/Publisher will ack/commit after x messages
+     */
+    @Override
+    public void setProducedMessagesCommitAfter(int commitAfter) {
+        producedMessagesAckAfter = commitAfter;
     }
 
     public static void main(String[] args) throws Exception {

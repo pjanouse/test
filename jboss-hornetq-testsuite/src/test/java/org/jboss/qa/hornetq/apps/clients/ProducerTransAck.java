@@ -345,11 +345,19 @@ public class ProducerTransAck extends Client {
                 resendMessages(producer);
 
             } catch (JMSException ex) {
-                logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
-                        + "is not able to determine whether commit was successful. Commit will be retried but messages will not be resent."
-                        + "Producer for node: " + getHostname()
-                        + ". Sent message with property count: " + counter, ex);
-                numberOfRetries++;
+                if (numberOfRetries > 0)    {
+                    // this is actually JMSException called because we sent duplicates
+                    logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
+                            + ". Sent message with property count: " + counter, ex);
+                    return;
+                } else {
+                    logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
+                            + "is not able to determine whether commit was successful. Messages and Commit will be resent resent."
+                            + "Producer for node: " + getHostname()
+                            + ". Sent message with property count: " + counter, ex);
+                    numberOfRetries++;
+                    resendMessages(producer);
+                }
             }
 
         }
@@ -381,7 +389,7 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck("192.168.1.1", 4447, "jms/queue/testQueue0", 20000);
+        ProducerTransAck producer = new ProducerTransAck("10.34.3.191", 4447, "jms/queue/testQueue0", 10);
 
         producer.start();
 

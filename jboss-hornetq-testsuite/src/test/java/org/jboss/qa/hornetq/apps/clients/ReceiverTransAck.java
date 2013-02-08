@@ -22,7 +22,7 @@ public class ReceiverTransAck extends Client {
     private int maxRetries;
     private String hostname;
     private int port;
-    private String queueNameJndi = "jms/queue/testQueue1";
+    private String queueNameJndi = "jms/queue/testQueue0";
     private long receiveTimeOut;
     private int commitAfter;
     private FinalTestMessageVerifier messageVerifier;
@@ -181,7 +181,7 @@ public class ReceiverTransAck extends Client {
     }
 
     /**
-     * Try to acknowledge a message.
+     * Try to commit session a message.
      *
      * @param session session
      * @throws JMSException
@@ -195,13 +195,15 @@ public class ReceiverTransAck extends Client {
 
                 // if dups_id is used then check if we got duplicates after last failed ack
                 if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).getStringProperty("_HQ_DUPL_ID") != null
-                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
-                    if (areThereDuplicates())  {
+                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
+                    if (areThereDuplicates()) {
                         // decrease counter
                         // add just new messages
                         counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
+
                     } else {
-                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                        //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                        logger.info("No duplicates were found after JMSException/TransactionRollbackException.");
                     }
                     setOfReceivedMessagesWithPossibleDuplicates.clear();
                 }
@@ -211,9 +213,14 @@ public class ReceiverTransAck extends Client {
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + counter + " SENT COMMIT");
 
-                if (numberOfRetries == 0 ) {
-                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                StringBuilder stringBuilder = new StringBuilder();
+                for (Message m : listOfReceivedMessagesToBeCommited) {
+                    stringBuilder.append(m.getJMSMessageID());
                 }
+                logger.debug("Adding messages: " + stringBuilder.toString());
+
 
                 return;
 
@@ -244,13 +251,18 @@ public class ReceiverTransAck extends Client {
         boolean isDup = false;
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Message m : listOfReceivedMessagesToBeCommited)    {
+        for (Message m : listOfReceivedMessagesToBeCommited) {
             setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
         }
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
+        StringBuilder foundDuplicates = new StringBuilder();
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicates) {
             if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
-                isDup=true;
+                foundDuplicates.append(m.getJMSMessageID());
+                isDup = true;
             }
+        }
+        if (!"".equals(foundDuplicates.toString())) {
+            logger.info("Duplicates detected: " + foundDuplicates.toString());
         }
         return isDup;
     }
@@ -387,10 +399,19 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("192.168.1.1", 4447, "jms/queue/testQueue0", 1000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.191", 4447, "jms/queue/testQueue0", 3000, 1, 10);
 
         receiver.start();
 
         receiver.join();
+        logger.info("number of messagges" + receiver.getListOfReceivedMessages().size());
+    }
+
+    public int getCommitAfter() {
+        return commitAfter;
+    }
+
+    public void setCommitAfter(int commitAfter) {
+        this.commitAfter = commitAfter;
     }
 }

@@ -401,6 +401,14 @@ public class SubscriberClientAck extends Client {
         this.subscriberName = subscriberName;
     }
 
+    public int getAckAfter() {
+        return ackAfter;
+    }
+
+    public void setAckAfter(int ackAfter) {
+        this.ackAfter = ackAfter;
+    }
+
     /**
      * I don't want to have synchronization between publishers and subscribers.
      */
@@ -442,4 +450,5 @@ public class SubscriberClientAck extends Client {
         client.start();
         client.join();
     }
+
 }

@@ -1542,6 +1542,26 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setBackupGroupName(String nameOfBackupGroup) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setBackupGroupName(String nameOfBackupGroup, String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setCheckForLiveServer(boolean b) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setCheckForLiveServer(boolean b, String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @param doc
      * @param description

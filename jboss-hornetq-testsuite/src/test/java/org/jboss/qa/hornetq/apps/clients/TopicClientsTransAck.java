@@ -31,6 +31,8 @@ public class TopicClientsTransAck implements Clients {
     private List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
+    private int receivedMessagesAckAfter = 1000;
+    private int producedMessagesAckAfter = 1000;
 
     public TopicClientsTransAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -90,6 +92,8 @@ public class TopicClientsTransAck implements Clients {
 
                 subscriber.setMessageVerifier(verifier);
 
+                subscriber.setCommitAfter(receivedMessagesAckAfter);
+
                 topicTextMessageVerifiers.add(verifier);
 
                 getSubscribers().add(subscriber);
@@ -106,6 +110,8 @@ public class TopicClientsTransAck implements Clients {
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
                 p.setMessageVerifiers(topicTextMessageVerifiers);
+
+                p.setCommitAfter(producedMessagesAckAfter);
 
                 if (messageBuilder != null) {
                     p.setMessageBuilder(messageBuilder);
@@ -375,6 +381,24 @@ public class TopicClientsTransAck implements Clients {
      */
     public void setSubscribers(List<SubscriberTransAck> subscribers) {
         this.subscribers = subscribers;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    @Override
+    public void setReceivedMessagesAckCommitAfter(int ackAfter) {
+        receivedMessagesAckAfter = ackAfter;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * Producer/Publisher will ack/commit after x messages
+     */
+    @Override
+    public void setProducedMessagesCommitAfter(int commitAfter) {
+        producedMessagesAckAfter = commitAfter;
     }
 
     public static void main(String[] args) throws InterruptedException, Exception {

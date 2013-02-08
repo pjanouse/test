@@ -50,6 +50,7 @@ public class QueueClientsClientAck implements Clients {
 
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
 
+    private int receivedMessagesAckAfter = 1000;
 
     public QueueClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
@@ -113,6 +114,8 @@ public class QueueClientsClientAck implements Clients {
                 r = new ReceiverClientAck(container, getHostnameForConsumers(), getJndiPort(), queueJndiNamePrefixConsumers + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
+
+                r.setAckAfter(receivedMessagesAckAfter);
 
                 receivers.add(r);
             }
@@ -391,4 +394,21 @@ public class QueueClientsClientAck implements Clients {
         this.messageBuilder = messageBuilder;
     }
 
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    @Override
+    public void setReceivedMessagesAckCommitAfter(int ackAfter) {
+        receivedMessagesAckAfter = ackAfter;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * Producer/Publisher will ack/commit after x messages
+     */
+    @Override
+    public void setProducedMessagesCommitAfter(int commitAfter) {
+        logger.info("No reason set ack after on client ack.");
+    }
 }

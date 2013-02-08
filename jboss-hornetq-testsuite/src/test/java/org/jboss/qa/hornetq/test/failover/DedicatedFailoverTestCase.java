@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -33,9 +34,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 5;
-    private static final int BYTEMAN_PORT = 9091;
-
-    static boolean topologyCreated = false;
+    protected static final int BYTEMAN_PORT_1 = 9091;
 
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
@@ -104,7 +103,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Thread.sleep(5000);
 
         // install rule to first server
-        if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+        if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
         Clients clients = createClients(acknowledge, topic);
         clients.startClients();
@@ -147,107 +146,100 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-//    /**
-//     * This test will start two servers in dedicated topology - no cluster. Sent
-//     * some messages to first Receive messages from the second one
-//     * 
-//     * @param acknowledge acknowledge type
-//     * @param failback whether to test failback
-//     * @param topic whether to test with topics
-//     * 
-//     * @throws Exception 
-//     */
-//    @BMRules({
-//        @BMRule(name = "Setup counter for PostOfficeImpl",
-//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-//        targetMethod = "processRoute",
-//        action = "createCounter(\"counter\")"),
-//        @BMRule(name = "Info messages and counter for PostOfficeImpl",
-//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-//        targetMethod = "processRoute",
-//        action = "incrementCounter(\"counter\");"
-//        + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-//        @BMRule(name = "Kill server when a number of messages were received",
-//        targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-//        targetMethod = "processRoute",
-//        condition = "readCounter(\"counter\")>333",
-//        action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-//    @Test
-//    @RunAsClient
-//    public void testClientFailover() throws Exception {
-//        
-//        boolean failback = true;
-//        
-//        prepareSimpleDedicatedTopology();
-//
-//        controller.start(CONTAINER2);
-//
-//        controller.start(CONTAINER1);
-//        
-//        Thread.sleep(10000); // give some time to clients to failover
-//        
-//        // install rule to first server
-//        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
-//
-//        SubscriberTransAck s = new SubscriberTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, "clientid-sub", "subscriber0");
-//        s.subscribe();
-//        PublisherTransAck p = new PublisherTransAck(CONTAINER1_IP, PORT_JNDI, topicJndiNamePrefix+0, 1000000, "clientid0");
-//        p.start();
-//        
-//        Thread.sleep(5000);
-//        
-//        controller.kill(CONTAINER1);
-//        
-//        logger.info("Wait some time to give chance backup to come alive and clients to failover");
-//        Thread.sleep(10000); // give some time to clients to failover
-//
-//        if (failback)   {
-//            logger.info("########################################");
-//            logger.info("failback - Start live server again ");
-//            logger.info("########################################");
-//            controller.start(CONTAINER1);
-//            Thread.sleep(10000); // give it some time 
-//            logger.info("########################################");
-//            logger.info("failback - Stop backup server");
-//            logger.info("########################################");
-//            stopServer(CONTAINER2);
-//        }
-//        
-//        Thread.sleep(5000);
-//        p.stopSending();
-//        p.join();
-//        
-//        s.start();
-//        s.join();
-//        
-//        logger.info("Publisher: " + p.getListOfSentMessages().size());
-//        logger.info("Subscriber: " + s.getListOfReceivedMessages().size());
-//        
-//        Set<String> set = new HashSet<String>();
-//        for (Message message : p.getListOfSentMessages()) {
-//            set.add(message.getJMSMessageID());
-//        }
-//        for (Message message : s.getListOfReceivedMessages())   {
-//            if (!set.remove(message.getJMSMessageID()))  {
-//                logger.info("This is duplicated message: " + message.getJMSMessageID());
-//            }
-//        }
-//        
-//        logger.info("List of lost messages in the set - so lost messages");
-//        for (String st : set)    {
-//            logger.info("Lost message : " + st);
-//        }
-//        
-//        stopServer(CONTAINER1);
-//
-//        stopServer(CONTAINER2);
-//
-//    }
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @param acknowledge acknowledge type
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
+     */
+    public void testFailoverWithByteman(int acknowledge, boolean failback, boolean topic, boolean isReceiveFailure) throws Exception {
 
+        prepareSimpleDedicatedTopology();
 
-    private Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
+        controller.start(CONTAINER2);
 
-        Clients clients = null;
+        controller.start(CONTAINER1);
+
+        Thread.sleep(5000);
+
+        Clients clients = createClients(acknowledge, topic);
+
+        if (isReceiveFailure)   {
+            clients.setProducedMessagesCommitAfter(100);
+            clients.setReceivedMessagesAckCommitAfter(5);
+        } else {
+            clients.setProducedMessagesCommitAfter(5);
+            clients.setReceivedMessagesAckCommitAfter(100);
+        }
+
+        clients.startClients();
+
+        Thread.sleep(5000);
+
+        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
+
+        controller.kill(CONTAINER1);
+
+        logger.info("Wait some time to give chance backup to come alive and clients to failover");
+        Thread.sleep(20000); // give some time for clients to failover
+
+        if (failback) {
+            logger.info("########################################");
+            logger.info("failback - Start live server again ");
+            logger.info("########################################");
+            controller.start(CONTAINER1);
+            Thread.sleep(10000); // give it some time
+            logger.info("########################################");
+            logger.info("failback - Stop backup server");
+            logger.info("########################################");
+            stopServer(CONTAINER2);
+        }
+
+        Thread.sleep(10000);
+        clients.stopClients();
+
+        while (!clients.isFinished()) {
+            Thread.sleep(1000);
+        }
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+            targetMethod = "commit",
+            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    public void testFailoverTransAckQueueCommitNotStored() throws Exception {
+        testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+            targetMethod = "commit",
+            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    public void testFailoverTransAckQueueCommitStored() throws Exception {
+        testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
+    }
+
+    protected Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
+
+        Clients clients;
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
@@ -269,7 +261,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-            clients.setMessageBuilder(new TextMessageBuilder(1));
+            MessageBuilder messageBuilder = new TextMessageBuilder(1);
+            messageBuilder.setAddDuplicatedHeader(true);
+            clients.setMessageBuilder(messageBuilder);
+
         }
 
         return clients;
@@ -548,7 +543,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-//        if (!topologyCreated) {
             prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
             prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
@@ -560,9 +554,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             deployDestinations(CONTAINER2);
             stopServer(CONTAINER2);
 
-            topologyCreated = true;
-//        }
-
     }
 
     /**
@@ -572,7 +563,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -631,7 +622,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -695,7 +686,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      *
      * @param containerName container name
      */
-    private void deployDestinations(String containerName) {
+    protected void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
     }
 
@@ -705,7 +696,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @param containerName container name
      * @param serverName server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    protected void deployDestinations(String containerName, String serverName) {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 

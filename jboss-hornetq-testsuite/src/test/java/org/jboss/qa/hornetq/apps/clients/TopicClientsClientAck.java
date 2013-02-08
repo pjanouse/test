@@ -31,6 +31,7 @@ public class TopicClientsClientAck implements Clients {
     private List<SubscriberClientAck> subscribers = new ArrayList<SubscriberClientAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
+    private int receivedMessagesAckAfter = 1000;
 
     public TopicClientsClientAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -89,6 +90,8 @@ public class TopicClientsClientAck implements Clients {
                 verifier = new TextMessageVerifier();
 
                 subscriber.setMessageVerifier(verifier);
+
+                subscriber.setAckAfter(receivedMessagesAckAfter);
 
                 topicTextMessageVerifiers.add(verifier);
 
@@ -376,6 +379,24 @@ public class TopicClientsClientAck implements Clients {
      */
     public void setSubscribers(List<SubscriberClientAck> subscribers) {
         this.subscribers = subscribers;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    @Override
+    public void setReceivedMessagesAckCommitAfter(int ackAfter) {
+        receivedMessagesAckAfter = ackAfter;
+    }
+
+    /**
+     * For client_ack and session trans.
+     * Producer/Publisher will ack/commit after x messages
+     */
+    @Override
+    public void setProducedMessagesCommitAfter(int commitAfter) {
+        logger.info("No reason to set commit after for client ack.");
     }
 
     public static void main(String[] args) throws InterruptedException, Exception {

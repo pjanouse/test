@@ -180,9 +180,10 @@ public class SubscriberTransAck extends Client {
                         // add just new messages
                         count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
                     } else {
-                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
-                        logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Adding messages: " +
-                            setOfReceivedMessagesWithPossibleDuplicates.toString());
+                        //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                        //logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Adding messages: " +
+                         //   setOfReceivedMessagesWithPossibleDuplicates.toString());
+                        logger.info("No duplicates were found after JMSException/TransactionRollbackException.");
                     }
                     setOfReceivedMessagesWithPossibleDuplicates.clear();
                 }
@@ -192,9 +193,7 @@ public class SubscriberTransAck extends Client {
                 logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Received message - count: "
                         + count + " SENT COMMIT");
 
-                if (numberOfRetries == 0)   {
-                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
-                }
+                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
 
                 return;
 
@@ -421,5 +420,13 @@ public class SubscriberTransAck extends Client {
         subscriber.start();
 
         subscriber.join();
+    }
+
+    public int getCommitAfter() {
+        return commitAfter;
+    }
+
+    public void setCommitAfter(int commitAfter) {
+        this.commitAfter = commitAfter;
     }
 }

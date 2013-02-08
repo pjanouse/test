@@ -257,7 +257,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
+            logger.error("Set cluster password can't be set. Remove this log when it's fixed.", e);
         }
     }
 
@@ -2253,6 +2254,49 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
         model.get("name").set(propertyName);
         model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setBackupGroupName(String nameOfBackupGroup) {
+        setBackupGroupName(nameOfBackupGroup, "default");
+    }
+
+    @Override
+    public void setBackupGroupName(String nameOfBackupGroup, String serverName) {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("backup-group-name");
+        model.get("value").set(nameOfBackupGroup);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setCheckForLiveServer(boolean b) {
+        setCheckForLiveServer(b, "default");
+    }
+
+    @Override
+    public void setCheckForLiveServer(boolean b, String serverName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("check-for-live-server");
+        model.get("value").set(b);
 
         try {
             this.applyUpdate(model);

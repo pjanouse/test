@@ -260,9 +260,6 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);

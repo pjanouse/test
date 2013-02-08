@@ -26,7 +26,7 @@ public class ProducerClientAck extends Client {
     private int maxRetries = 30;
     private String hostname = "localhost";
     private int port = 4447;
-    private String queueNameJndi = "jms/queue/testQueue1";
+    private String queueNameJndi = "jms/queue/testQueue0";
     private int messages = 10000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
     private List<Message> listOfSentMessages = new ArrayList<Message>();
@@ -287,7 +287,7 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("10.34.3.189", 4447, "jms/queue/testQueue0", 10000);
+        ProducerClientAck producer = new ProducerClientAck("127.0.0.1", 4447, "jms/queue/testQueue0", 100);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
         MessageBuilder builder = new ClientMixMessageBuilder(1, 10);

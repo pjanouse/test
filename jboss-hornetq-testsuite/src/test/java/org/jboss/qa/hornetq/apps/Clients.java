@@ -64,4 +64,16 @@ public interface Clients {
      */
     public void setMessageBuilder(MessageBuilder messageBuilder);
 
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    public void setReceivedMessagesAckCommitAfter(int ackAfter);
+
+    /**
+     * For client_ack and session trans.
+     * One consumer/subscriber will ack/commit after x messages
+     */
+    public void setProducedMessagesCommitAfter(int commitAfter);
+
 }
