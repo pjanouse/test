@@ -32,8 +32,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 5;
+    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 5;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     protected static final int BYTEMAN_PORT_1 = 9091;
 
     String queueNamePrefix = "testQueue";
