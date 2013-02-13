@@ -401,7 +401,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setSharedStore(false);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.setBackupGroupName("firstPair");
-        // TODO I believe this should not be here but without it backup won't shutdown during failback
         jmsAdminOperations.setCheckForLiveServer(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);

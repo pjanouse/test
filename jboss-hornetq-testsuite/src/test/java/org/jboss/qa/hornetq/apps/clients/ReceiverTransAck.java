@@ -404,7 +404,7 @@ public class ReceiverTransAck extends Client {
         receiver.start();
 
         receiver.join();
-        logger.info("number of messagges" + receiver.getListOfReceivedMessages().size());
+        logger.error("number of messagges" + receiver.getListOfReceivedMessages().size());
     }
 
     public int getCommitAfter() {

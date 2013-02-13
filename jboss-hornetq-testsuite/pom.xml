@@ -19,8 +19,8 @@
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
 		<eap5.client>5.2.0.ER6-HORNETQ</eap5.client>
-		<eap6.client>6.0.1.ER4.2</eap6.client>
-        <eap6.controller.client>6.0.1.ER4.2</eap6.controller.client>
+		<eap6.client>6.1.0.DR3</eap6.client>
+        <eap6.controller.client>6.1.0.DR3</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
@@ -466,6 +466,11 @@
 	</profiles>
 
 	<repositories>
+        <repository>
+            <id>jboss-qa-releases</id>
+            <name>JBoss QA Release Repository</name>
+            <url>http://nexus.qa.jboss.com:8081/nexus/content/repositories/releases</url>
+        </repository>
 		<repository>
 			<id>jboss-snapshots</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
@@ -478,11 +483,7 @@
 			</snapshots>
 		</repository>
 		<!-- added our jboss qa repository with old HornetQ client jars -->
-		<repository>
-			<id>jboss-qa-releases</id>
-			<name>JBoss QA Release Repository</name>
-			<url>http://nexus.qa.jboss.com:8081/nexus/content/repositories/releases</url>
-		</repository>
+
 		<repository>
 			<id>jboss-releases</id>
 			<url>https://repository.jboss.org/nexus/content/repositories/releases</url>

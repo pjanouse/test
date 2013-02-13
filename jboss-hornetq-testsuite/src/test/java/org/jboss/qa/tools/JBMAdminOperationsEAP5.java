@@ -1097,6 +1097,17 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * Sets security on HornetQ
+     *
+     * @param value
+     * @param serverName
+     */
+    @Override
+    public void setSecurityEnabled(String serverName, boolean value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     @Override
     public void setSharedStore(boolean sharedStore) {
         logger.info("This operation is not supported: " + getMethodName());
@@ -1559,6 +1570,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setCheckForLiveServer(boolean b, String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addRoleToSecuritySettings(String backupServerName, String s, String guest) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSecuritySetting(String serverName, String s) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

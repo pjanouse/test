@@ -1086,6 +1086,14 @@ public interface JMSOperations {
     void setSecurityEnabled(boolean value);
 
     /**
+     * Sets security on HornetQ
+     *
+     * @param value
+     * @param serverName
+     */
+    void setSecurityEnabled(String serverName, boolean value);
+
+    /**
      * Set this to true if this server shares journal with other server (with
      * live of backup)
      *
@@ -1206,4 +1214,8 @@ public interface JMSOperations {
     void setCheckForLiveServer(boolean b);
 
     void setCheckForLiveServer(boolean b, String serverName);
+
+    void addRoleToSecuritySettings(String backupServerName, String s, String guest);
+
+    void addSecuritySetting(String serverName, String s);
 }

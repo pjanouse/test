@@ -93,7 +93,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        Clients clients = createClients(acknowledge, topic, new TextMessageBuilder(1024));
+        MessageBuilder builder = new TextMessageBuilder(1024);
+
+        builder.setAddDuplicatedHeader(true);
+
+        Clients clients = createClients(acknowledge, topic, builder);
+
+        clients.setProducedMessagesCommitAfter(10);
+
+        clients.setReceivedMessagesAckCommitAfter(100);
 
         clients.startClients();
 
@@ -141,7 +149,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
-    private Clients createClients(int acknowledgeMode, boolean topic, MessageBuilder messageBuilder) throws Exception {
+    protected Clients createClients(int acknowledgeMode, boolean topic, MessageBuilder messageBuilder) throws Exception {
 
         Clients clients = null;
 
@@ -366,7 +374,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -429,7 +437,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param backupServerName     Name of the new HornetQ backup server.
      * @param journalDirectoryPath Absolute or relative path to journal directory.
      */
-    public void prepareColocatedBackupServer(String containerName, String ipAddress,
+    protected void prepareColocatedBackupServer(String containerName, String ipAddress,
                                              String backupServerName, String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group-backup";
@@ -481,7 +489,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      *
      * @param containerName name of the container
      */
-    private void deployDestinations(String containerName) {
+    protected void deployDestinations(String containerName) {
         deployDestinations(containerName, "default");
     }
 
@@ -491,7 +499,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param containerName name of the container
      * @param serverName server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    protected void deployDestinations(String containerName, String serverName) {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 

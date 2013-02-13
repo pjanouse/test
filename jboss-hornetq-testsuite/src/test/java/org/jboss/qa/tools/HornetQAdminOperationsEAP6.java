@@ -290,17 +290,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
-    /**
-     * Sets security on HornetQ
-     *
-     * @param value
-     */
-    @Override
-    public void setSecurityEnabled(boolean value) {
+    public void setSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = new ModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
         disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         disableSecurity.get("name").set("security-enabled");
         disableSecurity.get("value").set(value);
         try {
@@ -308,6 +302,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Sets security on HornetQ
+     *
+     * @param value
+     */
+    @Override
+    public void setSecurityEnabled(boolean value) {
+        setSecurityEnabled("default", value);
     }
 
     /**
@@ -469,12 +473,35 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addRoleToSecuritySettings(String address, String role) {
+        addRoleToSecuritySettings("default", address, role);
+    }
+    public void addRoleToSecuritySettings(String serverName, String address, String role) {
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("security-setting", address);
         model.get(ClientConstants.OP_ADDR).add("role", role);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addSecuritySetting(String s) {
+        addSecuritySetting("default", s);
+    }
+
+    @Override
+    public void addSecuritySetting(String serverName, String s) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("security-setting", s);
 
         try {
             this.applyUpdate(model);
