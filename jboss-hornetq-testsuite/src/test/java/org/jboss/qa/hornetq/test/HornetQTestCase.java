@@ -93,10 +93,25 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         String tmpMultiCastAddress = System.getProperty("MCAST_ADDR");
         MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress : "233.3.3.3";
 
-        JBOSS_HOME_1 = getEnvProperty("JBOSS_HOME_1");
-        JBOSS_HOME_2 = getEnvProperty("JBOSS_HOME_2");
-        JBOSS_HOME_3 = getEnvProperty("JBOSS_HOME_3");
-        JBOSS_HOME_4 = getEnvProperty("JBOSS_HOME_4");
+        JBOSS_HOME_1 = verifyJbossHome(getEnvProperty("JBOSS_HOME_1"));
+        JBOSS_HOME_2 = verifyJbossHome(getEnvProperty("JBOSS_HOME_2"));
+        JBOSS_HOME_3 = verifyJbossHome(getEnvProperty("JBOSS_HOME_3"));
+        JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
+
+    }
+
+    /**
+     * Takes path to jboss home dir and tries to fix it:
+     * if path does not exist then try to jboss-eap-6.1, ...6.2, ...
+     * @param jbossHome
+     */
+    private static String verifyJbossHome(String jbossHome) {
+        File jbossHomeDir = new File(jbossHome);
+
+        if (!jbossHomeDir.exists())  {
+            jbossHomeDir = new File(jbossHomeDir.getAbsolutePath().replace("jboss-eap-6.0", "jboss-eap-6.1"));
+        }
+        return jbossHomeDir.getAbsolutePath();
     }
 
     /**

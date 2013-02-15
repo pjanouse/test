@@ -393,7 +393,7 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck("localhost", 4447, "jms/queue/testQueue0", 10000);
+        ProducerTransAck producer = new ProducerTransAck("10.34.3.191", 4447, "jms/queue/testQueue0", 10000);
 
         producer.start();
 
