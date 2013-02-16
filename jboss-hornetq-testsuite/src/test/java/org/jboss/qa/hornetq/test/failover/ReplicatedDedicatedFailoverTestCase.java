@@ -34,8 +34,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testConfiguration() throws Exception {
-        prepareLiveServer(CONTAINER1, CONTAINER1_IP, "");
-        prepareBackupServer(CONTAINER2, CONTAINER2_IP, "");
+        prepareLiveServer(CONTAINER1);
+        prepareBackupServer(CONTAINER2);
     }
 
 
