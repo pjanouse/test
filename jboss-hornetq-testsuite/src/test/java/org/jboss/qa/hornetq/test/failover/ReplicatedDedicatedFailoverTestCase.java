@@ -27,19 +27,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
     /**
-     * Start simple failover test with trans_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testConfiguration() throws Exception {
-        prepareLiveServer(CONTAINER1);
-        prepareBackupServer(CONTAINER2);
-    }
-
-
-    /**
      * Start simple failover test with trans_ack on queues. Server is killed when message is sent to server but not stored to journal.
      * It's the same method for client_ack and trans session.
      */

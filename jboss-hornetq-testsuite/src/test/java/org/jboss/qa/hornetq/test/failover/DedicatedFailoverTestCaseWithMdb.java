@@ -269,7 +269,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) throws IOException {
+    protected void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -381,7 +381,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
-        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
@@ -442,7 +443,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setSecurityEnabled(true);
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
@@ -459,7 +461,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * <p/>
      * TODO - change config by cli console
      */
-    private void copyApplicationPropertiesFiles() throws IOException {
+    protected void copyApplicationPropertiesFiles() throws IOException {
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
@@ -488,7 +490,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
-    private void copyFile(File sourceFile, File destFile) throws IOException {
+    public void copyFile(File sourceFile, File destFile) throws IOException {
         if (!destFile.exists()) {
             destFile.createNewFile();
         }
