@@ -117,7 +117,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(20000); // give some time to clients to failover
+        Thread.sleep(10000); // give some time to clients to failover
 
         if (failback) {
             logger.info("########################################");
@@ -264,6 +264,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             MessageBuilder messageBuilder = new TextMessageBuilder(1);
             messageBuilder.setAddDuplicatedHeader(true);
             clients.setMessageBuilder(messageBuilder);
+            clients.setProducedMessagesCommitAfter(10);
+            clients.setReceivedMessagesAckCommitAfter(100);
 
         }
 
