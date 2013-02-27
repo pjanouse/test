@@ -39,7 +39,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -116,7 +116,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.join();
 
         controller.start(CONTAINER3);
-        Thread.sleep(10000);
+        Thread.sleep(20000);
         logger.info("Deploying MDB to mdb server.");
         // start mdb server
         deployer.deploy("mdb1");

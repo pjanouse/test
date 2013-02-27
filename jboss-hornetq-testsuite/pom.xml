@@ -19,8 +19,8 @@
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
 		<eap5.client>5.2.0.ER6-HORNETQ</eap5.client>
-		<eap6.client>6.1.0.DR4</eap6.client>
-        <eap6.controller.client>6.1.0.DR4</eap6.controller.client>
+		<eap6.client>6.1.0.ER1</eap6.client>
+        <eap6.controller.client>6.1.0.ER1</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.1.2.Final</arquillian.eap6x.container.version>
