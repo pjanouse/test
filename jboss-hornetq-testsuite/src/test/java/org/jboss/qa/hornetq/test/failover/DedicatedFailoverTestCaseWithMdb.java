@@ -39,7 +39,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 30000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
