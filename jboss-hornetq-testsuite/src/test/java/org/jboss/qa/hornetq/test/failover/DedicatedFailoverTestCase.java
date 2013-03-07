@@ -117,14 +117,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(10000); // give some time to clients to failover
+        Thread.sleep(60000); // give some time to clients to failover
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(30000); // here more time is needed to sync journals
+            Thread.sleep(60000); // here more time is needed to sync journals
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
