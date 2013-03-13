@@ -3,15 +3,18 @@ package org.jboss.qa.tools;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.threads.JBossThreadFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.security.AccessController;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -21,10 +24,15 @@ import java.util.Map;
  * @author mnovak@redhat.com
  * @author pslavice@redhat.com
  */
+
+
 public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     // Logger
     private static final Logger logger = Logger.getLogger(HornetQAdminOperationsEAP6.class);
+
+    private static final AtomicInteger executorCount = new AtomicInteger();
+
     // Definition for the queue
     private static final String DESTINATION_TYPE_QUEUE = "jms-queue";
     // Definition for the topics
@@ -36,6 +44,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     private int port;
 
+    // set timeout for creating connection
+    private int timeout = 30000;
+
     /**
      * Default constructor
      */
@@ -43,16 +54,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+
     /**
      * Constructor
      */
     public void connect() {
-        try {
-            InetAddress inetAddress = InetAddress.getByName(hostname);
-            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port " + port, e);
-        }
+//        try {
+
+            final ThreadGroup group = new ThreadGroup("management-client-thread");
+            final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " + executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
+            ExecutorService executorService =  new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
+
+                this.modelControllerClient = ModelControllerClient.Factory.create(new ClientConfigurationImpl(hostname, port, null, null, null, executorService, true, timeout) {
+
+            });
+
+//            InetAddress inetAddress = InetAddress.getByName(hostname);
+//            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
+//        } catch (UnknownHostException e) {
+//            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port " + port, e);
+//        }
     }
 
     /**
@@ -3129,6 +3150,14 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 
     /**
