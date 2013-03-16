@@ -348,14 +348,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prepareLiveServer(CONTAINER1);
         prepareBackupServer(CONTAINER2);
 
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        stopServer(CONTAINER1);
-
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2);
-        stopServer(CONTAINER2);
-
     }
 
     /**
@@ -438,6 +430,14 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
+        }
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
 
         jmsAdminOperations.close();

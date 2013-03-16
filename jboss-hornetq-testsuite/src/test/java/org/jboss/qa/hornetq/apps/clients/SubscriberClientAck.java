@@ -198,6 +198,7 @@ public class SubscriberClientAck extends Client {
                     if (areThereDuplicates())  {
                         // decrease counter
                         // add just new messages
+                        listOfReceivedMessagesToBeAcked.clear();
                         count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
 
                     } else {
@@ -442,7 +443,7 @@ public class SubscriberClientAck extends Client {
     public static void main(String[] args) throws InterruptedException, Exception {
 
         SubscriberClientAck client =
-                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", "mnovakClientId",
+                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", 4447, "jms/topic/testTopic2", "mnovakClientId",
                         "mnovakSubscriberName");
 //        SubscriberClientAck client =
 //                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.2", 4447, "jms/topic/InTopic", "mnovakClientId",

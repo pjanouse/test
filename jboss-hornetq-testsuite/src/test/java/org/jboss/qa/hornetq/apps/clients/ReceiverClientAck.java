@@ -207,6 +207,7 @@ public class ReceiverClientAck extends Client {
                     if (areThereDuplicates())  {
                         // decrease counter
                         // add just new messages
+                        listOfReceivedMessagesToBeAcked.clear();
                         count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
 
                     } else {
@@ -409,7 +410,7 @@ public class ReceiverClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverClientAck receiver = new ReceiverClientAck("192.168.40.1", 4447, "jms/queue/InQueue", 1000, 10, 40);
+        ReceiverClientAck receiver = new ReceiverClientAck("localhost", 4447, "jms/queue/testQueue0", 1000000, 3, 100000);
 
         receiver.start();
 
