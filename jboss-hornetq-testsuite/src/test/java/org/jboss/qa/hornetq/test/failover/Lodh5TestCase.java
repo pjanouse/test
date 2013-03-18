@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.Message;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -108,8 +107,8 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
-        for (Message m : producer.getListOfSentMessages()) {
-            listOfSentMessages.add(m.getJMSMessageID());
+        for (Map<String,String> m : producer.getListOfSentMessages()) {
+            listOfSentMessages.add(m.get("messageId"));
         }
         List<String> lostMessages = checkLostMessages(listOfSentMessages, printAll());
         for (String m : lostMessages) {

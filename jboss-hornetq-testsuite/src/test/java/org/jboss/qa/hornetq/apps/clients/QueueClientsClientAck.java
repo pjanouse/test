@@ -411,4 +411,13 @@ public class QueueClientsClientAck implements Clients {
     public void setProducedMessagesCommitAfter(int commitAfter) {
         logger.info("No reason set ack after on client ack.");
     }
+
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : receivers)  {
+            list.add(c);
+        }
+        return list;
+    }
 }

@@ -7,7 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -108,7 +108,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Clients clients = createClients(acknowledge, topic);
         clients.startClients();
 
-        Thread.sleep(10000);
+        for (Client c : clients.getConsumers()) {
+            while (c.getCount() < 1000)  {
+                Thread.sleep(500);
+            }
+        }
 
         if (!shutdown) {
             controller.kill(CONTAINER1);
@@ -117,7 +121,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(60000); // give some time to clients to failover
+        //Thread.sleep(60000); // give some time to clients to failover
+        for (Client c : clients.getConsumers()) {
+            while (c.getCount() < 5000)  {
+                Thread.sleep(500);
+            }
+        }
 
         if (failback) {
             logger.info("########################################");
@@ -177,21 +186,31 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
-        Thread.sleep(5000);
+//        Thread.sleep(10000);
+        for (Client c : clients.getConsumers()) {
+            while (c.getCount() < 1000)  {
+                Thread.sleep(500);
+            }
+        }
 
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
         controller.kill(CONTAINER1);
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        Thread.sleep(20000); // give some time for clients to failover
+//        Thread.sleep(20000); // give some time for clients to failover
+        for (Client c : clients.getConsumers()) {
+            while (c.getCount() < 5000)  {
+                Thread.sleep(500);
+            }
+        }
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time
+            Thread.sleep(40000); // give it some time
             logger.info("########################################");
             logger.info("failback - Stop backup server");
             logger.info("########################################");
@@ -261,7 +280,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-            MessageBuilder messageBuilder = new TextMessageBuilder(1);
+//            MessageBuilder messageBuilder = new TextMessageBuilder(3 * 1024 * 1024);
+            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
+//            MessageBuilder messageBuilder = new MixMessageBuilder(200);
             messageBuilder.setAddDuplicatedHeader(true);
             clients.setMessageBuilder(messageBuilder);
             clients.setProducedMessagesCommitAfter(3);

@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Publisher with client acknowledge session. Able to fail over.
@@ -27,7 +28,7 @@ public class PublisherClientAck extends Client {
     private String topicNameJndi;
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Message> listOfSentMessages = new ArrayList<Message>();
+    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
     private List<FinalTestMessageVerifier> messageVerifiers;
     private Exception exception = null;
     private String clientId;
@@ -154,7 +155,10 @@ public class PublisherClientAck extends Client {
 
                 publisher.send(msg);
 
-                listOfSentMessages.add(msg);
+                msg = cleanMessage(msg);
+
+//                listOfSentMessages.add(msg);
+                addMessage(listOfSentMessages, msg);
 
                 counter++;
 
@@ -234,14 +238,14 @@ public class PublisherClientAck extends Client {
     /**
      * @return the listOfSentMessages
      */
-    public List<Message> getListOfSentMessages() {
+    public List<Map<String,String>> getListOfSentMessages() {
         return listOfSentMessages;
     }
 
     /**
      * @param listOfSentMessages the listOfSentMessages to set
      */
-    public void setListOfSentMessages(List<Message> listOfSentMessages) {
+    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
         this.listOfSentMessages = listOfSentMessages;
     }
 

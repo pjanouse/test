@@ -31,9 +31,6 @@ public class TopicClientsAutoAck implements Clients {
     private List<SubscriberAutoAck> subscribers = new ArrayList<SubscriberAutoAck>();
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
-    private int ReceivedMessagesAckAfter = 1000;
-
-    private int ProducedMessagesAckAfter = 1000;
 
     public TopicClientsAutoAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
@@ -391,6 +388,15 @@ public class TopicClientsAutoAck implements Clients {
     @Override
     public void setProducedMessagesCommitAfter(int commitAfter) {
         logger.info("This values can't be set for Auto acknowledge.");
+    }
+
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : subscribers)  {
+            list.add(c);
+        }
+        return list;
     }
 
     public static void main(String[] args) throws InterruptedException, Exception {

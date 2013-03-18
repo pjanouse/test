@@ -262,6 +262,15 @@ public class QueueClientsAutoAck implements Clients {
         logger.info("This values can't be set for Auto acknowledge.");
     }
 
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : receivers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     /**
      * @return the jndiPort
      */

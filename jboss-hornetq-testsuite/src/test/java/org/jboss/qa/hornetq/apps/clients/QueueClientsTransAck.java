@@ -368,6 +368,15 @@ public class QueueClientsTransAck implements Clients {
         producedMessagesAckAfter = commitAfter;
     }
 
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : receivers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     public static void main(String[] args) throws Exception {
 
         QueueClientsTransAck clients =

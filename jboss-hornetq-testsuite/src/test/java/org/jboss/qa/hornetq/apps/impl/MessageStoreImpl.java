@@ -1,13 +1,12 @@
-// TODO finish this class
+// TODO refactor hashmap does NOT hold duplicate keys
 package org.jboss.qa.hornetq.apps.impl;
 
-import javax.jms.*;
-import javax.jms.Queue;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p/>
@@ -70,8 +69,8 @@ public class MessageStoreImpl {
     /**
      * Load messages from file
      *
-     * @param fromFile
-     * @return
+     * @param fromFile from file
+     * @return map messageID -> HQ_DUP_ID
      */
     public Map<String, String> load(File fromFile) throws IOException {
         return load(fromFile, 0, Long.MAX_VALUE);
@@ -80,10 +79,10 @@ public class MessageStoreImpl {
     /**
      * Load messages from file.
      *
-     * @param fromFile
-     * @param fromMessage starts from 0, for example 3 means it starts to read from message on live 4 in a file (4 included)
+     * @param fromFile file from which to read
+     * @param fromMessage starts from 0, for example 3 means it starts to read from message on line 4 in a file (4 included)
      * @param numberOfMessages number of lines to read
-     * @return
+     * @return map messageID -> HQ_DUP_ID
      */
     public Map<String, String> load(File fromFile, long fromMessage, long numberOfMessages) throws IOException {
         if (!fromFile.exists()) {
@@ -97,7 +96,7 @@ public class MessageStoreImpl {
             // Create file
             in = new FileReader(fromFile);
             BufferedReader reader = new BufferedReader(in);
-            String line = null;
+            String line;
             long skip = 0;
             long i = 0;
 
@@ -122,34 +121,39 @@ public class MessageStoreImpl {
         return mapOfMesssages;
     }
 
-    public static void main(String[] args) throws NamingException, JMSException, IOException {
-        System.out.println("Try to save some messages.");
-        MessageStoreImpl store = new MessageStoreImpl();
-        List<Message> list = new ArrayList<Message>();
-
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", "localhost", "4447"));
-        InitialContext context = new InitialContext(env);
-        ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        Connection conn = (Connection) cf.createConnection();
-        conn.start();
-        Session session = (Session) conn.createSession(true, Session.SESSION_TRANSACTED);
-        Message m = null;
-
-        MessageProducer p = session.createProducer((Queue) context.lookup("jms/queue/testQueue0"));
-        for (int i = 0; i < 10; i++) {
-            m = session.createTextMessage();
-            m.setStringProperty("_HQ_DUPL_ID", String.valueOf(i));
-            p.send(m);
-            list.add(m);
-        }
+    public static void main(String[] args) throws Exception, JMSException, IOException {
+//        System.out.println("Try to save some messages.");
+//        MessageStoreImpl store = new MessageStoreImpl();
+//        List<Message> list = new ArrayList<Message>();
+//
+//        final Properties env = new Properties();
+//        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+//        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", "localhost", "4447"));
+//        InitialContext context = new InitialContext(env);
+//        ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+//        Connection conn = cf.createConnection();
+//        conn.start();
+//        Session session = conn.createSession(true, Session.SESSION_TRANSACTED);
+//        Message m;
+//
+//        MessageProducer p = session.createProducer((Queue) context.lookup("jms/queue/testQueue0"));
+//        for (int i = 0; i < 10; i++) {
+//            m = session.createTextMessage();
+//            m.setStringProperty("_HQ_DUPL_ID", String.valueOf(i));
+//            p.send(m);
+//            list.add(m);
+//        }
 //        store.save(list, new File("messageProducer1.txt"));
+//
+//        Map<String, String> map = store.load(new File("messageProducer1.txt"), 4, 2);
+//        for (String key : map.keySet()) {
+//            System.out.println("key: " + key + ", value:" + map.get(key));
+//        }
 
-        Map<String, String> map = store.load(new File("messageProducer1.txt"), 4, 2);
-        for (String key : map.keySet()) {
-            System.out.println("key: " + key + ", value:" + map.get(key));
-        }
+        FileMessageVerifier verifier = new FileMessageVerifier();
+        verifier.setReceivedMessagesFile(new File("messageConsumer1.txt"));
+        verifier.setSentMessagesFile(new File("messageProducer1.txt"));
+        verifier.verifyMessages();
     }
 
 }

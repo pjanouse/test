@@ -11,6 +11,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple sender with client acknowledge session. Able to fail over.
@@ -29,7 +30,7 @@ public class ProducerClientAck extends Client {
     private String queueNameJndi = "jms/queue/testQueue0";
     private int messages = 10000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Message> listOfSentMessages = new ArrayList<Message>();
+    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
@@ -154,7 +155,9 @@ public class ProducerClientAck extends Client {
 
                 producer.send(msg);
 
-                listOfSentMessages.add(msg);
+                msg = cleanMessage(msg);
+
+                addMessage(listOfSentMessages, msg);
 
                 counter++;
 
@@ -246,14 +249,14 @@ public class ProducerClientAck extends Client {
     /**
      * @return the listOfSentMessages
      */
-    public List<Message> getListOfSentMessages() {
+    public List<Map<String,String>> getListOfSentMessages() {
         return listOfSentMessages;
     }
 
     /**
      * @param listOfSentMessages the listOfSentMessages to set
      */
-    public void setListOfSentMessages(List<Message> listOfSentMessages) {
+    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
         this.listOfSentMessages = listOfSentMessages;
     }
 

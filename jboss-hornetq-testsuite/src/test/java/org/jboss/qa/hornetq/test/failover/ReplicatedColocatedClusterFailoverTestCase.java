@@ -188,6 +188,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
         jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.addSecuritySetting(backupServerName, "#");
         jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
@@ -199,8 +201,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", false);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
 
-        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
-        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         jmsAdminOperations.close();
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");

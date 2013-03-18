@@ -23,7 +23,6 @@ public class TextMessageBuilder implements MessageBuilder {
     private boolean addDuplicatedHeader = true;
 
     /**
-     *
      * @return if header for message duplication will be added
      */
     public boolean isAddDuplicatedHeader() {
@@ -31,7 +30,6 @@ public class TextMessageBuilder implements MessageBuilder {
     }
 
     /**
-     *
      * if header for message duplication will be added
      *
      * @param addDuplicatedHeader
@@ -64,10 +62,12 @@ public class TextMessageBuilder implements MessageBuilder {
         TextMessage message = session.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
-        if (isAddDuplicatedHeader())    {
+        if (isAddDuplicatedHeader()) {
             message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
-        }        if (this.size > 0) {
+        }
+        if (this.size > 0) {
             message.setText(new String(new char[this.size]));
+//            message.setStringProperty("text", new String(new char[this.size]));
         }
         return message;
     }

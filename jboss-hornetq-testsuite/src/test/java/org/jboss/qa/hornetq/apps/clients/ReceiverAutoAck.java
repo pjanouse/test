@@ -7,6 +7,7 @@ import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple receiver with auto acknowledge session. ABLE to failover.
@@ -22,8 +23,7 @@ public class ReceiverAutoAck extends Client {
     private String queueNameJndi = "jms/queue/testQueue1";
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
-    ;
+    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private int count = 0;
     private Exception exception = null;
     private boolean securityEnabled = false;
@@ -122,7 +122,7 @@ public class ReceiverAutoAck extends Client {
 
             while ((message = receiveMessage(receiver)) != null) {
 
-                listOfReceivedMessages.add(message);
+                addMessage(listOfReceivedMessages, message);
 
                 count++;
 
@@ -268,14 +268,14 @@ public class ReceiverAutoAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Message> getListOfReceivedMessages() {
+    public List<Map<String,String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -360,5 +360,9 @@ public class ReceiverAutoAck extends Client {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

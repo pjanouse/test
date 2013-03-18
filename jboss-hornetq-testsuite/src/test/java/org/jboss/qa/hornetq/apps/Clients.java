@@ -4,6 +4,10 @@
  */
 package org.jboss.qa.hornetq.apps;
 
+import org.jboss.qa.hornetq.apps.clients.*;
+
+import java.util.List;
+
 /**
  * @author mnovak
  */
@@ -76,4 +80,5 @@ public interface Clients {
      */
     public void setProducedMessagesCommitAfter(int commitAfter);
 
+    public List<Client> getConsumers();
 }

@@ -399,6 +399,15 @@ public class TopicClientsClientAck implements Clients {
         logger.info("No reason to set commit after for client ack.");
     }
 
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : subscribers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     public static void main(String[] args) throws InterruptedException, Exception {
 
         TopicClientsClientAck clients =

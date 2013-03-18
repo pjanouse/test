@@ -4,11 +4,9 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
+import javax.jms.Queue;
 import javax.naming.Context;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -25,8 +23,7 @@ public class ReceiverClientAck extends Client {
     private long receiveTimeOut;
     private int ackAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
-    ;
+    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
@@ -207,11 +204,11 @@ public class ReceiverClientAck extends Client {
                     if (areThereDuplicates())  {
                         // decrease counter
                         // add just new messages
-                        listOfReceivedMessagesToBeAcked.clear();
+//                        listOfReceivedMessagesToBeAcked.clear();
                         count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
 
                     } else {
-                        listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
+                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
                     }
                     setOfReceivedMessagesWithPossibleDuplicates.clear();
                 }
@@ -223,7 +220,7 @@ public class ReceiverClientAck extends Client {
                         + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
                 if (numberOfRetries == 0)    {
-                    listOfReceivedMessages.addAll(listOfReceivedMessagesToBeAcked);
+                    addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
                 }
 
                 return;
@@ -290,6 +287,9 @@ public class ReceiverClientAck extends Client {
             try {
 
                 msg = consumer.receive(receiveTimeOut);
+                if (msg != null) {
+                    msg = cleanMessage(msg);
+                }
                 return msg;
 
             } catch (JMSException ex) {
@@ -374,14 +374,14 @@ public class ReceiverClientAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Message> getListOfReceivedMessages() {
+    public List<Map<String,String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -406,6 +406,9 @@ public class ReceiverClientAck extends Client {
 
     public void setAckAfter(int ackAfter) {
         this.ackAfter = ackAfter;
+    }
+    public int getCount() {
+        return count;
     }
 
     public static void main(String[] args) throws InterruptedException {

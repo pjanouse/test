@@ -7,6 +7,7 @@ import javax.jms.*;
 import javax.naming.Context;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple subscriber with auto acknowledge session. ABLE to failover.
@@ -22,7 +23,7 @@ public class SubscriberAutoAck extends Client {
     private String topicNameJndi;
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
+    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     ;
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
@@ -116,7 +117,8 @@ public class SubscriberAutoAck extends Client {
 
             while ((message = receiveMessage(subscriber)) != null) {
 
-                listOfReceivedMessages.add(message);
+//                listOfReceivedMessages.add(message);
+                addMessage(listOfReceivedMessages, message);
 
                 count++;
 
@@ -248,14 +250,14 @@ public class SubscriberAutoAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Message> getListOfReceivedMessages() {
+    public List<Map<String,String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -299,6 +301,10 @@ public class SubscriberAutoAck extends Client {
      */
     public void setSubscriberName(String subscriberName) {
         this.subscriberName = subscriberName;
+    }
+
+    public int getCount() {
+        return count;
     }
 
     /**

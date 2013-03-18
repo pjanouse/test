@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple sender with transaction acknowledge session. Able to fail over.
@@ -28,7 +29,7 @@ public class ProducerTransAck extends Client {
     private int messages = 1000;
     private int commitAfter = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Message> listOfSentMessages = new ArrayList<Message>();
+    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
@@ -253,14 +254,14 @@ public class ProducerTransAck extends Client {
     /**
      * @return the listOfSentMessages
      */
-    public List<Message> getListOfSentMessages() {
+    public List<Map<String,String>> getListOfSentMessages() {
         return listOfSentMessages;
     }
 
     /**
      * @param listOfSentMessages the listOfSentMessages to set
      */
-    public void setListOfSentMessages(List<Message> listOfSentMessages) {
+    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
         this.listOfSentMessages = listOfSentMessages;
     }
 
@@ -326,7 +327,11 @@ public class ProducerTransAck extends Client {
 
                 session.commit();
 
-                listOfSentMessages.addAll(listOfMessagesToBeCommited);
+                for (Message m : listOfMessagesToBeCommited)    {
+                    m = cleanMessage(m);
+//                    listOfSentMessages.add(m);
+                    addMessage(listOfSentMessages,m);
+                }
 
                 listOfMessagesToBeCommited.clear();
 

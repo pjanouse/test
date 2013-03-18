@@ -4,8 +4,14 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.test.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.test.JMSTools;
 
+import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.naming.Context;
 import javax.naming.NamingException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -65,6 +71,41 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
         } else {
             return CONNECTION_FACTORY_JNDI_EAP6;
         }
+    }
+
+    protected Message cleanMessage(Message m) throws JMSException {
+
+        String dupId = m.getStringProperty("_HQ_DUPL_ID");
+        m.clearBody();
+        m.clearProperties();
+        m.setStringProperty("text", "");
+        m.setStringProperty("_HQ_DUPL_ID", dupId);
+        return m;
+    }
+
+    protected void addMessage(List<Map<String,String>> listOfReceivedMessages, Message message) throws JMSException {
+        Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
+        mapOfPropertiesOfTheMessage.put("messageId", message.getJMSMessageID());
+        if (message.getStringProperty("_HQ_DUPL_ID") != null)   {
+            mapOfPropertiesOfTheMessage.put("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
+        }
+        listOfReceivedMessages.add(mapOfPropertiesOfTheMessage);
+    }
+
+    protected void addMessages(List<Map<String,String>> listOfReceivedMessages, List<Message> messages) throws JMSException {
+        for (Message m : messages)  {
+            addMessage(listOfReceivedMessages, m);
+        }
+    }
+
+    protected void addSetOfMessages(List<Map<String,String>> listOfReceivedMessages, Set<Message> messages) throws JMSException {
+        for (Message m : messages)  {
+            addMessage(listOfReceivedMessages, m);
+        }
+    }
+
+    public int getCount() {
+        return -1;
     }
 
 }

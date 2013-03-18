@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.JMSException;
-import javax.jms.Message;
 import java.util.*;
 
 /**
@@ -21,9 +20,9 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
 
     private static final Logger logger = Logger.getLogger(TextMessageVerifier.class);
 
-    private List<Message> sentMessages = new ArrayList<Message>();
+    private List<Map<String,String>> sentMessages = new ArrayList<Map<String,String>>();
 
-    private List<Message> receivedMessages = new ArrayList<Message>();
+    private List<Map<String,String>> receivedMessages = new ArrayList<Map<String,String>>();
 
     /**
      * Returns true if all messages are ok = there are equal number of sent and received messages.
@@ -60,14 +59,14 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      * @return the sentMessages
      */
     @Override
-    public List<Message> getSentMessages() {
+    public List<Map<String,String>> getSentMessages() {
         return sentMessages;
     }
 
     /**
      * @param sentMessages the sentMessages to set
      */
-    public void setSentMessages(ArrayList<Message> sentMessages) {
+    public void setSentMessages(List<Map<String,String>> sentMessages) {
         this.sentMessages = sentMessages;
     }
 
@@ -75,14 +74,14 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      * @return the receivedMessages
      */
     @Override
-    public List<Message> getReceivedMessages() {
+    public List<Map<String,String>> getReceivedMessages() {
         return receivedMessages;
     }
 
     /**
      * @param receivedMessages the receivedMessages to set
      */
-    public void setReceivedMessages(ArrayList<Message> receivedMessages) {
+    public void setReceivedMessages(List<Map<String,String>> receivedMessages) {
         this.receivedMessages = receivedMessages;
     }
 
@@ -91,7 +90,7 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      *
      * @param list
      */
-    public synchronized void addReceivedMessages(List<Message> list) {
+    public synchronized void addReceivedMessages(List<Map<String,String>> list) {
 
         receivedMessages.addAll(list);
 
@@ -102,7 +101,7 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      *
      * @param list
      */
-    public synchronized void addSendMessages(List<Message> list) {
+    public synchronized void addSendMessages(List<Map<String,String>> list) {
 
         sentMessages.addAll(list);
 
@@ -113,23 +112,20 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      *
      * @return list of lost messages or empty list if there are no lost messages
      */
-    private List<Message> getLostMessages() throws JMSException {
+    private List<String> getLostMessages() throws JMSException {
 
-        Map<String, Message> sentMessageIds = new HashMap<String, Message>();
-
-        for (Message message : sentMessages) {
-
-            sentMessageIds.put(message.getStringProperty("_HQ_DUPL_ID"), message);
+        Set<String> helpSet = new HashSet<String>();
+        for (Map<String,String> receivedMessageInMap : receivedMessages)    {
+            helpSet.add(receivedMessageInMap.get("_HQ_DUPL_ID"));
         }
 
-        for (Message message : receivedMessages) {
-            sentMessageIds.remove(message.getStringProperty("_HQ_DUPL_ID"));
-        }
+        List<String> listOfLostMessages = new ArrayList<String>();
 
-        List<Message> listOfLostMessages = new ArrayList<Message>();
 
-        for (Message message : sentMessageIds.values()) {
-            listOfLostMessages.add(message);
+        for (Map<String,String> mapOfSentMessageProperties: sentMessages) {
+            if (helpSet.add(mapOfSentMessageProperties.get("_HQ_DUPL_ID"))) {
+                listOfLostMessages.add(mapOfSentMessageProperties.get("messageId"));
+            }
         }
 
         return listOfLostMessages;
@@ -141,14 +137,14 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
      * @return list of duplicated messages or empty list if there are no
      *         duplicated messages
      */
-    private List<Message> getDuplicatedMessages() throws JMSException {
+    private List<String> getDuplicatedMessages() throws JMSException {
 
-        List<Message> listOfDuplicatedMessages = new ArrayList<Message>();
+        List<String> listOfDuplicatedMessages = new ArrayList<String>();
 
         HashSet<String> set = new HashSet<String>();
         for (int i = 0; i < receivedMessages.size(); i++) {
-            if (!set.add(receivedMessages.get(i).getJMSMessageID())) {
-                listOfDuplicatedMessages.add(receivedMessages.get(i));
+            if (!set.add(receivedMessages.get(i).get("_HQ_DUPL_ID"))) {
+                listOfDuplicatedMessages.add(receivedMessages.get(i).get("messageId"));
             }
         }
         return listOfDuplicatedMessages;

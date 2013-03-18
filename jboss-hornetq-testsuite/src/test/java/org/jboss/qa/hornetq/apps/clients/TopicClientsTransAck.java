@@ -401,6 +401,15 @@ public class TopicClientsTransAck implements Clients {
         producedMessagesAckAfter = commitAfter;
     }
 
+    @Override
+    public List<Client> getConsumers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : subscribers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     public static void main(String[] args) throws InterruptedException, Exception {
 
         TopicClientsTransAck clients =

@@ -5,11 +5,9 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
+import javax.jms.Queue;
 import javax.naming.Context;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -26,8 +24,7 @@ public class ReceiverTransAck extends Client {
     private long receiveTimeOut;
     private int commitAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Message> listOfReceivedMessages = new ArrayList<Message>();
-    ;
+    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
 
@@ -194,13 +191,13 @@ public class ReceiverTransAck extends Client {
             try {
 
                 // if dups_id is used then check if we got duplicates after last failed ack
-                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).getStringProperty("_HQ_DUPL_ID") != null
+                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
                         && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
                     if (areThereDuplicates()) {
                         // decrease counter
                         // add just new messages
                         counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
-                        listOfReceivedMessagesToBeCommited.clear();
+//                        listOfReceivedMessagesToBeCommited.clear();
                     } else {
                         //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
                         logger.info("No duplicates were found after JMSException/TransactionRollbackException.");
@@ -213,8 +210,7 @@ public class ReceiverTransAck extends Client {
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + counter + " SENT COMMIT");
 
-
-                listOfReceivedMessages.addAll(listOfReceivedMessagesToBeCommited);
+                addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
                     stringBuilder.append(m.getJMSMessageID());
@@ -287,6 +283,9 @@ public class ReceiverTransAck extends Client {
             try {
 
                 msg = consumer.receive(receiveTimeOut);
+                if (msg != null) {
+                    msg = cleanMessage(msg);
+                }
                 return msg;
 
             } catch (JMSException ex) {
@@ -371,14 +370,14 @@ public class ReceiverTransAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Message> getListOfReceivedMessages() {
+    public List<Map<String,String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -413,5 +412,9 @@ public class ReceiverTransAck extends Client {
 
     public void setCommitAfter(int commitAfter) {
         this.commitAfter = commitAfter;
+    }
+
+    public int getCount() {
+        return counter;
     }
 }

@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.apps;
 
 import javax.jms.JMSException;
-import javax.jms.Message;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Verifier used in the end of the test.
@@ -11,13 +11,13 @@ import java.util.List;
  */
 public interface FinalTestMessageVerifier {
 
-    public void addReceivedMessages(List<Message> list);
+    public void addReceivedMessages(List<Map<String,String>> list);
 
-    public void addSendMessages(List<Message> list);
+    public void addSendMessages(List<Map<String,String>> list);
 
-    public List<Message> getReceivedMessages();
+    public List<Map<String,String>> getReceivedMessages();
 
-    public List<Message> getSentMessages();
+    public List<Map<String,String>> getSentMessages();
 
     public boolean verifyMessages() throws JMSException;
 
