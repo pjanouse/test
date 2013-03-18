@@ -1614,4 +1614,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
         return e;
     }
+    
+	@Override
+	public void addSocketBinding(String socketBindingName, int port)
+	{
+		throw new RuntimeException("Not implemented");
+	}
+
 }

@@ -3169,4 +3169,20 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+	@Override
+	public void addSocketBinding(String socketBindingName, int port)
+	{
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("name").set("port");
+        model.get("value").set(port);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }	}
+    
 }

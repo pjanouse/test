@@ -4,10 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.CodeSource;
 import java.util.Map;
 
-import javax.ejb.Timeout;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -17,14 +15,10 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.naming.Context;
 
-import org.hornetq.core.client.impl.ClientConsumerImpl;
-import org.hornetq.jms.client.HornetQJMSConnectionFactory;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.messaging.InspectTools;
-import org.jboss.qa.messaging.NetworkProxy;
 import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.SimpleProxyServer;
@@ -63,6 +57,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	private static final String  JNDI_CONNECTION_FACTORY 		= "jms/" + NAME_CONNECTION_FACTORY;
 	
 	@Test
+	@Ignore
 	@RunAsClient
 	public void receiveHalfFromLiveHalfFromBackupTest()
 			throws Exception
@@ -154,9 +149,6 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		MessageConsumer receiver = session.createConsumer(queue);
 
-		HornetQJMSConnectionFactory hqCF = (HornetQJMSConnectionFactory) cf;
-		System.out.println(hqCF.getServerLocator().getTopology());
-		
 		boolean wasNotActivated = true;
 
 		while (recievedNum < messageNum)
@@ -243,7 +235,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		 */
 		controller.stop(SERVER_LIVE);
 		deleteDataFolderForJBoss1();
-/*		controller.start(SERVER_LIVE);
+		controller.start(SERVER_LIVE);
 
 
 		JMSOperations adminLive = getJMSOperations(SERVER_LIVE);
@@ -262,10 +254,10 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
 		
-		
+		/*
 		 * In order to create cluster connection to this server use some 
 		 * proxy port (in this case MESSAGING_TO_LIVE_PROXY_PORT)
-		 
+		 */
 
 		adminLive.addSocketBinding(
 						proxySocketBindingName	= "messaging-via-proxy",
@@ -289,7 +281,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		adminLive.close();
 		
         controller.stop(SERVER_LIVE);
-*/
+
         /*
 		 * Preparing backup server 
 		 */	

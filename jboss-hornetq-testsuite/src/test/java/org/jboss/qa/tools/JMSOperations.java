@@ -173,6 +173,9 @@ public interface JMSOperations {
      */
     void addSocketBinding(String socketBindingName, String multicastAddress, int multicastPort);
 
+    void addSocketBinding(String socketBindingName, int port);
+
+    
     /**
      * Add XA datasource property.
      *
