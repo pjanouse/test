@@ -21,6 +21,8 @@ public @interface BMRule {
 
     String targetMethod();
 
+    boolean isAfter() default false;
+    
     String targetLocation() default "";
 
     String helper() default "";
