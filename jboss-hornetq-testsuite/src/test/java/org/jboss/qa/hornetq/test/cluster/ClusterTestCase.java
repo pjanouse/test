@@ -19,7 +19,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +27,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
-import java.io.File;
 
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
@@ -537,11 +535,11 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdbOnQueue1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdbOnQueue1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -557,11 +555,11 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdbOnQueue2.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdbOnQueue2.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -609,11 +607,11 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         //      Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
 
         return mdbJar;
     }
