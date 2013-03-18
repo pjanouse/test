@@ -57,7 +57,12 @@ public final class GenerateScriptUtil {
             builder.append(bmRule.targetMethod());
             String location = bmRule.targetLocation();
             if (location != null && location.length() > 0) {
-                builder.append("\nAT ");
+            	if (bmRule.isAfter())
+            	{
+            		builder.append("\nAFTER ");
+            	} else {
+            		builder.append("\nAT ");
+            	}
                 builder.append(location);
             }
             String helper = bmRule.helper();
