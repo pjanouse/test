@@ -71,19 +71,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+//            @BMRule(name = "Setup counter for PostOfficeImpl",
+//                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+//                    targetMethod = "processRoute",
+//                    action = "createCounter(\"counter\")"),
+//            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+//                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+//                    targetMethod = "processRoute",
+//                    action = "incrementCounter(\"counter\");"
+//                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>333",
+//                    condition = "readCounter(\"counter\")>333",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
@@ -108,7 +108,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 //        Thread.sleep(10000); // give some time for clients to start
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 1000)  {
+            while (c.getCount() < 120)  {
                 Thread.sleep(500);
             }
         }
@@ -127,7 +127,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //        Thread.sleep(30000); // give some time for clients to failover
 
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 5000)  {
+            while (c.getCount() < 500)  {
                 Thread.sleep(500);
             }
         }

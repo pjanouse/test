@@ -71,8 +71,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(false);
-        jmsAdminOperations.setBackupGroupName("firstPair");
+        jmsAdminOperations.setBackupGroupName(backupGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
+        jmsAdminOperations.setJournalFileSize(10 * 1024 *1024);
 
         jmsAdminOperations.setJournalType("ASYNCIO");
 
@@ -163,6 +164,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setBackupGroupName(backupGroupName, backupServerName);
         jmsAdminOperations.setCheckForLiveServer(true, backupServerName);
+        jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 *1024);
 
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
 
