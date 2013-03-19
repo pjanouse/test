@@ -77,7 +77,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>3333",
+                    condition = "readCounter(\"counter\")>333",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFailover(acknowledge, failback, topic, false);
@@ -111,7 +111,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.startClients();
 
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 1000)  {
+            while (c.getCount() < 100)  {
                 Thread.sleep(500);
             }
         }
@@ -125,7 +125,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
         //Thread.sleep(60000); // give some time to clients to failover
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 5000)  {
+            while (c.getCount() < 300)  {
                 Thread.sleep(500);
             }
         }
@@ -190,7 +190,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
 //        Thread.sleep(10000);
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 1000)  {
+            while (c.getCount() < 100)  {
                 Thread.sleep(500);
             }
         }
@@ -202,7 +202,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
 //        Thread.sleep(20000); // give some time for clients to failover
         for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 5000)  {
+            while (c.getCount() < 500)  {
                 Thread.sleep(500);
             }
         }
