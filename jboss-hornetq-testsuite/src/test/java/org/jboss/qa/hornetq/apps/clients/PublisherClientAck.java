@@ -97,6 +97,8 @@ public class PublisherClientAck extends Client {
                 // send message in while cycle
                 sendMessage(publisher, msg);
 
+                Thread.sleep(getTimeout());
+
                 logger.debug("Publisher with clientId: " + clientId + " for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }

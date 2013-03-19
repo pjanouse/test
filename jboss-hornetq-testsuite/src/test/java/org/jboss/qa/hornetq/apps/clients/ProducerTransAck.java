@@ -97,6 +97,8 @@ public class ProducerTransAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
+                Thread.sleep(getTimeout());
+
                 if (counter % commitAfter == 0) {
 
                     commitSession(session, producer);

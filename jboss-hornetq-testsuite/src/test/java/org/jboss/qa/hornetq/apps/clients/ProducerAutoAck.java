@@ -38,6 +38,7 @@ public class ProducerAutoAck extends Client {
     private String userName;
     private String password;
 
+
     /**
      * @param hostname       hostname
      * @param port           port
@@ -96,6 +97,8 @@ public class ProducerAutoAck extends Client {
                 msg = messageBuilder.createMessage(session);
                 // send message in while cycle
                 sendMessage(producer, msg);
+
+                Thread.sleep(getTimeout());
 
                 logger.debug("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 

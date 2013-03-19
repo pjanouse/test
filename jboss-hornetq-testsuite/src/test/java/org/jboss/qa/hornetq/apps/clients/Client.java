@@ -27,6 +27,7 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
     private static final Logger logger = Logger.getLogger(Client.class);
     private String currentContainer = EAP6_CONTAINER;
     private String connectionFactoryJndiName = CONNECTION_FACTORY_JNDI_EAP6;
+    private int timeout = 10;
 
     /**
      * Creates client for the given container.
@@ -108,4 +109,11 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
         return -1;
     }
 
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
 }

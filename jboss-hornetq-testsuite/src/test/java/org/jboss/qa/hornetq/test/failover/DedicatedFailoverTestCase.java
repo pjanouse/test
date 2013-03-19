@@ -7,7 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -107,7 +107,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Clients clients = createClients(acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
-        clients.setProducedMessagesCommitAfter(7);
+        clients.setProducedMessagesCommitAfter(9);
         clients.startClients();
 
         for (Client c : clients.getConsumers()) {
@@ -282,8 +282,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-//            MessageBuilder messageBuilder = new TextMessageBuilder(3 * 1024 * 1024);
-            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 150);
+            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
+//            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
 //            MessageBuilder messageBuilder = new MixMessageBuilder(200);
             messageBuilder.setAddDuplicatedHeader(true);
             clients.setMessageBuilder(messageBuilder);
