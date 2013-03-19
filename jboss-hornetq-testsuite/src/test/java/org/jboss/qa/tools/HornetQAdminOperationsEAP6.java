@@ -2571,6 +2571,18 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    private void removeRemoteConnector(String serverName, String name) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
     /**
      * Remove remote connector
      *
@@ -2578,16 +2590,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeRemoteConnector(String name) {
-        ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            logger.error(e);
-        }
+        removeRemoteConnector("default", name);
     }
 
     /**
@@ -2612,6 +2615,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+
+        removeRemoteConnector(serverName, name);
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -2716,6 +2722,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("name").set("multicast-port");
         model.get("value").set(multicastPort);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addSocketBinding(String socketBindingName, int port) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("name").set("port");
+        model.get("value").set(port);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -2850,6 +2871,25 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         createInVmConnector("default", name, serverId, params);
     }
 
+    private void removeInVmConnector(String name)   {
+        removeInVmConnector("default", name);
+    }
+
+    private void removeInVmConnector(String serverName, String name)   {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("in-vm-connector", name);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     /**
      * Creates in-vm connector
      *
@@ -2860,6 +2900,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createInVmConnector(String serverName, String name, int serverId, Map<String, String> params) {
+
+        try {
+            removeInVmConnector(serverName, name);
+        } catch (Exception ex)  {
+            logger.warn("Removing old connector failed:", ex);
+        }
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -2900,6 +2946,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
+        try {
+            removeRemoteAcceptor(serverName, name);
+        } catch (Exception ex)  {
+            logger.warn("Removing remote acceptor failed: ", ex);
+        }
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -2918,17 +2969,20 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void removeRemoteAcceptor(String name) {
+        removeRemoteAcceptor("default", name);
+    }
     /**
      * Remove remote acceptor
      *
      * @param name name of the remote acceptor
      */
-    @Override
-    public void removeRemoteAcceptor(String name) {
+    private void removeRemoteAcceptor(String serverName, String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
         try {
             this.applyUpdate(model);
@@ -3169,20 +3223,4 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
-	@Override
-	public void addSocketBinding(String socketBindingName, int port)
-	{
-        ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
-        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
-        model.get("name").set("port");
-        model.get("value").set(port);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }	}
-    
 }

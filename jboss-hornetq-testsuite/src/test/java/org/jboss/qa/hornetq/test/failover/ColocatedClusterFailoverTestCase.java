@@ -7,7 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -30,12 +30,12 @@ import java.io.File;
 public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ColocatedClusterFailoverTestCase.class);
-    private static final int NUMBER_OF_DESTINATIONS = 1;
+    protected static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
-    private static final int BYTEMAN_PORT = 9091;
+    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
+    protected static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
+    protected static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
+    protected static final int BYTEMAN_PORT = 9091;
 
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
@@ -93,8 +93,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-//        MessageBuilder builder = new TextMessageBuilder(1024);
-        MessageBuilder builder = new ClientMixMessageBuilder(50, 50);
+        MessageBuilder builder = new TextMessageBuilder(40 * 1024);
+//        MessageBuilder builder = new ClientMixMessageBuilder(50, 50);
 
         builder.setAddDuplicatedHeader(true);
 
@@ -362,13 +362,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             prepareLiveServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_B);
             prepareColocatedBackupServer(CONTAINER2, CONTAINER2_IP, "backup", JOURNAL_DIRECTORY_A);
 
-            // deploy destinations 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2);
-            stopServer(CONTAINER2);
     }
 
     /**
@@ -428,6 +421,14 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
         jmsAdminOperations.close();
         controller.stop(containerName);
 
@@ -458,7 +459,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         controller.start(containerName);
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+//        jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
         jmsAdminOperations.disableSecurity(backupServerName);
@@ -483,37 +484,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
     }
 
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName name of the container
-     */
-    protected void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName name of the container
-     * @param serverName server name of the hornetq server
-     */
-    protected void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
-        jmsAdminOperations.close();
-    }
 }

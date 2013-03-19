@@ -1,11 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,18 +16,18 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
-
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testSimpleConfiguration() throws Exception {
-
-        prepareColocatedTopologyInCluster();
-    }
+//
+//    /**
+//     * Start simple failover test with client_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void testSimpleConfiguration() throws Exception {
+//
+//        prepareColocatedTopologyInCluster();
+//    }
 
     /**
      * Prepare two servers in colocated topology in cluster.
@@ -45,13 +41,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         prepareLiveServer(CONTAINER2, "secondPair", "secondPairJournalA");
         prepareColocatedBackupServer(CONTAINER2, "backup", "firstPair", "firstPairJournalA");
 
-        // deploy destinations
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2);
-        stopServer(CONTAINER2);
     }
 
 
@@ -105,6 +94,13 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setJournalDirectory(journalDirectoryPath);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectoryPath);
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
 
 
         jmsAdminOperations.setSecurityEnabled(true);
@@ -159,7 +155,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+//        jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setBackupGroupName(backupGroupName, backupServerName);
         jmsAdminOperations.setCheckForLiveServer(true, backupServerName);
@@ -191,15 +187,23 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
-        jmsAdminOperations.addSecuritySetting(backupServerName, "#");
-        jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", false);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+//        jmsAdminOperations.addSecuritySetting(backupServerName, "#");
+//        jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", false);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", false);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", false);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", false);
+//        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
 
         jmsAdminOperations.close();
 
