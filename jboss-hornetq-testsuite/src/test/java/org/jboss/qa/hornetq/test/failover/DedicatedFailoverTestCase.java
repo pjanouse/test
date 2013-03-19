@@ -106,6 +106,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
         Clients clients = createClients(acknowledge, topic);
+        clients.setProducedMessagesCommitAfter(2);
+        clients.setProducedMessagesCommitAfter(7);
         clients.startClients();
 
         for (Client c : clients.getConsumers()) {
@@ -281,7 +283,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
 //            MessageBuilder messageBuilder = new TextMessageBuilder(3 * 1024 * 1024);
-            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
+            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 150);
 //            MessageBuilder messageBuilder = new MixMessageBuilder(200);
             messageBuilder.setAddDuplicatedHeader(true);
             clients.setMessageBuilder(messageBuilder);
