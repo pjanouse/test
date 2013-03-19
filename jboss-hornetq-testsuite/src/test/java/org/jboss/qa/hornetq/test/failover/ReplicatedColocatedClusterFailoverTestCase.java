@@ -172,7 +172,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setClusterUserPassword(backupServerName, "heslo");
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, false);
-        jmsAdminOperations.setJournalFileSize(backupServerName, 10240);
 
         jmsAdminOperations.setAllowFailback(backupServerName, true);
         jmsAdminOperations.setJournalType(backupServerName, "ASYNCIO");

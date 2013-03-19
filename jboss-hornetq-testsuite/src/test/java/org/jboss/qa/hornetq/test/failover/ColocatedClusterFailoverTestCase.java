@@ -93,7 +93,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        MessageBuilder builder = new TextMessageBuilder(40 * 1024);
+        MessageBuilder builder = new TextMessageBuilder(30 * 1024);
 //        MessageBuilder builder = new ClientMixMessageBuilder(50, 50);
 
         builder.setAddDuplicatedHeader(true);
