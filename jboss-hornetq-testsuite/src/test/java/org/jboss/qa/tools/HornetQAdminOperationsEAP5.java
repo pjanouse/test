@@ -333,6 +333,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addSocketBinding(String socketBindingName, int port) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -980,6 +985,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * Sets permission privileges to a given role.
+     *
+     * @param serverName server name
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
+     * @param permission possible values
+     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value      true for enable permission
+     */
+    @Override
+    public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     @Override
     public void setPersistenceEnabled(boolean persistenceEnabled) {
         setPersistenceEnabled("HornetQ.main.config", persistenceEnabled);
@@ -1387,10 +1407,4 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
         return e;
     }
-
-	@Override
-	public void addSocketBinding(String socketBindingName, int port)
-	{
-		throw new RuntimeException("Not implemented");
-	}
 }

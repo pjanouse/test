@@ -1001,6 +1001,18 @@ public interface JMSOperations {
     void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value);
 
     /**
+     * Sets permission privileges to a given role.
+     *
+     * @param serverName server name
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
+     * @param permission possible values
+     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value      true for enable permission
+     */
+    void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value);
+
+    /**
      * Sets persistence-enabled attribute in servers configuration.
      *
      * @param persistenceEnabled - true for persist messages

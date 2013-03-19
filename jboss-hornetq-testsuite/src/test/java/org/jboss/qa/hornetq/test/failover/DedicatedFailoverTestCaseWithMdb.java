@@ -39,7 +39,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -111,7 +111,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 100));
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
         producerToInQueue1.join();
 

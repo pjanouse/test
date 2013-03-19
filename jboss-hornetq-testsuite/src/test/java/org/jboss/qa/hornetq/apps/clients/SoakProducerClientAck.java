@@ -100,6 +100,8 @@ public class SoakProducerClientAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
+                Thread.sleep(getTimeout());
+
 //                if (getCounter() % 1000 == 0) {
                 logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());

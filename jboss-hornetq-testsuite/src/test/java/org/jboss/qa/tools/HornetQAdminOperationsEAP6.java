@@ -376,10 +376,25 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
+        setPermissionToRoleToSecuritySettings("default", address, role, permission, value);
+    }
+
+    /**
+     * Sets permission privileges to a given role.
+     *
+     * @param  serverName server name
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
+     * @param permission possible values
+     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value      true for enable permission
+     */
+    @Override
+    public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("security-setting", address);
         model.get(ClientConstants.OP_ADDR).add("role", role);
         model.get("name").set(permission);

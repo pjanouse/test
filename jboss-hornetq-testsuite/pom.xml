@@ -23,7 +23,7 @@
         <eap6.controller.client>6.1.0.ER1</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
-		<arquillian.eap6x.container.version>7.2.0.Alpha1-SNAPSHOT</arquillian.eap6x.container.version>
+		<arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
 		<version.byteman>2.0.0</version.byteman>
 		<version.junit>4.9</version.junit>
