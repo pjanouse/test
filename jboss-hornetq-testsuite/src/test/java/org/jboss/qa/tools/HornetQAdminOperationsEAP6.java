@@ -2733,10 +2733,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
-        model.get("name").set("multicast-address");
-        model.get("value").set(multicastAddress);
-        model.get("name").set("multicast-port");
-        model.get("value").set(multicastPort);
+        model.get("multicast-address").set(multicastAddress);
+        model.get("multicast-port").set(multicastPort);
 
         try {
             this.applyUpdate(model);
@@ -2751,8 +2749,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
-        model.get("name").set("port");
-        model.get("value").set(port);
+        model.get("port").set(port);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -2904,7 +2901,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-
 
     /**
      * Creates in-vm connector
