@@ -18,7 +18,7 @@
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
-                </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
+                </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
