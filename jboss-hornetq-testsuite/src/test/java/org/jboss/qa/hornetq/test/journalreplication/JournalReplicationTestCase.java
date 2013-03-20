@@ -254,6 +254,8 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
 		
+		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
+		
 		/*
 		 * In order to create cluster connection to this server use some 
 		 * proxy port (in this case MESSAGING_TO_LIVE_PROXY_PORT)
@@ -262,6 +264,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		adminLive.addSocketBinding(
 						proxySocketBindingName	= "messaging-via-proxy",
 						port					= MESSAGING_TO_LIVE_PROXY_PORT);
+		
 		adminLive.createRemoteConnector(
 						proxyConnectorName		= "netty-proxy", 
 						socketBinding			= proxySocketBindingName, 
@@ -721,4 +724,16 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		RestoreConfig restorator = new RestoreConfig();
 		restorator.copyFile(defaultConfiguration, actualConfiguration);
 	}
-}
+	
+/*	public static void main(String[] args) throws IOException, URISyntaxException
+	{
+		String SERVER = System.getProperty("JBOSS_HOME_1");
+		String SEPARATOR = File.separator;
+		
+		URL fileNearSourceCode = JournalReplicationTestCase.class.getClassLoader().getResource("standalone-full-ha.xml");
+		System.out.println(fileNearSourceCode);
+		
+		FileUtils.copyFileToDirectory(new File(fileNearSourceCode.toURI()), new File(SERVER + SEPARATOR + "standalone" + SEPARATOR + "configuration"));
+		System.out.println("Done");
+	}
+*/}
