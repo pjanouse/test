@@ -469,7 +469,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         controller.start(containerName);
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-//        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+        jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
         jmsAdminOperations.disableSecurity(backupServerName);
