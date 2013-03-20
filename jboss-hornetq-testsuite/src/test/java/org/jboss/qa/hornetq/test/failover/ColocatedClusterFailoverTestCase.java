@@ -14,7 +14,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -120,7 +119,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.stop(CONTAINER1);
         } else {
             // install rule to first server
-            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+            //RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+            killServer(CONTAINER1);
             controller.kill(CONTAINER1);
         }
 
