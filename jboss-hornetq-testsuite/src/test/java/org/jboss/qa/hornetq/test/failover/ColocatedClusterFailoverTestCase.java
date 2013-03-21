@@ -196,15 +196,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         return clients;
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailoverAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckQueue() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
@@ -238,15 +238,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailbackAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckQueue() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true);
+//    }
 
     /**
      * Start simple failover test with client_ack on queues
@@ -268,15 +268,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailoverAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
-    }
+//    /**
+//     * Start simple failover test with auto_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverAutoAckTopic() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
+//    }
 
     /**
      * Start simple failover test with client acknowledge on queues
@@ -298,15 +298,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
 
-    /**
-     * Start simple failback test with auto acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailbackAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
-    }
+//    /**
+//     * Start simple failback test with auto acknowledge on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailbackAutoAckTopic() throws Exception {
+//        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
+//    }
 
     /**
      * Start simple failback test with client acknowledge on queues
