@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
+import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -106,11 +107,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         clients.startClients();
 
 //        Thread.sleep(10000); // give some time for clients to start
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 120)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 120, 600000);
 
         logger.info("########################################");
         logger.info("kill - live server");
@@ -126,11 +123,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 //        Thread.sleep(30000); // give some time for clients to failover
 
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 500)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 500, 600000);
+
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
@@ -161,6 +155,20 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
+    }
+
+    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        for (Client c : receivers) {
+            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     protected Clients createClients(int acknowledgeMode, boolean topic, MessageBuilder messageBuilder) throws Exception {

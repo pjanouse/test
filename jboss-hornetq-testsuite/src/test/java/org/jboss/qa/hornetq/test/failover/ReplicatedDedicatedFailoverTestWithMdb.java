@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +13,8 @@ import java.io.IOException;
  * Tests failover of remote JCA and replicated journal.
  *
  */
-    public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {
+@RunWith(Arquillian.class)
+public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {
 
     private static final Logger logger = Logger.getLogger(ReplicatedDedicatedFailoverTestWithMdb.class);
 
