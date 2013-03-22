@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
+import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -110,11 +111,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.setProducedMessagesCommitAfter(9);
         clients.startClients();
 
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 100)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 100, 300000);
 
         if (!shutdown) {
             controller.kill(CONTAINER1);
@@ -124,11 +121,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
         //Thread.sleep(60000); // give some time to clients to failover
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 300)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 300, 300000);
 
         if (failback) {
             logger.info("########################################");
@@ -189,11 +182,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.startClients();
 
 //        Thread.sleep(10000);
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 100)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 100, 300000);
 
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
@@ -201,11 +190,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         logger.info("Wait some time to give chance backup to come alive and clients to failover");
 //        Thread.sleep(20000); // give some time for clients to failover
-        for (Client c : clients.getConsumers()) {
-            while (c.getCount() < 500)  {
-                Thread.sleep(500);
-            }
-        }
+        waitForReceiversUntil(clients.getConsumers(), 500, 300000);
 
         if (failback) {
             logger.info("########################################");
@@ -232,6 +217,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
+    }
+
+    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        for (Client c : receivers) {
+            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Test
