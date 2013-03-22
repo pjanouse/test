@@ -198,7 +198,6 @@ public class SubscriberTransAck extends Client {
                 logger.error(" Subscriber - name: " + getSubscriberName() + " - - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
                         + ". Received message - count: " + count + ", retrying receive", ex);
                 // all unacknowledge messges will be received again
-                ex.printStackTrace();
                 count = count - listOfReceivedMessagesToBeCommited.size();
 
                 return;
@@ -209,7 +208,6 @@ public class SubscriberTransAck extends Client {
 
                 logger.error(" Subscriber - name: " + getSubscriberName() + " -- JMSException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
                         + ". Received message - count: " + count + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
-                ex.printStackTrace();
                 numberOfRetries++;
             }
         }

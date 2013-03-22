@@ -103,19 +103,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(5000);
 
-        // install rule to first server
-        if (!shutdown) RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
-
         Clients clients = createClients(acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
-        clients.setProducedMessagesCommitAfter(9);
+        clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 100, 300000);
+        waitForReceiversUntil(clients.getConsumers(), 120, 300000);
 
         if (!shutdown) {
+            logger.warn("########################################");
+            logger.warn("Kill live server");
+            logger.warn("########################################");
+            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
             controller.kill(CONTAINER1);
         } else {
+            logger.warn("########################################");
+            logger.warn("Shutdown live server");
+            logger.warn("########################################");
             stopServer(CONTAINER1);
         }
 

@@ -147,6 +147,9 @@ public class SubscriberClientAck extends Client {
 
             if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
+            } else {
+                logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                        + " was message verifier: NULL");
             }
 
         } catch (JMSException ex) {
@@ -219,8 +222,7 @@ public class SubscriberClientAck extends Client {
             } catch (TransactionRolledBackException ex) {
                 logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID(), ex);
-                // all unacknowledge messges will be received again
-                ex.printStackTrace();
+                // all unacknowledge messsges will be received again
                 count = count - listOfReceivedMessagesToBeAcked.size();
 
                 return;
@@ -232,7 +234,6 @@ public class SubscriberClientAck extends Client {
 
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID(), ex);
-                ex.printStackTrace();
                 numberOfRetries++;
             }
         }
