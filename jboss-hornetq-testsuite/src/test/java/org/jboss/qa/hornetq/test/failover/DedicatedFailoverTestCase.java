@@ -119,19 +119,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             stopServer(CONTAINER1);
         }
 
-        logger.info("Wait some time to give chance backup to come alive and clients to failover");
-        //Thread.sleep(60000); // give some time to clients to failover
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
         waitForReceiversUntil(clients.getConsumers(), 300, 300000);
 
         if (failback) {
-            logger.info("########################################");
-            logger.info("failback - Start live server again ");
-            logger.info("########################################");
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again ");
+            logger.warn("########################################");
             controller.start(CONTAINER1);
             Thread.sleep(60000); // here more time is needed to sync journals
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
+            logger.warn("########################################");
+            logger.warn("failback - Stop backup server");
+            logger.warn("########################################");
             stopServer(CONTAINER2);
         }
 
@@ -188,19 +187,19 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.kill(CONTAINER1);
 
-        logger.info("Wait some time to give chance backup to come alive and clients to failover");
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
 //        Thread.sleep(20000); // give some time for clients to failover
         waitForReceiversUntil(clients.getConsumers(), 500, 300000);
 
         if (failback) {
-            logger.info("########################################");
-            logger.info("failback - Start live server again ");
-            logger.info("########################################");
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again ");
+            logger.warn("########################################");
             controller.start(CONTAINER1);
             Thread.sleep(40000); // give it some time
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
+            logger.warn("########################################");
+            logger.warn("failback - Stop backup server");
+            logger.warn("########################################");
             stopServer(CONTAINER2);
         }
 
