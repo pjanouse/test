@@ -197,7 +197,7 @@ public class ReceiverTransAck extends Client {
                         // decrease counter
                         // add just new messages
                         counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
-//                        listOfReceivedMessagesToBeCommited.clear();
+                        listOfReceivedMessagesToBeCommited.clear();
                     } else {
                         //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
                         logger.info("No duplicates were found after JMSException/TransactionRollbackException.");

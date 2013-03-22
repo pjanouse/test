@@ -174,7 +174,7 @@ public class SubscriberTransAck extends Client {
                     if (areThereDuplicates())  {
                         // decrease counter
                         // add just new messages
-//                        listOfReceivedMessagesToBeCommited.clear();
+                        listOfReceivedMessagesToBeCommited.clear();
                         count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
                     } else {
                         //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);

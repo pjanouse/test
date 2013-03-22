@@ -4,10 +4,7 @@ package org.jboss.qa.tools.arquillian.extension;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -155,24 +152,36 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
      */
     private boolean checkJBossAlive(String killSequence) throws Exception {
 
-        Process p = Runtime.getRuntime().exec(killSequence);
-        p.waitFor();
+        Process p;
+        String os = System.getProperty("os.name").toLowerCase();
 
-        boolean stillRunning = true;
-        // check standard output - false returned then server is stopped
-        if (!checkOutput(p.getInputStream())) {
+        boolean stillRunning;
+
+        if (os.contains("windows")) {
+            Thread.sleep(60000);
             stillRunning = false;
+        } else {
+            stillRunning = true;
+
+            p = Runtime.getRuntime().exec(killSequence);
+            p.waitFor();
+
+            // check standard output - false returned then server is stopped
+            if (!checkOutput(p.getInputStream())) {
+                stillRunning = false;
+            }
+
+            // check error output - false returned then server is stopped
+            if (!checkOutput(p.getErrorStream())) {
+                stillRunning = false;
+            }
+
+            if (p.exitValue() != 0) {
+                log.log(Level.SEVERE, "Return code from kill sequence is different from zero. It's expected when server is no longer"
+                        + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
+            }
         }
 
-        // check error output - false returned then server is stopped
-        if (!checkOutput(p.getErrorStream())) {
-            stillRunning = false;
-        }
-
-        if (p.exitValue() != 0) {
-            log.log(Level.SEVERE, "Return code from kill sequence is different from zero. It's expected when server is no longer"
-                    + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
-        }
         return stillRunning;
     }
 

@@ -184,7 +184,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
-//        Thread.sleep(10000);
         waitForReceiversUntil(clients.getConsumers(), 100, 300000);
 
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);

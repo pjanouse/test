@@ -66,7 +66,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " + executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
             ExecutorService executorService =  new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
 
-                this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port, null, null, timeout));
+            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port, null, null, timeout));
 
 //            InetAddress inetAddress = InetAddress.getByName(hostname);
 //            this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);

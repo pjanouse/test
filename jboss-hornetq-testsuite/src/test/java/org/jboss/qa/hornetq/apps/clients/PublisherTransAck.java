@@ -343,7 +343,7 @@ public class PublisherTransAck extends Client {
 
                 resendMessages(publisher);
             } catch (JMSException ex) {
-                if (numberOfRetries > 0)    {
+                if (numberOfRetries > 3)    {
                     // this is actually JMSException called because we sent duplicates
                     logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
                             + ". Sent message with property count: " + counter, ex);

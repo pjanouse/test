@@ -107,7 +107,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         clients.startClients();
 
 //        Thread.sleep(10000); // give some time for clients to start
-        waitForReceiversUntil(clients.getConsumers(), 120, 600000);
+        waitForReceiversUntil(clients.getConsumers(), 120, 300000);
 
         logger.info("########################################");
         logger.info("kill - live server");
@@ -123,7 +123,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 //        Thread.sleep(30000); // give some time for clients to failover
 
-        waitForReceiversUntil(clients.getConsumers(), 500, 600000);
+        waitForReceiversUntil(clients.getConsumers(), 500, 300000);
 
         if (failback) {
             logger.info("########################################");

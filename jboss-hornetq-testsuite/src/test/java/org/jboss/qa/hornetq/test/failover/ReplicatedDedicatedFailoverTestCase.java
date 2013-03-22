@@ -39,7 +39,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueMessageSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueMessageSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
@@ -57,7 +57,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "addToPage",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueMessageSentStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
@@ -74,7 +74,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueCommitSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
@@ -92,7 +92,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueCommitSentAndStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitSentAndStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
@@ -110,7 +110,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueCommitStoredInBackupNotStoredInLive() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitStoredInBackupNotStoredInLive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
@@ -128,7 +128,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendDeleteRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueMessageReceivedNotAcked() throws Exception {
+    public void replicatedTestFailoverTransAckQueueMessageReceivedNotAcked() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
@@ -140,7 +140,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetClass = "org.hornetq.core.replication.ReplicatedJournal",
             targetMethod = "appendCommitRecord",
             action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
-    public void testFailoverTransAckQueueCommitNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
@@ -153,7 +153,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetMethod = "appendCommitRecord",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
-    public void testFailoverTransAckQueueCommitStored() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
@@ -167,7 +167,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckQueueCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
+    public void replicatedTestFailoverTransAckQueueCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
@@ -204,7 +204,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiMessageSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiMessageSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
@@ -222,7 +222,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "addToPage",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiMessageSentStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
@@ -239,7 +239,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiCommitSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
@@ -257,7 +257,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiCommitSentAndStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitSentAndStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
@@ -275,7 +275,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiCommitStoredInBackupNotStoredInLive() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitStoredInBackupNotStoredInLive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
@@ -293,7 +293,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendDeleteRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiMessageReceivedNotAcked() throws Exception {
+    public void replicatedTestFailoverTransAckTopiMessageReceivedNotAcked() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
@@ -305,7 +305,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetClass = "org.hornetq.core.replication.ReplicatedJournal",
             targetMethod = "appendCommitRecord",
             action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
-    public void testFailoverTransAckTopiCommitNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
@@ -318,7 +318,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetMethod = "appendCommitRecord",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
-    public void testFailoverTransAckTopiCommitStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
@@ -332,7 +332,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void testFailoverTransAckTopiCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
+    public void replicatedTestFailoverTransAckTopiCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
