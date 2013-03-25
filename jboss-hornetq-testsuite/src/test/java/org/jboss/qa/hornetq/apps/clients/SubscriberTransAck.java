@@ -200,6 +200,8 @@ public class SubscriberTransAck extends Client {
                 // all unacknowledge messges will be received again
                 count = count - listOfReceivedMessagesToBeCommited.size();
 
+                setOfReceivedMessagesWithPossibleDuplicates.clear();
+
                 return;
 
             } catch (JMSException ex) {

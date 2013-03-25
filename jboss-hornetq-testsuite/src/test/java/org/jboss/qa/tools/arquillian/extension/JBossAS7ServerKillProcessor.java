@@ -20,6 +20,8 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     // Logger
     private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class.getName());
 
+    String hostname = null;
+
     /**
      * @see {@link ServerKillProcessor#kill(org.jboss.arquillian.container.spi.Container)}
      */
@@ -102,7 +104,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
         log.info("Waiting. Server will be killed by an external process ...");
 
-        String hostname = container.getContainerConfiguration().getContainerProperties().get("managementAddress");
+        hostname = container.getContainerConfiguration().getContainerProperties().get("managementAddress");
         if (hostname == null) {
             hostname = "127.0.0.1";
         }
@@ -158,8 +160,19 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         boolean stillRunning;
 
         if (os.contains("windows")) {
-            Thread.sleep(60000);
+            p = Runtime.getRuntime().exec("netstat -af");
+            p.waitFor();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = br.readLine()) != null)  {
+                System.out.println("mnovak: " + line);
+                if ((line.contains(hostname)) && (line.contains("9999")))   {
+                    System.out.println("mnovak: Server is still running.");
+                    return true;
+                }
+            }
             stillRunning = false;
+
         } else {
             stillRunning = true;
 
@@ -207,5 +220,13 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             }
         }
         return true;
+    }
+
+    public static void main(String[] args) throws Exception {
+        JBossAS7ServerKillProcessor p = new JBossAS7ServerKillProcessor();
+        while (p.checkJBossAlive("dasf")) {
+            System.out.println("mnovak: jboss is alive");
+        }
+        System.out.println("mnovak: jboss is dead");
     }
 }

@@ -227,6 +227,8 @@ public class ReceiverTransAck extends Client {
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
 
+                setOfReceivedMessagesWithPossibleDuplicates.clear();
+
                 return;
 
             } catch (JMSException ex) {
