@@ -78,7 +78,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>333",
+                    condition = "readCounter(\"counter\")>3",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFailover(acknowledge, failback, topic, false);

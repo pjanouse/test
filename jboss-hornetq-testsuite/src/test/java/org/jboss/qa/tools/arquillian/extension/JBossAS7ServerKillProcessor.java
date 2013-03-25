@@ -3,12 +3,14 @@ package org.jboss.qa.tools.arquillian.extension;
 
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
+import org.jboss.qa.hornetq.test.HttpRequest;
 
 import java.io.*;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -158,18 +160,33 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         String os = System.getProperty("os.name").toLowerCase();
 
         if (os.contains("windows")) {
-            p = Runtime.getRuntime().exec("netstat -af");
-            p.waitFor();
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = br.readLine()) != null)  {
-                System.out.println("mnovak: " + line);
-                if ((line.contains(hostname)) && (line.contains("9999")))   {
-                    System.out.println("mnovak: Server is still running.");
-                    return true;
-                }
+//            p = Runtime.getRuntime().exec("netstat -af");
+//            p.waitFor();
+//            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//            String line;
+//            while ((line = br.readLine()) != null)  {
+//                System.out.println("mnovak: " + line);
+//                if ((line.contains(hostname)) && (line.contains("9999")))   {
+//                    System.out.println("mnovak: Server is still running.");
+//                    return true;
+//                }
+//            }
+//            return false;
+            String response;
+            try {
+                response = HttpRequest.get("http://" + hostname + ":8080", 20, TimeUnit.SECONDS);
+            } catch (Exception ex ) {
+                ex.printStackTrace();
+                return false;
             }
-            return false;
+
+            log.warning("mnovak: Response is: " + response);
+            System.out.println("mnovak: Response is: " + response);
+            if (response == null || "".equals(response) || response.contains("Unable to connect")) {
+                return false;
+            } else {
+                return true;
+            }
 
         } else {
             boolean stillRunning = true;

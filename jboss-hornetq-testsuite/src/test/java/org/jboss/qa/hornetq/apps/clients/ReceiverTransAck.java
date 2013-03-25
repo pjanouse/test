@@ -400,7 +400,7 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.191", 4447, "jms/queue/testQueue0", 3000, 1, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.220", 4447, "jms/queue/testQueue0", 3000, 1, 10);
 
         receiver.start();
 
