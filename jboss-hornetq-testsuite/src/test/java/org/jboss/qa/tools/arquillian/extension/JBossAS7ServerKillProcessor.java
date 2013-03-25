@@ -157,8 +157,6 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         Process p;
         String os = System.getProperty("os.name").toLowerCase();
 
-        boolean stillRunning;
-
         if (os.contains("windows")) {
             p = Runtime.getRuntime().exec("netstat -af");
             p.waitFor();
@@ -171,10 +169,10 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                     return true;
                 }
             }
-            stillRunning = false;
+            return false;
 
         } else {
-            stillRunning = true;
+            boolean stillRunning = true;
 
             p = Runtime.getRuntime().exec(killSequence);
             p.waitFor();
@@ -193,9 +191,10 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                 log.log(Level.SEVERE, "Return code from kill sequence is different from zero. It's expected when server is no longer"
                         + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
             }
+            return stillRunning;
         }
 
-        return stillRunning;
+
     }
 
     /**
