@@ -86,9 +86,9 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		producerToLive.run();
 
-		new Thread(new NetworkProblemRunnable(proxyToLive)).start();
-		
 		controller.start(SERVER_BACKUP);
+		
+		new Thread(new NetworkProblemRunnable(proxyToLive)).start();
 		
 		//replication start point
 		
@@ -500,7 +500,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		public void run()
 		{
 			// initial delay
-			sleepSeconds(5);
+			//sleepSeconds(5);
 			
 			for (int i = 1; i < 10; i++)
 			{
