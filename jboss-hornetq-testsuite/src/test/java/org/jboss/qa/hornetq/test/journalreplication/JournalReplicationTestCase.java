@@ -61,26 +61,6 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	private static final int RETRY_SLEEP_SECS = 2;
 	private static final int MESSAGES_NUM = 100;
 
-	/*
-	 * 
-	 */
-	String clusterName = null;
-	String address = null;
-	String discoveryGroup = null;
-	boolean forwardWhenNoConsumers = false;
-	int maxHops = -1;
-	int retryInterval = -1;
-	boolean useDuplicateDetection = false;
-	String connectorName = null;
-	String proxyConnectorName = null;
-	String socketBinding = null;
-	Map<String, String> params = null;
-	String proxySocketBindingName = "messaging-via-proxy";
-	int port = -1;
-	/*
-	 * 
-	 */
-
 	@Test
 	@RunAsClient
 	public void networkProblemsWhileInitialReplicationTest() throws Exception
@@ -277,8 +257,26 @@ public class JournalReplicationTestCase extends HornetQTestCase
 					  killingException);
 		}
 	}
-			
-
+	
+	/*
+	 * 
+	 */
+	String clusterName = null;
+	String address = null;
+	String discoveryGroup = null;
+	boolean forwardWhenNoConsumers = false;
+	int maxHops = -1;
+	int retryInterval = -1;
+	boolean useDuplicateDetection = false;
+	String connectorName = null;
+	String proxyConnectorName = null;
+	String socketBinding = null;
+	Map<String, String> params = null;
+	String proxySocketBindingName = "messaging-via-proxy";
+	int port = -1;
+	/*
+	 * 
+	 */
 	private void prepareLive()
 	{
 		resetConfiguration(SERVER_DIR_LIVE);
@@ -327,6 +325,44 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		adminLive.close();
 
 		controller.stop(SERVER_LIVE);
+		
+	    File applicationUsersModified = new File(
+	    		"src" + File.separator +
+	    		"test" + File.separator +
+	    		"resources" + File.separator + 
+	    		"org" + File.separator + 
+	    		"jboss" + File.separator + 
+	    		"qa" + File.separator + 
+	    		"hornetq" + File.separator +
+	    		"test" + File.separator +
+	    		"security" + File.separator +
+	    		"application-users.properties");
+	    File applicationUsersOriginal = new File(
+	    		getJbossHome(SERVER_LIVE) + File.separator + 
+	    		"standalone" + File.separator + 
+	    		"configuration" + File.separator + 
+	    		"application-users.properties");
+
+	    copyFile(applicationUsersModified, applicationUsersOriginal);
+	    
+	    File applicationRolesModified = new File(
+	    		"src" + File.separator +
+	    		"test" + File.separator +
+	    		"resources" + File.separator + 
+	    		"org" + File.separator + 
+	    		"jboss" + File.separator + 
+	    		"qa" + File.separator + 
+	    		"hornetq" + File.separator +
+	    		"test" + File.separator +
+	    		"security" + File.separator +
+	    		"application-roles.properties");
+	    File applicationRolesOriginal = new File(
+	    		getJbossHome(SERVER_LIVE) + File.separator + 
+	    		"standalone" + File.separator + 
+	    		"configuration" + File.separator + 
+	    		"application-roles.properties");
+
+	    copyFile(applicationRolesModified, applicationRolesOriginal);
 	}
 	
 	private void prepareBackup()
@@ -365,8 +401,47 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		adminBackup.close();
 
 		controller.stop(SERVER_BACKUP);
-	}
+		
+	    File applicationUsersModified = new File(
+	    		"src" + File.separator +
+	    		"test" + File.separator +
+	    		"resources" + File.separator + 
+	    		"org" + File.separator + 
+	    		"jboss" + File.separator + 
+	    		"qa" + File.separator + 
+	    		"hornetq" + File.separator +
+	    		"test" + File.separator +
+	    		"security" + File.separator +
+	    		"application-users.properties");
+	    File applicationUsersOriginal = new File(
+	    		getJbossHome(SERVER_BACKUP) + File.separator + 
+	    		"standalone" + File.separator + 
+	    		"configuration" + File.separator + 
+	    		"application-users.properties");
 
+	    copyFile(applicationUsersModified, applicationUsersOriginal);
+
+	    File applicationRolesModified = new File(
+	    		"src" + File.separator +
+	    		"test" + File.separator +
+	    		"resources" + File.separator + 
+	    		"org" + File.separator + 
+	    		"jboss" + File.separator + 
+	    		"qa" + File.separator + 
+	    		"hornetq" + File.separator +
+	    		"test" + File.separator +
+	    		"security" + File.separator +
+	    		"application-roles.properties");
+	    File applicationRolesOriginal = new File(
+	    		getJbossHome(SERVER_BACKUP) + File.separator + 
+	    		"standalone" + File.separator + 
+	    		"configuration" + File.separator + 
+	    		"application-roles.properties");
+
+	    copyFile(applicationRolesModified, applicationRolesOriginal);
+
+	}
+	
 	/**
 	 * Restores working configuration from 'backup' file.
 	 * 
@@ -394,15 +469,22 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		actualConfiguration.delete();
 
-		RestoreConfig restorator = new RestoreConfig();
-
+		copyFile(defaultConfiguration, actualConfiguration);
+	}
+	
+	private void copyFile(File original, File destination)
+	{
+		RestoreConfig copyrator = new RestoreConfig();
+		
 		try
 		{
-			restorator.copyFile(defaultConfiguration, actualConfiguration);
+			copyrator.copyFile(original, destination);
 		} catch (IOException copyException)
 		{
 			throw new RuntimeException(copyException);
 		}
+		
+		log.info("Files are copied: " + original.getAbsolutePath() + " ->" + destination.getAbsolutePath());
 	}
 	
 	private class NetworkProblemRunnable implements Runnable
@@ -424,7 +506,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 			{
 				blockCommunication(true);
 
-				log.info("Proxy stopped: 1s");
+				log.info("Proxy is stopped: 1s");
 
 				sleepSeconds(1);
 
