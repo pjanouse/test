@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.Map;
 
 import javax.jms.Connection;
@@ -15,6 +16,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.naming.Context;
 
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
@@ -23,7 +25,6 @@ import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.SimpleProxyServer;
 import org.jboss.qa.tools.arquillian.extension.RestoreConfig;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,349 +35,89 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class JournalReplicationTestCase extends HornetQTestCase
 {
-	
-	private static final String  SERVER_LIVE   		= CONTAINER1;
-	private static final String  SERVER_BACKUP		= CONTAINER2;
-	
-	private static final String  SERVER_DIR_LIVE	= JBOSS_HOME_1;
-	private static final String  SERVER_DIR_BACKUP	= JBOSS_HOME_2;
-	
-	private static final String  SERVER_IP_LIVE   	= CONTAINER1_IP;
-	private static final String  SERVER_IP_BACKUP 	= CONTAINER2_IP;
+	private static final Logger log = Logger.getLogger(JournalReplicationTestCase.class);
 
-	private static final boolean NON_TRANSACTED 	= false; 
+	private static final String SERVER_LIVE = CONTAINER1;
+	private static final String SERVER_BACKUP = CONTAINER2;
 
-	private static final String  CLUSTER_PASSWORD 	= "password";
-	
-	private static final int     MESSAGING_TO_LIVE_REAL_PORT  	= 5445;
-	private static final int     MESSAGING_TO_LIVE_PROXY_PORT	= 51111;
-	
-	private static final String  NAME_QUEUE              		= "Queue1";
-	private static final String  JNDI_QUEUE              		= "queue/InQueue";
-	private static final String  NAME_CONNECTION_FACTORY		= "RemoteConnectionFactory";
-	private static final String  JNDI_CONNECTION_FACTORY 		= "jms/" + NAME_CONNECTION_FACTORY;
-	
-	@Test
-	@Ignore
-	@RunAsClient
-	public void receiveHalfFromLiveHalfFromBackupTest()
-			throws Exception
-	{
-		resetConfiguration(SERVER_DIR_LIVE);
-		resetConfiguration(SERVER_DIR_BACKUP);
-		
-		int messageNum = 100;
-		
-		stopServer(SERVER_LIVE);
-		deleteDataFolderForJBoss1();
-		controller.start(SERVER_LIVE);
+	private static final String SERVER_DIR_LIVE = JBOSS_HOME_1;
+	private static final String SERVER_DIR_BACKUP = JBOSS_HOME_2;
 
-		JMSOperations adminLive = this.getJMSOperations(SERVER_LIVE);
+	private static final String SERVER_IP_LIVE = CONTAINER1_IP;
 
-		adminLive.setSecurityEnabled(true);
-		adminLive.setCheckForLiveServer(true);
-		adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminLive.setSharedStore(false);
-		adminLive.setPersistenceEnabled(true);
+	private static final boolean NON_TRANSACTED = false;
 
-		adminLive.setHaForConnectionFactory				  (NAME_CONNECTION_FACTORY, true);
-		adminLive.setFailoverOnShutdown					  (NAME_CONNECTION_FACTORY, true);
-		adminLive.setBlockOnAckForConnectionFactory		  (NAME_CONNECTION_FACTORY, true);
-		adminLive.setRetryIntervalForConnectionFactory	  (NAME_CONNECTION_FACTORY, 1000L);
-		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
-		
-		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
-		
-		adminLive.close();
-		stopServer(SERVER_LIVE);
+	private static final String CLUSTER_PASSWORD = "password";
 
-		stopServer(SERVER_BACKUP);
-		deleteDataFolderForJBoss2();
-		controller.start(SERVER_BACKUP);
+	private static final int MESSAGING_TO_LIVE_REAL_PORT = 5445;
+	private static final int MESSAGING_TO_LIVE_PROXY_PORT = 51111;
 
-		JMSOperations adminBackup = this.getJMSOperations(SERVER_BACKUP);
+	private static final String NAME_QUEUE = "Queue1";
+	private static final String JNDI_QUEUE = "queue/InQueue";
+	private static final String NAME_CONNECTION_FACTORY = "RemoteConnectionFactory";
+	private static final String JNDI_CONNECTION_FACTORY = "jms/" + NAME_CONNECTION_FACTORY;
 
-		adminBackup.setBlockOnAckForConnectionFactory		(NAME_CONNECTION_FACTORY, true);
-		adminBackup.setRetryIntervalForConnectionFactory	(NAME_CONNECTION_FACTORY, 1000L);
-		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
-		
-		adminBackup.setBackup(true);
-		adminBackup.setSecurityEnabled(true);
-		adminBackup.setCheckForLiveServer(true);
-		adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminBackup.setSharedStore(false);
-		adminBackup.setPersistenceEnabled(true);
+	private static final int MAX_RETRIES = 3;
+	private static final int RETRY_SLEEP_SECS = 2;
+	private static final int MESSAGES_NUM = 100;
 
-		adminBackup.setHaForConnectionFactory				(NAME_CONNECTION_FACTORY, true);
-		adminBackup.setFailoverOnShutdown					(NAME_CONNECTION_FACTORY, true);
-		
-		adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
-		
-		adminBackup.close();
+	/*
+	 * 
+	 */
+	String clusterName = null;
+	String address = null;
+	String discoveryGroup = null;
+	boolean forwardWhenNoConsumers = false;
+	int maxHops = -1;
+	int retryInterval = -1;
+	boolean useDuplicateDetection = false;
+	String connectorName = null;
+	String proxyConnectorName = null;
+	String socketBinding = null;
+	Map<String, String> params = null;
+	String proxySocketBindingName = "messaging-via-proxy";
+	int port = -1;
+	/*
+	 * 
+	 */
 
-		stopServer(SERVER_BACKUP);
-
-		SoakProducerClientAck producerToLive = new SoakProducerClientAck(
-				SERVER_LIVE, 
-				SERVER_IP_LIVE,
-				getJNDIPort(), 
-				JNDI_QUEUE, 
-				messageNum);		
-		
-		controller.start(SERVER_LIVE);
-		
-		producerToLive.run();
-		
-		controller.start(SERVER_BACKUP);		
-		
-		Thread.sleep(10000);
-		
-		int recievedNum = 0;
-
-		int maxRecieveRetries = 10;
-
-		Context context = getContext(SERVER_IP_LIVE, getJNDIPort());
-
-		ConnectionFactory cf = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
-
-		Connection conn = cf.createConnection();
-
-		conn.start();
-
-		Queue queue = (Queue) context.lookup(JNDI_QUEUE);
-
-		Session session = conn.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
-
-		MessageConsumer receiver = session.createConsumer(queue);
-
-		boolean wasNotActivated = true;
-
-		while (recievedNum < messageNum)
-		{
-			Message message = null;
-			int numberOfRetries = 0;
-
-			while (numberOfRetries < maxRecieveRetries)
-			{
-				try
-				{
-					message = receiver.receive(1000);
-					recievedNum++;
-					System.out.println("recieved " + recievedNum + " msgs");
-					break;
-				} catch (JMSException ex)
-				{
-					numberOfRetries++;
-				}
-			}
-			numberOfRetries = 0;
-
-			if (recievedNum % 10 == 0)
-			{
-				if (recievedNum > messageNum / 2 && wasNotActivated)
-				{
-					JBossAS7ServerKillProcessor.kill(SERVER_IP_LIVE);
-					Thread.sleep(500);
-					wasNotActivated = false;
-				}
-
-				while (numberOfRetries < 2)
-				{
-					try
-					{
-						message.acknowledge();
-						break;
-
-					} catch (JMSException ex)
-					{
-						numberOfRetries++;
-						Thread.sleep(2000);
-					}
-				}
-			}
-		}
-
-		assertEquals("Different number sent", messageNum, producerToLive.getCounter());
-
-		assertEquals("Different number received", messageNum, recievedNum);
-		
-		stopServer(SERVER_LIVE);
-		deleteDataFolderForJBoss1();
-
-		stopServer(SERVER_BACKUP);
-		deleteDataFolderForJBoss2();
-	}
-
-	@SuppressWarnings("unused")
 	@Test
 	@RunAsClient
 	public void networkProblemsWhileInitialReplicationTest() throws Exception
 	{
-		int messageNum = 100;
-		String clusterName = null;
-		String address = null;
-		String discoveryGroup = null; 
-		boolean forwardWhenNoConsumers = false;
-		int maxHops = -1;
-		int retryInterval = -1;
-		boolean useDuplicateDetection = false;
-		String connectorName = null;
-		String proxyConnectorName = null;
-		String socketBinding = null;
-		Map<String, String> params = null;
-		String proxySocketBindingName = "messaging-via-proxy";
-		int port = -1;
-		
-		resetConfiguration(SERVER_DIR_LIVE);
-		resetConfiguration(SERVER_DIR_BACKUP);
-		
-		/*
-		 * Preparing live server 
-		 */
-		controller.stop(SERVER_LIVE);
-		deleteDataFolderForJBoss1();
-		controller.start(SERVER_LIVE);
+		prepareLive();
+		prepareBackup();
 
+		ControllableProxy proxyToLive = new SimpleProxyServer(
+				SERVER_IP_LIVE, 
+				MESSAGING_TO_LIVE_REAL_PORT,
+				MESSAGING_TO_LIVE_PROXY_PORT);
 
-		JMSOperations adminLive = getJMSOperations(SERVER_LIVE);
-		
-		adminLive.setSecurityEnabled(true);
-		adminLive.setCheckForLiveServer(true);
-		adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminLive.setSharedStore(false);
-		adminLive.setPersistenceEnabled(true);
-
-		adminLive.setHaForConnectionFactory               	(NAME_CONNECTION_FACTORY, true);
-		adminLive.setFailoverOnShutdown                   	(NAME_CONNECTION_FACTORY, true);
-		adminLive.setBlockOnAckForConnectionFactory       	(NAME_CONNECTION_FACTORY, false);
-		adminLive.setRetryIntervalForConnectionFactory    	(NAME_CONNECTION_FACTORY, 1000L);
-		adminLive.setReconnectAttemptsForConnectionFactory	(NAME_CONNECTION_FACTORY, 3);
-
-		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
-		
-		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
-		
-		/*
-		 * In order to create cluster connection to this server use some 
-		 * proxy port (in this case MESSAGING_TO_LIVE_PROXY_PORT)
-		 */
-
-		adminLive.addSocketBinding(
-						proxySocketBindingName	= "messaging-via-proxy",
-						port					= MESSAGING_TO_LIVE_PROXY_PORT);
-		
-		adminLive.createRemoteConnector(
-						proxyConnectorName		= "netty-proxy", 
-						socketBinding			= proxySocketBindingName, 
-						params					= null);
-		
-		adminLive.removeClusteringGroup("my-cluster");
-		adminLive.setClusterConnections(
-						clusterName				= "my-cluster", 
-						address					= "jms", 
-						discoveryGroup			= "dg-group1", 
-						forwardWhenNoConsumers	= false, 
-						maxHops					= 1, 
-						retryInterval			= 1000, 
-						useDuplicateDetection	= true, 
-						connectorName			= proxyConnectorName);
-
-		adminLive.close();
-		
-        controller.stop(SERVER_LIVE);
-
-        /*
-		 * Preparing backup server 
-		 */	
-        controller.stop(SERVER_BACKUP);
-		deleteDataFolderForJBoss2();
-		controller.start(SERVER_BACKUP);
-
-		JMSOperations adminBackup = getJMSOperations(SERVER_BACKUP);
-
-		adminBackup.setBlockOnAckForConnectionFactory		(NAME_CONNECTION_FACTORY, false);
-		adminBackup.setRetryIntervalForConnectionFactory	(NAME_CONNECTION_FACTORY, 1000L);
-		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
-		
-		adminBackup.setBackup(true);
-		adminBackup.setSecurityEnabled(true);
-		adminBackup.setCheckForLiveServer(true);
-		adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminBackup.setSharedStore(false);
-		adminBackup.setPersistenceEnabled(true);
-
-		adminBackup.setHaForConnectionFactory				(NAME_CONNECTION_FACTORY, true);
-		adminBackup.setFailoverOnShutdown					(NAME_CONNECTION_FACTORY, true);
-
-		adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
-
-		adminBackup.close();
-
-		 controller.stop(SERVER_BACKUP);
-
-		/*
-		 * Preparing proxy for live server 
-		 */
-		 final ControllableProxy proxyToLive = new SimpleProxyServer(
-				 SERVER_IP_LIVE, 
-				 MESSAGING_TO_LIVE_REAL_PORT, 
-				 MESSAGING_TO_LIVE_PROXY_PORT);
-		 
 		proxyToLive.start();
 
 		controller.start(SERVER_LIVE);
-		
-		/*
-		 * Sending messages to live server 
-		 */
+
 		SoakProducerClientAck producerToLive = new SoakProducerClientAck(
-					SERVER_LIVE, 
-					SERVER_IP_LIVE,
-					getJNDIPort(), 
-					JNDI_QUEUE, 
-					messageNum);
+				SERVER_LIVE, 
+				SERVER_IP_LIVE, 
+				getJNDIPort(),
+				JNDI_QUEUE, 
+				MESSAGES_NUM);
 
 		producerToLive.run();
 
-		new Thread(new Runnable()
-		{
-			
-			@Override
-			public void run()
-			{
-				try
-				{
-					// Give backup some time to start
-					Thread.sleep(5000);
-					for (int i = 1; i < 10; i++)
-					{
-							proxyToLive.setBlockCommunicationToServer(true);
-							proxyToLive.setBlockCommunicationToClient(true);
-							System.out.println("Proxy stopped for 1s");
-							Thread.sleep(1000);
-							proxyToLive.setBlockCommunicationToServer(false);
-							proxyToLive.setBlockCommunicationToClient(false);
-							System.out.println("Proxy running for " + i + "s");
-							Thread.sleep(i*1000);
-					}
-				} catch (Exception proxyException)
-				{}
-			}
-		}).start();
-		controller.start(SERVER_BACKUP);
-		/*
-		 * replication start point 
-		 */
-		System.out.println("Waiting additional " + 60 + "s");		
-		Thread.sleep(60000);
+		new Thread(new NetworkProblemRunnable(proxyToLive)).start();
 		
-		/*
-		 * Starting retrieving from live.
-		 */
-		int recievedNum = 0;
+		controller.start(SERVER_BACKUP);
+		
+		//replication start point
+		
+		log.info("Waiting additional " + 60 + " s");
 
-		int maxRetries = 10;
+		sleepSeconds(60);
 
+		// Starting retrieving from live.
+		
 		Context context = getContext(SERVER_IP_LIVE, getJNDIPort());
 
 		ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
@@ -390,350 +131,321 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
 
 		MessageConsumer receiver = session.createConsumer(queue);
-	
-		boolean wasNotActivated = true;
-		
-		while (recievedNum < messageNum)
-		{
-			Message message = null;
-			int numberOfRetries = 0;
 
-			while (numberOfRetries < maxRetries)
-			{
-				try
-				{
-					message = receiver.receive(1000);
-					
-					recievedNum++;
-					break;
-				} catch (JMSException ex)
-				{
-					numberOfRetries++;
-				}
-				
-			}
-			
+		boolean isKillTrigered = false;
+		int messagesRecievedNum = 0;
+
+		while (messagesRecievedNum < MESSAGES_NUM)
+		{
+			Message message = receiveMessage(receiver, MAX_RETRIES);
+
 			if (message == null)
 			{
+				log.info("Got null message. Breaking...");
 				break;
+			} else
+			{
+				messagesRecievedNum++;
 			}
 
-			numberOfRetries = 0;
-
-			if (recievedNum % 10 == 0)
+			if (messagesRecievedNum % 10 == 0)
 			{
-				if (recievedNum > messageNum / 2 && wasNotActivated)
+				if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered)
 				{
 					proxyToLive.stop();
-					JBossAS7ServerKillProcessor.kill(SERVER_IP_LIVE);
-					Thread.sleep(10000);
-					wasNotActivated = false;
+
+					killServer(SERVER_IP_LIVE);
+
+					isKillTrigered = true;
+
+					sleepSeconds(10);
 				}
 
-				while (numberOfRetries < 2)
-				{
-					try
-					{
-						message.acknowledge();
-						break;
+				boolean isAcknowledged = acknowlegeMessage(message, MAX_RETRIES);
 
-					} catch (JMSException ex)
-					{
-						numberOfRetries++;
-						Thread.sleep(2000);
-					}
+				if (!isAcknowledged)
+				{
+					log.error("Messages were not acknowledged. Breaking...");
+					break;
 				}
 			}
 		}
 
-		assertEquals("Different number sent", messageNum, producerToLive.getCounter());
+		assertEquals("Incorrect number sent:", MESSAGES_NUM, producerToLive.getCounter());
 
-		assertEquals("Different number received", messageNum, recievedNum);
+		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesRecievedNum);
+	}
+
+	/**
+	 * Receives message from producer with retries.
+	 * 
+	 * @param receiver
+	 *            the consumer to receive from.
+	 * @param maxRetryNum
+	 *            maximum possible retries
+	 * @return the next message produced for this message consumer, or null if
+	 *         the timeout expires or this message consumer is concurrently
+	 *         closed
+	 */
+	private Message receiveMessage(MessageConsumer receiver, int maxRetryNum)
+	{
+		Message message = null;
+
+		int numberOfReceivingRetries = 0;
+
+		while (numberOfReceivingRetries < maxRetryNum)
+		{
+			try
+			{
+				message = receiver.receive(1000);
+
+				break;
+			} catch (JMSException receivingException)
+			{
+				log.error("Exception while receiving", receivingException);
+
+				numberOfReceivingRetries++;
+
+				sleepSeconds(RETRY_SLEEP_SECS);
+			}
+		}
+		return message;
+	}
+
+	/**
+	 * Acknowledges specified message with retry.
+	 * 
+	 * @param message
+	 *            message to acknowledge
+	 * @param maxRetryNum
+	 *            maximum retry numbers
+	 * 
+	 * @return <code>true</code> - if ack was successful, <code>false</code> -
+	 *         otherwise
+	 */
+	private boolean acknowlegeMessage(Message message, int maxRetryNum)
+	{
+		int numberOfAckRetries = 0;
+
+		while (numberOfAckRetries < maxRetryNum)
+		{
+			try
+			{
+				message.acknowledge();
+
+				return true;
+
+			} catch (JMSException acknowledgeException)
+			{
+				log.error("Exception while acknowledging", acknowledgeException);
+
+				numberOfAckRetries++;
+
+				sleepSeconds(RETRY_SLEEP_SECS);
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Thread.sleep with exception handling.
+	 * 
+	 * @param milisecs
+	 *            the length of time to sleep in milliseconds.
+	 * 
+	 */
+	private void sleepSeconds(long seconds)
+	{
+		try
+		{
+			Thread.sleep(seconds * 1000);
+		} catch (InterruptedException interuptedException)
+		{
+			log.error("Sleep-thread was interupted", interuptedException);
+		}
+
 	}
 	
-	@Test
-	@Ignore
-	@RunAsClient
-	public void backupHasMessagesTest() throws Exception
+	protected void killServer(String ipAddress)
+	{
+		try
+		{
+			JBossAS7ServerKillProcessor.kill(ipAddress);
+		} catch (Exception killingException)
+		{
+			log.error("Exception while killing server ip:[" + ipAddress + "]", 
+					  killingException);
+		}
+	}
+			
+
+	private void prepareLive()
 	{
 		resetConfiguration(SERVER_DIR_LIVE);
-		resetConfiguration(SERVER_DIR_BACKUP);
-		
+
+		controller.stop(SERVER_LIVE);
 		deleteDataFolderForJBoss1();
-		//deleteDataFolderForJBoss2();
-		
-		int messagesNumForLive    = 50;
-		int messagesNumForBackup  = 100;
-		
-		int recievedNumFromLive   = 0;
-		int recievedNumFromBackup = 0;
-		
-		stopServer(SERVER_BACKUP);
-		controller.start(SERVER_BACKUP);
 
-		JMSOperations backupAdmin = getJMSOperations(SERVER_BACKUP);
-
-		backupAdmin.setBackup(false);
-		
-		backupAdmin.setSecurityEnabled(true);
-
-		backupAdmin.setCheckForLiveServer(true);
-
-		backupAdmin.setClusterUserPassword(CLUSTER_PASSWORD);
-
-		backupAdmin.setSharedStore(false);
-
-		backupAdmin.setPersistenceEnabled(true);
-
-		backupAdmin.setHaForConnectionFactory				(NAME_CONNECTION_FACTORY, true);
-		backupAdmin.setFailoverOnShutdown					(NAME_CONNECTION_FACTORY, true);
-		backupAdmin.setBlockOnAckForConnectionFactory		(NAME_CONNECTION_FACTORY, true);
-		backupAdmin.setRetryIntervalForConnectionFactory	(NAME_CONNECTION_FACTORY, 1000L);
-		backupAdmin.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
-		
-		backupAdmin.createQueue(NAME_QUEUE, JNDI_QUEUE);
-		
-		backupAdmin.close();
-
-		stopServer(SERVER_BACKUP);
-		
-		controller.start(SERVER_BACKUP);
-		
-		SoakProducerClientAck producerToBackup = new SoakProducerClientAck(
-				SERVER_BACKUP, 
-				SERVER_IP_BACKUP,
-				getJNDIPort(), 
-				JNDI_QUEUE, 
-				messagesNumForBackup);
-
-		producerToBackup.run();
-
-		stopServer(SERVER_BACKUP);
-		controller.start(SERVER_BACKUP);
-
-		backupAdmin = getJMSOperations(SERVER_BACKUP);
-
-		backupAdmin.setBackup(true);
-		
-		backupAdmin.close();
-
-		stopServer(SERVER_BACKUP);
-		
-		stopServer(SERVER_LIVE);
 		controller.start(SERVER_LIVE);
 
-		JMSOperations liveAdmin = getJMSOperations(SERVER_LIVE);
+		JMSOperations adminLive = getJMSOperations(SERVER_LIVE);
 
-		liveAdmin.setSecurityEnabled(true);
-		liveAdmin.setCheckForLiveServer(true);
+		adminLive.setSecurityEnabled(true);
+		adminLive.setCheckForLiveServer(true);
+		adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
+		adminLive.setSharedStore(false);
+		adminLive.setPersistenceEnabled(true);
 
-		liveAdmin.setClusterUserPassword(CLUSTER_PASSWORD);
+		adminLive.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+		adminLive.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
+		adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+		adminLive.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
+		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
 
-		liveAdmin.setSharedStore(false);
+		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
 
-		liveAdmin.setPersistenceEnabled(true);
+		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
 
-		liveAdmin.setHaForConnectionFactory					(NAME_CONNECTION_FACTORY, true);
-		liveAdmin.setFailoverOnShutdown						(NAME_CONNECTION_FACTORY, true);
-		liveAdmin.setBlockOnAckForConnectionFactory			(NAME_CONNECTION_FACTORY, true);
-		liveAdmin.setRetryIntervalForConnectionFactory		(NAME_CONNECTION_FACTORY, 1000L);
-		liveAdmin.setReconnectAttemptsForConnectionFactory	(NAME_CONNECTION_FACTORY, -1);
-		
-		liveAdmin.createQueue(NAME_QUEUE, JNDI_QUEUE);
-		
-		liveAdmin.close();
-		stopServer(SERVER_LIVE);
-		
-		controller.start(SERVER_LIVE);
-		
-		SoakProducerClientAck producerToLive = new SoakProducerClientAck(
-				SERVER_LIVE, 
-				SERVER_IP_LIVE,
-				getJNDIPort(), 
-				JNDI_QUEUE, 
-				messagesNumForLive);
+		adminLive.addSocketBinding(proxySocketBindingName = "messaging-via-proxy", port = MESSAGING_TO_LIVE_PROXY_PORT);
 
-		producerToLive.run();
-		
-		controller.start(SERVER_BACKUP);
-		
-		// waiting for replication to happen
-		
-		Thread.sleep(5000);
-		
-		/*
-		 * Starting retrieving from live.
-		 */
+		adminLive.createRemoteConnector(proxyConnectorName = "netty-proxy", socketBinding = proxySocketBindingName,
+				params = null);
 
+		adminLive.removeClusteringGroup("my-cluster");
+		adminLive.setClusterConnections(clusterName = "my-cluster", address = "jms", discoveryGroup = "dg-group1",
+				forwardWhenNoConsumers = false, maxHops = 1, retryInterval = 1000, useDuplicateDetection = true,
+				connectorName = proxyConnectorName);
 
-		int maxRetries = 10;
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
 
-		Context context = getContext(SERVER_IP_LIVE, getJNDIPort());
+		adminLive.close();
 
-		ConnectionFactory cf = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
-
-		Connection conn = cf.createConnection();
-
-		conn.start();
-
-		Queue queue = (Queue) context.lookup(JNDI_QUEUE);
-
-		Session session = conn.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
-
-		MessageConsumer receiver = session.createConsumer(queue);
-
-		while (recievedNumFromLive < messagesNumForLive)
-		{
-			Message message = null;
-			int numberOfRetries = 0;
-
-			while (numberOfRetries < maxRetries)
-			{
-				try
-				{
-					message = receiver.receive(1000);
-					recievedNumFromLive++;
-					System.out.println("recieved " + recievedNumFromLive + " msgs from live");
-					break;
-				} catch (JMSException ex)
-				{
-					numberOfRetries++;
-				}
-			}
-			numberOfRetries = 0;
-
-			if (recievedNumFromLive % 10 == 0)
-			{
-				while (numberOfRetries < 2)
-				{
-					try
-					{
-						message.acknowledge();
-						break;
-
-					} catch (JMSException ex)
-					{
-						numberOfRetries++;
-						Thread.sleep(2000);
-					}
-				}
-			}
-		}
-		
-		stopServer(SERVER_LIVE);
-		
-		backupAdmin = getJMSOperations(SERVER_BACKUP);
-
-		backupAdmin.setBackup(false);
-		
-		backupAdmin.close();
-		
-		stopServer(SERVER_BACKUP);
-		
-		controller.start(SERVER_BACKUP);
-		
-		/*
-		 * Starting retrieving from backup.
-		 */
-		maxRetries = 10;
-
-		context = getContext(SERVER_IP_BACKUP, getJNDIPort());
-
-		cf = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
-
-		conn = cf.createConnection();
-
-		conn.start();
-
-		queue = (Queue) context.lookup(JNDI_QUEUE);
-
-		session = conn.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
-
-		receiver = session.createConsumer(queue);
-
-		while (recievedNumFromBackup < messagesNumForBackup)
-		{
-			Message message = null;
-			int numberOfRetries = 0;
-
-			while (numberOfRetries < maxRetries)
-			{
-				try
-				{
-					message = receiver.receive(1000);
-					if (message == null)
-					{
-						throw new Exception("Expected message was not received.");
-					}
-					recievedNumFromBackup++;
-					System.out.println("recieved " + recievedNumFromBackup + " msgs from backup");
-					break;
-				} catch (JMSException ex)
-				{
-					numberOfRetries++;
-				}
-			}
-			numberOfRetries = 0;
-
-			if (recievedNumFromBackup % 10 == 0)
-			{
-				while (numberOfRetries < 2)
-				{
-					try
-					{
-						message.acknowledge();
-						break;
-
-					} catch (JMSException ex)
-					{
-						numberOfRetries++;
-						Thread.sleep(2000);
-					}
-				}
-			}
-		}
-
-		assertEquals("Different number processed from live", messagesNumForLive, recievedNumFromLive);
-
-		assertEquals("Different number processed from backup", messagesNumForBackup, recievedNumFromBackup);
+		controller.stop(SERVER_LIVE);
 	}
 	
-	private void resetConfiguration(String directory) throws IOException
+	private void prepareBackup()
 	{
-		if (directory == null || directory.trim().isEmpty()){
-			throw new IllegalArgumentException("Invalid server home:[" + directory + "]");
+		resetConfiguration(SERVER_DIR_BACKUP);
+		controller.stop(SERVER_BACKUP);
+		deleteDataFolderForJBoss2();
+		controller.start(SERVER_BACKUP);
+
+		JMSOperations adminBackup = getJMSOperations(SERVER_BACKUP);
+
+		adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+		adminBackup.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
+		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
+
+		adminBackup.setBackup(true);
+		adminBackup.setSecurityEnabled(true);
+		adminBackup.setCheckForLiveServer(true);
+		adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
+		adminBackup.setSharedStore(false);
+		adminBackup.setPersistenceEnabled(true);
+
+		adminBackup.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+		adminBackup.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
+
+		adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
+
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+		adminBackup.close();
+
+		controller.stop(SERVER_BACKUP);
+	}
+
+	/**
+	 * Restores working configuration from 'backup' file.
+	 * 
+	 * @param serverDirectory
+	 *            JBossHome for specific server instance.
+	 */
+	private void resetConfiguration(String serverDirectory)
+	{
+		if (serverDirectory == null || serverDirectory.trim().isEmpty())
+		{
+			throw new IllegalArgumentException("Invalid server home:[" + serverDirectory + "]");
 		}
-		
-		File serverHome = new File(directory);
-		if (!serverHome.exists() || !serverHome.isDirectory()){
-			throw new IllegalArgumentException("Directory does not exist:[" + directory + "]");
+
+		File serverHome = new File(serverDirectory);
+		if (!serverHome.exists() || !serverHome.isDirectory())
+		{
+			throw new IllegalArgumentException("Directory does not exist:[" + serverDirectory + "]");
 		}
-		
+
 		File confDirectory = new File(serverHome, "standalone" + File.separator + "configuration");
-		
-		File defaultConfiguration = new File(
-				confDirectory,
-				"standalone-full-ha.xml.backup");
-		
-		File actualConfiguration = new File(
-				confDirectory,
-				"standalone-full-ha.xml");
-		
+
+		File defaultConfiguration = new File(confDirectory, "standalone-full-ha.xml.backup");
+
+		File actualConfiguration = new File(confDirectory, "standalone-full-ha.xml");
+
 		actualConfiguration.delete();
-		
+
 		RestoreConfig restorator = new RestoreConfig();
-		restorator.copyFile(defaultConfiguration, actualConfiguration);
+
+		try
+		{
+			restorator.copyFile(defaultConfiguration, actualConfiguration);
+		} catch (IOException copyException)
+		{
+			throw new RuntimeException(copyException);
+		}
 	}
 	
-/*	public static void main(String[] args) throws IOException, URISyntaxException
+	private class NetworkProblemRunnable implements Runnable
 	{
-		String SERVER = System.getProperty("JBOSS_HOME_1");
-		String SEPARATOR = File.separator;
+		private ControllableProxy proxy;
 		
-		URL fileNearSourceCode = JournalReplicationTestCase.class.getClassLoader().getResource("standalone-full-ha.xml");
-		System.out.println(fileNearSourceCode);
+		public NetworkProblemRunnable(ControllableProxy proxy)
+		{
+			this.proxy = proxy;
+		}
 		
-		FileUtils.copyFileToDirectory(new File(fileNearSourceCode.toURI()), new File(SERVER + SEPARATOR + "standalone" + SEPARATOR + "configuration"));
-		System.out.println("Done");
+		@Override
+		public void run()
+		{
+			// initial delay
+			sleepSeconds(5);
+			
+			for (int i = 1; i < 10; i++)
+			{
+				blockCommunication(true);
+
+				log.info("Proxy stopped: 1s");
+
+				sleepSeconds(1);
+
+				blockCommunication(false);
+
+				log.info("Proxy is working: " + i + "s");
+
+				sleepSeconds(i);
+			}
+		}
+		
+		private void blockCommunication(boolean isBlock)
+		{
+			try
+			{
+				proxy.setBlockCommunicationToServer(isBlock);
+				proxy.setBlockCommunicationToClient(isBlock);
+			} catch (RemoteException proxyException)
+			{
+				log.warn("Proxy has thrown exception", proxyException);
+			}
+		}
 	}
-*/}
+}
