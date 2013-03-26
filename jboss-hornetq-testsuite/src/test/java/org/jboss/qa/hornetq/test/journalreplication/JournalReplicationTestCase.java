@@ -78,17 +78,17 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		controller.start(SERVER_LIVE);
 
 		SoakProducerClientAck producerToLive = new SoakProducerClientAck(
-				SERVER_LIVE, 
-				SERVER_IP_LIVE, 
+				SERVER_LIVE,
+				SERVER_IP_LIVE,
 				getJNDIPort(),
-				JNDI_QUEUE, 
+				JNDI_QUEUE,
 				MESSAGES_NUM);
 
 		producerToLive.run();
 
-		controller.start(SERVER_BACKUP);
-		
 		new Thread(new NetworkProblemRunnable(proxyToLive)).start();
+
+		controller.start(SERVER_BACKUP);
 		
 		//replication start point
 		
@@ -500,7 +500,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		public void run()
 		{
 			// initial delay
-			//sleepSeconds(5);
+			sleepSeconds(6);
 			
 			for (int i = 1; i < 10; i++)
 			{
