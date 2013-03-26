@@ -160,18 +160,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         String os = System.getProperty("os.name").toLowerCase();
 
         if (os.contains("windows")) {
-//            p = Runtime.getRuntime().exec("netstat -af");
-//            p.waitFor();
-//            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            String line;
-//            while ((line = br.readLine()) != null)  {
-//                System.out.println("mnovak: " + line);
-//                if ((line.contains(hostname)) && (line.contains("9999")))   {
-//                    System.out.println("mnovak: Server is still running.");
-//                    return true;
-//                }
-//            }
-//            return false;
+
             String response;
             try {
                 response = HttpRequest.get("http://" + hostname + ":8080", 20, TimeUnit.SECONDS);
@@ -180,8 +169,6 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                 return false;
             }
 
-            log.warning("mnovak: Response is: " + response);
-            System.out.println("mnovak: Response is: " + response);
             if (response == null || "".equals(response) || response.contains("Unable to connect")) {
                 return false;
             } else {
