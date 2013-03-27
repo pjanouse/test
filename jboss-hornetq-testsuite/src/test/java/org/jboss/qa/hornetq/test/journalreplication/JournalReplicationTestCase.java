@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Map;
+import java.util.Random;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -60,6 +61,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	private static final int MAX_RETRIES = 3;
 	private static final int RETRY_SLEEP_SECS = 2;
 	private static final int MESSAGES_NUM = 100;
+	private static final int MESSAGES_ACKNOWLEDGE_EVERY = 10;
 
 	@Test
 	@RunAsClient
@@ -86,8 +88,14 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		producerToLive.run();
 
-		new Thread(new NetworkProblemRunnable(proxyToLive)).start();
-
+		// random 4-6
+		int initialDelaySecsForNetworkProblems = new Random().nextInt(2) + 4;
+		
+		new Thread(new NetworkProblemRunnable(
+				proxyToLive, 
+				initialDelaySecsForNetworkProblems))
+		.start();
+		
 		controller.start(SERVER_BACKUP);
 		
 		//replication start point
@@ -114,6 +122,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		boolean isKillTrigered = false;
 		int messagesRecievedNum = 0;
+		int messagesAcknowledgedNum = 0;
 
 		while (messagesRecievedNum < MESSAGES_NUM)
 		{
@@ -126,9 +135,10 @@ public class JournalReplicationTestCase extends HornetQTestCase
 			} else
 			{
 				messagesRecievedNum++;
+				log.info("Received ["+messagesRecievedNum+"] messages...");				
 			}
 
-			if (messagesRecievedNum % 10 == 0)
+			if (messagesRecievedNum % MESSAGES_ACKNOWLEDGE_EVERY == 0)
 			{
 				if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered)
 				{
@@ -148,12 +158,117 @@ public class JournalReplicationTestCase extends HornetQTestCase
 					log.error("Messages were not acknowledged. Breaking...");
 					break;
 				}
+				messagesAcknowledgedNum += MESSAGES_ACKNOWLEDGE_EVERY;
 			}
 		}
 
 		assertEquals("Incorrect number sent:", MESSAGES_NUM, producerToLive.getCounter());
 
-		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesRecievedNum);
+		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
+	}
+	
+	@Test
+	@RunAsClient
+	public void networkProblemsAfterInitialReplicationTest() throws Exception
+	{
+		prepareLive();
+		prepareBackup();
+
+		ControllableProxy proxyToLive = new SimpleProxyServer(
+				SERVER_IP_LIVE, 
+				MESSAGING_TO_LIVE_REAL_PORT,
+				MESSAGING_TO_LIVE_PROXY_PORT);
+
+		proxyToLive.start();
+
+		controller.start(SERVER_LIVE);
+
+		SoakProducerClientAck producerToLive = new SoakProducerClientAck(
+				SERVER_LIVE,
+				SERVER_IP_LIVE,
+				getJNDIPort(),
+				JNDI_QUEUE,
+				MESSAGES_NUM);
+
+		producerToLive.run();
+
+		controller.start(SERVER_BACKUP);
+		
+		//replication start point
+		
+		log.info("Waiting additional " + 60 + " s");
+
+		sleepSeconds(60);
+
+		// Starting retrieving from live.
+		
+		Context context = getContext(SERVER_IP_LIVE, getJNDIPort());
+
+		ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
+
+		Connection connection = connectionFactory.createConnection();
+
+		connection.start();
+
+		Queue queue = (Queue) context.lookup(JNDI_QUEUE);
+
+		Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
+
+		MessageConsumer receiver = session.createConsumer(queue);
+
+		// random 1-3
+		int initialDelaySecsForNetworkProblems = new Random().nextInt(2) + 1;
+		
+		new Thread(new NetworkProblemRunnable(
+				proxyToLive, 
+				initialDelaySecsForNetworkProblems))
+		.start();
+		
+		boolean isKillTrigered = false;
+		int messagesRecievedNum = 0;
+		int messagesAcknowledgedNum = 0;
+
+		while (messagesRecievedNum < MESSAGES_NUM)
+		{
+			Message message = receiveMessage(receiver, MAX_RETRIES);
+
+			if (message == null)
+			{
+				log.info("Got null message. Breaking...");
+				break;
+			} else
+			{
+				messagesRecievedNum++;
+				log.info("Received ["+messagesRecievedNum+"] messages...");				
+			}
+
+			if (messagesRecievedNum % MESSAGES_ACKNOWLEDGE_EVERY == 0)
+			{
+				if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered)
+				{
+					proxyToLive.stop();
+
+					killServer(SERVER_IP_LIVE);
+
+					isKillTrigered = true;
+
+					sleepSeconds(10);
+				}
+
+				boolean isAcknowledged = acknowlegeMessage(message, MAX_RETRIES);
+
+				if (!isAcknowledged)
+				{
+					log.error("Messages were not acknowledged. Breaking...");
+					break;
+				}
+				messagesAcknowledgedNum += MESSAGES_ACKNOWLEDGE_EVERY;
+			}
+		}
+
+		assertEquals("Incorrect number sent:", MESSAGES_NUM, producerToLive.getCounter());
+
+		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
 	}
 
 	/**
@@ -169,6 +284,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	 */
 	private Message receiveMessage(MessageConsumer receiver, int maxRetryNum)
 	{
+		log.info("Receiving message...");		
 		Message message = null;
 
 		int numberOfReceivingRetries = 0;
@@ -205,6 +321,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	 */
 	private boolean acknowlegeMessage(Message message, int maxRetryNum)
 	{
+		log.info("Acknowledging message...");		
 		int numberOfAckRetries = 0;
 
 		while (numberOfAckRetries < maxRetryNum)
@@ -283,8 +400,27 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		controller.stop(SERVER_LIVE);
 		deleteDataFolderForJBoss1();
+		
+		 File standaloneModified = new File(
+		    		"src" + File.separator +
+		    		"test" + File.separator +
+		    		"java" + File.separator + 
+		    		"org" + File.separator + 
+		    		"jboss" + File.separator + 
+		    		"qa" + File.separator + 
+		    		"hornetq" + File.separator +
+		    		"test" + File.separator +
+		    		"journalreplication" + File.separator +
+		    		"standalone-full-ha.xml");
+		    File standaloneOriginal = new File(
+		    		getJbossHome(SERVER_LIVE) + File.separator + 
+		    		"standalone" + File.separator + 
+		    		"configuration" + File.separator + 
+		    		"standalone-full-ha.xml");
 
-		controller.start(SERVER_LIVE);
+		    copyFile(standaloneModified, standaloneOriginal);
+
+	/*	controller.start(SERVER_LIVE);
 
 		JMSOperations adminLive = getJMSOperations(SERVER_LIVE);
 
@@ -294,24 +430,35 @@ public class JournalReplicationTestCase extends HornetQTestCase
 		adminLive.setSharedStore(false);
 		adminLive.setPersistenceEnabled(true);
 
+		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
+
+		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
+
+		adminLive.addSocketBinding(
+				proxySocketBindingName = "messaging-via-proxy", 
+				port = MESSAGING_TO_LIVE_PROXY_PORT);
+
+		adminLive.createRemoteConnector(
+				proxyConnectorName = "netty-proxy", 
+				socketBinding = proxySocketBindingName,
+				params = null);
+
 		adminLive.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
 		adminLive.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
 		adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
 		adminLive.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
 		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
-
-		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
-
-		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
-
-		adminLive.addSocketBinding(proxySocketBindingName = "messaging-via-proxy", port = MESSAGING_TO_LIVE_PROXY_PORT);
-
-		adminLive.createRemoteConnector(proxyConnectorName = "netty-proxy", socketBinding = proxySocketBindingName,
-				params = null);
-
+		//adminLive.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, proxyConnectorName);
+		
 		adminLive.removeClusteringGroup("my-cluster");
-		adminLive.setClusterConnections(clusterName = "my-cluster", address = "jms", discoveryGroup = "dg-group1",
-				forwardWhenNoConsumers = false, maxHops = 1, retryInterval = 1000, useDuplicateDetection = true,
+		adminLive.setClusterConnections(
+				clusterName = "my-cluster", 
+				address = "jms", 
+				discoveryGroup = "dg-group1",
+				forwardWhenNoConsumers = false, 
+				maxHops = 1, 
+				retryInterval = 1000, 
+				useDuplicateDetection = true,
 				connectorName = proxyConnectorName);
 
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
@@ -324,7 +471,7 @@ public class JournalReplicationTestCase extends HornetQTestCase
 
 		adminLive.close();
 
-		controller.stop(SERVER_LIVE);
+		controller.stop(SERVER_LIVE);*/
 		
 	    File applicationUsersModified = new File(
 	    		"src" + File.separator +
@@ -490,17 +637,19 @@ public class JournalReplicationTestCase extends HornetQTestCase
 	private class NetworkProblemRunnable implements Runnable
 	{
 		private ControllableProxy proxy;
+		private int initialDelaySeconds;
 		
-		public NetworkProblemRunnable(ControllableProxy proxy)
+		public NetworkProblemRunnable(ControllableProxy proxy, int initialDelaySeconds)
 		{
 			this.proxy = proxy;
+			this.initialDelaySeconds = initialDelaySeconds;
 		}
 		
 		@Override
 		public void run()
 		{
-			// initial delay
-			sleepSeconds(6);
+			log.info("initial network problem delay: " + initialDelaySeconds + "s");
+			sleepSeconds(initialDelaySeconds);
 			
 			for (int i = 1; i < 10; i++)
 			{

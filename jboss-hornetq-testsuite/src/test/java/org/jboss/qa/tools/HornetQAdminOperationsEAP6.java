@@ -1854,6 +1854,32 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+    
+	@Override
+	public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName)
+	{
+		//java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
+		
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("connector");
+        ModelNode modelnew = new ModelNode();
+        modelnew.get(connectorName).clear();
+        model.get("value").set(modelnew);
+
+        System.out.println(model.toString());
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+	}
+
 
     /**
      * Sets ha attribute.

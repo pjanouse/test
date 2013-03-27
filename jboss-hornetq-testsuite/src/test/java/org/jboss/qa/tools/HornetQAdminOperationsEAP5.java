@@ -1407,4 +1407,10 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
         return e;
     }
+
+	@Override
+	public void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName)
+	{
+		throw new RuntimeException("Not implemented yet");
+	}
 }
