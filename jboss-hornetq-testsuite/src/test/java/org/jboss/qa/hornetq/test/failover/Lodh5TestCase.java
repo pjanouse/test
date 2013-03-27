@@ -194,7 +194,9 @@ public class Lodh5TestCase extends HornetQTestCase {
             File oracleModuleDir = new File("src/test/resources/org/jboss/hornetq/configuration/modules/oracle");
             logger.info("source: " + oracleModuleDir.getAbsolutePath());
             File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
+                    + "system" + File.separator + "layers" + File.separator + "base" + File.separator
                     + "com" + File.separator + "oracle");
+            //jboss-eap-6.1/modules/system/layers/base
             logger.info("target: " + targetDir.getAbsolutePath());
             copyFolder(oracleModuleDir, targetDir);
 
