@@ -1233,4 +1233,6 @@ public interface JMSOperations {
     void addRoleToSecuritySettings(String backupServerName, String s, String guest);
 
     void addSecuritySetting(String serverName, String s);
+
+	void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
 }
