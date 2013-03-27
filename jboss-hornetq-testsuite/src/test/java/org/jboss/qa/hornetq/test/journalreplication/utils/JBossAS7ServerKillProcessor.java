@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.journalreplication;
+package org.jboss.qa.hornetq.test.journalreplication.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
