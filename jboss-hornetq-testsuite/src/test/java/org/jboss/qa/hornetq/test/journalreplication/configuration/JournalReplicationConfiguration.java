@@ -112,7 +112,7 @@ public class JournalReplicationConfiguration
 				10485760, 
 				0, 
 				10485760, 
-				10485760);
+				1048570);
 
 		/*
 		adminLive.setSecurityEnabled(true);
