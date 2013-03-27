@@ -47,7 +47,7 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(hostname, port, topicNameJndi, 30000, 10, 30, clientId, subscriberName);
+        this(hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
 
     }
 
@@ -62,7 +62,7 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(container, hostname, port, topicNameJndi, 30000, 10, 30, clientId, subscriberName);
+        this(container, hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
 
     }
 

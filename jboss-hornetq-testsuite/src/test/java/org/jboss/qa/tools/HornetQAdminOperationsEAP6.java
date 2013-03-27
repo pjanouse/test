@@ -3235,4 +3235,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    public static void main(String[] args)  {
+        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+        eap6AdmOps.setHostname("[2620:52:0:2203:78c8:2991:b8e8:3da7]");
+        eap6AdmOps.setPort(9999);
+        eap6AdmOps.connect();
+        eap6AdmOps.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        eap6AdmOps.close();
+    }
 }

@@ -41,7 +41,7 @@ public class ReceiverTransAck extends Client {
      */
     public ReceiverTransAck(String hostname, int port, String queueJndiName) {
 
-        this(EAP6_CONTAINER, hostname, port, queueJndiName, 30000, 1000, 5);
+        this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 1000, 5);
 
     }
 
@@ -55,7 +55,7 @@ public class ReceiverTransAck extends Client {
      */
     public ReceiverTransAck(String container, String hostname, int port, String queueJndiName) {
 
-        this(container, hostname, port, queueJndiName, 30000, 1000, 5);
+        this(container, hostname, port, queueJndiName, 60000, 1000, 5);
 
     }
 

@@ -292,7 +292,7 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("10.16.100.44", 4447, "jms/queue/testQueue0", 5000);
+        ProducerClientAck producer = new ProducerClientAck("2620:52:0:2203:78c8:2991:b8e8:3da7", 4447, "jms/queue/InQueue", 500000);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
         MessageBuilder builder = new ClientMixMessageBuilder(1, 10);

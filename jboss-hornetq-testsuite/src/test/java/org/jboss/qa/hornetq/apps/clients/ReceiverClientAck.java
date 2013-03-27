@@ -40,7 +40,7 @@ public class ReceiverClientAck extends Client {
      */
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
 
-        this(EAP6_CONTAINER, hostname, port, queueJndiName, 30000, 10, 30);
+        this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 10, 30);
 
     }
 
@@ -54,7 +54,7 @@ public class ReceiverClientAck extends Client {
      */
     public ReceiverClientAck(String container, String hostname, int port, String queueJndiName) {
 
-        this(container, hostname, port, queueJndiName, 30000, 10, 30);
+        this(container, hostname, port, queueJndiName, 60000, 10, 30);
 
     }
 

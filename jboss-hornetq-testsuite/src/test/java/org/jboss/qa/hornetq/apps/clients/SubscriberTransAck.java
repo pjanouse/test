@@ -51,7 +51,7 @@ public class SubscriberTransAck extends Client {
      */
     public SubscriberTransAck(String hostname, int port, String topicJndiName, String clientId, String subscriberName) {
 
-        this(hostname, port, topicJndiName, 30000, 10, 30, clientId, subscriberName);
+        this(hostname, port, topicJndiName, 60000, 10, 30, clientId, subscriberName);
 
     }
 
