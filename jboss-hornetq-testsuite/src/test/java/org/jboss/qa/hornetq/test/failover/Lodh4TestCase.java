@@ -188,7 +188,14 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES, 1, 1, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
+        		CONTAINER1_IP, 
+        		getJNDIPort(), 
+        		relativeJndiInQueueName, 
+        		NUMBER_OF_DESTINATIONS_BRIDGES, 
+        		1, 
+        		1, 
+        		NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
@@ -389,6 +396,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
         }
+        jmsAdminOperations.close();
 
         controller.stop(containerName);
 
@@ -440,6 +448,8 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        
+        jmsAdminOperations.close();
 
         controller.stop(containerName);
 
@@ -466,5 +476,6 @@ public class Lodh4TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);
         }
 
+        jmsAdminOperations.close();
     }
 }
