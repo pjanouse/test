@@ -163,7 +163,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "mysql55");
+            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "oracle11gr2");
             topologyCreated = true;
         }
     }
@@ -236,7 +236,8 @@ public class Lodh5TestCase extends HornetQTestCase {
              */
             File mysqlModuleDir = new File("src/test/resources/com/mysql");
             logger.info("source: " + mysqlModuleDir.getAbsolutePath());
-            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
+            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules"
+                    + File.separator  + "system" + File.separator + "layers" + File.separator + "base" + File.separator
                     + "com" + File.separator + "mysql");
             logger.info("target: " + targetDir.getAbsolutePath());
             copyFolder(mysqlModuleDir, targetDir);
