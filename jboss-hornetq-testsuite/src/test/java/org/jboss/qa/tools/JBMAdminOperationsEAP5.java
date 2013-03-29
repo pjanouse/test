@@ -903,6 +903,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * Sets failover-on-server-shutdown.
+     *
+     * @param value true if connection factory supports ha.
+     */
+    @Override
+    public void setFailoverOnShutdown(boolean value, String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());

@@ -142,13 +142,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         long startTime = System.currentTimeMillis();
 
+        boolean clientsFinished = true;
         while (!clients.isFinished()) {
             Thread.sleep(1000);
             if ((System.currentTimeMillis() - startTime) > 600000) {
-                Assert.fail("Clients did not stop and test was terminated. There is 10 min timeout.");
+                clientsFinished = false;
+                logger.error("Clients did not stop and test was terminated. There is 10 min timeout.");
+                for (Client c : clients.getConsumers()) {
+                    c.interrupt();
+                }
             }
         }
 
+        Assert.assertTrue("Clients did not stop and test was terminated. There is 10 min timeout.",clientsFinished);
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
         stopServer(CONTAINER1);
@@ -486,6 +492,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, true);
         jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);
+        jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
         jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectoryPath);

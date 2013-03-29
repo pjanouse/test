@@ -1960,11 +1960,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdown(boolean value) {
+        setFailoverOnShutdown(true, "default");
+    }
+
+    /**
+     * Sets failover-on-server-shutdown.
+     *
+     * @param value true if connection factory supports ha.
+     */
+    @Override
+    public void setFailoverOnShutdown(boolean value, String serverName) {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("failover-on-shutdown");
         model.get("value").set(value);
 

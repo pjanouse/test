@@ -835,6 +835,13 @@ public interface JMSOperations {
     void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value);
 
     /**
+     * Sets failover-on-server-shutdown.
+     *
+     * @param value true if connection factory supports ha.
+     */
+    void setFailoverOnShutdown(boolean value, String serverName);
+
+    /**
      * Sets ha attribute.
      *
      * @param connectionFactoryName

@@ -1,12 +1,8 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -24,17 +20,17 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testSimpleConfiguration() throws Exception {
-
-        prepareColocatedTopologyInCluster();
-    }
+//    /**
+//     * Start simple failover test with client_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void testSimpleConfiguration() throws Exception {
+//
+//        prepareColocatedTopologyInCluster();
+//    }
 
     /**
      * Prepare two servers in colocated topology in cluster.
@@ -79,8 +75,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setJournalFileSize(10 * 1024 *1024);
 
         jmsAdminOperations.setJournalType("ASYNCIO");
-
-        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
@@ -176,6 +170,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setBackupGroupName(backupGroupName, backupServerName);
         jmsAdminOperations.setCheckForLiveServer(true, backupServerName);
         jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 *1024);
+        jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
 
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
 
