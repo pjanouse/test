@@ -93,6 +93,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
+        // give some time for servers to find each other
+        Thread.sleep(10000);
+
         MessageBuilder builder = new TextMessageBuilder(30 * 1024);
 //        MessageBuilder builder = new ClientMixMessageBuilder(50, 50);
 
@@ -420,12 +423,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setJournalFileSize(10 * 1024 * 1024);
 
-        jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setFailoverOnShutdown(true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
