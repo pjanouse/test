@@ -38,6 +38,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    //private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -146,13 +147,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) { // for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 60000, shutdown);
+        // executeNodeFaillSequence(killSequence, 60000, shutdown);
+        executeNodeFaillSequence(killSequence, 60000, shutdown); 
 
         logger.info("Start receiver.");
+        // SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
         receiver1.start();
         receiver1.join();
@@ -160,16 +163,17 @@ public class Lodh1TestCase extends HornetQTestCase {
         logger.info("Number of sent messages: " + producer1.getCounter());
         logger.info("Number of received messages: " + receiver1.getCount());
 
+        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
+        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
+        for (String dupId : lostMessages) {
+        	logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
+        }
+        
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
                 receiver1.getCount());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
-        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
-        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
-        for (String dupId : lostMessages) {
-            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
-        }
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
@@ -200,24 +204,45 @@ public class Lodh1TestCase extends HornetQTestCase {
         if (shutdown) {
             for (String containerName : failSequence) {
                 Thread.sleep(timeBetweenFails);
+                
+                printQueuesCount();
+                
                 logger.info("Shutdown server: " + containerName);
+                
                 controller.stop(containerName);
                 Thread.sleep(3000);
                 logger.info("Start server: " + containerName);
                 controller.start(containerName);
                 logger.info("Server: " + containerName + " -- STARTED");
+                
+                printQueuesCount();
             }
         } else {
             for (String containerName : failSequence) {
                 Thread.sleep(timeBetweenFails);
+                
+                printQueuesCount();
+
                 killServer(containerName);
                 Thread.sleep(3000);
                 controller.kill(containerName);
                 logger.info("Start server: " + containerName);
                 controller.start(containerName);
                 logger.info("Server: " + containerName + " -- STARTED");
+                
+                printQueuesCount();
             }
         }
+    }
+    
+    private void printQueuesCount()
+    {
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        logger.info("=============Queues status====================");
+    	logger.info("Messages on ["+ inQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(inQueueName));
+    	logger.info("Messages on ["+ outQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(outQueueName));
+    	logger.info("==============================================");
+    	jmsAdminOperations.close();
     }
 
     /**
