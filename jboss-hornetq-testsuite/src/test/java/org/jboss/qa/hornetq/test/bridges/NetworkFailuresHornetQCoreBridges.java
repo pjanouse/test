@@ -15,9 +15,12 @@ import org.jboss.qa.tools.MulticastProxy;
 import org.jboss.qa.tools.SimpleProxyServer;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.rmi.RemoteException;
 
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
@@ -243,18 +246,21 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         prepareServers(reconnectAttempts);
 
+        startProxies();
+
         controller.start(CONTAINER1); // A1
         controller.start(CONTAINER2); // B1
-        Thread.sleep(60000);
+
+        Thread.sleep(5000000);
+
         // A1 producer
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        //TODO MAKE THIS TRUE WHEN DUPS LOST MESSAGES OK IN CLUSTER
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, 2 * timeBetweenFails, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails):120000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -263,7 +269,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         // Wait to send and receive some messages
         Thread.sleep(15 * 1000);
 
-        executeNetworkFails(timeBetweenFails, numberOfFails);
+        //executeNetworkFails(timeBetweenFails, numberOfFails);
 
         Thread.sleep(5 * 1000);
 
@@ -296,43 +302,94 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     private void executeNetworkFails(long timeBetweenFails, int numberOfFails)
             throws Exception {
 
-        log.info("Start all proxies.");
-        proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
-        proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
-        proxy1.start();
-        proxy2.start();
-        mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-        mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
-                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-        mp12.start();
-        mp21.start();
 
-        log.info("All proxies started.");
+        startProxies();
 
         for (int i = 0; i < numberOfFails; i++) {
 
             Thread.sleep(timeBetweenFails);
-            log.info("Stop all proxies.");
-            proxy1.stop();
-            proxy2.stop();
 
-            mp12.setStop(true);
-            mp21.setStop(true);
-            log.info("All proxies stopped.");
+            stopProxies();
 
             Thread.sleep(timeBetweenFails);
-            log.info("Start all proxies.");
-            proxy1.start();
-            proxy2.start();
-            mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                    discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-            mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
-                    discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-            mp12.start();
-            mp21.start();
-            log.info("All proxies started.");
 
+            startProxies();
+
+        }
+    }
+
+    private void startProxies() throws RemoteException {
+
+        log.info("Start all proxies.");
+        if (proxy1 == null) {
+            proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
+            proxy1.start();
+        }
+        if (proxy2 == null) {
+            proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
+            proxy2.start();
+        }
+
+        if (mp12 == null) {
+            mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
+            mp12.setIpAddressOfInterface(CONTAINER1_IP);
+            mp12.start();
+
+        }
+        if (mp21 == null)   {
+            mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+            mp21.setIpAddressOfInterface(CONTAINER2_IP);
+            mp21.start();
+        }
+        log.info("All proxies started.");
+
+    }
+
+    private void stopProxies() throws RemoteException {
+        log.info("Stop all proxies.");
+        if (proxy1 != null) {
+            proxy1.stop();
+            proxy1 = null;
+        }
+        if (proxy2 != null) {
+            proxy2.stop();
+            proxy2 = null;
+        }
+
+        if (mp12 != null)   {
+            mp12.setStop(true);
+            mp12 = null;
+        }
+        if (mp21 != null)   {
+            mp21.setStop(true);
+            mp21 = null;
+        }
+        log.info("All proxies stopped.");
+    }
+
+    @After
+    public void after() {
+        if (proxy1 != null) {
+            try {
+                proxy1.stop();
+            } catch (RemoteException e) {
+                log.error("Proxy could not be stopped.", e);
+            }
+        }
+        if (proxy2 != null) {
+            try {
+                proxy2.stop();
+            } catch (RemoteException e) {
+                log.error("Proxy could not be stopped.", e);
+            }
+        }
+        if (mp21 != null) {
+            mp21.setStop(true);
+        }
+        if (mp12 != null) {
+            mp12.setStop(true);
         }
     }
 

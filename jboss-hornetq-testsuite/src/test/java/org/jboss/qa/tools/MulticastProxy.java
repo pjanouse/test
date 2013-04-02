@@ -2,10 +2,7 @@ package org.jboss.qa.tools;
 
 import org.apache.log4j.Logger;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
+import java.net.*;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -31,6 +28,8 @@ public class MulticastProxy extends Thread {
     private int destinationMulticastPort;
     private boolean stop = false;
 
+    private String ipAddressOfInterface;
+
     private LinkedList<byte[]> sendPackets = new LinkedList<byte[]>();
 
     public MulticastProxy(String sourceMulticastGroup, int sourceMulticastPort, String destinationMulticastGroup,
@@ -46,7 +45,11 @@ public class MulticastProxy extends Thread {
         try {
 
             MulticastSocket sourceMulticastSocket = new MulticastSocket(sourceMulticastPort);  // Create socket
-            sourceMulticastSocket.joinGroup(InetAddress.getByName(sourceMulticastGroup));
+//            if (ipAddressOfInterface != null)   {
+//                sourceMulticastSocket.setInterface(InetAddress.getByName(ipAddressOfInterface));
+//            }
+            NetworkInterface netowrkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddressOfInterface));
+            sourceMulticastSocket.joinGroup(new InetSocketAddress(InetAddress.getByName(sourceMulticastGroup), sourceMulticastPort), netowrkInterface);
 
             DatagramSocket destSocket = new DatagramSocket();
             destSocket.setSoTimeout(500);
@@ -63,16 +66,18 @@ public class MulticastProxy extends Thread {
                 sourceMulticastSocket.receive(pkt);
 
                 log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                        + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
                         + " content: " + line + " dest host:port - "
-                        + pkt.getAddress());
+                        + pkt.getAddress() + ":" + pkt.getPort());
 
                 // if we sent this packet before then don't send it again to prevent multicast packet flooding
                 for (byte[] content : sendPackets)  {
                     if (Arrays.equals(content, line)) {
                         sendPackets.remove(content);
                         log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
-                                + " content: " + line + " and destination host:port - "
-                                + pkt.getAddress() + " is DUPLICATE - DON'T SEND IT");
+                                + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
+                                + ". content: " + line + " and destination host:port - "
+                                + pkt.getAddress() + ":" + pkt.getPort() + " is DUPLICATE - DON'T SEND IT");
                         break;
                     }
                 }
@@ -84,9 +89,9 @@ public class MulticastProxy extends Thread {
 
                 destSocket.send(pkt1);
 
-                log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
-                        + " content: " + pkt1.getData().length + " dest host:port - "
-                        + pkt1.getAddress());
+//                log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+//                        + " content: " + pkt1.getData().length + " dest host:port - "
+//                        + pkt1.getAddress());
 
                 // if linked list is too big then remove first
                 while (sendPackets.size() > 100)    {
@@ -127,12 +132,14 @@ public class MulticastProxy extends Thread {
 //        proxy2.start();
 
         MulticastProxy mp12 = new MulticastProxy("233.1.2.1", 9876, "233.1.2.4", 9876);
+        mp12.setIpAddressOfInterface("10.0.0.1");
         mp12.start();
         MulticastProxy mp21 = new MulticastProxy("233.1.2.2", 9876, "233.1.2.3", 9876);
+        mp21.setIpAddressOfInterface("10.0.0.2");
         mp21.start();
 
-        ControllableProxy proxy1 = new SimpleProxyServer("192.168.40.2", 5445, 43812);
-        ControllableProxy proxy2 = new SimpleProxyServer("10.34.3.115", 5445, 43821);
+        ControllableProxy proxy1 = new SimpleProxyServer("10.0.0.2", 5445, 43812);
+        ControllableProxy proxy2 = new SimpleProxyServer("10.0.0.1", 5445, 43821);
         proxy1.start();
         proxy2.start();
 
@@ -140,5 +147,13 @@ public class MulticastProxy extends Thread {
         mp12.join();
 
 
+    }
+
+    public String getIpAddressOfInterface() {
+        return ipAddressOfInterface;
+    }
+
+    public void setIpAddressOfInterface(String ipAddressOfInterface) {
+        this.ipAddressOfInterface = ipAddressOfInterface;
     }
 }

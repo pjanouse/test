@@ -117,7 +117,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setClusterUserPassword("heslo");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        setAddressSettings(jmsAdminOperations);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
@@ -196,7 +197,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
-        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        setAddressSettings(backupServerName, jmsAdminOperations);
 
         jmsAdminOperations.addSecuritySetting(backupServerName, "#");
         jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
@@ -237,6 +238,14 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         }
 
         controller.stop(containerName);
+    }
+
+    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
+        setAddressSettings("default", jmsAdminOperations);
+    }
+
+    protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
+        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
     }
 
     /**

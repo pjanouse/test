@@ -411,7 +411,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         jmsAdminOperations.setClusterUserPassword("heslo");
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 2 * 1024 * 1024);
+
+        setAddressSettings(jmsAdminOperations);
 
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
@@ -507,7 +508,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         jmsAdminOperations.removeAddressSettings("#");
 
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 2 * 1024 * 1024);
+        setAddressSettings(jmsAdminOperations);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
@@ -532,6 +533,13 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         controller.stop(containerName);
     }
 
+    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
+        setAddressSettings("default", jmsAdminOperations);
+    }
+
+    protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
+        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+    }
 
     /**
      * Copies file from one place to another.

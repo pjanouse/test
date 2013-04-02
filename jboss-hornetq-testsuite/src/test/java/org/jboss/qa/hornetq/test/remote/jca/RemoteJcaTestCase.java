@@ -87,7 +87,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         // cluster A
         controller.start(CONTAINER1);
         controller.start(CONTAINER3);
-        // cluster B
+        // cluster B with mdbs
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
