@@ -18,7 +18,7 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
-		<eap5.client>5.2.0.ER6-HORNETQ</eap5.client>
+		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10695</eap5.client>
 		<eap6.client>6.1.0.ER3</eap6.client>
         <eap6.controller.client>6.1.0.ER3</eap6.controller.client>
 
@@ -349,6 +349,14 @@
 					<artifactId>jboss-managed</artifactId>
 					<version>2.1.1.SP2</version>
 				</dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                    <!--<version>7.1.3.Final</version>-->
+                    <scope>test</scope>
+                </dependency>
+
 
 			</dependencies>
 		</profile>
