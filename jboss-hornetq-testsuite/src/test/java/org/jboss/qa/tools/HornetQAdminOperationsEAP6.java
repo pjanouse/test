@@ -3193,22 +3193,70 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
      *
+     * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
+     * TODO remove this when ^ is fixed
      * @param serverName name of the new hornetq server
      */
     @Override
     public void addMessagingSubsystem(String serverName) {
 
-        ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+//        ModelNode model = new ModelNode();
+//        model.get(ClientConstants.OP).set("add");
+//        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+//        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+//
+//        try {
+//            this.applyUpdate(model);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
     }
+
+//    /**
+//     * Adds new messaging subsystem/new hornetq server to configuration
+//     *
+//     * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
+//     * TODO remove this when ^ is fixed
+//     * @param serverName name of the new hornetq server
+//     */
+//    @Override
+//    public void addMessagingSubsystem(String serverName) {
+//
+//        String jbossHome = null;
+//        if (HornetQTestCase.CONTAINER1_IP.equalsIgnoreCase(hostname)) {
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER1);
+//        } else if (HornetQTestCase.CONTAINER2_IP.equalsIgnoreCase(hostname)) {
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER2);
+//        } else if (HornetQTestCase.CONTAINER3_IP.equalsIgnoreCase(hostname)) {
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER3);
+//        } else if (HornetQTestCase.CONTAINER4_IP.equalsIgnoreCase(hostname)) {
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER4);
+//        }
+//
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(jbossHome).append(File.separator).append("standalone").append(File.separator);
+//        sb.append("configuration").append(File.separator).append("standalone-full-ha.xml");
+//        String configurationFile = sb.toString();
+//
+//        try {
+//
+//            Document doc = XMLManipulation.getDOMModel(configurationFile);
+//
+//            XPath xpathInstance = XPathFactory.newInstance().newXPath();
+//            Node node = (Node) xpathInstance.evaluate("//hornetq-server", doc, XPathConstants.NODE);
+//            Node parent = node.getParentNode();
+//
+//            Element e = doc.createElement("hornetq-server");
+//            e.setAttribute("name", serverName);
+//
+//            parent.appendChild(e);
+//            XMLManipulation.saveDOMModel(doc, configurationFile);
+//
+//
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//        }
+//    }
 
     /**
      *
@@ -3273,10 +3321,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     public static void main(String[] args)  {
         HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-        eap6AdmOps.setHostname("[2620:52:0:2203:78c8:2991:b8e8:3da7]");
+        eap6AdmOps.setHostname("localhost");
         eap6AdmOps.setPort(9999);
         eap6AdmOps.connect();
-        eap6AdmOps.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        eap6AdmOps.addMessagingSubsystem("backup");
         eap6AdmOps.close();
     }
 }
