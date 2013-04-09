@@ -242,12 +242,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() throws Exception {
-
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER1);
         stopServer(CONTAINER3);
-
+        stopServer(CONTAINER4);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
     }
 
     /**

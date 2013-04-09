@@ -3200,16 +3200,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addMessagingSubsystem(String serverName) {
 
-//        ModelNode model = new ModelNode();
-//        model.get(ClientConstants.OP).set("add");
-//        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-//        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
-//
-//        try {
-//            this.applyUpdate(model);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 //    /**
