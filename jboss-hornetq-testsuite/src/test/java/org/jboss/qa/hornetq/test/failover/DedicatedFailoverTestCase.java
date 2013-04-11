@@ -21,7 +21,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mnovak@redhat.com
@@ -131,7 +135,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(60000); // here more time is needed to sync journals
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+            Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
@@ -141,9 +146,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Thread.sleep(10000);
         clients.stopClients();
 
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
@@ -199,7 +203,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(40000); // give it some time
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+            Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
@@ -209,9 +214,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Thread.sleep(10000);
         clients.stopClients();
 
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
@@ -219,6 +223,66 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
+    }
+
+    void waitForClientsToFinish(Clients clients) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!clients.isFinished()) {
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > 600000) {
+                Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
+                StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
+                for (Thread t : mst.keySet())   {
+                    stacks.append("Stack trace of thread: " + t.toString() + "\n");
+                    StackTraceElement[] elements = mst.get(t);
+                    for (StackTraceElement e : elements)    {
+                        stacks.append("---" + e + "\n");
+                    }
+                    stacks.append("---------------------------------------------\n");
+                }
+                logger.error(stacks);
+                for (Client c : clients.getConsumers()) {
+                    c.interrupt();
+                }
+                Assert.fail("Clients did not stop in 10 minutes. Failling the test and trying to kill them all. Print all stacktraces:" + stacks);
+            }
+        }
+    }
+
+    /**
+     * Returns true if something is listenning on server
+     * @param ipAddress
+     * @param  port
+     */
+    boolean checkThatServerIsReallyUp(String ipAddress, int port) {
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(ipAddress, port), 100);
+            return true;
+        } catch (Exception ex) {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Ping the given port until true
+     *
+     *
+     */
+    boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis()-startTime < timeout)    {
+            Thread.sleep(1000);
+        }
+        return checkThatServerIsReallyUp(ipAddress, port);
     }
 
     protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
