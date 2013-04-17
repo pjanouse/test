@@ -2,16 +2,15 @@ package org.jboss.qa.hornetq.test.transportprotocols;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,63 +22,67 @@ import java.util.HashMap;
  * @author nziakova
  */
 @RunWith(Arquillian.class)
-@RestoreConfigAfterTest
+@RestoreConfigBeforeTest
 public class TransportProtocolsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(TransportProtocolsTestCase.class);
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
     private static final long RECEIVE_TIMEOUT = 10000;
     private static final int RECEIVER_MAX_RETRIES = 10;
-    String inQueueNameForMdb = "InQueue";
-    String inQueueJndiNameForMdb = "jms/queue/" + inQueueNameForMdb;
-    @ArquillianResource
-    Deployer deployer;
+    private static final String IN_QUEUE_NAME_FOR_MDB = "InQueue";
+    private static final String IN_QUEUE_JNDI_NAME_FOR_MDB = "jms/queue/" + IN_QUEUE_NAME_FOR_MDB;
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void NIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1, CONTAINER1_IP, "NIO");
+        prepareServerForTCPTransport(CONTAINER1, "NIO");
         TransportProtocolTest();
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void AIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1, CONTAINER1_IP, "ASYNCIO");
+        prepareServerForTCPTransport(CONTAINER1, "ASYNCIO");
         TransportProtocolTest();
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void NIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1, CONTAINER1_IP, "NIO");
+        prepareServerForHTTPTransport(CONTAINER1, "NIO");
         TransportProtocolTest();
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void AIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1, CONTAINER1_IP, "ASYNCIO");
+        prepareServerForHTTPTransport(CONTAINER1, "ASYNCIO");
         TransportProtocolTest();
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void NIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1, CONTAINER1_IP, "NIO");
+        prepareServerForSSLTransport(CONTAINER1, "NIO");
         TransportProtocolTest();
     }
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void AIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1, CONTAINER1_IP, "ASYNCIO");
+        prepareServerForSSLTransport(CONTAINER1, "ASYNCIO");
         TransportProtocolTest();
     }
 
@@ -93,8 +96,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         log.info("Start producer and consumer.");
-        ProducerAutoAck producer = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverAutoAck receiver = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
+        ProducerAutoAck producer = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverAutoAck receiver = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();
@@ -115,18 +118,16 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for TCP transport
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress IP on which the container will be binded
-     * @param journalType    Type of journal
-     * @throws IOException
+     * @param containerName Name of the container - defined in arquillian.xml
+     * @param journalType   Type of journal
      */
-    private void prepareServerForTCPTransport(String containerName, String bindingAddress, String journalType) {
+    private void prepareServerForTCPTransport(String containerName, String journalType) {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
-        jmsAdminOperations.createQueue("default", inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
         controller.stop(containerName);
     }
@@ -134,11 +135,10 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for HTTP transport
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress IP on which the container will be binded
-     * @param journalType    Type of journal
+     * @param containerName Name of the container - defined in arquillian.xml
+     * @param journalType   Type of journal
      */
-    private void prepareServerForHTTPTransport(String containerName, String bindingAddress, String journalType) {
+    private void prepareServerForHTTPTransport(String containerName, String journalType) {
         controller.start(containerName);
         String socketBindingName = "messaging-http";
         HashMap<String, String> params = new HashMap<String, String>();
@@ -152,7 +152,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteConnector("netty", socketBindingName, params);
         jmsAdminOperations.removeRemoteAcceptor("netty");
         jmsAdminOperations.createRemoteAcceptor("netty", socketBindingName, params);
-        jmsAdminOperations.createQueue("default", inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
         controller.stop(containerName);
     }
@@ -160,12 +160,11 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for SSL transport
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress IP on which the container will be binded
-     * @param journalType    Type of journal
+     * @param containerName Name of the container - defined in arquillian.xml
+     * @param journalType   Type of journal
      * @throws IOException
      */
-    private void prepareServerForSSLTransport(String containerName, String bindingAddress, String journalType) throws IOException {
+    private void prepareServerForSSLTransport(String containerName, String journalType) throws IOException {
 
         controller.start(containerName);
 
@@ -175,10 +174,12 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         File keyStoreNew = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator + "deployments" + File.separator + "hornetq.example.keystore");
         File trustStoreNew = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator + "deployments" + File.separator + "hornetq.example.truststore");
         if (!keyStoreNew.exists()) {
-            keyStoreNew.createNewFile();
+            boolean result = keyStoreNew.createNewFile();
+            log.info("New key store file was created - " + Boolean.toString(result));
         }
         if (!trustStoreNew.exists()) {
-            trustStoreNew.createNewFile();
+            boolean result = trustStoreNew.createNewFile();
+            log.info("New Trust store file was created - " + Boolean.toString(result));
         }
         fileOperation.copyFile(keyStore, keyStoreNew);
         fileOperation.copyFile(trustStore, trustStoreNew);
@@ -202,7 +203,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteConnector("netty", socketBindingName, connectorParams);
         jmsAdminOperations.removeRemoteAcceptor("netty");
         jmsAdminOperations.createRemoteAcceptor("netty", socketBindingName, acceptorParams);
-        jmsAdminOperations.createQueue("default", inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
         controller.stop(containerName);
     }
