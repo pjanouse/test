@@ -39,6 +39,7 @@ import javax.naming.Context;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
@@ -83,7 +84,8 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void clusterTest() throws Exception {
 
         prepareServers();
@@ -187,8 +189,6 @@ public class ClusterTestCase extends HornetQTestCase {
             session = conn.createSession(true, Session.SESSION_TRANSACTED);
 
             MessageConsumer receiver = session.createConsumer(queue);
-
-            Message message;
 
             int count = 0;
             while (count < NUMBER_OF_MESSAGES_PER_PRODUCER) {
