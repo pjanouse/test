@@ -132,6 +132,8 @@ public class SoakTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     public void soakTest() throws Exception {
+        prepareRemoteJcaTopology();
+
         // cluster A
         controller.start(CONTAINER1);
         controller.start(CONTAINER3);
@@ -217,8 +219,7 @@ public class SoakTestCase extends HornetQTestCase {
      */
     @Before
     @After
-    public void stopAllServers() throws Exception {
-        prepareRemoteJcaTopology();
+    public void stopAllServers() {
         stopServer(CONTAINER2);
         stopServer(CONTAINER4);
         stopServer(CONTAINER1);

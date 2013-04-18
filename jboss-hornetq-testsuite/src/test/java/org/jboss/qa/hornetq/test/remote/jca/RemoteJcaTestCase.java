@@ -228,7 +228,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     @Before
     @After
-    public void stopAllServers() throws Exception {
+    public void stopAllServers() {
 
         stopServer(CONTAINER2);
         stopServer(CONTAINER4);

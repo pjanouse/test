@@ -85,15 +85,24 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * Stops all servers
      */
     @Before
-    public void stopAllServers() throws Exception {
+    public void stopAllServers() {
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
         stopServer(CONTAINER4);
-        if (proxy1 != null) proxy1.stop();
-        if (proxy2 != null) proxy2.stop();
-        if (mp12 != null) mp12.setStop(true);
-        if (mp21 != null) mp21.setStop(true);
+        try {
+            if (proxy1 != null) proxy1.stop();
+        } catch (Exception ex)  {
+            log.error("Proxy1 cannot be stopped: ", ex);
+        }
+        try {
+            if (proxy2 != null) proxy2.stop();
+        } catch (Exception ex)  {
+            log.error("Proxy2 cannot be stopped: ", ex);
+        }
+            if (mp12 != null) mp12.setStop(true);
+            if (mp21 != null) mp21.setStop(true);
+
     }
 
     @Test
