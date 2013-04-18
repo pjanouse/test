@@ -5,11 +5,14 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.PrintJournal;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
@@ -21,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -128,6 +132,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
         waitForReceiversUntil(clients.getConsumers(), 300, 300000);
 
         if (failback) {
@@ -178,7 +183,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Clients clients = createClients(acknowledge, topic);
 
-        if (isReceiveFailure)   {
+        if (isReceiveFailure) {
             clients.setProducedMessagesCommitAfter(100);
             clients.setReceivedMessagesAckCommitAfter(5);
         } else {
@@ -225,6 +230,96 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+
+    public void testFailoverWithProducers(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER1);
+
+        controller.start(CONTAINER2);
+
+        Thread.sleep(10000);
+
+        ProducerTransAck p = new ProducerTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
+        p.setMessageVerifier(queueTextMessageVerifier);
+        MessageBuilder messageBuilder = new TextMessageBuilder(20);
+        p.setMessageBuilder(messageBuilder);
+        p.setCommitAfter(2);
+        p.start();
+
+        long startTime = System.currentTimeMillis();
+        while (p.getListOfSentMessages().size() < 120 && System.currentTimeMillis() - startTime < 60000) {
+            Thread.sleep(1000);
+        }
+        logger.info("Producer sent more than 120 messages. Shutdown live server.");
+
+
+        logger.warn("########################################");
+        logger.warn("Shutdown live server");
+        logger.warn("########################################");
+        stopServer(CONTAINER1);
+        PrintJournal.printJournal(getJbossHome(CONTAINER1), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+                "journalAfterShutdownAndFailoverToBackup.txt");
+        logger.warn("########################################");
+        logger.warn("Live server shutdowned");
+        logger.warn("########################################");
+
+
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
+        startTime = System.currentTimeMillis();
+        while (p.getListOfSentMessages().size() < 300 && System.currentTimeMillis() - startTime < 120000) {
+            Thread.sleep(1000);
+        }
+        logger.info("Producer sent more than 300 messages.");
+
+        if (failback) {
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again ");
+            logger.warn("########################################");
+            controller.start(CONTAINER1);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+            PrintJournal.printJournal(getJbossHome(CONTAINER1), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+                    "journalAfterStartingLiveAgain_Failback.txt");
+            logger.warn("########################################");
+            logger.warn("Live server started - this is failback");
+            logger.warn("########################################");
+            Thread.sleep(10000); // give it some time
+            logger.warn("########################################");
+            logger.warn("failback - Stop backup server");
+            logger.warn("########################################");
+            stopServer(CONTAINER2);
+            logger.warn("########################################");
+            logger.warn("failback - Backup server stopped");
+            logger.warn("########################################");
+        }
+
+        Thread.sleep(10000);
+
+        p.stopSending();
+        p.join(600000);
+        ReceiverTransAck r = null;
+        if (failback)   {
+            r = new ReceiverTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0);
+        } else {
+            r = new ReceiverTransAck(CONTAINER2, CONTAINER2_IP, 4447, queueJndiNamePrefix + 0);
+        }
+        r.setMessageVerifier(queueTextMessageVerifier);
+        r.setCommitAfter(100);
+        r.setReceiveTimeOut(5000);
+        r.start();
+        r.join(300000);
+
+        queueTextMessageVerifier.verifyMessages();
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", p.getListOfSentMessages().size() == r.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+    }
+
     void waitForClientsToFinish(Clients clients) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         while (!clients.isFinished()) {
@@ -232,10 +327,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             if (System.currentTimeMillis() - startTime > 600000) {
                 Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
                 StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
-                for (Thread t : mst.keySet())   {
+                for (Thread t : mst.keySet()) {
                     stacks.append("Stack trace of thread: " + t.toString() + "\n");
                     StackTraceElement[] elements = mst.get(t);
-                    for (StackTraceElement e : elements)    {
+                    for (StackTraceElement e : elements) {
                         stacks.append("---" + e + "\n");
                     }
                     stacks.append("---------------------------------------------\n");
@@ -251,8 +346,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * Returns true if something is listenning on server
+     *
      * @param ipAddress
-     * @param  port
+     * @param port
      */
     boolean checkThatServerIsReallyUp(String ipAddress, int port) {
         Socket socket = null;
@@ -274,22 +370,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * Ping the given port until true
-     *
-     *
      */
     boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
-        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis()-startTime < timeout)    {
+        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(1000);
         }
         return checkThatServerIsReallyUp(ipAddress, port);
     }
 
-    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
+    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
         for (Client c : receivers) {
-            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
+            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout) {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
@@ -322,6 +416,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckQueueCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
+
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    @BMRule(name = "Kill before transaction commit is written into journal - receive",
+//            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+//            targetMethod = "commit",
+//            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+//    public void testFailoverTransAckQueueCommitStoredProducers() throws Exception {
+//        testFailoverWithProducers(Session.SESSION_TRANSACTED, false, false, true);
+//    }
 
     protected Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
 
@@ -375,7 +481,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdown() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
@@ -386,7 +493,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -406,7 +514,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckQueueOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
@@ -416,7 +525,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, false, true);
     }
@@ -436,7 +546,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true, true);
     }
@@ -446,7 +557,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true, true);
     }
@@ -466,7 +578,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckTopicOnShutdown() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true, true);
     }
@@ -476,10 +589,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckTopicOnShutdown() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true, true);
     }
+
+    /**
+     * Start simple failback test with transaction acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckTopicOnShutdownProducers() throws Exception {
+        testFailoverWithProducers(Session.SESSION_TRANSACTED, true, true, true);
+    }
+
 
     ////////////////////////////////////////////////////////
     // TEST KILL ////////////////////////
@@ -500,7 +626,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -511,7 +638,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -531,7 +659,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -541,7 +670,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -561,7 +691,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -571,7 +702,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -591,7 +723,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -601,7 +734,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -633,16 +767,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-            prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-            prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
+        controller.start(CONTAINER1);
+        deployDestinations(CONTAINER1);
+        stopServer(CONTAINER1);
 
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2);
-            stopServer(CONTAINER2);
+        controller.start(CONTAINER2);
+        deployDestinations(CONTAINER2);
+        stopServer(CONTAINER2);
 
     }
 
@@ -784,7 +918,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param containerName container name
-     * @param serverName server name of the hornetq server
+     * @param serverName    server name of the hornetq server
      */
     protected void deployDestinations(String containerName, String serverName) {
 

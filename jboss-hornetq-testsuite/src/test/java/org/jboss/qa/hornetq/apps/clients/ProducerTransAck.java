@@ -6,36 +6,51 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
+import javax.jms.Queue;
 import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/**
- * Simple sender with transaction acknowledge session. Able to fail over.
- * <p/>
- * This class extends Thread class and should be started as a thread using start().
- *
- * @author mnovak
- */
 public class ProducerTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ProducerTransAck.class);
-    private int maxRetries = 30;
-    private String hostname = "localhost";
-    private int port = 4447;
-    private String queueNameJndi = "jms/queue/testQueue0";
-    private int messages = 1000;
-    private int commitAfter = 1000;
-    private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
-    private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
-    private FinalTestMessageVerifier messageVerifier;
-    private Exception exception = null;
-    private boolean stop = false;
+    private static int maxRetries = 50;
 
-    private int counter = 0;
+    int count = 1;
+    MessageProducer producer;
+
+    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String, String>>();
+    private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
+
+    private String hostname;
+    private  int port;
+    private int messages;
+    private String queueNameJndi;
+    private boolean stop = false;
+    private Exception exception = null;
+
+    private int commitAfter = 10;
+
+    private FinalTestMessageVerifier messageVerifier;
+    private MessageBuilder messageBuilder = new TextMessageBuilder(10);
+
+    private Message createMessage(Session session, int counter) throws Exception {
+        TextMessage message = session.createTextMessage(new String(new byte[1024]));
+        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
+        message.setIntProperty("count", counter);
+
+        return message;
+    }
+
+//    public static void main(String[] args) {
+//        args = new String[3];
+//        args[0] = "10.34.3.219";
+//        args[1] = "jms/queue/testQueue0";
+//        args[2] = "600";
+//        TestProducerTransacted testProducer = new TestProducerTransacted();
+//        testProducer.startClient(args);
+//    }
 
     /**
      * @param hostname       hostname
@@ -62,23 +77,23 @@ public class ProducerTransAck extends Client {
         this.queueNameJndi = queueNameJndi;
     }
 
-    /**
-     * Starts end messages to server. This should be started as Thread - producer.start();
-     */
-    @Override
     public void run() {
 
+        final int MESSAGES_COUNT = messages;
+
         Context context = null;
-
         Connection con = null;
-
         Session session = null;
 
         try {
 
-            context = getContext(hostname, port);
+            final Properties env = new Properties();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+            context = new InitialContext(env);
+
+            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
@@ -86,201 +101,185 @@ public class ProducerTransAck extends Client {
 
             session = con.createSession(true, Session.SESSION_TRANSACTED);
 
-            MessageProducer producer = session.createProducer(queue);
+            producer = session.createProducer(queue);
 
-            Message msg;
+            Message msg = null;
 
-            while (counter < messages && !stop) {
+            while (count <= MESSAGES_COUNT && !stop) {
 
                 msg = messageBuilder.createMessage(session);
 
-                // send message in while cycle
-                sendMessage(producer, msg);
+                sendMessage(msg);
+
+                listOfMessagesToBeCommited.add(msg);
 
                 Thread.sleep(getTimeout());
 
-                if (counter % commitAfter == 0) {
+                if (count % commitAfter == 0) {
 
-                    commitSession(session, producer);
+                    commitSession(session);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (Message m : listOfMessagesToBeCommited) {
+                        stringBuilder.append(m.getJMSMessageID());
+                    }
+                    logger.debug("Adding messages: " + stringBuilder.toString());
+                    for (Message m : listOfMessagesToBeCommited)    {
+                        m = cleanMessage(m);
+                        addMessage(listOfSentMessages,m);
+                    }
+//                    StringBuilder stringBuilder2 = new StringBuilder();
+//                    for (Map<String,String> m : listOfSentMessages) {
+//                        stringBuilder2.append("messageId: " + m.get("messageId") + "dupId: " + m.get("_HQ_DUPL_ID") + "##");
+//                    }
+//                    logger.debug("List of sent messages: " + stringBuilder2.toString());
+//                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
+                    logger.info("COMMIT - session was commited. Last message with property count: " + count
+                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    listOfMessagesToBeCommited.clear();
 
                 }
             }
 
-            commitSession(session, producer);
+            commitSession(session);
 
             producer.close();
 
-            if (messageVerifier != null) {
+            if (messageVerifier != null)    {
                 messageVerifier.addSendMessages(listOfSentMessages);
             }
 
         } catch (Exception e) {
-            exception = e;
-            e.printStackTrace();
+
             logger.error("Producer got exception and ended:", e);
+            exception = e;
 
         } finally {
 
             if (session != null) {
                 try {
                     session.close();
-                } catch (JMSException ignored) {
+                } catch (JMSException e) {
+                    e.printStackTrace();
                 }
             }
             if (con != null) {
                 try {
                     con.close();
-                } catch (JMSException ignored) {
+                } catch (JMSException e) {
+                    e.printStackTrace();
                 }
             }
             if (context != null) {
                 try {
                     context.close();
-                } catch (NamingException ignored) {
+                } catch (NamingException e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
 
-    /**
-     * Send message to server. Try send message and if succeed than return. If
-     * send fails and exception is thrown it tries send again until max retry is
-     * reached. Then throws new Exception.
-     *
-     * @param producer producer
-     * @param msg message
-     */
-    private void sendMessage(MessageProducer producer, Message msg) throws Exception {
-
+    private void sendMessage(Message msg) {
         int numberOfRetries = 0;
+        try {
+            if (numberOfRetries > maxRetries) {
+                try {
+                    throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
 
-        while (numberOfRetries < maxRetries) {
+            if (numberOfRetries > 0) {
+                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", count: " + count);
+            }
+            numberOfRetries++;
+            producer.send(msg);
+            logger.debug("Sent message with property count: " + count + ", messageId:" + msg.getJMSMessageID()
+                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+            count++;
+        } catch (JMSException ex) {
+            ex.printStackTrace();
+            sendMessage(msg);
+        }
+    }
 
+    private void commitSession(Session session) throws Exception {
+        int numberOfRetries = 0;
+        while (true) {
             try {
 
-                producer.send(msg);
+                // try commit
+                session.commit();
 
-                counter++;
-
-                logger.debug("Producer for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
-
-                listOfMessagesToBeCommited.add(msg);
-
-                numberOfRetries = 0;
-
+                // if successful -> return
                 return;
 
+            } catch (TransactionRolledBackException ex) {
+                // if transaction rollback exception -> send messages again and commit
+                ex.printStackTrace();
+
+                // don't repeat this more than once, this can't happen
+                if (numberOfRetries > 0) {
+                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message count: " + count
+                            + " Client will terminate.", ex);
+                }
+
+                count -= listOfMessagesToBeCommited.size();
+
+                for (Message m : listOfMessagesToBeCommited) {
+                    sendMessage(m);
+                }
+
+                numberOfRetries++;
+
             } catch (JMSException ex) {
+                // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
+                ex.printStackTrace();
 
-                try {
-                    logger.info("SEND RETRY - Producer for node: " + hostname
-                            + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID(), ex);
-                } catch (JMSException ignored) {
-                } // ignore
+                // don't repeat this more than once - it's exception because of duplicates
+                if (numberOfRetries > 0) {
+                    return;
+                }
 
+                count -= listOfMessagesToBeCommited.size();
+
+                for (Message m : listOfMessagesToBeCommited) {
+                    sendMessage(m);
+                }
                 numberOfRetries++;
             }
         }
-
-        // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for producer for node: " + hostname
-                + ". Sent message with property count: " + counter
-                + ", messageId:" + msg.getJMSMessageID());
-
     }
 
     /**
-     * Stop producer
+     * @return the listOfMessagesToBeCommited
      */
-    public void stopSending() {
-        this.stop = true;
+    public List<Message> getListOfMessagesToBeCommited() {
+        return listOfMessagesToBeCommited;
     }
 
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
 
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the queueNameJndi
-     */
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    /**
-     * @param queueNameJndi the queueNameJndi to set
-     */
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    /**
-     * @return the messages
-     */
-    public int getMessages() {
-        return messages;
-    }
-
-    /**
-     * @param messages the messages to set
-     */
-    public void setMessages(int messages) {
-        this.messages = messages;
-    }
-
-    /**
-     * @return the listOfSentMessages
-     */
-    public List<Map<String,String>> getListOfSentMessages() {
-        return listOfSentMessages;
-    }
-
-    /**
-     * @param listOfSentMessages the listOfSentMessages to set
-     */
-    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
-        this.listOfSentMessages = listOfSentMessages;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public FinalTestMessageVerifier getMessageVerifier() {
-        return messageVerifier;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
     public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
         this.messageVerifier = messageVerifier;
     }
 
+    public void setMessageBuilder(MessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
+    }
+
+    public void setCommitAfter(int commitAfter) {
+        this.commitAfter = commitAfter;
+    }
+
+    public List<Map<String, String>> getListOfSentMessages() {
+        logger.debug("listOfSentMessages" + listOfSentMessages.size());
+        return listOfSentMessages;
+    }
+
+    public void stopSending() {
+        this.stop = true;
+    }
     /**
      * @return the exception
      */
@@ -288,124 +287,19 @@ public class ProducerTransAck extends Client {
         return exception;
     }
 
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
+    public String getHostname() {
+        return hostname;
     }
 
-    /**
-     * @return the commitAfter
-     */
-    public int getCommitAfter() {
-        return commitAfter;
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
-    /**
-     * Number of messages to be commited at once.
-     *
-     * @param commitAfter the commitAfter to set
-     */
-    public void setCommitAfter(int commitAfter) {
-        this.commitAfter = commitAfter;
+    public String getQueueNameJndi() {
+        return queueNameJndi;
     }
 
-    /**
-     * Commits current session - commits messages which were sent.
-     *
-     * @param session  session
-     * @param producer producer
-     * @throws Exception
-     */
-    private void commitSession(Session session, MessageProducer producer) throws Exception {
-
-        int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-
-            // try commit
-            try {
-
-                session.commit();
-
-                for (Message m : listOfMessagesToBeCommited)    {
-                    m = cleanMessage(m);
-//                    listOfSentMessages.add(m);
-                    addMessage(listOfSentMessages,m);
-                }
-
-                listOfMessagesToBeCommited.clear();
-
-                logger.info("Producer for node: " + hostname
-                        + ". Sent message with property count: " + counter
-                        + " - COMMIT");
-
-                return;
-
-            } catch (TransactionRolledBackException ex) {
-                // if rollbackException then send all messages again and try commit
-                counter = counter - listOfMessagesToBeCommited.size();
-                numberOfRetries++;
-                logger.info("COMMIT Failed - Producer for node: " + hostname
-                        + ". Sent message with property count: " + counter, ex);
-                resendMessages(producer);
-
-            } catch (JMSException ex) {
-                if (numberOfRetries > 0)    {
-                    // this is actually JMSException called because we sent duplicates
-                    logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter, ex);
-                    return;
-                } else {
-                    logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that producer "
-                            + "is not able to determine whether commit was successful. Messages and Commit will be resent resent."
-                            + "Producer for node: " + getHostname()
-                            + ". Sent message with property count: " + counter, ex);
-                    numberOfRetries++;
-                    resendMessages(producer);
-                }
-            }
-
-        }
-        // maxretry reached then throw exception above
-        throw new Exception("FAILURE in COMMIT - MaxRetry reached for producer for node: " + hostname
-                + ". Sent message with property count: " + counter);
-
+    public void setQueueNameJndi(String queueNameJndi) {
+        this.queueNameJndi = queueNameJndi;
     }
-
-    /**
-     * Resends messages when transaction rollback exception was thrown.
-     *
-     * @param producer producer
-     */
-    private void resendMessages(MessageProducer producer) throws Exception {
-
-        // there can be problem during resending messages so we need to know which messages were resend
-        List<Message> messagesToBeResend = new ArrayList<Message>(listOfMessagesToBeCommited);
-
-        listOfMessagesToBeCommited.clear();
-
-        for (Message msg : messagesToBeResend) {
-
-            sendMessage(producer, msg);
-
-        }
-
-    }
-
-    public void setMessageBuilder(MessageBuilder messageBuilder) {
-        this.messageBuilder = messageBuilder;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-
-        ProducerTransAck producer = new ProducerTransAck("2620:52:0:2203:78c8:2991:b8e8:3da7", 4447, "jms/queue/testQueue0", 10000);
-
-        producer.start();
-
-        producer.join();
-    }
-
 }
-

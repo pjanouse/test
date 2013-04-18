@@ -128,18 +128,15 @@ public class ReceiverTransAck extends Client {
                 listOfReceivedMessagesToBeCommited.add(message);
 
                 counter++;
-//                Thread.sleep(12);
+
+                logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                        + ". Received message - count: "
+                        + counter + ", messageId:" + message.getJMSMessageID());
+
                 if (counter % commitAfter == 0) { // try to ack message
 
                     commitSession(session);
 
-                    listOfReceivedMessagesToBeCommited.clear();
-
-                } else { // i don't want to ack now
-
-                    logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
-                            + ". Received message - count: "
-                            + counter + ", messageId:" + message.getJMSMessageID());
                 }
             }
 
@@ -197,10 +194,15 @@ public class ReceiverTransAck extends Client {
                         // decrease counter
                         // add just new messages
                         counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
-                        listOfReceivedMessagesToBeCommited.clear();
+
                     } else {
-                        //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
-                        logger.info("No duplicates were found after JMSException/TransactionRollbackException.");
+                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
+                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (Message m : listOfReceivedMessagesToBeCommited) {
+                            stringBuilder.append(m.getJMSMessageID());
+                        }
+                        logger.debug("Adding messages: " + stringBuilder.toString());
                     }
                     setOfReceivedMessagesWithPossibleDuplicates.clear();
                 }
@@ -217,7 +219,6 @@ public class ReceiverTransAck extends Client {
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
-
                 return;
 
             } catch (TransactionRolledBackException ex) {
@@ -226,19 +227,21 @@ public class ReceiverTransAck extends Client {
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
-
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
 
                 return;
 
             } catch (JMSException ex) {
-
+                // we need to know which messages we got in the first try because we need to detect possible duplicates
                 setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
 
                 logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
                         + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
                 ex.printStackTrace();
                 numberOfRetries++;
+            } finally {
+                // we clear this list because next time we get new or duplicated messages and we compare it with set possible duplicates
+                listOfReceivedMessagesToBeCommited.clear();
             }
         }
 
@@ -400,7 +403,7 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.220", 4447, "jms/queue/testQueue0", 3000, 1, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("127.0.0.1", 4447, "jms/queue/testQueue0", 3000, 1, 10);
 
         receiver.start();
 
@@ -418,5 +421,13 @@ public class ReceiverTransAck extends Client {
 
     public int getCount() {
         return counter;
+    }
+
+    public long getReceiveTimeOut() {
+        return receiveTimeOut;
+    }
+
+    public void setReceiveTimeOut(long receiveTimeOut) {
+        this.receiveTimeOut = receiveTimeOut;
     }
 }

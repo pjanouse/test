@@ -24,7 +24,7 @@ public class PrintJournal {
     /**
      * Prints journal to output file.
      *
-     * @param container container name
+     * @param container                container name
      * @param relativePathToOutputFile relative path against $WORKSPACE
      */
     public static void printJournal(String container, String relativePathToOutputFile) {
@@ -37,39 +37,40 @@ public class PrintJournal {
                 .append(File.separator).append("messagingjournal");
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
-            throw new IllegalStateException("Working directory is null/empty.");
+            workingDirectory = new File(".").getAbsolutePath();
         }
 
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
-        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
+        printJournal("", messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
     }
+
     /**
      * Prints journal to output file
      *
      * @param messagingbindingsDirectory
      * @param messagingjournalDirectory
-     * @param outputFile file to which content of journal will be printed
+     * @param outputFile                 file to which content of journal will be printed
      */
-    public static void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) {
+    public static void printJournal(String jbossHome, String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) {
 
-        if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory))   {
-            throw new IllegalStateException("Working directory is null/empty.");
+        if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
+            workingDirectory = new File(".").getAbsolutePath();
         }
 
-        if (jbossHome == null || "".equalsIgnoreCase(jbossHome))   {
+        if (jbossHome == null || "".equalsIgnoreCase(jbossHome)) {
             throw new IllegalStateException("JBOSS_HOME is null/empty.");
         }
 
-        if (messagingbindingsDirectory == null || "".equalsIgnoreCase(messagingbindingsDirectory))   {
+        if (messagingbindingsDirectory == null || "".equalsIgnoreCase(messagingbindingsDirectory)) {
             throw new IllegalStateException("Parameter messagingbindingsDirectory is null/empty.");
         }
 
-        if (messagingjournalDirectory == null || "".equalsIgnoreCase(messagingjournalDirectory))   {
+        if (messagingjournalDirectory == null || "".equalsIgnoreCase(messagingjournalDirectory)) {
             throw new IllegalStateException("Parameter messagingjournalDirectory is null/empty.");
         }
 
-        if (outputFile == null || "".equalsIgnoreCase(workingDirectory))   {
+        if (outputFile == null || "".equalsIgnoreCase(outputFile)) {
             throw new IllegalStateException("Parameter outputFile is null/empty.");
         }
 
@@ -127,11 +128,26 @@ public class PrintJournal {
     private static String buildClasspath() {
 
         StringBuilder strbuilder = new StringBuilder();
-        strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
-        strbuilder.append(File.separator).append("hornetq").append(File.separator).append("main").append(File.separator).append("*");
-        strbuilder.append(File.pathSeparator);
-        strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
-        strbuilder.append(File.separator).append("jboss").append(File.separator).append("netty").append(File.separator).append("main").append(File.separator).append("*");
+        if (jbossHome.contains("6.0")) {
+            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
+            strbuilder.append(File.separator).append("hornetq").append(File.separator).append("main").append(File.separator).append("*");
+            strbuilder.append(File.pathSeparator);
+            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
+            strbuilder.append(File.separator).append("jboss").append(File.separator).append("netty").append(File.separator).append("main").append(File.separator).append("*");
+        } else { //modules/system/layers/base/org/hornetq/main/
+            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
+                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
+                    .append(File.separator).append("hornetq").append(File.separator).append("main").append(File.separator).append("*");
+            strbuilder.append(File.pathSeparator);
+            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
+                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
+                    .append(File.separator).append("jboss").append(File.separator).append("netty").append(File.separator).append("main").append(File.separator).append("*");
+            strbuilder.append(File.pathSeparator);
+            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
+                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
+                    .append(File.separator).append("jboss").append(File.separator).append("logging").append(File.separator).append("main").append(File.separator).append("*");
+
+        }
 
         log.debug("Classpath: " + strbuilder);
 
@@ -162,7 +178,7 @@ public class PrintJournal {
         String outputFile = "/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite/journal_output.log";
         pj.setWorkingDirectory("/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite");
         pj.setJbossHome("/home/mnovak/tmp/jboss-eap-6.0");
-        pj.printJournal(messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
+        pj.printJournal("", messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
     }
 
 }

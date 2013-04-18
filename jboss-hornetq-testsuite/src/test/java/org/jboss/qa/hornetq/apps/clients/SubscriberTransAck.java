@@ -29,7 +29,7 @@ public class SubscriberTransAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
-    private int count = 0;
+    private int counter = 0;
     private Exception exception = null;
     private String subscriberName;
     private String clientId;
@@ -110,22 +110,22 @@ public class SubscriberTransAck extends Client {
 
                 listOfReceivedMessagesToBeCommited.add(message);
 
-                count++;
+                counter++;
 
-                if (count % commitAfter == 0) { // try to ack message
+                logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
+                        + ". Received message - counter: "
+                        + counter + ", messageId:" + message.getJMSMessageID());
+
+                if (counter % commitAfter == 0) { // try to ack message
                     commitSession(session);
                     listOfReceivedMessagesToBeCommited.clear();
-                } else { // i don't want to ack now
-                    logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
-                            + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
                 }
             }
 
             commitSession(session);
 
             logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
-                    + ". Received NULL - number of received messages: " + count);
+                    + ". Received NULL - number of received messages: " + counter);
 
             if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
@@ -170,47 +170,59 @@ public class SubscriberTransAck extends Client {
 
                 // if dups_id is used then check if we got duplicates after last failed ack
                 if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
-                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
-                    if (areThereDuplicates())  {
+                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
+                    if (areThereDuplicates()) {
                         // decrease counter
                         // add just new messages
-                        listOfReceivedMessagesToBeCommited.clear();
-                        count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
+                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
+
                     } else {
-                        //listOfReceivedMessages.addAll(setOfReceivedMessagesWithPossibleDuplicates);
-                        //logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Adding messages: " +
-                         //   setOfReceivedMessagesWithPossibleDuplicates.toString());
-                        logger.info("No duplicates were found after JMSException/TransactionRollbackException.");
+                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
+                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (Message m : listOfReceivedMessagesToBeCommited) {
+                            stringBuilder.append(m.getJMSMessageID());
+                        }
+                        logger.debug("Adding messages: " + stringBuilder.toString());
                     }
                     setOfReceivedMessagesWithPossibleDuplicates.clear();
                 }
 
                 session.commit();
 
-                logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + ". Received message - count: "
-                        + count + " SENT COMMIT");
+                logger.info("Receiver for node: " + hostname + ". Received message - counter: "
+                        + counter + " SENT COMMIT");
 
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
+                StringBuilder stringBuilder = new StringBuilder();
+                for (Message m : listOfReceivedMessagesToBeCommited) {
+                    stringBuilder.append(m.getJMSMessageID());
+                }
+                logger.debug("Adding messages: " + stringBuilder.toString());
 
                 return;
 
             } catch (TransactionRolledBackException ex) {
-                logger.error(" Subscriber - name: " + getSubscriberName() + " - - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
-                        + ". Received message - count: " + count + ", retrying receive", ex);
+                logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                        + ". Received message - counter: " + counter + ", retrying receive", ex);
                 // all unacknowledge messges will be received again
-                count = count - listOfReceivedMessagesToBeCommited.size();
-
+                ex.printStackTrace();
+                counter = counter - listOfReceivedMessagesToBeCommited.size();
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
 
                 return;
 
             } catch (JMSException ex) {
-
+                // we need to know which messages we got in the first try because we need to detect possible duplicates
                 setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
 
-                logger.error(" Subscriber - name: " + getSubscriberName() + " -- JMSException thrown during commit: " + ex.getMessage() + ". Subscriber for node: " + hostname
-                        + ". Received message - count: " + count + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
+                logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                        + ". Received message - counter: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
+                ex.printStackTrace();
                 numberOfRetries++;
+            } finally {
+                // we clear this list because next time we get new or duplicated messages and we compare it with set possible duplicates
+                listOfReceivedMessagesToBeCommited.clear();
             }
         }
 
@@ -265,7 +277,7 @@ public class SubscriberTransAck extends Client {
 
             } catch (JMSException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1), ex);
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with counter: " + (counter + 1), ex);
             }
         }
 
@@ -431,6 +443,6 @@ public class SubscriberTransAck extends Client {
     }
 
     public int getCount() {
-        return count;
+        return counter;
     }
 }
