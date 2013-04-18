@@ -76,7 +76,6 @@ public class ClusterTestCase extends HornetQTestCase {
     String outTopicNameForMdb = "OutTopic";
     String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
 
-
     /**
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.

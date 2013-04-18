@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +33,15 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     private static final int RECEIVER_MAX_RETRIES = 10;
     private static final String IN_QUEUE_NAME_FOR_MDB = "InQueue";
     private static final String IN_QUEUE_JNDI_NAME_FOR_MDB = "jms/queue/" + IN_QUEUE_NAME_FOR_MDB;
+
+    /**
+     * Stops all servers
+     */
+    @Before
+    @After
+    public void stopAllServers() {
+        stopServer(CONTAINER1);
+    }
 
     @Test
     @RunAsClient
