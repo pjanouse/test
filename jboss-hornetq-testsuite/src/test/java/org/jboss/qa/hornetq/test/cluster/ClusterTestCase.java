@@ -39,6 +39,7 @@ import javax.naming.Context;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
@@ -75,7 +76,6 @@ public class ClusterTestCase extends HornetQTestCase {
     String outTopicNameForMdb = "OutTopic";
     String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
 
-
     /**
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
@@ -83,7 +83,8 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void clusterTest() throws Exception {
 
         prepareServers();
@@ -187,8 +188,6 @@ public class ClusterTestCase extends HornetQTestCase {
             session = conn.createSession(true, Session.SESSION_TRANSACTED);
 
             MessageConsumer receiver = session.createConsumer(queue);
-
-            Message message;
 
             int count = 0;
             while (count < NUMBER_OF_MESSAGES_PER_PRODUCER) {

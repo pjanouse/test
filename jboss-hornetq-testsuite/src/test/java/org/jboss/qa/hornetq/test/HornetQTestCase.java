@@ -101,6 +101,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Stops all servers
+     */
+    @Before
+    @After
+    public void stopAllServers() {
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+    }
+
+    /**
      * Takes path to jboss home dir and tries to fix it:
      * if path does not exist then try to jboss-eap-6.1, ...6.2, ...
      * @param jbossHome

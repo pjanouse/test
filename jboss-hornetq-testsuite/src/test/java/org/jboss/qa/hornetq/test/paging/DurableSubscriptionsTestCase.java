@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.JMSTools;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +34,7 @@ import static org.junit.Assert.fail;
  * @author pslavice@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class DurableSubscriptionsTestCase extends HornetQTestCase {
 
     // Logger
@@ -53,6 +56,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void normalByteMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
         testLogic(5000, 30000, 10, 10000, new ByteMessageBuilder(512), 1024 * 50, 1024 * 10);
@@ -65,6 +70,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void normalTextMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
         testLogic(5000, 30000, 10, 10000, new TextMessageBuilder(512), 1024 * 50, 1024 * 10);
@@ -77,6 +84,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void largeByteMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
         testLogic(500, 5000, 10, 10000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
@@ -89,6 +98,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void largeTextMessagesTest() throws InterruptedException {
         deleteDataFolderForJBoss1();
         testLogic(500, 5000, 10, 10000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);

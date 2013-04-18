@@ -3,6 +3,8 @@ package org.jboss.qa.hornetq.test.cluster;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.runner.RunWith;
 
 
@@ -17,6 +19,7 @@ import org.junit.runner.RunWith;
  * @author nziakova@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class JGroupsClusterTestCase extends ClusterTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);

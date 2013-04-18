@@ -14,7 +14,9 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.SimpleProxyServer;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -40,6 +42,7 @@ import static junit.framework.Assert.assertTrue;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class TransferOverBridgeTestCase extends HornetQTestCase {
 
     // Logger
@@ -64,9 +67,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void normalMessagesNetworkDisconnectionTest() throws Exception {
-        testNetworkProblems(new ByteMessageBuilder(30), null);
+        testNetworkProblems(new ByteMessageBuilder(30));
     }
 
     /**
@@ -76,9 +80,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void largeByteMessagesNetworkDisconnectionTest() throws Exception {
-        testNetworkProblems(new ByteMessageBuilder(1024 * 1024), null);
+        testNetworkProblems(new ByteMessageBuilder(1024 * 1024));
     }
 
     /**
@@ -88,7 +93,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void normalMessagesTest() throws InterruptedException {
         testLogic(10, new ByteMessageBuilder(30), null);
     }
@@ -100,7 +106,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void largeByteMessagesTest() throws InterruptedException {
         testLogic(10, new ByteMessageBuilder(1024 * 1024), null);
     }
@@ -112,7 +119,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void largeTextMessagesTest() throws InterruptedException {
         final int SIZE = 1024;
         testLogic(10, new TextMessageBuilder(SIZE), new MessageVerifier() {
@@ -131,7 +139,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void startTargetServerLaterTest() throws InterruptedException {
         testLogicForTargetServerLaterStart(null);
     }
@@ -143,7 +152,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void startTargetServerLaterWithLargeMessagesTest() throws InterruptedException {
         testLogicForTargetServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
     }
@@ -155,7 +165,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void startSourceServerLaterTest() throws InterruptedException {
         testLogicForSourceServerLaterStart(null);
     }
@@ -167,7 +178,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void startSourceServerLaterWithLargeMessagesTest() throws InterruptedException {
         testLogicForSourceServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
     }
@@ -197,8 +209,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                                     "createCounter(\"counter\");" +
                                     "killJVM();")
             })
-    @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void killSourceServerTest() throws InterruptedException {
         testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, null);
     }
@@ -227,8 +239,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
                                     "killJVM();")
             })
-    @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void killTargetServerTest() throws InterruptedException {
         testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, null);
     }
@@ -259,8 +271,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                                     "createCounter(\"counter\");" +
                                     "killJVM();")
             })
-    @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void killSourceServerWithLargeMessagesTest() throws InterruptedException {
         testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
@@ -290,7 +302,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
                                     "killJVM();")
             })
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void killTargetServerWithLargeMessagesTest() throws InterruptedException {
         testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
@@ -381,9 +394,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Implementation of the basic test scenario. Test network outage.
      *
      * @param messageBuilder  instance of the message builder
-     * @param messageVerifier instance of the messages verifier
      */
-    private void testNetworkProblems(MessageBuilder messageBuilder, MessageVerifier messageVerifier) throws Exception {
+    private void testNetworkProblems(MessageBuilder messageBuilder) throws Exception {
         final String TEST_QUEUE_IN = "dummyQueueIn0";
         final String TEST_QUEUE_IN_JNDI_PREFIX = "jms/queue/dummyQueueIn";
         final String TEST_QUEUE_IN_JNDI = TEST_QUEUE_IN_JNDI_PREFIX + "0";
@@ -441,7 +453,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         clients.setQueueJndiNamePrefixProducers(TEST_QUEUE_IN_JNDI_PREFIX);
         clients.setHostnameForConsumers(CONTAINER2_IP);
         clients.setQueueJndiNamePrefixConsumers(TEST_QUEUE_OUT_JNDI_PREFIX);
-
+        clients.setMessageBuilder(messageBuilder);
         clients.startClients();
         log.info("Start producer and consumer.");
         Thread.sleep(10000);
