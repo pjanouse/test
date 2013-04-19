@@ -328,10 +328,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
                 StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
                 for (Thread t : mst.keySet()) {
-                    stacks.append("Stack trace of thread: " + t.toString() + "\n");
+                    stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
                     StackTraceElement[] elements = mst.get(t);
                     for (StackTraceElement e : elements) {
-                        stacks.append("---" + e + "\n");
+                        stacks.append("---").append(e).append("\n");
                     }
                     stacks.append("---------------------------------------------\n");
                 }

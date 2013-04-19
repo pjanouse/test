@@ -197,7 +197,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) throws IOException {
+    private void prepareJmsServer(String containerName, String bindingAddress) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -285,7 +285,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";

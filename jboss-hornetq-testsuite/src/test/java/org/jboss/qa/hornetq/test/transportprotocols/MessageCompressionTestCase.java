@@ -26,7 +26,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(MessageCompressionTestCase.class);
 
-    private final int NUMBER_OF_MESSAGES_PER_PRODUCER = 200;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 200;
 
     String queueName = "testQueue";
     String queueJndiName = "jms/queue/testQueue";

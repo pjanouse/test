@@ -270,7 +270,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) throws IOException {
+    protected void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -312,7 +312,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
-        List<String> connectorList = new ArrayList();
+        List<String> connectorList = new ArrayList<String>();
         connectorList.add(remoteConnectorName);
         connectorList.add(remoteConnectorNameBackup);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
