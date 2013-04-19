@@ -267,7 +267,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param containerName    Name of the container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) throws IOException {
+    private void prepareJmsServer(String containerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -305,7 +305,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) throws IOException {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";

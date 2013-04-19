@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import javax.jms.Session;
 
 /**
- *
  * Test compatibility of EAP 5.1.2 clients against EAP 6 server.
  *
  * @author mnovak@redhat.com
@@ -32,12 +31,12 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
 
-    private static final String JOURNAL_DIR = JOURNAL_DIRECTORY_A;
+    private static final String QUEUE_NAME_PREFIX = "testQueue";
+    private static final String TOPIC_NAME_PREFIX = "testTopic";
+    private static final String QUEUE_JNDI_NAME_PREFIX = "jms/queue/testQueue";
+    private static final String TOPIC_JNDI_NAME_PREFIX = "jms/topic/testTopic";
 
-    private String queueNamePrefix = "testQueue";
-    private String topicNamePrefix = "testTopic";
-    private String queueJndiNamePrefix = "jms/queue/testQueue";
-    private String topicJndiNamePrefix = "jms/topic/testTopic";
+    private static final String JOURNAL_DIR = JOURNAL_DIRECTORY_A;
 
     public enum DestinationType {
         QUEUE, TOPIC
@@ -53,7 +52,7 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
 
-        if (isEAP6())   {
+        if (isEAP6()) {
             controller.start(CONTAINER1);
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
@@ -126,8 +125,8 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
     private void deployDestinations() {
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + destinationNumber, queueJndiNamePrefix + destinationNumber, true);
-            jmsAdminOperations.createTopic(topicNamePrefix + destinationNumber, topicJndiNamePrefix + destinationNumber);
+            jmsAdminOperations.createQueue(QUEUE_NAME_PREFIX + destinationNumber, QUEUE_JNDI_NAME_PREFIX + destinationNumber, true);
+            jmsAdminOperations.createTopic(TOPIC_NAME_PREFIX + destinationNumber, TOPIC_JNDI_NAME_PREFIX + destinationNumber);
         }
         jmsAdminOperations.close();
     }
@@ -141,21 +140,21 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
 
         if (dest == DestinationType.TOPIC) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -166,15 +165,15 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
 
     private void testClient(int acknowledgeMode, DestinationType destination) throws Exception {
 
-            Clients client = createClient(acknowledgeMode, destination);
-            client.startClients();
+        Clients client = createClient(acknowledgeMode, destination);
+        client.startClients();
 
-            while (!client.isFinished()) {
-                log.info("Waiting for client " + client + " to finish.");
-                Thread.sleep(1500);
-            }
+        while (!client.isFinished()) {
+            log.info("Waiting for client " + client + " to finish.");
+            Thread.sleep(1500);
+        }
 
-            Assert.assertTrue("There are failures detected by clients. More information in log.", client.evaluateResults());
+        Assert.assertTrue("There are failures detected by clients. More information in log.", client.evaluateResults());
     }
 
     @Test
@@ -214,7 +213,7 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
     @Test
     @RunAsClient
     @InSequence(2)
-    public void testClientAckTopic() throws     Exception {
+    public void testClientAckTopic() throws Exception {
         testClient(Session.CLIENT_ACKNOWLEDGE, DestinationType.TOPIC);
     }
 
@@ -224,7 +223,6 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
     public void testTransAckTopic() throws Exception {
         testClient(Session.SESSION_TRANSACTED, DestinationType.TOPIC);
     }
-
 
 
     @Test

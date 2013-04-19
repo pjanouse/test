@@ -143,7 +143,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName, boolean preferFactoryRef) throws IOException {
+    private void prepareServer(String containerName, boolean preferFactoryRef) {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
 

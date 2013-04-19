@@ -158,7 +158,9 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
                 Assert.fail("This should pass. User 'user' should have permission to delete non-durable queue.");
             }
         } finally {
-            user.close();
+            if (user != null) {
+                user.close();
+            }
         }
 
         stopServer(CONTAINER1);
@@ -216,7 +218,9 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
 
         } finally {
-            admin.close();
+            if (admin != null) {
+                admin.close();
+            }
         }
 
         stopServer(CONTAINER1);
@@ -337,7 +341,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
      * Deploys destinations to server which is currently running.
      *
      * @param containerName container name
-     * @param serverName server name of the hornetq server
+     * @param serverName    server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {
 

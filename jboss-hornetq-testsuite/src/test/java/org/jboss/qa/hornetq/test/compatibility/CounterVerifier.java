@@ -45,7 +45,7 @@ class CounterVerifier  {
     }
 
 
-    public boolean verifyMessages() throws JMSException {
+    public boolean verifyMessages() {
         log.info(String.format("Number of messages which were sent: %d, number of received messages: %d.",
                 counterSentMsgs, counterReceivedMsgs));
         return counterSentMsgs != 0 && counterReceivedMsgs == counterSentMsgs;

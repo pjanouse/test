@@ -7,6 +7,8 @@ import javax.transaction.xa.XAResource;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Byteman Helper which put result of getXAResources to the test. Used in XARecoveryConfigTestCase.
@@ -53,7 +55,7 @@ public class XARecoveryConfigHelper extends Helper {
             writer.println(resources.toString());
             writer.close();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            Logger.getLogger(XARecoveryConfigHelper.class.getName()).log(Level.SEVERE, e.getMessage());
         }
     }
 }

@@ -57,7 +57,7 @@ public class HttpRequest {
         }
     }
 
-    public static String get(final String spec, final long timeout, final TimeUnit unit) throws IOException, ExecutionException, TimeoutException {
+    public static String get(final String spec, final long timeout, final TimeUnit unit) throws IOException, TimeoutException {
         final URL url = new URL(spec);
         Callable<String> task = new Callable<String>() {
             @Override
@@ -82,7 +82,7 @@ public class HttpRequest {
      * @throws ExecutionException
      * @throws TimeoutException
      */
-    public static String get(final String spec, final long waitUntilAvailableMs, final long responseTimeout, final TimeUnit responseTimeoutUnit) throws IOException, ExecutionException, TimeoutException {
+    public static String get(final String spec, final long waitUntilAvailableMs, final long responseTimeout, final TimeUnit responseTimeoutUnit) throws IOException, TimeoutException {
         final URL url = new URL(spec);
         Callable<String> task = new Callable<String>() {
             @Override
@@ -171,7 +171,7 @@ public class HttpRequest {
      * @throws ExecutionException
      * @throws TimeoutException
      */
-    private static String execRequestMethod(final String spec, final String message, final long timeout, final TimeUnit unit, final String requestMethod) throws MalformedURLException, ExecutionException, TimeoutException {
+    private static String execRequestMethod(final String spec, final String message, final long timeout, final TimeUnit unit, final String requestMethod) throws MalformedURLException, TimeoutException {
 
         if (requestMethod == null || requestMethod.isEmpty()) {
             throw new IllegalArgumentException("Request Method must be specified (ie. GET, PUT, DELETE etc)");
