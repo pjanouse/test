@@ -603,7 +603,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckTopicOnShutdownProducers() throws Exception {
-        testFailoverWithProducers(Session.SESSION_TRANSACTED, true, true, true);
+        testFailoverWithProducers(Session.SESSION_TRANSACTED, false, true, true);
     }
 
 

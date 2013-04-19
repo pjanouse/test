@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -24,7 +23,7 @@ import java.util.Map;
 public class ProducerClientAck extends Client {
 
     private static final Logger logger = Logger.getLogger(ProducerClientAck.class);
-    private int maxRetries = 1000;
+    private int maxRetries = 10000;
     private String hostname = "localhost";
     private int port = 4447;
     private String queueNameJndi = "jms/queue/testQueue0";
@@ -292,10 +291,10 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("10.34.3.219", 4447, "jms/queue/testQueue0", 200);
+        ProducerClientAck producer = new ProducerClientAck("10.34.3.189", 4447, "jms/queue/testQueue0", 2000);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
-        MessageBuilder builder = new ClientMixMessageBuilder(1, 10);
+        MessageBuilder builder = new TextMessageBuilder(10);
         builder.setAddDuplicatedHeader(true);
         producer.setMessageBuilder(builder);
         producer.start();

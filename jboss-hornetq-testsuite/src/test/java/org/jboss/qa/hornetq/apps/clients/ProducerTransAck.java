@@ -142,6 +142,25 @@ public class ProducerTransAck extends Client {
 
             commitSession(session);
 
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Message m : listOfMessagesToBeCommited) {
+                stringBuilder.append(m.getJMSMessageID());
+            }
+            logger.debug("Adding messages: " + stringBuilder.toString());
+            for (Message m : listOfMessagesToBeCommited)    {
+                m = cleanMessage(m);
+                addMessage(listOfSentMessages,m);
+            }
+//                    StringBuilder stringBuilder2 = new StringBuilder();
+//                    for (Map<String,String> m : listOfSentMessages) {
+//                        stringBuilder2.append("messageId: " + m.get("messageId") + "dupId: " + m.get("_HQ_DUPL_ID") + "##");
+//                    }
+//                    logger.debug("List of sent messages: " + stringBuilder2.toString());
+//                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
+            logger.info("COMMIT - session was commited. Last message with property count: " + count
+                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+            listOfMessagesToBeCommited.clear();
+
             producer.close();
 
             if (messageVerifier != null)    {
@@ -301,5 +320,12 @@ public class ProducerTransAck extends Client {
 
     public void setQueueNameJndi(String queueNameJndi) {
         this.queueNameJndi = queueNameJndi;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+
+        ProducerTransAck producer = new ProducerTransAck("10.34.3.189", 4447, "jms/queue/testQueue0", 2000);
+
+
     }
 }
