@@ -8,7 +8,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -49,6 +49,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
+
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -243,7 +245,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         ProducerTransAck p = new ProducerTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
         p.setMessageVerifier(queueTextMessageVerifier);
-        MessageBuilder messageBuilder = new TextMessageBuilder(20);
+//        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);
         p.setCommitAfter(2);
         p.start();
@@ -453,7 +455,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
+//            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
 //            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
 //            MessageBuilder messageBuilder = new MixMessageBuilder(200);
             messageBuilder.setAddDuplicatedHeader(true);

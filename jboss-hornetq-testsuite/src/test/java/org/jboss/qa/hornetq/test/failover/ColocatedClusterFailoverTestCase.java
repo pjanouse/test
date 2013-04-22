@@ -7,7 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -41,6 +41,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
+
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -96,12 +98,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         // give some time for servers to find each other
         Thread.sleep(10000);
 
-        MessageBuilder builder = new TextMessageBuilder(30 * 1024);
-//        MessageBuilder builder = new ClientMixMessageBuilder(50, 50);
+        messageBuilder.setAddDuplicatedHeader(true);
 
-        builder.setAddDuplicatedHeader(true);
-
-        Clients clients = createClients(acknowledge, topic, builder);
+        Clients clients = createClients(acknowledge, topic, messageBuilder);
 
         clients.setProducedMessagesCommitAfter(10);
 
