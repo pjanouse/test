@@ -123,6 +123,9 @@ public class ReceiverTransAck extends Client {
 
             Message message = null;
 
+            logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                    + " was started.");
+
             while ((message = receiveMessage(receiver)) != null) {
 
                 listOfReceivedMessagesToBeCommited.add(message);
@@ -131,7 +134,8 @@ public class ReceiverTransAck extends Client {
 
                 logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                         + ". Received message - count: "
-                        + counter + ", messageId:" + message.getJMSMessageID());
+                        + counter + ", messageId:" + message.getJMSMessageID()
+                        + " dupId: " + message.getStringProperty("_HQ_DUPL_ID"));
 
                 if (counter % commitAfter == 0) { // try to ack message
 
@@ -215,7 +219,7 @@ public class ReceiverTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append(m.getJMSMessageID());
+                    stringBuilder.append("messageId: " + m.getJMSMessageID() + " dupId: " + m.getStringProperty("_HQ_DUPL_ID" + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -403,7 +407,7 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.189", 4447, "jms/queue/testQueue0", 3000, 1, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("10.34.3.125", 4447, "jms/queue/testQueue0", 300000, 1, 10);
 
         receiver.start();
 
