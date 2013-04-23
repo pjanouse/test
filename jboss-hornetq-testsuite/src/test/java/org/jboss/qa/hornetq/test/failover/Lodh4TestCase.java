@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +47,6 @@ public class Lodh4TestCase extends HornetQTestCase {
     private String relativeJndiInQueueName = "queue/InQueue";
     private String hornetqOutQueueName = "OutQueue";
     private String relativeJndiOutQueueName = "queue/OutQueue";
-    private static boolean topologyCreated = false;
 
     /**
      * Stops all servers
@@ -54,6 +54,17 @@ public class Lodh4TestCase extends HornetQTestCase {
     @Before
     public void stopAllServers() {
         prepareServers();
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
+    }
+
+    /**
+     * Stops all servers
+     */
+    @After
+    public void stopAllServerAfterTest() {
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
@@ -156,9 +167,7 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages        number of messages used for the test
-     * @param messageBuilder  instance of the message builder
-     * @param messageVerifier instance of the messages verifier
+     * @param messageBuilder instance of the message builder
      */
     private void testLogic(MessageBuilder messageBuilder) throws Exception {
         List<String> killSequence = new ArrayList<String>();
@@ -174,9 +183,7 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages        number of messages used for the test
-     * @param messageBuilder  instance of the message builder
-     * @param messageVerifier instance of the messages verifier
+     * @param messageBuilder instance of the message builder
      */
     private void testLogic(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
 
@@ -189,13 +196,13 @@ public class Lodh4TestCase extends HornetQTestCase {
         Thread.sleep(3000);
 
         QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
-        		CONTAINER1_IP, 
-        		getJNDIPort(), 
-        		relativeJndiInQueueName, 
-        		NUMBER_OF_DESTINATIONS_BRIDGES, 
-        		1, 
-        		1, 
-        		NUMBER_OF_MESSAGES_PER_PRODUCER);
+                CONTAINER1_IP,
+                getJNDIPort(),
+                relativeJndiInQueueName,
+                NUMBER_OF_DESTINATIONS_BRIDGES,
+                1,
+                1,
+                NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
@@ -205,7 +212,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        executeNodeFaillSequence(killSequence, 20000, shutdown);
+        executeNodeFailSequence(killSequence, 20000, shutdown);
 
         clientsA1.stopClients();
 
@@ -228,9 +235,9 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      *
-     * @param messages        number of messages used for the test
-     * @param messageBuilder  instance of the message builder
-     * @param messageVerifier instance of the messages verifier
+     * @param messageBuilder instance of the message builder
+     * @param killSequence   kill sequence for servers
+     * @param shutdown       clean shutdown?
      */
     private void testLogicLargeMessages(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
 
@@ -253,7 +260,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         // Wait to send and receive some messages
         Thread.sleep(30 * 1000);
 
-        executeNodeFaillSequence(killSequence, 20000, shutdown);
+        executeNodeFailSequence(killSequence, 20000, shutdown);
 
         producer1.stopSending();
         producer1.join();
@@ -279,7 +286,7 @@ public class Lodh4TestCase extends HornetQTestCase {
      * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
-    private void executeNodeFaillSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
+    private void executeNodeFailSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
 
         if (shutdown) {
             for (String containerName : failSequence) {
@@ -448,7 +455,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -458,14 +465,8 @@ public class Lodh4TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param hostname              ip address where to bind to management interface
-     * @param port                  port of management interface - it should be 9999
-     * @param serverName            server name of the hornetq server
-     * @param hornetqQueueName      name of hornetq queue e.g. 'testQueue'
-     * @param relativeJndiQueueName relativeJndiName e.g. 'queue/testQueueX' ->
-     *                              will create "java:jboss/exported/queue/testQueueX" and
-     *                              "java:/queue/testQueue" jndi bindings
-     * @param numberOfQueues        number of queue with the given queue name prefix
+     * @param serverName     server name of the hornetq server
+     * @param numberOfQueues number of queue with the given queue name prefix
      */
     private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
                                     String relativeJndiQueueNamePrefix, int numberOfQueues) {
