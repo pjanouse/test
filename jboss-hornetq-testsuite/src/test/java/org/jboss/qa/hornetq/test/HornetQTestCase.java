@@ -113,12 +113,15 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Takes path to jboss home dir and tries to fix it:
      * if path does not exist then try to jboss-eap-6.1, ...6.2, ...
+     *
      * @param jbossHome
      */
     private static String verifyJbossHome(String jbossHome) {
+        if (jbossHome == null) {
+            throw new RuntimeException("JBossHome is null, please setup correct JBOSS_HOME");
+        }
         File jbossHomeDir = new File(jbossHome);
-
-        if (!jbossHomeDir.exists())  {
+        if (!jbossHomeDir.exists()) {
             jbossHomeDir = new File(jbossHomeDir.getAbsolutePath().replace("jboss-eap-6.0", "jboss-eap-6.1"));
         }
         return jbossHomeDir.getAbsolutePath();
@@ -180,7 +183,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws NamingException if something goes wrong
      */
     private Context getEAP6Context(String hostName, int port) throws NamingException {
-        return  JMSTools.getEAP6Context(hostName, port);
+        return JMSTools.getEAP6Context(hostName, port);
     }
 
     /**
@@ -192,7 +195,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws NamingException if something goes wrong
      */
     private Context getEAP5Context(String hostName, int port) throws NamingException {
-        return  JMSTools.getEAP5Context(hostName, port);
+        return JMSTools.getEAP5Context(hostName, port);
     }
 
     /**
@@ -679,12 +682,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     @Before
-    public void printTestMethodNameStart()   {
+    public void printTestMethodNameStart() {
         // keep this empty - this is just for arquillian extension to print start of the test
     }
 
     @After
-    public void printTestMethodNameStop()   {
+    public void printTestMethodNameStop() {
         // keep this empty - this is just for arquillian extension to print stop of the test
     }
 
