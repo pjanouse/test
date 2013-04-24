@@ -113,7 +113,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         waitForReceiversUntil(clients.getConsumers(), 120, 300000);
 
         logger.info("########################################");
-        logger.info("kill - live server");
+        logger.info("kill - first server");
         logger.info("########################################");
         if (shutdown)   {
             controller.stop(CONTAINER1);
@@ -127,15 +127,16 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //        Thread.sleep(30000); // give some time for clients to failover
 
         waitForReceiversUntil(clients.getConsumers(), 500, 300000);
+        Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5446, 300000));
 
         if (failback) {
             logger.info("########################################");
-            logger.info("failback - Start live server again ");
+            logger.info("failback - Start first server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(60000); // give it some time
+            Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
             logger.info("########################################");
-            logger.info("failback - Stop backup server");
+            logger.info("failback - Stop second server to be sure that failback occurred");
             logger.info("########################################");
             stopServer(CONTAINER2);
             Thread.sleep(20000); // give some time to clients to do failback
@@ -154,6 +155,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                 for (Client c : clients.getConsumers()) {
                     c.interrupt();
                 }
+                break;
             }
         }
 

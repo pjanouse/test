@@ -25,9 +25,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 
@@ -345,41 +342,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 Assert.fail("Clients did not stop in 10 minutes. Failling the test and trying to kill them all. Print all stacktraces:" + stacks);
             }
         }
-    }
-
-    /**
-     * Returns true if something is listenning on server
-     *
-     * @param ipAddress
-     * @param port
-     */
-    boolean checkThatServerIsReallyUp(String ipAddress, int port) {
-        Socket socket = null;
-        try {
-            socket = new Socket();
-            socket.connect(new InetSocketAddress(ipAddress, port), 100);
-            return true;
-        } catch (Exception ex) {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Ping the given port until true
-     */
-    boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
-            Thread.sleep(1000);
-        }
-        return checkThatServerIsReallyUp(ipAddress, port);
     }
 
     protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
