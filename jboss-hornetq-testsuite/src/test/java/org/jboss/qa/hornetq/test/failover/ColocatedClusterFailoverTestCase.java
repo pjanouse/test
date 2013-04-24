@@ -7,7 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -42,7 +42,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
-    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
+//    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
+    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent

@@ -51,7 +51,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
 //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(1000,1000);
-    MessageBuilder messageBuilder = new TextMessageBuilder(200 * 1024);
+    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
