@@ -39,7 +39,7 @@ import java.util.*;
  */
 @RestoreConfigBeforeTest
 @RunWith(Arquillian.class)
-    public class Lodh2TestCase extends HornetQTestCase {
+public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
@@ -313,14 +313,14 @@ import java.util.*;
             Thread.sleep(5000);
         }
 
-        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER,  "clientId-myPublisher");
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10,100);
+        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
         producer1.start();
 
         // deploy mdbs
-        if (isDurable)  {
+        if (isDurable) {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
@@ -343,7 +343,7 @@ import java.util.*;
         logger.info("Number of received messages: " + (receiver1.getCount()
                 + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
 
-        if (isDurable)  {
+        if (isDurable) {
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getMessages(), receiver1.getCount());
             Assert.assertTrue("Receivers did not get any messages.",
@@ -357,7 +357,6 @@ import java.util.*;
                     receiver1.getCount() > 0);
             deployer.undeploy("nonDurableMdbOnTopic");
         }
-
 
 
         stopServer(CONTAINER2);
@@ -384,7 +383,7 @@ import java.util.*;
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(1,100);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(1, 100);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
         producer1.start();
@@ -465,7 +464,7 @@ import java.util.*;
     /**
      * Executes kill sequence.
      *
-     * @param failureSequence     map Contanier -> ContainerIP
+     * @param failureSequence  map Contanier -> ContainerIP
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
     private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {
@@ -496,18 +495,14 @@ import java.util.*;
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
-     * @throws Exception
      */
     @Before
     @After
-    public void stopAllServers()  {
-
+    public void stopAllServers() {
         stopServer(CONTAINER2);
         stopServer(CONTAINER4);
         stopServer(CONTAINER1);
         stopServer(CONTAINER3);
-
     }
 
     /**
@@ -517,15 +512,15 @@ import java.util.*;
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
-            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
+        prepareJmsServer(CONTAINER1, CONTAINER1_IP);
+        prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
 
-            prepareJmsServer(CONTAINER3, CONTAINER3_IP);
-            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+        prepareJmsServer(CONTAINER3, CONTAINER3_IP);
+        prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
 
-            if (isEAP6())   {
-                copyApplicationPropertiesFiles();
-            }
+        if (isEAP6()) {
+            copyApplicationPropertiesFiles();
+        }
     }
 
     /**

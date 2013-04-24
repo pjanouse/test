@@ -46,7 +46,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     /**
      * This mdb reads messages from remote InQueue
      *
-     * @return
+     * @return test artifact with MDBs
      */
     @Deployment(managed = false, testable = false, name = "mdbToDb")
     @TargetsContainer(CONTAINER1)
@@ -107,7 +107,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
-        for (Map<String,String> m : producer.getListOfSentMessages()) {
+        for (Map<String, String> m : producer.getListOfSentMessages()) {
             listOfSentMessages.add(m.get("messageId"));
         }
         List<String> lostMessages = checkLostMessages(listOfSentMessages, printAll());
@@ -142,16 +142,11 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     /**
      * Be sure that both of the servers are stopped before and after the test.
-     * Delete also the journal directory.
-     *
-     * @throws Exception
      */
     @Before
     @After
     public void stopAllServers() {
-
         stopServer(CONTAINER1);
-
     }
 
     /**
@@ -237,7 +232,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             File mysqlModuleDir = new File("src/test/resources/com/mysql");
             logger.info("source: " + mysqlModuleDir.getAbsolutePath());
             File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules"
-                    + File.separator  + "system" + File.separator + "layers" + File.separator + "base" + File.separator
+                    + File.separator + "system" + File.separator + "layers" + File.separator + "base" + File.separator
                     + "com" + File.separator + "mysql");
             logger.info("target: " + targetDir.getAbsolutePath());
             copyFolder(mysqlModuleDir, targetDir);

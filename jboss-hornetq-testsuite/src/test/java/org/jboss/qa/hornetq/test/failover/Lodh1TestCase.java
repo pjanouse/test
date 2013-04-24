@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,6 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
-    //private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -152,7 +150,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         }
 
         // executeNodeFaillSequence(killSequence, 60000, shutdown);
-        executeNodeFaillSequence(killSequence, 60000, shutdown); 
+        executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
         // SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
@@ -166,9 +164,9 @@ public class Lodh1TestCase extends HornetQTestCase {
         List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
         Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
         for (String dupId : lostMessages) {
-        	logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
+            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
         }
-        
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
                 receiver1.getCount());
@@ -204,23 +202,23 @@ public class Lodh1TestCase extends HornetQTestCase {
         if (shutdown) {
             for (String containerName : failSequence) {
                 Thread.sleep(timeBetweenFails);
-                
+
                 printQueuesCount();
-                
+
                 logger.info("Shutdown server: " + containerName);
-                
+
                 controller.stop(containerName);
                 Thread.sleep(3000);
                 logger.info("Start server: " + containerName);
                 controller.start(containerName);
                 logger.info("Server: " + containerName + " -- STARTED");
-                
+
                 printQueuesCount();
             }
         } else {
             for (String containerName : failSequence) {
                 Thread.sleep(timeBetweenFails);
-                
+
                 printQueuesCount();
 
                 killServer(containerName);
@@ -229,38 +227,31 @@ public class Lodh1TestCase extends HornetQTestCase {
                 logger.info("Start server: " + containerName);
                 controller.start(containerName);
                 logger.info("Server: " + containerName + " -- STARTED");
-                
+
                 printQueuesCount();
             }
         }
     }
-    
-    private void printQueuesCount()
-    {
+
+    private void printQueuesCount() {
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         logger.info("=============Queues status====================");
-    	logger.info("Messages on ["+ inQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(inQueueName));
-    	logger.info("Messages on ["+ outQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(outQueueName));
-    	logger.info("==============================================");
-    	jmsAdminOperations.close();
+        logger.info("Messages on [" + inQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(inQueueName));
+        logger.info("Messages on [" + outQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(outQueueName));
+        logger.info("==============================================");
+        jmsAdminOperations.close();
     }
 
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
-     * @throws Exception
      */
     @Before
     @After
-    public void stopAllServers()  {
-
+    public void stopAllServers() {
         stopServer(CONTAINER1);
-
         stopServer(CONTAINER2);
-
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
-
     }
 
     /**
@@ -293,7 +284,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 *1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
 
         try {
             jmsAdminOperations.removeQueue(inQueueName);
