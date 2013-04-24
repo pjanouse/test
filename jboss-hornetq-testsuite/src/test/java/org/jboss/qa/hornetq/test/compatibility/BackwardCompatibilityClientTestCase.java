@@ -5,12 +5,13 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.junit.InSequence;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,6 +24,7 @@ import javax.jms.Session;
  * @author ochaloup@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
     private static final Logger log = Logger.getLogger(BackwardCompatibilityClientTestCase.class);
 
@@ -85,6 +87,8 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
             deployDestinations();
             jmsAdminOperations.close();
 
+            stopServer(CONTAINER1);
+
         } else {
 
             String groupAddress = "233.4.66.88";
@@ -113,8 +117,6 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
             jmsAdminOperations.close();
-
-            controller.start(CONTAINER1);
 
         }
     }
@@ -160,82 +162,73 @@ public class BackwardCompatibilityClientTestCase extends HornetQTestCase {
             }
         }
 
+        clients.setMessageBuilder(new ClientMixMessageBuilder(10,200));
+
         return clients;
     }
 
     private void testClient(int acknowledgeMode, DestinationType destination) throws Exception {
 
+        doPreparingOfServer();
+
+        controller.start(CONTAINER1);
+
         Clients client = createClient(acknowledgeMode, destination);
         client.startClients();
 
-        while (!client.isFinished()) {
+        long startTime = System.currentTimeMillis();
+
+        while (!client.isFinished() && System.currentTimeMillis() - startTime < 300000) {
             log.info("Waiting for client " + client + " to finish.");
             Thread.sleep(1500);
         }
+
+        stopServer(CONTAINER1);
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", client.evaluateResults());
     }
 
     @Test
-    @InSequence(1)
-    public void prepareServer() {
-        doPreparingOfServer();
-    }
-
-    @Test
     @RunAsClient
-    @InSequence(2)
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testAutoAckQueue() throws Exception {
         testClient(Session.AUTO_ACKNOWLEDGE, DestinationType.QUEUE);
     }
 
     @Test
     @RunAsClient
-    @InSequence(2)
-    public void testAckQueue() throws Exception {
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest    public void testAckQueue() throws Exception {
         testClient(Session.CLIENT_ACKNOWLEDGE, DestinationType.QUEUE);
     }
 
     @Test
     @RunAsClient
-    @InSequence(2)
-    public void testTransAckQueue() throws Exception {
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest    public void testTransAckQueue() throws Exception {
         testClient(Session.SESSION_TRANSACTED, DestinationType.QUEUE);
     }
 
     @Test
     @RunAsClient
-    @InSequence(2)
-    public void testAutoAckTopic() throws Exception {
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest    public void testAutoAckTopic() throws Exception {
         testClient(Session.AUTO_ACKNOWLEDGE, DestinationType.TOPIC);
     }
 
     @Test
     @RunAsClient
-    @InSequence(2)
-    public void testClientAckTopic() throws Exception {
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest    public void testClientAckTopic() throws Exception {
         testClient(Session.CLIENT_ACKNOWLEDGE, DestinationType.TOPIC);
     }
 
     @Test
     @RunAsClient
-    @InSequence(2)
-    public void testTransAckTopic() throws Exception {
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest    public void testTransAckTopic() throws Exception {
         testClient(Session.SESSION_TRANSACTED, DestinationType.TOPIC);
     }
 
-
-    @Test
-    @InSequence(100)
-    @CleanUpAfterTest
-    //@RestoreConfigAfterTest
-    public void cleanServers() {
-        // just waiting for clean up after tests
-    }
-
-    @Test
-    @InSequence(101)
-    public void stopServer() {
-        stopServer(CONTAINER1);
-    }
 }

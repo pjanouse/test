@@ -25,6 +25,9 @@ import org.junit.Before;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -640,6 +643,46 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             }
         }
         return "localhost";
+    }
+
+    /**
+     * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
+     * For example after failover/failback.
+     *
+     * @param ipAddress
+     * @param port
+     * @param  timeout
+     */
+    public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
+            Thread.sleep(1000);
+        }
+        return checkThatServerIsReallyUp(ipAddress, port);
+    }
+
+    /**
+     * Returns true if something is listenning on server
+     *
+     * @param ipAddress
+     * @param port
+     */
+    boolean checkThatServerIsReallyUp(String ipAddress, int port) {
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(ipAddress, port), 100);
+            return true;
+        } catch (Exception ex) {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        }
     }
 
     /**

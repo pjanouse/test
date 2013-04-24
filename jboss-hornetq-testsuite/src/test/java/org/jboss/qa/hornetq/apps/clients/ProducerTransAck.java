@@ -6,11 +6,12 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
-import javax.jms.Queue;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ProducerTransAck extends Client {
 
@@ -87,13 +88,9 @@ public class ProducerTransAck extends Client {
 
         try {
 
-            final Properties env = new Properties();
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
+            context = getContext(hostname, port);
 
-            context = new InitialContext(env);
-
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 
@@ -324,7 +321,10 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck("10.34.3.189", 4447, "jms/queue/testQueue0", 2000);
+        ProducerTransAck producer = new ProducerTransAck("127.0.0.1", 4447, "jms/queue/testQueue0", 2000);
+        producer.setMessageBuilder(new TextMessageBuilder(1024));
+        producer.start();
+        producer.join();
 
 
     }

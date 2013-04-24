@@ -25,9 +25,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +46,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
+
+//    MessageBuilder messageBuilder = new ClientMixMessageBuilder(1000,1000);
+    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -243,7 +243,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         ProducerTransAck p = new ProducerTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
         p.setMessageVerifier(queueTextMessageVerifier);
-        MessageBuilder messageBuilder = new TextMessageBuilder(20);
+//        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);
         p.setCommitAfter(2);
         p.start();
@@ -344,41 +344,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
     }
 
-    /**
-     * Returns true if something is listenning on server
-     *
-     * @param ipAddress
-     * @param port
-     */
-    boolean checkThatServerIsReallyUp(String ipAddress, int port) {
-        Socket socket = null;
-        try {
-            socket = new Socket();
-            socket.connect(new InetSocketAddress(ipAddress, port), 100);
-            return true;
-        } catch (Exception ex) {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Ping the given port until true
-     */
-    boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
-            Thread.sleep(1000);
-        }
-        return checkThatServerIsReallyUp(ipAddress, port);
-    }
-
     protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
@@ -453,7 +418,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
+//            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
 //            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
 //            MessageBuilder messageBuilder = new MixMessageBuilder(200);
             messageBuilder.setAddDuplicatedHeader(true);
