@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -220,7 +219,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.setLargeMessagesDirectory(JOURNAL_DIRECTORY_A);
             jmsAdminOperations.setPagingDirectory(JOURNAL_DIRECTORY_A);
 
-            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setClustered(false);
+
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
 
@@ -228,8 +228,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, groupAddress, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
+            
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024 * 1024, 0, 0, 1024 * 1024);
 
