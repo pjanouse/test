@@ -284,6 +284,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         producer1.stopSending();
         producer1.join();
+        receiver1.setReceiveTimeOut(10000);
         receiver1.join();
 
         log.info("Number of sent messages: " + producer1.getCounter());

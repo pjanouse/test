@@ -321,4 +321,11 @@ public class SoakReceiverClientAck extends Client {
         this.count = count;
     }
 
+    public long getReceiveTimeOut() {
+        return receiveTimeOut;
+    }
+
+    public void setReceiveTimeOut(long receiveTimeOut) {
+        this.receiveTimeOut = receiveTimeOut;
+    }
 }
