@@ -11,7 +11,6 @@ import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class ProducerTransAck extends Client {
 
@@ -35,23 +34,6 @@ public class ProducerTransAck extends Client {
 
     private FinalTestMessageVerifier messageVerifier;
     private MessageBuilder messageBuilder = new TextMessageBuilder(10);
-
-    private Message createMessage(Session session, int counter) throws Exception {
-        TextMessage message = session.createTextMessage(new String(new byte[1024]));
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
-        message.setIntProperty("count", counter);
-
-        return message;
-    }
-
-//    public static void main(String[] args) {
-//        args = new String[3];
-//        args[0] = "10.34.3.219";
-//        args[1] = "jms/queue/testQueue0";
-//        args[2] = "600";
-//        TestProducerTransacted testProducer = new TestProducerTransacted();
-//        testProducer.startClient(args);
-//    }
 
     /**
      * @param hostname       hostname
@@ -124,12 +106,7 @@ public class ProducerTransAck extends Client {
                         m = cleanMessage(m);
                         addMessage(listOfSentMessages,m);
                     }
-//                    StringBuilder stringBuilder2 = new StringBuilder();
-//                    for (Map<String,String> m : listOfSentMessages) {
-//                        stringBuilder2.append("messageId: " + m.get("messageId") + "dupId: " + m.get("_HQ_DUPL_ID") + "##");
-//                    }
-//                    logger.debug("List of sent messages: " + stringBuilder2.toString());
-//                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
+
                     logger.info("COMMIT - session was commited. Last message with property count: " + count
                             + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
                     listOfMessagesToBeCommited.clear();
@@ -215,7 +192,7 @@ public class ProducerTransAck extends Client {
                     + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
             count++;
         } catch (JMSException ex) {
-            ex.printStackTrace();
+            logger.error("Failed to send message - count: " + count, ex);
             sendMessage(msg);
         }
     }
@@ -266,13 +243,6 @@ public class ProducerTransAck extends Client {
                 numberOfRetries++;
             }
         }
-    }
-
-    /**
-     * @return the listOfMessagesToBeCommited
-     */
-    public List<Message> getListOfMessagesToBeCommited() {
-        return listOfMessagesToBeCommited;
     }
 
 

@@ -25,8 +25,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author mnovak@redhat.com
@@ -320,43 +318,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
     }
 
-    void waitForClientsToFinish(Clients clients) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime > 600000) {
-                Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
-                StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
-                for (Thread t : mst.keySet()) {
-                    stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
-                    StackTraceElement[] elements = mst.get(t);
-                    for (StackTraceElement e : elements) {
-                        stacks.append("---").append(e).append("\n");
-                    }
-                    stacks.append("---------------------------------------------\n");
-                }
-                logger.error(stacks);
-                for (Client c : clients.getConsumers()) {
-                    c.interrupt();
-                }
-                Assert.fail("Clients did not stop in 10 minutes. Failling the test and trying to kill them all. Print all stacktraces:" + stacks);
-            }
-        }
-    }
 
-    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
-        long startTimeInMillis = System.currentTimeMillis();
-
-        for (Client c : receivers) {
-            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
     @Test
     @RunAsClient

@@ -260,7 +260,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         controller.start(CONTAINER1); // A1
         controller.start(CONTAINER2); // B1
 
-        Thread.sleep(5000000);
+        Thread.sleep(5000);
 
         // A1 producer
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -278,7 +278,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         // Wait to send and receive some messages
         Thread.sleep(15 * 1000);
 
-        //executeNetworkFails(timeBetweenFails, numberOfFails);
+        executeNetworkFails(timeBetweenFails, numberOfFails);
 
         Thread.sleep(5 * 1000);
 

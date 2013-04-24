@@ -14,6 +14,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
+import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -74,19 +74,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-//            @BMRule(name = "Setup counter for PostOfficeImpl",
-//                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-//                    targetMethod = "processRoute",
-//                    action = "createCounter(\"counter\")"),
-//            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-//                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-//                    targetMethod = "processRoute",
-//                    action = "incrementCounter(\"counter\");"
-//                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-//                    condition = "readCounter(\"counter\")>333",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
@@ -109,7 +99,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.startClients();
 
-//        Thread.sleep(10000); // give some time for clients to start
         waitForReceiversUntil(clients.getConsumers(), 120, 300000);
 
         logger.info("########################################");
@@ -119,12 +108,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.stop(CONTAINER1);
         } else {
             // install rule to first server
-            //RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
-            killServer(CONTAINER1);
+            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT);
+//            killServer(CONTAINER1);
             controller.kill(CONTAINER1);
         }
-
-//        Thread.sleep(30000); // give some time for clients to failover
 
         waitForReceiversUntil(clients.getConsumers(), 500, 300000);
         Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5446, 300000));
@@ -135,31 +122,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             controller.start(CONTAINER1);
             Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+            Thread.sleep(10000);
             logger.info("########################################");
             logger.info("failback - Stop second server to be sure that failback occurred");
             logger.info("########################################");
             stopServer(CONTAINER2);
-            Thread.sleep(20000); // give some time to clients to do failback
         }
+        Thread.sleep(20000); // give some time to clients
 
         clients.stopClients();
 
-        long startTime = System.currentTimeMillis();
+        waitForClientsToFinish(clients);
 
-        boolean clientsFinished = true;
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-            if ((System.currentTimeMillis() - startTime) > 600000) {
-                clientsFinished = false;
-                logger.error("Clients did not stop and test was terminated. There is 10 min timeout.");
-                for (Client c : clients.getConsumers()) {
-                    c.interrupt();
-                }
-                break;
-            }
-        }
-
-        Assert.assertTrue("Clients did not stop and test was terminated. There is 10 min timeout.",clientsFinished);
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
         stopServer(CONTAINER1);
@@ -168,23 +142,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
-    protected void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
-        long startTimeInMillis = System.currentTimeMillis();
-
-        for (Client c : receivers) {
-            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     protected Clients createClients(int acknowledgeMode, boolean topic, MessageBuilder messageBuilder) throws Exception {
 
-        Clients clients = null;
+        Clients clients;
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
@@ -256,16 +216,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
-
-//    /**
-//     * Start simple failover test with auto_ack on queues
-//     */
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testFailbackAutoAckQueue() throws Exception {
-//        testFailover(Session.AUTO_ACKNOWLEDGE, true);
-//    }
 
     /**
      * Start simple failover test with client_ack on queues
@@ -362,7 +312,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
      *
-     * @throws Exception
      */
     @Before
     @After
@@ -381,7 +330,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Prepare two servers in colocated topology in cluster.
      *
-     * @throws Exception
      */
     public void prepareColocatedTopologyInCluster() {
 

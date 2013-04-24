@@ -44,7 +44,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
 
-    private static final int NUMBER_OF_DESTINATIONS = 1;
+    protected static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
@@ -389,20 +389,6 @@ public class ClusterTestCase extends HornetQTestCase {
      */
     public void undeployMdb(String nameOfMdb) {
         deployer.undeploy(nameOfMdb);
-    }
-
-    /**
-     * Wait for clients to finish.
-     *
-     * @param clients clients
-     * @throws InterruptedException
-     */
-    private void waitForClientsToFinish(Clients clients) throws InterruptedException {
-
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
-
     }
 
     /**

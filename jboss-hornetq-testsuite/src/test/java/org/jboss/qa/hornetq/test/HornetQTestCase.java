@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test;
 
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -11,6 +12,8 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
+import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
@@ -28,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -116,7 +121,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Takes path to jboss home dir and tries to fix it:
      * if path does not exist then try to jboss-eap-6.1, ...6.2, ...
-     * @param jbossHome
+     * @param jbossHome jboss home
      */
     private static String verifyJbossHome(String jbossHome) {
         File jbossHomeDir = new File(jbossHome);
@@ -567,6 +572,26 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Method blocks until all receivers gets the numberOfMessages or timeout expires
+     * @param receivers receivers
+     * @param numberOfMessages numberOfMessages
+     * @param timeout timeout
+     */
+    public void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        for (Client c : receivers) {
+            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
      * Gets name of the profile. Related only to EAP 5.
      *
      * @param containerName name of the container
@@ -643,12 +668,51 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Waits for the clients to finish. If they do not finish in the specified time out then it fails the test.
+     * @param clients clients
+     * @throws InterruptedException
+     */
+    public void waitForClientsToFinish(Clients clients) throws InterruptedException {
+        waitForClientsToFinish(clients, 600000);
+    }
+
+    /**
+     * Waits for the clients to finish. If they do not finish in the specified time out then it fails the test.
+     * @param clients clients
+     * @param timeout timeout
+     * @throws InterruptedException
+     */
+    public void waitForClientsToFinish(Clients clients, long timeout) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!clients.isFinished()) {
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
+                StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
+                for (Thread t : mst.keySet()) {
+                    stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
+                    StackTraceElement[] elements = mst.get(t);
+                    for (StackTraceElement e : elements) {
+                        stacks.append("---").append(e).append("\n");
+                    }
+                    stacks.append("---------------------------------------------\n");
+                }
+                log.error(stacks);
+                for (Client c : clients.getConsumers()) {
+                    c.interrupt();
+                }
+                Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all. Print all stacktraces:" + stacks);
+            }
+        }
+    }
+
+    /**
      * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
      * For example after failover/failback.
      *
-     * @param ipAddress
-     * @param port
-     * @param  timeout
+     * @param ipAddress ipAddress
+     * @param port port
+     * @param  timeout timeout
      */
     public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
@@ -661,8 +725,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns true if something is listenning on server
      *
-     * @param ipAddress
-     * @param port
+     * @param ipAddress ipAddress
+     * @param port port
      */
     boolean checkThatServerIsReallyUp(String ipAddress, int port) {
         Socket socket = null;

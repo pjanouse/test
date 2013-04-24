@@ -93,7 +93,7 @@ public class PublisherTransAck extends Client {
 
             MessageProducer publisher = session.createProducer(topic);
 
-            Message msg = null;
+            Message msg;
 
             while (counter < messages && !stop) {
 
@@ -129,19 +129,19 @@ public class PublisherTransAck extends Client {
             if (session != null) {
                 try {
                     session.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (con != null) {
                 try {
                     con.close();
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 }
             }
             if (context != null) {
                 try {
                     context.close();
-                } catch (NamingException e) {
+                } catch (NamingException ignored) {
                 }
             }
         }
@@ -152,8 +152,8 @@ public class PublisherTransAck extends Client {
      * send fails and exception is thrown it tries send again until max retry is
      * reached. Then throws new Exception.
      *
-     * @param publisher
-     * @param msg
+     * @param publisher publisher
+     * @param msg message
      */
     private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
 
@@ -167,7 +167,8 @@ public class PublisherTransAck extends Client {
 
                 counter++;
 
-                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID()
+                        + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
 
                 listOfMessagesToBeCommited.add(msg);
 
@@ -181,7 +182,7 @@ public class PublisherTransAck extends Client {
                     logger.info("SEND RETRY - Publisher for node: " + getHostname()
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 } // ignore
 
                 numberOfRetries++;
@@ -253,13 +254,6 @@ public class PublisherTransAck extends Client {
     }
 
     /**
-     * @param listOfSentMessages the listOfSentMessages to set
-     */
-    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
-        this.listOfSentMessages = listOfSentMessages;
-    }
-
-    /**
      * @return the messageVerifiers
      */
     public List<FinalTestMessageVerifier> getMessageVerifiers() {
@@ -324,9 +318,17 @@ public class PublisherTransAck extends Client {
                 logger.info("COMMIT - Publisher for node: " + getHostname()
                         + ". Sent message with property count: " + counter);
 
+                StringBuilder stringBuilder = new StringBuilder();
+                for (Message m : listOfMessagesToBeCommited) {
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(", dupId: ").append(m.getStringProperty("_HQ_DUPL_ID"));
+                }
+
+                logger.debug("Adding messages: " + stringBuilder.toString());
+
                 for (Message m : listOfMessagesToBeCommited)    {
+
                     m = cleanMessage(m);
-//                    listOfSentMessages.add(m);
+
                     addMessage(listOfSentMessages, m);
                 }
 
@@ -403,7 +405,7 @@ public class PublisherTransAck extends Client {
                     logger.info("SEND RETRY - Publisher for node: " + getHostname()
                             + ". Sent message with property count: " + counter
                             + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException e) {
+                } catch (JMSException ignored) {
                 } // ignore
 
                 numberOfRetries++;

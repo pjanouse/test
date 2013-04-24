@@ -1,9 +1,7 @@
 package org.jboss.qa.hornetq.test.cluster;
 
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.runner.RunWith;
 
@@ -22,28 +20,10 @@ import org.junit.runner.RunWith;
 @RestoreConfigBeforeTest
 public class JGroupsClusterTestCase extends ClusterTestCase {
 
-    private static final Logger log = Logger.getLogger(ClusterTestCase.class);
-
-    private static final int NUMBER_OF_DESTINATIONS = 1;
-    // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
-
-    private static final String MDB_ON_QUEUE1 = "mdbOnQueue1";
-    private static final String MDB_ON_QUEUE2 = "mdbOnQueue2";
-
-    private static final String MDB_ON_TOPIC1 = "mdbOnTopic1";
-    private static final String MDB_ON_TOPIC2 = "mdbOnTopic2";
-
-    private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
-
-
     public void prepareServers() {
 
             prepareServer(CONTAINER1);
             prepareServer(CONTAINER2);
-
     }
 
     /**
@@ -58,7 +38,6 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
