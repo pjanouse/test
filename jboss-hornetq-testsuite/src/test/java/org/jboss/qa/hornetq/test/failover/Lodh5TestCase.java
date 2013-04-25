@@ -15,6 +15,8 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.HttpRequest;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.PrintJournal;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -33,6 +35,7 @@ import java.util.concurrent.TimeUnit;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
@@ -69,6 +72,8 @@ public class Lodh5TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFail() throws Exception {
 
         prepareServer();

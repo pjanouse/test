@@ -14,7 +14,9 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +37,7 @@ import static junit.framework.Assert.assertTrue;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class Lodh4TestCase extends HornetQTestCase {
 
     // number of bridges/destinations
@@ -91,8 +94,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void normalMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -109,8 +112,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void largeByteMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -127,8 +130,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void largeByteMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -138,9 +141,10 @@ public class Lodh4TestCase extends HornetQTestCase {
         testLogicLargeMessages(new ByteMessageBuilder(300 * 1024), killSequence, true);
     }
 
+    @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void mixMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);
@@ -150,9 +154,10 @@ public class Lodh4TestCase extends HornetQTestCase {
         testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence, false);
     }
 
+    @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void mixMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
         killSequence.add(CONTAINER2);

@@ -31,6 +31,7 @@ import java.util.List;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class Lodh1TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh1TestCase.class);

@@ -18,7 +18,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTes
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -37,8 +36,8 @@ import java.util.*;
  *
  * @author mnovak@redhat.com
  */
-@RestoreConfigBeforeTest
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
@@ -70,11 +69,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -91,11 +85,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb2.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -107,11 +96,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -124,11 +108,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb2.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -140,11 +119,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/nonDurableMdbOnTopic.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -701,8 +675,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
 
-        File applicationUsersOriginal = null;
-        File applicationRolesOriginal = null;
+        File applicationUsersOriginal;
+        File applicationRolesOriginal;
         for (int i = 1; i < 5; i++) {
 
             // copy application-users.properties
@@ -729,7 +703,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param
+     * @param containerName container name
      * @param serverName server name of the hornetq server
      */
     private void deployDestinations(String containerName, String serverName) {

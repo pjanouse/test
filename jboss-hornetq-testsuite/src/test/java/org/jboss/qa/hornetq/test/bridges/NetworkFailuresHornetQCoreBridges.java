@@ -246,12 +246,17 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         testNetworkFailure(timeBetweenFails, messageBuilder, -1, 2);
     }
 
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails) throws Exception {
+        testNetworkFailure(timeBetweenFails, messageBuilder, reconnectAttempts, numberOfFails, true);
+    }
+
     /**
      * Implementation of the basic test scenario: 1. Start cluster A and B 2.
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
      * it's random 5. Stop producers 6. Evaluate results
      */
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails) throws Exception {
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected)
+                throws Exception {
 
         prepareServers(reconnectAttempts);
 
@@ -290,9 +295,21 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         log.info("Number of sent messages: " + producer1.getCounter());
         log.info("Number of received messages: " + receiver1.getCount());
 
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(),
-                receiver1.getCount());
+        if (staysDisconnected)  {
+            Assert.assertTrue("There must be more sent messages then received.",
+                    producer1.getCounter() > receiver1.getCount());
+            stopServer(CONTAINER1);
+            controller.start(CONTAINER1);
+            SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
+            receiver2.start();
+            receiver2.join();
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getCounter(),
+                    receiver1.getCount() + receiver2.getCount());
+        } else {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getCounter(), receiver1.getCount());
+        }
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
