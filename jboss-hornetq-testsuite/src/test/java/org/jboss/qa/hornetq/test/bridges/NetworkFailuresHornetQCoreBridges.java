@@ -109,7 +109,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverMixMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
     }
 
     @Test
@@ -117,14 +117,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testNetworkFailoverSmallMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailoverLargeMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
     }
 
     @Test
@@ -173,21 +173,21 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverMixMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverSmallMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailoverLargeMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
     }
 
     @Test
@@ -310,6 +310,9 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
             Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(), receiver1.getCount());
         }
+
+        log.info("Number of sent messages: " + producer1.getCounter());
+        log.info("Number of received messages: " + receiver1.getCount());
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
