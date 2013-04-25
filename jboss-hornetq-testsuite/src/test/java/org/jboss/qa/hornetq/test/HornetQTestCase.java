@@ -722,6 +722,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(1000);
         }
+        Assert.fail("Server: " + ipAddress + ":" + port + " did not start again. Time out: " + timeout);
         return checkThatServerIsReallyUp(ipAddress, port);
     }
 
