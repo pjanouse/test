@@ -7,6 +7,10 @@ import org.fusesource.stomp.client.Stomp;
 import org.fusesource.stomp.codec.StompFrame;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.clients.HighLoadStompProducerWithSemaphores;
+import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
+import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -16,10 +20,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.fusesource.hawtbuf.AsciiBuffer.ascii;
 import static org.fusesource.stomp.client.Constants.*;
 import static org.junit.Assert.*;
 
@@ -128,6 +134,164 @@ public class BasicStompTestCase extends HornetQTestCase {
     }
 
     /**
+     * Simple basic tests which sends message via STOMP and receives it via JMS API
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void simpleSendAndReceiveViaJMSTest() {
+        final String QUEUE_NAME = "queueStomp";
+        final String QUEUE_JNDI = "/queue/" + QUEUE_NAME;
+        final String QUEUE_ADDRESS = "jms.queue." + QUEUE_NAME;
+        final int MESSAGES = 10;
+        final String HEADER_COUNTER = "internal_counter";
+
+        BlockingConnection connection = null;
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
+        try {
+            // Send messages via STOMP protocol
+            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            connection = stomp.connectBlocking();
+            for (int i = 0; i < MESSAGES; i++) {
+                // Send message
+                StompFrame frame = new StompFrame(SEND);
+                frame.addHeader(DESTINATION, StompFrame.encodeHeader(QUEUE_ADDRESS));
+                frame.addHeader(ascii(HEADER_COUNTER), Buffer.ascii(Integer.toString(i)));
+                frame.addHeader(ACK_MODE, AUTO);
+                frame.addHeader(PERSISTENT, TRUE);
+                frame.content(new Buffer("Hello".getBytes()));
+                connection.send(frame);
+            }
+
+            // Receive messages via JMS API
+            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
+            receiverAutoAck.run();
+            assertEquals(MESSAGES, receiverAutoAck.getCount());
+        } catch (Exception e) {
+            log.error(e);
+            fail(e.getMessage());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        jmsAdminOperations.removeQueue(QUEUE_NAME);
+        stopServer(CONTAINER1);
+    }
+
+    /**
+     * Simple basic tests which sends message via JMS and receives it via STOMP
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void simpleSendViaJMSAndReceive() {
+        final String QUEUE_NAME = "queueStomp";
+        final String QUEUE_JNDI = "/queue/" + QUEUE_NAME;
+        final String QUEUE_ADDRESS = "jms.queue." + QUEUE_NAME;
+        final int MESSAGES = 10;
+
+        BlockingConnection connection = null;
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
+        try {
+            // Receives messages via STOMP protocol
+            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            connection = stomp.connectBlocking();
+
+            // Subscribe
+            StompFrame frame = new StompFrame(SUBSCRIBE);
+            frame.addHeader(DESTINATION, StompFrame.encodeHeader(QUEUE_ADDRESS));
+            StompFrame response = connection.request(frame);
+            assertNotNull(response);
+
+            // Send messages via JMS API
+            ProducerAutoAck producerAutoAck = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI, MESSAGES);
+            producerAutoAck.setMessageBuilder(new ByteMessageBuilder(512));
+            producerAutoAck.run();
+
+            // Receive messages
+            int counter = 0;
+            try {
+                StompFrame received = connection.receive();
+                while (received != null) {
+                    counter++;
+                    assertTrue(received.action().equals(MESSAGE));
+                    received = connection.receive();
+                }
+            } catch (EOFException e) {
+                // Ignore it
+            }
+            assertEquals(MESSAGES, counter);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            fail(e.getMessage() + e.getClass().getName());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        jmsAdminOperations.removeQueue(QUEUE_NAME);
+        stopServer(CONTAINER1);
+    }
+
+    /**
+     * Test sends lot of messages to server via different clients
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void simpleSendStressTest() {
+        final String QUEUE_NAME = "queueStomp";
+        final String QUEUE_JNDI = "/queue/" + QUEUE_NAME;
+        final String QUEUE_ADDRESS = "jms.queue." + QUEUE_NAME;
+        final int MESSAGE_SIZE = 512;
+        final int CLIENTS = 10;
+        final int MESSAGES_PER_CLIENT = 1000;
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(QUEUE_NAME));
+        try {
+            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+
+            HighLoadStompProducerWithSemaphores[] producers = new HighLoadStompProducerWithSemaphores[CLIENTS];
+            for (int i = 0; i < CLIENTS; i++) {
+                producers[i] = new HighLoadStompProducerWithSemaphores("StompClient" + i, QUEUE_ADDRESS, stomp, null,
+                        Integer.MAX_VALUE, MESSAGES_PER_CLIENT, MESSAGE_SIZE);
+                producers[i].start();
+            }
+            for (int i = 0; i < CLIENTS; i++) {
+                producers[i].join();
+            }
+
+            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
+            receiverAutoAck.run();
+            assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverAutoAck.getCount());
+
+            jmsAdminOperations.removeQueue(QUEUE_NAME);
+            stopServer(CONTAINER1);
+        } catch (Exception e) {
+            log.error(e);
+            fail(e.getMessage());
+        }
+    }
+
+    /**
      * Simple basic tests which sends and receives large message to/from server
      */
     @Test
@@ -137,7 +301,7 @@ public class BasicStompTestCase extends HornetQTestCase {
     public void testSizeLimits() {
         /**
          http://stomp.github.io/stomp-specification-1.1.html
-         //TODO Test maximal size limits:
+         //TODO Test maximal size limits - HQ does not implement it
 
          the number of frame headers allowed in a single frame
          the maximum length of header lines
@@ -153,6 +317,7 @@ public class BasicStompTestCase extends HornetQTestCase {
      * @param jmsOperations   instance of JMS Admin Operations
      * @param disableSecurity disable security on HornetQ?
      */
+
     protected void startAndPrepareServerForStompTest(String queueName, String queueJNDI, JMSOperations jmsOperations, boolean disableSecurity) {
         controller.start(CONTAINER1);
 

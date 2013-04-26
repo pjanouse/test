@@ -20,19 +20,19 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
     private static final Logger log = Logger.getLogger(HighLoadProducerWithSemaphores.class);
 
     // Release semaphore for the dependent object
-    private Semaphore releaseSemaphore;
+    protected Semaphore releaseSemaphore;
 
     // Release semaphore after <code>releaseSemaphoreAt</code> messages
-    private int releaseSemaphoreAt;
+    protected int releaseSemaphoreAt;
 
     // Messages
-    private int messagesCount;
+    protected int messagesCount;
 
     // Sent messages
-    private volatile int sentMessages = 0;
+    protected volatile int sentMessages = 0;
 
     // Message builder
-    private MessageBuilder messageBuilder;
+    protected MessageBuilder messageBuilder;
 
     /**
      * Constructor
