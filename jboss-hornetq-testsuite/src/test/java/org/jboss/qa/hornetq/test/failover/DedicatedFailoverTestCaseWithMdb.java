@@ -5,9 +5,10 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -48,7 +49,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     // queue for receive messages out
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
-    boolean topologyCreated = false;
+    MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
@@ -111,7 +112,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+//        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -161,7 +163,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 100));
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -192,6 +195,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        Thread.sleep(20000);
 
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 100, 10);
+        receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
 
@@ -294,10 +298,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+//        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+//        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
 //        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
