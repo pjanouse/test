@@ -257,13 +257,13 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.setSharedStore(true);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+//            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+//            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+//            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
             jmsAdminOperations.setNodeIdentifier(12);
 
             jmsAdminOperations.removeAddressSettings("#");
@@ -344,13 +344,13 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.setSharedStore(true);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+//            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+//            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
             jmsAdminOperations.disableSecurity();
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+//            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
             jmsAdminOperations.setNodeIdentifier(22);
 
             jmsAdminOperations.removeAddressSettings("#");
