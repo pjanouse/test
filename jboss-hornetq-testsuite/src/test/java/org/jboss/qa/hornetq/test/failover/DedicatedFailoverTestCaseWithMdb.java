@@ -8,7 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -49,7 +49,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     // queue for receive messages out
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
-    MessageBuilder messageBuilder = new TextMessageBuilder(10);
+//    MessageBuilder messageBuilder = new TextMessageBuilder(10);
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
