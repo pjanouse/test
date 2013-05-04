@@ -45,7 +45,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
-//    MessageBuilder messageBuilder = new ClientMixMessageBuilder(1000,1000);
+//    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
     MessageBuilder messageBuilder = new TextMessageBuilder(1024);
 
     /**
@@ -132,6 +132,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
         waitForReceiversUntil(clients.getConsumers(), 300, 300000);
+        Thread.sleep(20000);
 
         if (failback) {
             logger.warn("########################################");
@@ -153,8 +154,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         Thread.sleep(10000);
-        clients.stopClients();
 
+        clients.stopClients();
         // blocking call checking whether all consumers finished
         waitForClientsToFinish(clients);
 
@@ -165,6 +166,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
 
     }
+
+
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -421,16 +424,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, false, true);
     }
 
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailoverTransAckQueueOnShutdown() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, false, false, true);
-    }
+//    /**
+//     * Start simple failover test with trans_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void testFailoverTransAckQueueOnShutdown() throws Exception {
+//        testFailover(Session.SESSION_TRANSACTED, false, false, true);
+//    }
 
 //    /**
 //     * Start simple failover test with auto_ack on queues
