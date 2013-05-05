@@ -27,6 +27,7 @@ public class ReceiverTransAck extends Client {
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
+    private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
 
     private Exception exception = null;
 
@@ -191,25 +192,33 @@ public class ReceiverTransAck extends Client {
         while (numberOfRetries < maxRetries) {
             try {
 
-                // if dups_id is used then check if we got duplicates after last failed ack
-                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
-                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
-                    if (areThereDuplicates()) {
-                        // decrease counter
-                        // add just new messages
-                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
+//                // if dups_id is used then check if we got duplicates after last failed ack
+//                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
+//                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
+//                    if (areThereDuplicates()) {
+//                        // decrease counter
+//                        // add just new messages
+//                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
+//
+//                    } else {
+//                        // this actually does not mean that messages were successfully committed
+//                        // in previous receive cycle
+//                        // we just can receive it some time later but no one knows when
+//                        // so add this message now and when we receive it later
+//                        // we throw it away based on its dupId
+//                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
+//                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
+//                        StringBuilder stringBuilder = new StringBuilder();
+//                        for (Message m : listOfReceivedMessagesToBeCommited) {
+//                            stringBuilder.append(m.getJMSMessageID());
+//                        }
+//                        logger.debug("Adding messages: " + stringBuilder.toString());
+//                        setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(listOfReceivedMessagesToBeCommited);
+//                    }
+//                    setOfReceivedMessagesWithPossibleDuplicates.clear();
+//                }
 
-                    } else {
-                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
-                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (Message m : listOfReceivedMessagesToBeCommited) {
-                            stringBuilder.append(m.getJMSMessageID());
-                        }
-                        logger.debug("Adding messages: " + stringBuilder.toString());
-                    }
-                    setOfReceivedMessagesWithPossibleDuplicates.clear();
-                }
+                areThereDuplicatesInLaterDetection();
 
                 session.commit();
 
@@ -237,7 +246,8 @@ public class ReceiverTransAck extends Client {
 
             } catch (JMSException ex) {
                 // we need to know which messages we got in the first try because we need to detect possible duplicates
-                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
+//                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
+                setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(listOfReceivedMessagesToBeCommited);
 
                 logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
                         + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
@@ -268,6 +278,29 @@ public class ReceiverTransAck extends Client {
         }
         if (!"".equals(foundDuplicates.toString())) {
             logger.info("Duplicates detected: " + foundDuplicates.toString());
+        }
+        return isDup;
+    }
+
+    private boolean areThereDuplicatesInLaterDetection() throws JMSException {
+        boolean isDup = false;
+
+        Set<String> setOfReceivedMessages = new HashSet<String>();
+        for (Message m : listOfReceivedMessagesToBeCommited) {
+            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+        }
+        StringBuilder foundDuplicates = new StringBuilder();
+        for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
+            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+                foundDuplicates.append(m.getJMSMessageID());
+                // remove this duplicate from the list
+                listOfReceivedMessagesToBeCommited.remove(m);
+                counter -= 1;
+                isDup = true;
+            }
+        }
+        if (!"".equals(foundDuplicates.toString())) {
+            logger.info("Later detection found duplicates: " + foundDuplicates.toString());
         }
         return isDup;
     }
