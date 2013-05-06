@@ -1880,6 +1880,40 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 	}
 
+    @Override
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("min-pool-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("max-pool-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * Sets ha attribute.
@@ -2592,6 +2626,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                             String... staticConnector) {
+        createBridge("default", name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
+    }
+
     /**
      * Creates new bridge
      *
@@ -2602,20 +2642,65 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param staticConnector   static connector
      */
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                             String staticConnector) {
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                             String... staticConnector) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("bridge", name);
         model.get("queue-name").set(queueName);
         if (forwardingAddress != null) {
             model.get("forwarding-address").set(forwardingAddress);
         }
         model.get("use-duplicate-detection").set(true);
+        model.get("failover-on-server-shutdown").set(true);
+        model.get("ha").set(true);
+//        model.get("failover-on-server-shutdown").set(true);
         model.get("reconnect-attempts").set(reconnectAttempts);
-        model.get("static-connectors").add(staticConnector);
+        for (String c : staticConnector)    {
+            model.get("static-connectors").add(c);
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                             String discoveryGroupName) {
+        createBridge("default", name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
+    }
+    /**
+     * Creates new bridge
+     *
+     * @param name              bridge name
+     * @param queueName         source queue
+     * @param forwardingAddress target address
+     * @param reconnectAttempts reconnect attempts for bridge
+     * @param ha ha
+     * @param discoveryGroupName  discovery group name
+     */
+    @Override
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                             String discoveryGroupName) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("bridge", name);
+        model.get("queue-name").set(queueName);
+        if (forwardingAddress != null) {
+            model.get("forwarding-address").set(forwardingAddress);
+        }
+        model.get("use-duplicate-detection").set(true);
+        model.get("ha").set(ha);
+        model.get("failover-on-server-shutdown").set(true);
+        model.get("reconnect-attempts").set(reconnectAttempts);
+        model.get("discovery-group-name").set(discoveryGroupName);
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.HighLoadStompProducerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -259,7 +260,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         final String QUEUE_NAME = "queueStomp";
         final String QUEUE_JNDI = "/queue/" + QUEUE_NAME;
         final String QUEUE_ADDRESS = "jms.queue." + QUEUE_NAME;
-        final int MESSAGE_SIZE = 512;
+        final int MESSAGE_SIZE = 512 * 1024;
         final int CLIENTS = 10;
         final int MESSAGES_PER_CLIENT = 1000;
 
@@ -279,9 +280,10 @@ public class BasicStompTestCase extends HornetQTestCase {
                 producers[i].join();
             }
 
-            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
-            receiverAutoAck.run();
-            assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverAutoAck.getCount());
+            ReceiverClientAck receiverClientAck = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
+            receiverClientAck.start();
+            receiverClientAck.join();
+            assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverClientAck.getCount());
 
             jmsAdminOperations.removeQueue(QUEUE_NAME);
             stopServer(CONTAINER1);

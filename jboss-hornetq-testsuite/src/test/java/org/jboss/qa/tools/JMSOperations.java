@@ -213,7 +213,7 @@ public interface JMSOperations {
      * @param reconnectAttempts reconnect attempts for bridge
      * @param staticConnector   static connector
      */
-    void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String staticConnector);
+    void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector);
 
     /**
      * Creates in-vm acceptor
@@ -1242,4 +1242,17 @@ public interface JMSOperations {
     void addSecuritySetting(String serverName, String s);
 
 	void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
+
+    void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
+
+    void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
+
+    void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                      String discoveryGroupName);
+
+    void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                      String discoveryGroupName);
+
+    void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                      String... staticConnector);
 }

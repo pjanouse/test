@@ -156,7 +156,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver1.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(3 * 60 * 1000);
+        Thread.sleep(60 * 1000);
 
         producer1.stopSending();
         producer1.join();

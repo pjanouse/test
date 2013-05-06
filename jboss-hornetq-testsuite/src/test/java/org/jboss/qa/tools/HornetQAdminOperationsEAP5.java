@@ -374,7 +374,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String staticConnector) {
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1421,6 +1421,27 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 	@Override
 	public void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName)
 	{
-		throw new RuntimeException("Not implemented yet");
-	}
+        logger.info("This operation is not supported: " + getMethodName());	}
+
+    @Override
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        logger.info("This operation is not supported: " + getMethodName());    }
+
+    @Override
+    public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        logger.info("This operation is not supported: " + getMethodName());    }
+
+    @Override
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());    }
+
+    @Override
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
 }

@@ -416,7 +416,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String staticConnector) {
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1650,5 +1650,29 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
+
+    @Override
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        throw new RuntimeException("Not implemented yet");
+    }
+    @Override
+    public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Override
+    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
 
 }

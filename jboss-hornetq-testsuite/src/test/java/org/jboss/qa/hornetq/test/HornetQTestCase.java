@@ -34,6 +34,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Parent class for all HornetQ test cases. Provides an abstraction of used container
@@ -420,7 +421,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             deployer.undeploy(killerServletName);
         } catch (Exception ex) {
-            log.debug("Killer servlet was not deployed. Deploye it.");
+            log.debug("Killer servlet was not deployed. Deployed it.");
         }
         deployer.deploy(killerServletName);
         HttpRequest.get("http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
@@ -434,12 +435,96 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      */
-    public void stopServer(String containerName) {
-        try {
-            controller.stop(containerName);
-        } catch (Exception ex) {
-            log.debug("Stopping server " + ex.getMessage(), ex);
+    public void stopServer(final String containerName) {
+        // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
+        // we kill server when it takes too long
+
+        final long pid = getProcessId(containerName);
+
+        Thread shutdownHook = new Thread() {
+            public void run() {
+                long timeout = 120000;
+                long startTime = System.currentTimeMillis();
+                while (checkThatServerIsReallyUp(getHostname(containerName), 9999)
+                        || checkThatServerIsReallyUp(getHostname(containerName), 5445)
+                        || checkThatServerIsReallyUp(getHostname(containerName), 8080)) {
+
+                    if (System.currentTimeMillis() - startTime > timeout) {
+                        // kill server because shutdown hangs and fail test
+                        try {
+                            Runtime.getRuntime().exec("kill -9 " + pid);
+                        } catch (IOException e) {
+                            log.error("Invoking kill -9 " + pid + " failed.", e);
+                        }
+                        Assert.fail("Server: " + containerName + " did not shutdown more than: " + timeout + " and will be killed.");
+                        return;
+                    }
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        //ignore
+                    }
+                }
+            }
+        };
+        shutdownHook.start();
+        controller.stop(containerName);
+    }
+
+    /**
+     * Returns -1 when server is not up. Port 8080 is not up.
+     *
+     * @param containerName container name
+     * @return pid of the server
+     */
+    public long getProcessId(String containerName) {
+
+        if (!checkThatServerIsReallyUp(getHostname(containerName), 8080)) {
+            return -1;
         }
+
+        if (CONTAINER1.equals(containerName)) {
+            deployer.deploy(SERVLET_KILLER_1);
+        } else if (CONTAINER2.equals(containerName)) {
+            deployer.deploy(SERVLET_KILLER_2);
+        } else if (CONTAINER3.equals(containerName)) {
+            deployer.deploy(SERVLET_KILLER_3);
+        } else if (CONTAINER4.equals(containerName)) {
+            deployer.deploy(SERVLET_KILLER_4);
+        } else {
+            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
+        }
+
+        String pid = null;
+        try {
+            pid = HttpRequest.get("http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId", 4, TimeUnit.SECONDS);
+        } catch (IOException e) {
+            log.error("Error when calling killer servlet for pid.", e);
+        } catch (TimeoutException e) {
+            log.error("Timeout when calling killer servlet for pid.", e);
+        }
+
+        try {
+            if (CONTAINER1.equals(containerName)) {
+                deployer.undeploy(SERVLET_KILLER_1);
+            } else if (CONTAINER2.equals(containerName)) {
+                deployer.undeploy(SERVLET_KILLER_2);
+
+            } else if (CONTAINER3.equals(containerName)) {
+                deployer.undeploy(SERVLET_KILLER_3);
+
+            } else if (CONTAINER4.equals(containerName)) {
+                deployer.undeploy(SERVLET_KILLER_4);
+            } else {
+                throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
+            }
+        } catch (Exception ex) {
+            log.debug("Killer servlet was not deployed and can't be un-deployed.");
+        }
+
+        return Long.parseLong(pid.trim());
+
     }
 
     /**
@@ -576,15 +661,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
-     * @param receivers receivers
+     *
+     * @param receivers        receivers
      * @param numberOfMessages numberOfMessages
-     * @param timeout timeout
+     * @param timeout          timeout
      */
-    public void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout)  {
+    public void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
         for (Client c : receivers) {
-            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout)  {
+            while (c.getCount() < numberOfMessages && (System.currentTimeMillis() - startTimeInMillis) < timeout) {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
@@ -672,6 +758,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Waits for the clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
      * @param clients clients
      * @throws InterruptedException
      */
@@ -681,6 +768,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Waits for the clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
      * @param clients clients
      * @param timeout timeout
      * @throws InterruptedException
@@ -714,8 +802,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * For example after failover/failback.
      *
      * @param ipAddress ipAddress
-     * @param port port
-     * @param  timeout timeout
+     * @param port      port
+     * @param timeout   timeout
      */
     public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
@@ -733,7 +821,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Returns true if something is listenning on server
      *
      * @param ipAddress ipAddress
-     * @param port port
+     * @param port      port
      */
     boolean checkThatServerIsReallyUp(String ipAddress, int port) {
         Socket socket = null;

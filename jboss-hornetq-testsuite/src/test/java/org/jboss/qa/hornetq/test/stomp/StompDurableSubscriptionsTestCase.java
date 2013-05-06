@@ -95,18 +95,20 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
                            int receiveTimeout, int messageSize,
                            int maxSizeBytes, int pageSizeBytes) {
-        final String QUEUE = "queue";
-        final String TOPIC_JNDI = "/queue/pageTopic";
-        final String ADDRESS = "jms.queue." + QUEUE;
+        final String TOPIC = "pageTopic";
+        final String TOPIC_JNDI = "/topic/pageTopic";
+        final String ADDRESS = "#";
+        final String STOMP_SOCKET_BINDING_NAME = "messaging-stomp";
 
         controller.start(CONTAINER1);
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
-        jmsAdminOperations.cleanupTopic(QUEUE);
-        jmsAdminOperations.createTopic(QUEUE, TOPIC_JNDI);
+        jmsAdminOperations.cleanupTopic(TOPIC);
+        jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);
         jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", maxSizeBytes, 1000, 1000, pageSizeBytes);
 
         // Create HQ acceptor for Stomp
+        jmsAdminOperations.createSocketBinding(STOMP_SOCKET_BINDING_NAME, STOMP_PORT);
         Map<String, String> params = new HashMap<String, String>();
         params.put("protocol", "stomp");
         jmsAdminOperations.createRemoteAcceptor("stomp-acceptor", "messaging-stomp", params);
@@ -137,7 +139,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
 
-            producer = new HighLoadStompProducerWithSemaphores("producer", ADDRESS, stomp,
+            producer = new HighLoadStompProducerWithSemaphores("producer", TOPIC_JNDI, stomp,
                     semaphores[0], gapBetweenConsumers, messagesCount, 512);
             for (int i = 0; i < consumers.length; i++) {
                 consumers[i] = new HighLoadConsumerWithSemaphores("consumer " + i, topic, cf, semaphores[i],
@@ -168,7 +170,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
 
-        jmsAdminOperations.removeTopic(QUEUE);
+        jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
         stopServer(CONTAINER1);
     }

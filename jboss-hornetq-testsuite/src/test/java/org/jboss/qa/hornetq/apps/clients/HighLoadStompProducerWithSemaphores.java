@@ -92,7 +92,7 @@ public class HighLoadStompProducerWithSemaphores extends HighLoadProducerWithSem
             frame = new StompFrame(COMMIT_TRANSACTION);
             frame.addHeader(TRANSACTION, transactionId);
             connection.send(frame);
-            Thread.sleep(100);
+            Thread.sleep(1000);
             connection.send(new StompFrame(DISCONNECT));
         } catch (Exception e) {
             log.error(String.format("Exception in producer '%s' : %s", this.getName(), e.getMessage()), e);

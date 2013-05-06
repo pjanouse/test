@@ -48,8 +48,6 @@ public class KillerServlet extends HttpServlet {
      *
      * @param request
      * @param response
-     * @param queueIn
-     * @param queueOut
      * @throws ServletException
      * @throws IOException
      */
@@ -57,12 +55,14 @@ public class KillerServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         String op = request.getParameter("op");
-        out.println("op is: " + op);
+//        out.println("op is: " + op);
         try {
 
             if (op != null) {
                 if (op.equals("kill")) {
                     killServer(out);
+                } else if (op.equals("getId")) {
+                    out.println(getPid());
                 } else {
                     out.println("Operation: " + op + " is not supoported.");
                 }
@@ -77,6 +77,16 @@ public class KillerServlet extends HttpServlet {
 
     private void killServer(PrintWriter out) throws IOException {
 
+        long pid = getPid();
+
+        out.println("Killing server");
+
+        log.info("pid of the proccess is : " + pid);
+
+        Runtime.getRuntime().exec("kill -9 " + pid);
+    }
+
+    private long getPid()    {
         String jvmName = ManagementFactory.getRuntimeMXBean().getName();
         int index = jvmName.indexOf('@');
 
@@ -85,17 +95,13 @@ public class KillerServlet extends HttpServlet {
             throw new java.lang.IllegalStateException("Cannot get pid of the process:" + jvmName);
         }
 
-        String pid = null;
+        long pid = -1;
+
         try {
-            pid = Long.toString(Long.parseLong(jvmName.substring(0, index)));
+            pid = Long.parseLong(jvmName.substring(0, index));
         } catch (NumberFormatException e) {
             // ignore
         }
-
-        out.println("Killing server");
-
-        log.info("pid of the proccess is : " + pid);
-
-        Runtime.getRuntime().exec("kill -9 " + pid);
+        return pid;
     }
 }
