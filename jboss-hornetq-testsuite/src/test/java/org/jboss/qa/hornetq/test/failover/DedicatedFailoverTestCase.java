@@ -306,7 +306,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         p.stopSending();
         p.join(600000);
-        ReceiverTransAck r = null;
+        ReceiverTransAck r;
         if (failback)   {
             r = new ReceiverTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0);
         } else {
@@ -681,7 +681,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
      *
-     * @throws Exception
      */
     @Before
     @After

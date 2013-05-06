@@ -74,7 +74,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>" + inQueue + "</activation-config-property-value>\n");
+        ejbXml.append("<activation-config-property-value>").append(inQueue).append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
@@ -83,7 +83,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>" + outQueue + "</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(outQueue).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -105,6 +105,22 @@ public class Lodh1TestCase extends HornetQTestCase {
         return mdbJar;
 
     }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testKillWithLimitedPoolSize() throws Exception {
+        prepareJmsServer(CONTAINER1);
+        controller.start(CONTAINER1);
+        String connectionFactoryName = "hornetq-ra";
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        stopServer(CONTAINER1);
+
+    }
+
 
     @RunAsClient
     @Test
@@ -261,23 +277,19 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1, CONTAINER1_IP);
+        prepareJmsServer(CONTAINER1);
     }
 
     /**
      * Prepares jms server for remote jca topology.
      *
      * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) {
+    private void prepareJmsServer(String containerName) {
 
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-//        jmsAdminOperations.setInetAddress("public", bindingAddress);
-//        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-//        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(false);
 
@@ -286,6 +298,9 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+        jmsAdminOperations.removeClusteringGroup("my-cluster");
+        jmsAdminOperations.removeBroadcastGroup("bg-group1");
+        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
 
         try {
             jmsAdminOperations.removeQueue(inQueueName);

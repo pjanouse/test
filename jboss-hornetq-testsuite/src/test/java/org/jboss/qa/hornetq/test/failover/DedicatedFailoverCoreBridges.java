@@ -251,7 +251,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 
         messageVerifier.verifyMessages();
-        
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 

@@ -5,10 +5,13 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -17,7 +20,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTes
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -38,19 +40,20 @@ import java.util.List;
 @RunWith(Arquillian.class)
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
+    private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
     String inQueueJndiName = "jms/queue/" + inQueueName;
-    String inQueueFullJndiName = "java:/" + inQueueJndiName;
+
     // queue for receive messages out
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
-//    MessageBuilder messageBuilder = new TextMessageBuilder(10);
+
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER3)
@@ -64,11 +67,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -112,10 +115,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -139,16 +143,18 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
-        logger.info("Producer: " + producerToInQueue1.getCounter());
-        logger.info("Receiver: " + receiver1.getCount());
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getCounter(), receiver1.getCount());
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
 
         deployer.undeploy("mdb1");
 
         stopServer(CONTAINER3);
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
 
     }
 
@@ -163,9 +169,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -190,59 +197,36 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         } catch (Exception ex)  {}
         controller.start(CONTAINER1);
         logger.info("Container 1 started again");
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 300000);
         Thread.sleep(60000);
-//        logger.info("Container 2 stopped");
-//        stopServer(CONTAINER2);
-//        Thread.sleep(20000);
+        logger.info("Container 2 stopping");
+        stopServer(CONTAINER2);
+        logger.info("Container 2 stopped");
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 100, 10);
         receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
-        logger.info("Producer: " + producerToInQueue1.getCounter());
-        logger.info("Receiver: " + receiver1.getCount());
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getCounter(), receiver1.getCount());
-
-        List<String> lostMessages = checkLostMessages(producerToInQueue1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
-        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
-        for (String dupId : lostMessages) {
-            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
-        }
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
 
 
         logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
         deployer.undeploy("mdb1");
         stopServer(CONTAINER3);
+        stopServer(CONTAINER2);
         stopServer(CONTAINER1);
-
-    }
-
-    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-        // TODO optimize or use some libraries
-        //get lost messages
-        List<String> listOfLostMessages = new ArrayList<String>();
-        boolean messageIdIsMissing = false;
-        for (String sentMessageId : listOfSentMessages) {
-            for (String receivedMessageId : listOfReceivedMessages) {
-                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
-                    messageIdIsMissing = true;
-                }
-            }
-            if (messageIdIsMissing) {
-                listOfLostMessages.add(sentMessageId);
-                messageIdIsMissing = false;
-            }
-        }
-        return listOfLostMessages;
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
     }
 
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
      *
-     * @throws Exception
      */
     @Before
     @After
@@ -283,7 +267,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
         String remoteConnectorNameBackup = "netty-remote-backup";
-        String messagingGroupSocketBindingName = "messaging-group";
+//        String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
 
@@ -474,8 +458,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
 
-        File applicationUsersOriginal = null;
-        File applicationRolesOriginal = null;
+        File applicationUsersOriginal;
+        File applicationRolesOriginal;
         for (int i = 1; i < 5; i++) {
 
             // copy application-users.properties

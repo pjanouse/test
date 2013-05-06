@@ -14,7 +14,7 @@ import java.io.IOException;
  *
  */
 @RunWith(Arquillian.class)
-public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {
+public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverCoreBridges {
 
     private static final Logger logger = Logger.getLogger(ReplicatedDedicatedFailoverTestWithMdb.class);
 
@@ -29,7 +29,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
 
         prepareBackupServer(CONTAINER2);
 
-        prepareMdbServer(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
+        prepareServerWithHQBridge(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
 
         copyApplicationPropertiesFiles();
 
