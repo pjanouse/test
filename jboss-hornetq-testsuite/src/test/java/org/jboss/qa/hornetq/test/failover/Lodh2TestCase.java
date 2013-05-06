@@ -43,7 +43,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -291,6 +291,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
         producer1.start();
 
         // deploy mdbs
@@ -357,9 +358,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(1, 100);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
         producer1.start();
         producer1.join();
 
