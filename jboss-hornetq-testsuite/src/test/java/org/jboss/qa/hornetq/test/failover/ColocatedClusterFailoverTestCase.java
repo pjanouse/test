@@ -74,7 +74,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
     }
-    
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one

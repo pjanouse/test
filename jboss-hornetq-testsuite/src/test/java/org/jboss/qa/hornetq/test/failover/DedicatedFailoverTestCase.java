@@ -153,6 +153,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
+            waitHornetQToAlive(CONTAINER1_IP, 5445, 600000);
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
@@ -302,6 +303,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Live server started - this is failback");
             logger.warn("########################################");
+            waitHornetQToAlive(CONTAINER1_IP, 5445, 600000);
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
