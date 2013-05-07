@@ -528,6 +528,14 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             logger.error("Error during copy.", e);
         }
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
