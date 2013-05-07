@@ -47,6 +47,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
 //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
     MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    Clients clients;
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -90,6 +91,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailover(acknowledge, failback, topic, false);
     }
 
+    @Before @After
+    public void makeSureAllClientsAreDead() throws InterruptedException {
+        if (clients != null) {
+            clients.stopClients();
+            waitForClientsToFinish(clients, 600000);
+        }
+
+    }
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -109,7 +119,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        Clients clients = createClients(acknowledge, topic);
+        clients = createClients(acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
@@ -188,7 +198,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        Clients clients = createClients(acknowledge, topic);
+        clients = createClients(acknowledge, topic);
 
         if (isReceiveFailure) {
             clients.setProducedMessagesCommitAfter(100);

@@ -44,6 +44,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
     MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    Clients clients = null;
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -64,6 +65,16 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithShutDown(int acknowledge, boolean failback, boolean topic) throws Exception {
         testFail(acknowledge, failback, topic, true);
     }
+
+    @Before @After
+    public void makeSureAllClientsAreDead() throws InterruptedException {
+        if (clients != null) {
+            clients.stopClients();
+            waitForClientsToFinish(clients, 600000);
+        }
+
+    }
+    
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -91,7 +102,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         messageBuilder.setAddDuplicatedHeader(true);
 
-        Clients clients = createClients(acknowledge, topic, messageBuilder);
+        clients = createClients(acknowledge, topic, messageBuilder);
 
         clients.setProducedMessagesCommitAfter(10);
 
