@@ -289,7 +289,7 @@ public class SubscriberTransAck extends Client {
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
-                setOfReceivedMessagesWithPossibleDuplicates.clear();
+//                setOfReceivedMessagesWithPossibleDuplicates.clear();
 
                 return;
 
@@ -297,6 +297,13 @@ public class SubscriberTransAck extends Client {
                 // we need to know which messages we got in the first try because we need to detect possible duplicates
 //                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
                 setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(listOfReceivedMessagesToBeCommited);
+
+                addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
+                StringBuilder stringBuilder = new StringBuilder();
+                for (Message m : listOfReceivedMessagesToBeCommited) {
+                    stringBuilder.append("messageId: " + m.getJMSMessageID() + " dupId: " + m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                }
+                logger.debug("Adding messages: " + stringBuilder.toString());
 
                 logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
                         + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
@@ -322,14 +329,21 @@ public class SubscriberTransAck extends Client {
         for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
             if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
                 foundDuplicates.append(m.getJMSMessageID());
-                // remove this duplicate from the list
-                listOfReceivedMessagesToBeCommited.remove(m);
                 counter -= 1;
+                // remove this duplicate from the list
+                List<Message> iterationList = new ArrayList<Message>(listOfReceivedMessagesToBeCommited);
+                for (Message receivedMessage : iterationList)    {
+                    if (receivedMessage.getStringProperty("_HQ_DUPL_ID").equals(m.getStringProperty("_HQ_DUPL_ID"))) {
+                        listOfReceivedMessagesToBeCommited.remove(receivedMessage);
+                    }
+                }
+
                 isDup = true;
             }
         }
         if (!"".equals(foundDuplicates.toString())) {
             logger.info("Later detection found duplicates, will be discarded: " + foundDuplicates.toString());
+            logger.info("List of messages to be added to list: " + listOfReceivedMessagesToBeCommited.toString());
         }
         return isDup;
     }
