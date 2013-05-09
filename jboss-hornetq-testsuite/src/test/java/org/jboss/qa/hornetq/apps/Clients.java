@@ -81,4 +81,5 @@ public interface Clients {
     public void setProducedMessagesCommitAfter(int commitAfter);
 
     public List<Client> getConsumers();
+    public List<Client> getProducers();
 }

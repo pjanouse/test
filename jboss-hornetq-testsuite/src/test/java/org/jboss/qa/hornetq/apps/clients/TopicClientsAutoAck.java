@@ -399,6 +399,15 @@ public class TopicClientsAutoAck implements Clients {
         return list;
     }
 
+    @Override
+    public List<Client> getProducers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : publishers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     public static void main(String[] args) throws InterruptedException, Exception {
 
         TopicClientsAutoAck clients =

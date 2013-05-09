@@ -25,6 +25,8 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author mnovak@redhat.com
@@ -45,7 +47,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
-//    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
+    //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
     MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
@@ -91,7 +93,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailover(acknowledge, failback, topic, false);
     }
 
-    @Before @After
+    @Before
+    @After
     public void makeSureAllClientsAreDead() throws InterruptedException {
         if (clients != null) {
             clients.stopClients();
@@ -141,8 +144,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
+        waitForClientsToFailover();
         waitForReceiversUntil(clients.getConsumers(), 300, 300000);
-        Thread.sleep(20000);
+        Thread.sleep(5000);
 
         if (failback) {
             logger.warn("########################################");
@@ -154,7 +158,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
             waitHornetQToAlive(CONTAINER1_IP, 5445, 600000);
-            Thread.sleep(10000); // give it some time
+            waitForClientsToFailover();
+            Thread.sleep(5000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
@@ -164,7 +169,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
         }
 
-        Thread.sleep(10000);
+        waitForClientsToFailover();
+
+        Thread.sleep(5000);
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
@@ -178,7 +185,45 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+    private void waitForClientsToFailover() {
 
+        long timeout = 120000;
+
+        Map<Client, Integer> consumersCounts = new HashMap<Client, Integer>();
+        for (Client c : clients.getConsumers()) {
+            consumersCounts.put(c, c.getCount());
+        }
+        // wait for 2 min for consumers to receive more messages
+        long startTime = System.currentTimeMillis();
+        do {
+            for (Client c : clients.getConsumers()) {
+                if (c.getCount() > consumersCounts.get(c)) {
+                    consumersCounts.remove(c);
+                }
+            }
+            if (System.currentTimeMillis() - startTime > 120000)    {
+                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
+            }
+        } while (consumersCounts.size() > 0);
+
+        Map<Client, Integer> producersCount = new HashMap<Client, Integer>();
+        for (Client c : clients.getProducers()) {
+            producersCount.put(c, c.getCount());
+        }
+        // wait for 2 min for producers to send more messages
+        startTime = System.currentTimeMillis();
+        do {
+            for (Client c : clients.getProducers()) {
+                if (c.getCount() > producersCount.get(c)) {
+                    producersCount.remove(c);
+                }
+            }
+            if (System.currentTimeMillis() - startTime > 120000)    {
+                Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms");
+            }
+        } while (producersCount.size() > 0);
+
+    }
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -319,7 +364,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         p.stopSending();
         p.join(600000);
         ReceiverTransAck r;
-        if (failback)   {
+        if (failback) {
             r = new ReceiverTransAck(CONTAINER1, CONTAINER1_IP, 4447, queueJndiNamePrefix + 0);
         } else {
             r = new ReceiverTransAck(CONTAINER2, CONTAINER2_IP, 4447, queueJndiNamePrefix + 0);
@@ -338,7 +383,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
     }
-
 
 
     @Test
@@ -692,11 +736,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
      */
     @Before
     @After
-    public void stopAllServers()  {
+    public void stopAllServers() {
 
         stopServer(CONTAINER1);
 

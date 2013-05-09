@@ -271,6 +271,15 @@ public class QueueClientsAutoAck implements Clients {
         return list;
     }
 
+    @Override
+    public List<Client> getProducers() {
+        List<Client> list = new ArrayList<Client>();
+        for (Client c : producers)  {
+            list.add(c);
+        }
+        return list;
+    }
+
     /**
      * @return the jndiPort
      */
