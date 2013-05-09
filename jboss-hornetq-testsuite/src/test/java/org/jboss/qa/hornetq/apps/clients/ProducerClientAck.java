@@ -33,7 +33,6 @@ public class ProducerClientAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
-    private int counter = 0;
 
     /**
      * @param hostname       hostname
@@ -100,7 +99,7 @@ public class ProducerClientAck extends Client {
                 Thread.sleep(getTimeout());
 
                 logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
-                        + msg.getStringProperty("count") + ", messageId:" + msg.getJMSMessageID()
+                        + counter + ", messageId:" + msg.getJMSMessageID()
                         + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
 
             }
@@ -314,5 +313,9 @@ public class ProducerClientAck extends Client {
      */
     public void setMessageBuilder(MessageBuilder messageBuilder) {
         this.messageBuilder = messageBuilder;
+    }
+    @Override
+    public int getCount() {
+        return counter;
     }
 }

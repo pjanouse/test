@@ -47,8 +47,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
-    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
-//    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
     /**
@@ -98,7 +98,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void makeSureAllClientsAreDead() throws InterruptedException {
         if (clients != null) {
             clients.stopClients();
-            waitForClientsToFinish(clients, 600000);
+            waitForClientsToFinish(clients, 300000);
         }
 
     }
@@ -127,7 +127,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 120, 300000);
+        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         if (!shutdown) {
             logger.warn("########################################");
@@ -145,8 +146,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
         waitForClientsToFailover();
-        waitForReceiversUntil(clients.getConsumers(), 300, 300000);
-        Thread.sleep(5000);
+        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
         if (failback) {
             logger.warn("########################################");
@@ -168,8 +168,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
         }
-
-        waitForClientsToFailover();
 
         Thread.sleep(5000);
 
@@ -201,28 +199,30 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     consumersCounts.remove(c);
                 }
             }
-            if (System.currentTimeMillis() - startTime > 120000)    {
+            if (System.currentTimeMillis() - startTime > 120000) {
                 Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
             }
         } while (consumersCounts.size() > 0);
 
-        Map<Client, Integer> producersCount = new HashMap<Client, Integer>();
-        for (Client c : clients.getProducers()) {
-            producersCount.put(c, c.getCount());
-        }
         // wait for 2 min for producers to send more messages
         startTime = System.currentTimeMillis();
-        do {
-            for (Client c : clients.getProducers()) {
-                if (c.getCount() > producersCount.get(c)) {
-                    producersCount.remove(c);
+
+        int startValue = 0;
+        for (Client c : clients.getProducers()) {
+
+            startValue = c.getCount();
+
+            while (c.getCount() <= startValue)   {
+                if (System.currentTimeMillis() - startTime > 120000) {
+                    Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // ignore
                 }
             }
-            if (System.currentTimeMillis() - startTime > 120000)    {
-                Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms");
-            }
-        } while (producersCount.size() > 0);
-
+        }
     }
 
     /**
@@ -445,9 +445,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-//            MessageBuilder messageBuilder = new TextMessageBuilder(40 * 1024);
-//            MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 40);
-//            MessageBuilder messageBuilder = new MixMessageBuilder(200);
+
             messageBuilder.setAddDuplicatedHeader(true);
             clients.setMessageBuilder(messageBuilder);
             clients.setProducedMessagesCommitAfter(3);
@@ -740,6 +738,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
+
+        if (clients != null) {
+            clients.stopClients();
+            waitForClientsToFinish(clients, 300000);
+        }
 
         stopServer(CONTAINER1);
 

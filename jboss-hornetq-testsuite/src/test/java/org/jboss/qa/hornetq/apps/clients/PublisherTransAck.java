@@ -36,8 +36,6 @@ public class PublisherTransAck extends Client {
     private String clientId;
     private boolean stop = false;
 
-    private int counter = 0;
-
     /**
      * @param hostname       hostname
      * @param port           port
@@ -437,6 +435,11 @@ public class PublisherTransAck extends Client {
      */
     public String getClientId() {
         return clientId;
+    }
+
+    @Override
+    public int getCount() {
+        return counter;
     }
 
     /**

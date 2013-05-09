@@ -35,8 +35,6 @@ public class PublisherAutoAck extends Client {
     private String clientId;
     private boolean stop = false;
 
-    private int counter = 0;
-
     /**
      * @param hostname       hostname
      * @param port           port
@@ -285,7 +283,10 @@ public class PublisherAutoAck extends Client {
         this.topicNameJndi = topicNameJndi;
     }
 
-
+    @Override
+    public int getCount() {
+        return counter;
+    }
 
     public static void main(String[] args) throws InterruptedException {
         PublisherAutoAck p = new PublisherAutoAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", 100, "mnovakClientIdPublisher");

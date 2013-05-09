@@ -17,7 +17,6 @@ public class ProducerTransAck extends Client {
     private static final Logger logger = Logger.getLogger(ProducerTransAck.class);
     private static int maxRetries = 50;
 
-    int count = 1;
     MessageProducer producer;
 
     private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String, String>>();
@@ -84,17 +83,19 @@ public class ProducerTransAck extends Client {
 
             Message msg = null;
 
-            while (count <= MESSAGES_COUNT && !stop) {
+            while (counter < MESSAGES_COUNT && !stop) {
 
                 msg = messageBuilder.createMessage(session);
 
                 sendMessage(msg);
 
+                counter++;
+
                 listOfMessagesToBeCommited.add(msg);
 
                 Thread.sleep(getTimeout());
 
-                if (count % commitAfter == 0) {
+                if (counter % commitAfter == 0) {
 
                     commitSession(session);
                     StringBuilder stringBuilder = new StringBuilder();
@@ -107,7 +108,7 @@ public class ProducerTransAck extends Client {
                         addMessage(listOfSentMessages,m);
                     }
 
-                    logger.info("COMMIT - session was commited. Last message with property count: " + count
+                    logger.info("COMMIT - session was commited. Last message with property counter: " + counter
                             + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
                     listOfMessagesToBeCommited.clear();
 
@@ -131,7 +132,7 @@ public class ProducerTransAck extends Client {
 //                    }
 //                    logger.debug("List of sent messages: " + stringBuilder2.toString());
 //                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
-            logger.info("COMMIT - session was commited. Last message with property count: " + count
+            logger.info("COMMIT - session was commited. Last message with property counter: " + counter
                     + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
             listOfMessagesToBeCommited.clear();
 
@@ -184,15 +185,15 @@ public class ProducerTransAck extends Client {
             }
 
             if (numberOfRetries > 0) {
-                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", count: " + count);
+                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
             }
             numberOfRetries++;
             producer.send(msg);
-            logger.debug("Sent message with property count: " + count + ", messageId:" + msg.getJMSMessageID()
+            logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
                     + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
-            count++;
+            counter++;
         } catch (JMSException ex) {
-            logger.error("Failed to send message - count: " + count, ex);
+            logger.error("Failed to send message - counter: " + counter, ex);
             sendMessage(msg);
         }
     }
@@ -214,11 +215,11 @@ public class ProducerTransAck extends Client {
 
                 // don't repeat this more than once, this can't happen
                 if (numberOfRetries > 0) {
-                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message count: " + count
+                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
                             + " Client will terminate.", ex);
                 }
 
-                count -= listOfMessagesToBeCommited.size();
+                counter -= listOfMessagesToBeCommited.size();
 
                 for (Message m : listOfMessagesToBeCommited) {
                     sendMessage(m);
@@ -235,7 +236,7 @@ public class ProducerTransAck extends Client {
                     return;
                 }
 
-                count -= listOfMessagesToBeCommited.size();
+                counter -= listOfMessagesToBeCommited.size();
 
                 for (Message m : listOfMessagesToBeCommited) {
                     sendMessage(m);
@@ -287,6 +288,11 @@ public class ProducerTransAck extends Client {
 
     public void setQueueNameJndi(String queueNameJndi) {
         this.queueNameJndi = queueNameJndi;
+    }
+
+    @Override
+    public int getCount() {
+        return counter;
     }
 
     public static void main(String[] args) throws InterruptedException {

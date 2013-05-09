@@ -32,7 +32,6 @@ public class ProducerAutoAck extends Client {
     private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
-    private int counter = 0;
     private boolean stop = false;
     private boolean securityEnabled = false;
     private String userName;
@@ -358,5 +357,14 @@ public class ProducerAutoAck extends Client {
 
     public void setMessageBuilder(MessageBuilder messageBuilder) {
         this.messageBuilder = messageBuilder;
+    }
+
+    @Override
+    public int getCount() {
+        return counter;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
     }
 }
