@@ -8,7 +8,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -47,8 +47,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
-    //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
-    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
+//    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
     /**
