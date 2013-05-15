@@ -21,7 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
+                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "50")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
@@ -63,16 +64,19 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
         try {
             long time = System.currentTimeMillis();
-            int counter = 0;
-            try {
-                counter = message.getIntProperty("count");
-            } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
-            }
-            String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-            log.log(Level.DEBUG, " Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
+            int counter = globalCounter.incrementAndGet();
+
+            log.log(Level.INFO, " Start of message: " + counter + ", message info:" + message.getJMSMessageID());
 
             con = cf.createConnection();
+
+//            if (globalCounter.get() % 3 == 0) {
+//                con = cf.createConnection();
+//            } else if (globalCounter.get() % 3 == 1) {
+//                con = cf.createConnection("admin", "adminadmin");
+//            } else if (globalCounter.get() % 3 == 2) {
+//                con = cf.createConnection("user", "useruser");
+//            }
 
             con.start();
 
@@ -83,8 +87,9 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
+            Thread.sleep(100);
 
-            log.log(Level.DEBUG, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.log(Level.DEBUG, " End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
             t.printStackTrace();

@@ -15,7 +15,6 @@ import org.jboss.qa.tools.ControllableProxy;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.SimpleProxyServer;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
@@ -358,7 +357,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
@@ -445,7 +444,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node and read from output node
         QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
@@ -541,7 +540,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             log.error(e.getMessage(), e);
         }
 
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
         jmsAdminContainer1.close();
 
         // Server will be killed by Byteman and restarted
@@ -607,7 +606,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -664,7 +663,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
         jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
-        jmsAdminContainer1.createBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
 
         try {
             Thread.sleep(5000);

@@ -406,7 +406,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
-            jmsAdminOperations.createBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
+            jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
         }
         jmsAdminOperations.close();
 

@@ -2627,9 +2627,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                             String... staticConnector) {
-        createBridge("default", name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
+    public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                                 String... staticConnector) {
+        createCoreBridge("default", name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
     }
 
     /**
@@ -2642,8 +2642,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param staticConnector   static connector
      */
     @Override
-    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                             String... staticConnector) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                                 String... staticConnector) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -2669,9 +2669,70 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                             String discoveryGroupName) {
-        createBridge("default", name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination
+            , Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination, Map<String, String> targetContext
+            , String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime
+            , boolean addMessageIDInHeader) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
+        model.get("source-connection-factory").set(sourceConnectionFactory);
+        model.get("ha").set(true);
+        model.get("source-destination").set(sourceDestination);
+        if (sourceContext != null) {
+            for (String key : sourceContext.keySet()) {
+                model.get("source-context").add(key, sourceContext.get(key));
+            }
+        }
+        model.get("target-connection-factory").set(targetConnectionFactory);
+        model.get("target-destination").set(targetDestination);
+        if (targetContext != null) {
+            for (String key : targetContext.keySet()) {
+                model.get("target-context").add(key, targetContext.get(key));
+            }
+        }
+        model.get("quality-of-service").set(qualityOfService);
+        model.get("failure-retry-interval").set(failureRetryInterval);
+        model.get("add-messageID-in-header").set(addMessageIDInHeader);
+        model.get("max-retries").set(maxRetries);
+        model.get("max-batch-size").set(maxBatchSize);
+        model.get("max-batch-time").set(maxBatchTime);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+    }
+
+    @Override
+    public void setFactoryType(String serverName, String connectionFactoryName, String factoryType) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("factory-type");
+        model.get("value").set(factoryType);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void setFactoryType(String connectionFactoryName, String factoryType) {
+        setFactoryType("default", connectionFactoryName, factoryType);
+    }
+
+    @Override
+    public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                                 String discoveryGroupName) {
+        createCoreBridge("default", name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
     }
     /**
      * Creates new bridge
@@ -2684,8 +2745,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param discoveryGroupName  discovery group name
      */
     @Override
-    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                             String discoveryGroupName) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                                 String discoveryGroupName) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");

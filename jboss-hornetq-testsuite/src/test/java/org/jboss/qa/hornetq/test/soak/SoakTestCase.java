@@ -292,7 +292,7 @@ public class SoakTestCase extends HornetQTestCase {
         // deploy bridge from OutQueue(jms server) -> bridgeOutQueue(mdb server)
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServerForBridgeIP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-        jmsAdminOperations.createBridge("myBridge", "jms.queue." + OUT_QUEUE_NAME, "jms.topic." + BRIDGE_OUT_TOPIC, -1, "bridge-connector");
+        jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + OUT_QUEUE_NAME, "jms.topic." + BRIDGE_OUT_TOPIC, -1, "bridge-connector");
 
         jmsAdminOperations.close();
         controller.stop(containerName);

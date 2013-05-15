@@ -213,7 +213,7 @@ public interface JMSOperations {
      * @param reconnectAttempts reconnect attempts for bridge
      * @param staticConnector   static connector
      */
-    void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector);
+    void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector);
 
     /**
      * Creates in-vm acceptor
@@ -1247,12 +1247,22 @@ public interface JMSOperations {
 
     void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
-    void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                      String discoveryGroupName);
+    void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                          String discoveryGroupName);
 
-    void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                      String discoveryGroupName);
+    void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
+                          String discoveryGroupName);
 
-    void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                      String... staticConnector);
+    void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
+                          String... staticConnector);
+
+    void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue, Map<String, String> sourceContext,
+                         String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService,
+                         long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader);
+
+    void setFactoryType(String serverName, String connectionFactoryName, String factoryType);
+
+    void setFactoryType(String connectionFactoryName, String factoryType);
+
+
 }

@@ -6,9 +6,12 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -16,7 +19,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +39,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh1TestCase.class);
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -47,15 +49,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER1)
-    public static JavaArchive createLodh1Deployment() {
-
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
-
-        mdbJar.addClass(LocalMdbFromQueue.class);
-
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+    public static String createEjbXml(String mdbName) {
 
         StringBuffer ejbXml = new StringBuffer();
 
@@ -69,7 +63,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("impl-version=\"2.0\">\n");
         ejbXml.append("<enterprise-beans>\n");
         ejbXml.append("<message-driven>\n");
-        ejbXml.append("<ejb-name>mdb-lodh1</ejb-name>\n");
+        ejbXml.append("<ejb-name>" + mdbName + "</ejb-name>\n");
         ejbXml.append("<ejb-class>org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue</ejb-class>\n");
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
@@ -92,16 +86,28 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</jboss:ejb-jar>\n");
         ejbXml.append("\n");
 
-        mdbJar.addAsManifestResource(new StringAsset(ejbXml.toString()), "jboss-ejb3.xml");
+        return ejbXml.toString();
+    }
 
-        logger.info(ejbXml);
+    @Deployment(managed = false, testable = false, name = "mdb1")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh1Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh1")), "jboss-ejb3.xml");
+
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -110,13 +116,83 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testKillWithLimitedPoolSize() throws Exception {
+    public void testLimitedPoolSize() throws Exception {
         prepareJmsServer(CONTAINER1);
+        controller.start(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+
+        jmsAdminOperations.setSecurityEnabled(true);
+        jmsAdminOperations.setAuthenticationForNullUsers(true);
+
+        // set security persmissions for roles admin,users - user is already there
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
+        jmsAdminOperations.addRoleToSecuritySettings("#", "users");
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
+
+        stopServer(CONTAINER1);
+
         controller.start(CONTAINER1);
         String connectionFactoryName = "hornetq-ra";
         JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
-        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
         jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        stopServer(CONTAINER1);
+        controller.start(CONTAINER1);
+
+        logger.info("Deploy MDBs.");
+        for (int j = 0; j < 22; j++) {
+            deployer.deploy("mdb" + j);
+        }
+
+        logger.info("Start producer.");
+
+        ProducerTransAck producer1 = new ProducerTransAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        TextMessageBuilder builder = new TextMessageBuilder(1);
+        builder.setAddDuplicatedHeader(false);
+        producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(1000);
+        producer1.start();
+
+        logger.info("Start receiver.");
+        ReceiverTransAck receiver1 = new ReceiverTransAck(CONTAINER1_IP, 4447, outQueue, 6000, 10, 10);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+
+        deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
 
     }
@@ -152,6 +228,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 150);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
 //        producer1.setMessageBuilder(new TextMessageBuilder(10000));
 
         logger.info("Start producer.");
@@ -283,7 +360,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param containerName Name of the container - defined in arquillian.xml
      */
     private void prepareJmsServer(String containerName) {
 
@@ -295,7 +372,6 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
@@ -320,4 +396,508 @@ public class Lodh1TestCase extends HornetQTestCase {
         controller.stop(containerName);
 
     }
+
+    @Deployment(managed = false, testable = false, name = "mdb2")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh2Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh2");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh2")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb3")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh3Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh3");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh3")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb4")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh4Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh4");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh4")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb6")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh6Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh6");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh6")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb7")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh7Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh7");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh7")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb8")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh8Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh8");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh8")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb9")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh9Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh9");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh9")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb10")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh10Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh10");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh10")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb12")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh12Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh12");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh12")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb5")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh5Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh5");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh5")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb13")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh13Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh13");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh13")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb14")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh14Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh14");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh14")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb15")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh15Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh15");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh15")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb16")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh16Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh16");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh16")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb17")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh17Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh17");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh17")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb18")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh18Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh18");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh18")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb19")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh19Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh19");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh19")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb20")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh20Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh20");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh20")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb21")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh21Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh21");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh21")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb0")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh0Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh0");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh0")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb11")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh11Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh11");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh11")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+
 }

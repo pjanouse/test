@@ -374,7 +374,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
+    public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1432,16 +1432,31 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());    }
 
     @Override
-    public void createBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+    public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());    }
 
     @Override
-    public void createBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, String... staticConnector) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue, Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setFactoryType(String serverName, String connectionFactoryName, String factoryType) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setFactoryType(String connectionFactoryName, String factoryType) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 }

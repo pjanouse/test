@@ -5,8 +5,8 @@ import org.jboss.qa.tools.JMSOperations;
 import org.junit.runner.RunWith;
 
 /**
- * Failover tests just with replicated journal with BLOCK policy.
- */
+* Failover tests just with replicated journal with BLOCK policy.
+*/
 @RunWith(Arquillian.class)
 public class ReplicatedDedicatedFailoverTestCaseWithBlockPolicy extends ReplicatedDedicatedFailoverTestCase {
 

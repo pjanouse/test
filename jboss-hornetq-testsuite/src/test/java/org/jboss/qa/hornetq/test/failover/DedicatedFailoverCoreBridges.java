@@ -56,81 +56,81 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testKillWithHqBridgeWitStaticConnectors() throws Exception {
+    public void testKillWithBridgeWitStaticConnectors() throws Exception {
 
-        testFailoverWithHQBridge(false, false);
+        testFailoverWithBridge(false, false);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testKillWithHqBridgeWithDiscovery() throws Exception {
+    public void testKillWithBridgeWithDiscovery() throws Exception {
 
-        testFailoverWithHQBridge(false, true);
+        testFailoverWithBridge(false, true);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testShutdownWithHqBridgeWithStaticConnectors() throws Exception {
+    public void testShutdownWithBridgeWithStaticConnectors() throws Exception {
 
-        testFailoverWithHQBridge(true, false);
+        testFailoverWithBridge(true, false);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testShutdownWithHqBridgeWithDiscovery() throws Exception {
+    public void testShutdownWithBridgeWithDiscovery() throws Exception {
 
-        testFailoverWithHQBridge(true, true);
+        testFailoverWithBridge(true, true);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testKillDeployHqBridgeLiveThenBackupWithStaticConnectors() throws Exception {
-        testDeployHqBridgeLiveThenBackupWithStaticConnectors(false, false);
+    public void testKillDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
+        testDeployBridgeLiveThenBackupWithStaticConnectors(false, false);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testShutdownDeployHqBridgeLiveThenBackupWithStaticConnectors() throws Exception {
-        testDeployHqBridgeLiveThenBackupWithStaticConnectors(true, false);
+    public void testShutdownDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
+        testDeployBridgeLiveThenBackupWithStaticConnectors(true, false);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testKillDeployHqBridgeLiveThenBackupWithDiscovery() throws Exception {
-        testDeployHqBridgeLiveThenBackupWithStaticConnectors(false, false);
+    public void testKillDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
+        testDeployBridgeLiveThenBackupWithStaticConnectors(false, false);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testShutdownDeployHqBridgeLiveThenBackupWithDiscovery() throws Exception {
-        testDeployHqBridgeLiveThenBackupWithStaticConnectors(true, false);
+    public void testShutdownDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
+        testDeployBridgeLiveThenBackupWithStaticConnectors(true, false);
     }
 
 
-    private void deployBridge(String containerName, boolean useDiscovery) {
+    protected void deployBridge(String containerName, boolean useDiscovery) {
 
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         if (useDiscovery) {
-            jmsAdminOperations.createBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
+            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
         } else {
-            jmsAdminOperations.createBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
+            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
         }
 
         jmsAdminOperations.close();
@@ -138,9 +138,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         stopServer(containerName);
     }
 
-    public void testDeployHqBridgeLiveThenBackupWithStaticConnectors(boolean shutdown, boolean useDiscovery) throws Exception {
+    public void testDeployBridgeLiveThenBackupWithStaticConnectors(boolean shutdown, boolean useDiscovery) throws Exception {
 
-        prepareRemoteJcaTopology();
+        prepareTopology();
 
         deployBridge(CONTAINER1, useDiscovery);
 
@@ -203,9 +203,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      * @param shutdown shutdown server
      * @throws Exception
      */
-    public void testFailoverWithHQBridge(boolean shutdown, boolean useDiscovery) throws Exception {
+    public void testFailoverWithBridge(boolean shutdown, boolean useDiscovery) throws Exception {
 
-        prepareRemoteJcaTopology();
+        prepareTopology();
 
         deployBridge(CONTAINER3, useDiscovery);
 
@@ -298,13 +298,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopology() throws Exception {
+    public void prepareTopology() throws Exception {
 
         prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
 
         prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
 
-        prepareServerWithHQBridge(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
+        prepareServerWithBridge(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
 
         copyApplicationPropertiesFiles();
 
@@ -315,7 +315,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareServerWithHQBridge(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) {
+    protected void prepareServerWithBridge(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -324,6 +324,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         String remoteConnectorNameBackup = "netty-remote-backup";
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
@@ -366,6 +368,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
+        jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
 
         jmsAdminOperations.createPooledConnectionFactory("ra-connection-factory", "java:/jmsXALocal", "netty");
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("ra-connection-factory", connectorName);
@@ -390,14 +394,14 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-
+        String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
@@ -407,7 +411,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
-        jmsAdminOperations.setFailoverOnShutdown("RemoteConnectionFactory", true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -433,6 +437,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
+        jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
@@ -454,12 +460,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
         String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
@@ -498,6 +505,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
+        jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
+        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
@@ -525,8 +535,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
 
-        File applicationUsersOriginal = null;
-        File applicationRolesOriginal = null;
+        File applicationUsersOriginal;
+        File applicationRolesOriginal;
         for (int i = 1; i < 5; i++) {
 
             // copy application-users.properties

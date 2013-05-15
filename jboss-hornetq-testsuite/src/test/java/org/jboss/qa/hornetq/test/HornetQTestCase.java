@@ -452,7 +452,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                     if (System.currentTimeMillis() - startTime > timeout) {
                         // kill server because shutdown hangs and fail test
                         try {
-                            Runtime.getRuntime().exec("kill -9 " + pid);
+                            if (System.getProperty("os.name").contains("Windows"))  {
+                                Runtime.getRuntime().exec("taskkill /PID " + pid);
+                            } else { // it's linux or Solaris
+                                Runtime.getRuntime().exec("kill -9 " + pid);
+                            }
                         } catch (IOException e) {
                             log.error("Invoking kill -9 " + pid + " failed.", e);
                         }
