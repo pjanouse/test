@@ -96,6 +96,14 @@ public class RuleInstaller {
         }
     }
 
+    public static void uninstallAllRules(final String host, final int port) {
+        SubmitUtil.host = host;
+        SubmitUtil.port = port;
+
+        log.info(String.format("Deleting all Byteman rules from host %s (%d)", host, port));
+        SubmitUtil.uninstallAll();
+    }
+
     public void installMethod(Method method) {
         String script = ExtractScriptUtil.extract(method);
         if (script != null) {

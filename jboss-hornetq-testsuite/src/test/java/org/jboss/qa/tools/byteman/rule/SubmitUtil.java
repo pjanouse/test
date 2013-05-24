@@ -68,4 +68,14 @@ public class SubmitUtil {
             throw new SubmitException("Could not uninstall script from file", e);
         }
     }
+
+    public static void uninstallAll() {
+        try {
+            Submit submit = new Submit(host, port);
+            submit.deleteAllRules();
+        } catch (Exception e) {
+            log.error("Error on uninstalling Byteman rules from server", e);
+            throw new SubmitException("Could not delete rules", e);
+        }
+    }
 }
