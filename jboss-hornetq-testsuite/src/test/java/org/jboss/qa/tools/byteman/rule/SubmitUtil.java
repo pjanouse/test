@@ -17,6 +17,7 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
+import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.jboss.byteman.agent.submit.ScriptText;
 import org.jboss.byteman.agent.submit.Submit;
@@ -45,6 +46,16 @@ public class SubmitUtil {
             log.error(e.getMessage(), e);
             throw new SubmitException("Could not install script from file", e);
 
+        }
+    }
+
+    public static void installFromStream(InputStream rules) {
+        try {
+            Submit submit = new Submit(host, port);
+            submit.addRulesFromResources(Arrays.asList(new InputStream[]{rules}));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new SubmitException("Could not install scripts from resource", e);
         }
     }
 
