@@ -18,7 +18,7 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<hornetq.version>2.2.16.Final</hornetq.version>
 
-		<eap5.client>5.2.0-HORNETQ-JBPAPP-10745</eap5.client>
+		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10473</eap5.client>
 		<eap6.client>6.0.1.GA</eap6.client>
         <eap6.controller.client>6.1.0.ER6</eap6.controller.client>
 
