@@ -9,6 +9,8 @@ jboss-hornetq-testsuite/log
 .classpath
 .project
 .settings
+nb-configuration.xml
+nbactions.xml
 test-suite.log*
 **/ObjectStore*
 **/PutObjectStoreDirHere*

@@ -162,7 +162,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "mysql55");
+            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "oracle11gr2");
             topologyCreated = true;
         }
     }

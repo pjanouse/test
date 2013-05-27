@@ -17,6 +17,7 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
+import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.jboss.byteman.agent.submit.ScriptText;
 import org.jboss.byteman.agent.submit.Submit;
@@ -48,6 +49,16 @@ public class SubmitUtil {
         }
     }
 
+    public static void installFromStream(InputStream rules) {
+        try {
+            Submit submit = new Submit(host, port);
+            submit.addRulesFromResources(Arrays.asList(new InputStream[]{rules}));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new SubmitException("Could not install scripts from resource", e);
+        }
+    }
+
     public static void uninstall(String key, String script) {
         try {
             Submit submit = new Submit();
@@ -55,6 +66,16 @@ public class SubmitUtil {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new SubmitException("Could not uninstall script from file", e);
+        }
+    }
+
+    public static void uninstallAll() {
+        try {
+            Submit submit = new Submit(host, port);
+            submit.deleteAllRules();
+        } catch (Exception e) {
+            log.error("Error on uninstalling Byteman rules from server", e);
+            throw new SubmitException("Could not delete rules", e);
         }
     }
 }

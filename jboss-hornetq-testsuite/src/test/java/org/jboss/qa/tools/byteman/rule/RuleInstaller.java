@@ -64,11 +64,15 @@ public class RuleInstaller {
         boolean installed = false;
         for (int level = 1; level < elements.length; level++) {
             try {
+                // climb up the stack trace and add all BM rules as long as they're on methods of the test class
+                if (!elements[level].getClassName().equals(testClass.getName())) {
+                    installed = true;
+                    break;
+                }
+
                 callerMethodName = elements[level].getMethodName();
                 log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
                 ruleInstaller.installMethod(testClass.getMethod(callerMethodName));
-                installed = true;
-                break;
             } catch (Exception ex) {
 
                 // this means that method has parameters -> testClass.getMethod(...) thrown exception
@@ -90,6 +94,14 @@ public class RuleInstaller {
         if (!installed) {
             log.error("Cannot find corresponding annotations on stack trace methods");
         }
+    }
+
+    public static void uninstallAllRules(final String host, final int port) {
+        SubmitUtil.host = host;
+        SubmitUtil.port = port;
+
+        log.info(String.format("Deleting all Byteman rules from host %s (%d)", host, port));
+        SubmitUtil.uninstallAll();
     }
 
     public void installMethod(Method method) {
