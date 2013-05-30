@@ -48,16 +48,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     // JBOSS_HOME properties
-    public static String JBOSS_HOME_1;
-    public static String JBOSS_HOME_2;
-    public static String JBOSS_HOME_3;
-    public static String JBOSS_HOME_4;
+    public final static String JBOSS_HOME_1;
+    public final static String JBOSS_HOME_2;
+    public final static String JBOSS_HOME_3;
+    public final static String JBOSS_HOME_4;
 
     // IP address for containers
-    public static String CONTAINER1_IP;
-    public static String CONTAINER2_IP;
-    public static String CONTAINER3_IP;
-    public static String CONTAINER4_IP;
+    public final static String CONTAINER1_IP;
+    public final static String CONTAINER2_IP;
+    public final static String CONTAINER3_IP;
+    public final static String CONTAINER4_IP;
 
     // Multi-cast address
     public static final String MCAST_ADDRESS;
