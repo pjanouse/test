@@ -22,6 +22,8 @@ public interface HornetQTestCaseConstants {
     // Ports for Byteman
     public static final int BYTEMAN_CONTAINER1_PORT = 9091;
     public static final int BYTEMAN_CONTAINER2_PORT = 9191;
+    public static final int BYTEMAN_CONTAINER3_PORT = 9291;
+    public static final int BYTEMAN_CONTAINER4_PORT = 9391;
 
     // IDs for the active container definition
     public static final String EAP5_CONTAINER = "EAP5";
