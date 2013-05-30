@@ -103,6 +103,12 @@ public class DbUtilServlet extends HttpServlet {
             PreparedStatement ps = (PreparedStatement) connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
+
+            String deleteTableSql = "drop table MESSAGE_INFO2";
+            PreparedStatement deleteTable = (PreparedStatement) connection.prepareStatement(deleteTableSql);
+            deleteTable.execute();
+            deleteTable.close();
+
             log.info("Table deleted - sql command: " + sql);
         } catch (java.sql.SQLSyntaxErrorException ex) {
             out.println(ex.getMessage());
