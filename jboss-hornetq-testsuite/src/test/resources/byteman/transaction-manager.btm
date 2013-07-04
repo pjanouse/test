@@ -1,0 +1,36 @@
+# Rules for tracking operations on javax.transaction.TransactionManager
+
+RULE hornetq xa call begin
+INTERFACE javax.transaction.TransactionManager
+METHOD begin
+IF TRUE
+DO debug("CALL TransactionManager.begin")
+ENDRULE
+
+RULE hornetq xa call commit
+INTERFACE javax.transaction.TransactionManager
+METHOD commit
+IF TRUE
+DO debug("CALL TransactionManager.commit")
+ENDRULE
+
+RULE hornetq xa call rollback
+INTERFACE javax.transaction.TransactionManager
+METHOD rollback
+IF TRUE
+DO debug("CALL TransactionManager.rollback")
+ENDRULE
+
+RULE hornetq xa call resume
+INTERFACE javax.transaction.TransactionManager
+METHOD resume
+IF TRUE
+DO debug("CALL TransactionManager.resume")
+ENDRULE
+
+RULE hornetq xa call suspend
+INTERFACE javax.transaction.TransactionManager
+METHOD suspend
+IF TRUE
+DO debug("CALL TransactionManager.suspend")
+ENDRULE

@@ -1,0 +1,50 @@
+# Rules for tracking operations on org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+
+RULE hornetq xa wrapper call start
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD start
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.start")
+ENDRULE
+
+RULE hornetq xa wrapper call end
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD end
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.end")
+ENDRULE
+
+RULE hornetq xa wrapper call prepare
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD prepare
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.prepare")
+ENDRULE
+
+RULE hornetq xa wrapper call commit
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD commit
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.commit")
+ENDRULE
+
+RULE hornetq xa wrapper call forget
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD forget
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.forget")
+ENDRULE
+
+RULE hornetq xa wrapper call recover
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD recover
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.recover")
+ENDRULE
+
+RULE hornetq xa wrapper call rollback
+CLASS org.hornetq.jms.server.recovery.HornetQXAResourceWrapper
+METHOD rollback
+IF TRUE
+DO debug("CALL HornetQXAResourceWrapper.rollback")
+ENDRULE

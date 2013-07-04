@@ -1,0 +1,50 @@
+# Rules for tracking operations on org.hornetq.core.client.impl.ClientSessionImpl
+
+RULE hornetq client session call start
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD start
+IF TRUE
+DO debug("CALL ClientSessionImpl.start")
+ENDRULE
+
+RULE hornetq client session call end
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD end
+IF TRUE
+DO debug("CALL ClientSessionImpl.end")
+ENDRULE
+
+RULE hornetq client session call prepare
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD prepare
+IF TRUE
+DO debug("CALL ClientSessionImpl.prepare")
+ENDRULE
+
+RULE hornetq client session call commit
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD commit
+IF TRUE
+DO debug("CALL ClientSessionImpl.commit")
+ENDRULE
+
+RULE hornetq client session call forget
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD forget
+IF TRUE
+DO debug("CALL ClientSessionImpl.forget")
+ENDRULE
+
+RULE hornetq client session call recover
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD recover
+IF TRUE
+DO debug("CALL ClientSessionImpl.recover")
+ENDRULE
+
+RULE hornetq client session call rollback
+CLASS org.hornetq.core.client.impl.ClientSessionImpl
+METHOD rollback
+IF TRUE
+DO debug("CALL ClientSessionImpl.rollback")
+ENDRULE

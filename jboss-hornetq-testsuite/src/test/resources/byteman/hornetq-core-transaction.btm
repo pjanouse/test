@@ -1,0 +1,22 @@
+# Rules for tracking operations on org.hornetq.core.transaction.Transaction
+
+RULE xa resource call prepare
+INTERFACE org.hornetq.core.transaction.Transaction
+METHOD prepare
+IF TRUE
+DO debug("CALL core Transaction.prepare (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call commit
+INTERFACE org.hornetq.core.transaction.Transaction
+METHOD commit
+IF TRUE
+DO debug("CALL core Transaction.commit (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call rollback
+INTERFACE org.hornetq.core.transaction.Transaction
+METHOD rollback
+IF TRUE
+DO debug("CALL core Transaction.rollback (implementation " + $this.getClass().getName() + ")")
+ENDRULE

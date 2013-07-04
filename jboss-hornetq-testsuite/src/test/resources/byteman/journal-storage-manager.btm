@@ -1,0 +1,60 @@
+# Rules for tracking operations on org.hornetq.core.persistence.impl.journal.JournalStorageManager
+
+# destinations
+RULE hornetq call storage manager add queue binding
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD addQueueBinding
+IF TRUE
+DO debug("CALL JournalStorageManager.addQueueBinding");
+ENDRULE
+
+# paging
+RULE hornetq call storage manager add to page
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD addToPage
+IF TRUE
+DO debug("CALL JournalStorageManager.addToPage");
+ENDRULE
+
+# large messages
+RULE hornetq call storage manager create file for large message
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD createFileForLargeMessage
+IF TRUE
+DO debug("CALL JournalStorageManager.createFileForLargeMessage (message id " + $1 + ")");
+ENDRULE
+
+RULE hornetq call storage manager delete file for large message
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD deleteLargeMessageFile
+IF TRUE
+DO debug("CALL JournalStorageManager.deleteLargeMessageFile");
+ENDRULE
+
+RULE hornetq call storage manager create large message
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD createLargeMessage
+IF TRUE
+DO debug("CALL JournalStorageManager.createLargeMessage");
+ENDRULE
+
+RULE hornetq call storage manager install large message info on transaction
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD installLargeMessageConfirmationOnTX
+IF TRUE
+DO debug("CALL JournalStorageManager.installLargeMessageConfirmationOnTX");
+ENDRULE
+
+RULE hornetq call storage manager delete cached large messages
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD performCachedLargeMessageDeletes
+IF TRUE
+DO debug("CALL JournalStorageManager.performCachedLargeMessageDeletes");
+ENDRULE
+
+RULE hornetq call storage manager send large messages files
+CLASS org.hornetq.core.persistence.impl.journal.JournalStorageManager
+METHOD sendLargeMessageFiles
+IF TRUE
+DO debug("CALL JournalStorageManager.sendLargeMessageFiles");
+ENDRULE

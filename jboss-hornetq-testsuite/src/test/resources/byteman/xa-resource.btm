@@ -1,0 +1,50 @@
+# Rules for tracking operations on javax.transaction.xa.XAResource (eg HornetQRAXAResource)
+
+RULE xa resource call start
+INTERFACE javax.transaction.xa.XAResource
+METHOD start
+IF TRUE
+DO debug("CALL XAResource.start (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call end
+INTERFACE javax.transaction.xa.XAResource
+METHOD end
+IF TRUE
+DO debug("CALL XAResource.end (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call prepare
+INTERFACE javax.transaction.xa.XAResource
+METHOD prepare
+IF TRUE
+DO debug("CALL XAResource.prepare (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call commit
+INTERFACE javax.transaction.xa.XAResource
+METHOD commit
+IF TRUE
+DO debug("CALL XAResource.commit (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call forget
+INTERFACE javax.transaction.xa.XAResource
+METHOD forget
+IF TRUE
+DO debug("CALL XAResource.forget (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call recover
+INTERFACE javax.transaction.xa.XAResource
+METHOD recover
+IF TRUE
+DO debug("CALL XAResource.recover (implementation " + $this.getClass().getName() + ")")
+ENDRULE
+
+RULE xa resource call rollback
+INTERFACE javax.transaction.xa.XAResource
+METHOD rollback
+IF TRUE
+DO debug("CALL XAResource.rollback (implementation " + $this.getClass().getName() + ")")
+ENDRULE

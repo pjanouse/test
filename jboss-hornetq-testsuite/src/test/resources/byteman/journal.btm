@@ -1,0 +1,36 @@
+# Rules for tracking operations on org.hornetq.core.journal.Journal interface
+
+RULE hornetq call journal add
+INTERFACE org.hornetq.core.journal.Journal
+METHOD appendAddRecordTransactional
+IF TRUE
+DO debug("CALL Journal.appendAddRecordTransactional (transaction id " + $1 + ", message type " + $3 + ")");
+ENDRULE
+
+RULE hornetq call journal delete
+INTERFACE org.hornetq.core.journal.Journal
+METHOD appendDeleteRecordTransactional
+IF TRUE
+DO debug("CALL Journal.appendDeleteRecordTransactional (transaction id " + $1 + ")");
+ENDRULE
+
+RULE hornetq call journal update
+INTERFACE org.hornetq.core.journal.Journal
+METHOD appendUpdateRecordTransactional
+IF TRUE
+DO debug("CALL Journal.appendUpdateRecordTransactional (transaction id " + $1 + ")");
+ENDRULE
+
+RULE hornetq call journal commit
+INTERFACE org.hornetq.core.journal.Journal
+METHOD appendCommitRecord
+IF TRUE
+DO debug("CALL Journal.appendCommitRecord (transaction id " + $1 + ")");
+ENDRULE
+
+RULE hornetq call journal prepare
+INTERFACE org.hornetq.core.journal.Journal
+METHOD appendPrepareRecord
+IF TRUE
+DO debug("CALL Journal.appendPrepareRecord (transaction id " + $1 + ")");
+ENDRULE

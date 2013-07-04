@@ -1,0 +1,50 @@
+# Rules for tracking operations on org.hornetq.ra.HornetQRAXAResource
+
+RULE hornetq xa call start
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD start
+IF TRUE
+DO debug("CALL HornetQRAXAResource.start")
+ENDRULE
+
+RULE hornetq xa call end
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD end
+IF TRUE
+DO debug("CALL HornetQRAXAResource.end")
+ENDRULE
+
+RULE hornetq xa call prepare
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD prepare
+IF TRUE
+DO debug("CALL HornetQRAXAResource.prepare")
+ENDRULE
+
+RULE hornetq xa call commit
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD commit
+IF TRUE
+DO debug("CALL HornetQRAXAResource.commit")
+ENDRULE
+
+RULE hornetq xa call forget
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD forget
+IF TRUE
+DO debug("CALL HornetQRAXAResource.forget")
+ENDRULE
+
+RULE hornetq xa call recover
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD recover
+IF TRUE
+DO debug("CALL HornetQRAXAResource.recover")
+ENDRULE
+
+RULE hornetq xa call rollback
+CLASS org.hornetq.ra.HornetQRAXAResource
+METHOD rollback
+IF TRUE
+DO debug("CALL HornetQRAXAResource.rollback")
+ENDRULE
