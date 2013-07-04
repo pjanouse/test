@@ -372,6 +372,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         arquillianDescriptor = descriptor;
     }
 
+    protected ArquillianDescriptor getArquillianDescriptor() {
+        return arquillianDescriptor;
+    }
+
     public void describeTestStart(@Observes org.jboss.arquillian.test.spi.event.suite.Before event) {
         log.info("Start test -------------------------------- " + event.getTestClass().getName() + "." + event.getTestMethod().getName());
     }
