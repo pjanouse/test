@@ -42,6 +42,14 @@ public interface JMSOperations {
     void addBackup(String serverName, boolean isBackup);
 
     /**
+     * Removes protocol from JGroups stack
+     *
+     * @param nameOfStack  name of stack udp,tcp
+     * @param protocolName protocol name PING,MERGE
+     */
+    public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName);
+
+    /**
      * Adds clustered attribute.
      *
      * @param clustered set true to allow server to create cluster
@@ -175,7 +183,7 @@ public interface JMSOperations {
 
     void addSocketBinding(String socketBindingName, int port);
 
-    
+
     /**
      * Add XA datasource property.
      *
@@ -635,16 +643,15 @@ public interface JMSOperations {
      */
     void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod, String connectorName, String backupConnectorName);
 
-     /**
-     * 
-     * @param name                a unique name for the broadcast group - mandatory
-     * @param jgroupsStack        jgroups protocol stack
-     * @param jgroupsChannel      the name that jgroups channels connect to for broadcasting
-     * @param broadcastPeriod     period in miliseconds between consecutive broadcasts
-     * @param connectorName       a pair connector
+    /**
+     * @param name            a unique name for the broadcast group - mandatory
+     * @param jgroupsStack    jgroups protocol stack
+     * @param jgroupsChannel  the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod period in miliseconds between consecutive broadcasts
+     * @param connectorName   a pair connector
      */
-    void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName);    
-    
+    void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName);
+
     /**
      * Sets cluster configuration.
      *
@@ -810,7 +817,7 @@ public interface JMSOperations {
      * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
      */
     void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel);
-    
+
     /**
      * Sets ha attribute.
      *
@@ -1168,7 +1175,7 @@ public interface JMSOperations {
      * Set multicast address for socket binding
      *
      * @param socketBindingName name of the socket binding
-     * @param port port of the socket binding
+     * @param port              port of the socket binding
      */
     void setMulticastPortOnSocketBinding(String socketBindingName, int port);
 
@@ -1176,14 +1183,14 @@ public interface JMSOperations {
      * Set compression.
      *
      * @param connectionFactoryName name of the connection factory
-     * @param value true to enable large message compression
+     * @param value                 true to enable large message compression
      */
     void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value);
 
     /**
      * Set old(true) or new failover model(false)
      *
-     * @param keepOldFailover false to activate it
+     * @param keepOldFailover          false to activate it
      * @param nodeStateRefreshInterval after which time will be node's timestamp updated in database
      */
     void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval);
@@ -1192,15 +1199,16 @@ public interface JMSOperations {
      * Whether to retyr connection to database
      *
      * @param retryOnConnectionFailure true for retry
-     * @param retryInterval interval in miliseconds
-     * @param maxRetry how many times to retry before giving up
+     * @param retryInterval            interval in miliseconds
+     * @param maxRetry                 how many times to retry before giving up
      */
     void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry);
 
     /**
      * Sets TUNNEL protocol for jgroups
+     *
      * @param gossipRouterHostname ip address of gosship router
-     * @param gossipRouterPort  port of gosship router
+     * @param gossipRouterPort     port of gosship router
      */
     void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort);
 
@@ -1208,7 +1216,7 @@ public interface JMSOperations {
      * Set database.
      *
      * @param databaseHostname hostname
-     * @param databasePort  port
+     * @param databasePort     port
      */
     void setDatabase(String databaseHostname, int databasePort);
 
@@ -1218,7 +1226,6 @@ public interface JMSOperations {
                             long redistributionDelay, long pageSizeBytes);
 
     /**
-     *
      * Sets transaction node identifier.
      *
      * @param i
@@ -1241,7 +1248,7 @@ public interface JMSOperations {
 
     void addSecuritySetting(String serverName, String s);
 
-	void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
+    void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
 
     void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
@@ -1264,5 +1271,11 @@ public interface JMSOperations {
 
     void setFactoryType(String connectionFactoryName, String factoryType);
 
+
+    void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling);
+
+    void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName);
+
+    void removeConnectionFactory(String connectionFactoryName);
 
 }

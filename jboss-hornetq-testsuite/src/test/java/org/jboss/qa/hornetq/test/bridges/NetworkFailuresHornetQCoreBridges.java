@@ -58,8 +58,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     // Logger
     private static final Logger log = Logger.getLogger(NetworkFailuresHornetQCoreBridges.class);
 
-    private String hornetqInQueueName = "InQueue";
-    private String relativeJndiInQueueName = "queue/InQueue";
+    protected String hornetqInQueueName = "InQueue";
+    protected String relativeJndiInQueueName = "queue/InQueue";
 
     private String broadcastGroupAddressClusterA = "233.1.2.1";
     private int broadcastGroupPortClusterA = 9876;
@@ -73,8 +73,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     private String discoveryGroupAddressClusterB = "233.1.2.4";
     private int discoveryGroupPortServerClusterB = 9876;
 
-    private int proxy12port = 43812;
-    private int proxy21port = 43821;
+    protected int proxy12port = 43812;
+    protected int proxy21port = 43821;
 
     ControllableProxy proxy1;
     ControllableProxy proxy2;
@@ -329,7 +329,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      *
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
-    private void executeNetworkFails(long timeBetweenFails, int numberOfFails)
+    protected void executeNetworkFails(long timeBetweenFails, int numberOfFails)
             throws Exception {
 
 
@@ -348,7 +348,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         }
     }
 
-    private void startProxies() throws RemoteException {
+    protected void startProxies() throws Exception {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
@@ -377,7 +377,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     }
 
-    private void stopProxies() throws RemoteException {
+    protected void stopProxies() throws Exception {
         log.info("Stop all proxies.");
         if (proxy1 != null) {
             proxy1.stop();
@@ -447,7 +447,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * @param discoveryGroupAddress discovery udp address
      * @param discoveryGroupPort    discovery udp port
      */
-    private void prepareClusterServer(String containerName, String bindingAddress,
+    protected void prepareClusterServer(String containerName, String bindingAddress,
                                       int proxyPortIn, int reconnectAttempts, String broadcastGroupAddress,
                                       int broadcastGroupPort, String discoveryGroupAddress, int discoveryGroupPort) {
 

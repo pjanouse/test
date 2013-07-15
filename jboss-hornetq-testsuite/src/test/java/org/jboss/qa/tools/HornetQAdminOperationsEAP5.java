@@ -247,6 +247,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    /**
+     * Removes protocol from JGroups stack
+     *
+     * @param nameOfStack  name of stack udp,tcp
+     * @param protocolName protocol name PING,MERGE
+     */
+    @Override
+    public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     @Override
     public void addClustered(boolean clustered) {
         logger.info("This operation is not supported: " + getMethodName());
@@ -1458,5 +1469,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setFactoryType(String connectionFactoryName, String factoryType) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
+    @Override
+    public void removeConnectionFactory(String connectionFactoryName) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

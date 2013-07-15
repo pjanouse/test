@@ -470,6 +470,59 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Creates connection factory.
+     *
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param jndiName jndi name of connection factory
+     * @param connectorName         name of the connector like "remote-connector"
+     */
+    @Override
+    public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("entries").add(jndiName);
+
+        model.get("name").set("connector");
+        ModelNode modelnew = new ModelNode();
+        modelnew.get(connectorName).clear();
+        model.get("connector").set(modelnew);
+
+        System.out.println(model.toString());
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Removes connection factory.
+     *
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     */
+    @Override
+    public void removeConnectionFactory(String connectionFactoryName) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        System.out.println(model.toString());
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Sets connector on pooled connection factory
      *
      * @param connectionFactoryName name of the pooled connection factory like
@@ -1577,6 +1630,30 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                       String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, String connectorName) {
         setClusterConnections("default", name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
+    }
+
+
+    /**
+     * Removes protocol from JGroups stack
+     * @param nameOfStack name of stack udp,tcp
+     * @param protocolName protocol name PING,MERGE
+     */
+    public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName) {
+
+        try {
+            ModelNode model = new ModelNode();
+            model.get(ClientConstants.OP).set("remove");
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+            model.get(ClientConstants.OP_ADDR).add("stack", nameOfStack);
+            model.get(ClientConstants.OP_ADDR).add("protocol", protocolName);
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -2727,6 +2804,78 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setFactoryType(String connectionFactoryName, String factoryType) {
         setFactoryType("default", connectionFactoryName, factoryType);
+    }
+
+    @Override
+    public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get("name").set("type");
+        model.get("value").set(transport);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+//        model = new ModelNode();
+//        model.get(ClientConstants.OP).set("write-attribute");
+//        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+//        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+//        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+//        model.get("name").set("socket-binding");
+//        model.get("value").set(ModelType.UNDEFINED);
+//        try {
+//            this.applyUpdate(model);
+//        } catch (Exception e) {
+//            logger.error(e);
+//        }
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get("name").set("shared");
+        model.get("value").set(false);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("property", "gossip_router_hosts");
+        model.get("value").set(gosshipRouterAddress + "[" + gosshipRouterPort + "]");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("property", "enable_bundling");
+        model.get("value").set(false);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+
     }
 
     @Override
