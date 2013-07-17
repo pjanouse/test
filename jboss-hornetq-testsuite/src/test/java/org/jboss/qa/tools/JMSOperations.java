@@ -1248,6 +1248,8 @@ public interface JMSOperations {
 
     void addSecuritySetting(String serverName, String s);
 
+    void removeSecuritySettings(String serverName, String addressMask);
+
     void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
 
     void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);

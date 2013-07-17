@@ -599,6 +599,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void removeSecuritySettings(String serverName, String addressMask) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("security-settings", addressMask);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Add JNDI name
      *
