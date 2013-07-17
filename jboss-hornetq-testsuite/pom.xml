@@ -147,6 +147,12 @@
 			<type>jar</type>
 		</dependency>
 
+        <dependency>
+            <groupId>org.jboss.security</groupId>
+            <artifactId>jbosssx</artifactId>
+            <version>2.1.0.20091223</version>
+        </dependency>
+
 		<dependency>
 			<groupId>eap</groupId>
 			<artifactId>eap-jboss-as-controller-client</artifactId>
