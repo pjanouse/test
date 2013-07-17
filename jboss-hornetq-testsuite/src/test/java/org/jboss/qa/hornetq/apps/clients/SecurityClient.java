@@ -114,47 +114,41 @@ public class SecurityClient extends Client {
      * Send and receive messages to/from server. This should be started -
      */
     public void sendAndReceive() throws Exception {
-        try {
+        con.start();
 
-            con.start();
+        MessageProducer producer = session.createProducer(queue);
 
-            MessageProducer producer = session.createProducer(queue);
+        Message msg = null;
 
-            Message msg = null;
+        while (counter < messages && !stop) {
 
-            while (counter < messages && !stop) {
+            msg = messageBuilder.createMessage(session);
+            // send message in while cycle
+            producer.send(msg);
 
-                msg = messageBuilder.createMessage(session);
-                // send message in while cycle
-                producer.send(msg);
+            counter++;
 
-                counter++;
+            logger.info("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
-                logger.info("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
-
-            }
-
-            producer.close();
-
-            MessageConsumer consumer = session.createConsumer(queue);
-
-            counter = 0;
-
-            while (counter < messages && !stop) {
-
-                msg = consumer.receive(1000);
-
-                counter++;
-
-                logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
-
-            }
-
-            consumer.close();
-
-        } catch (JMSException ex) {
-            logger.log(Level.ERROR, "Exception:", ex);
         }
+
+        producer.close();
+
+        MessageConsumer consumer = session.createConsumer(queue);
+
+        counter = 0;
+
+        while (counter < messages && !stop) {
+
+            msg = consumer.receive(1000);
+
+            counter++;
+
+            logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+
+        }
+
+        consumer.close();
     }
 
     /**
