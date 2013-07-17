@@ -16,11 +16,13 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<netty.version>3.2.5.Final</netty.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
-		<hornetq.version>2.2.16.Final</hornetq.version>
+		<!-- <hornetq.version>2.2.16.Final</hornetq.version> -->
+        <hornetq.version>2.3.1.Final</hornetq.version>
 
 		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10473</eap5.client>
-		<eap6.client>6.0.1.GA</eap6.client>
-        <eap6.controller.client>6.1.0.ER6</eap6.controller.client>
+		<!-- <eap6.client>6.0.1.GA</eap6.client> -->
+        <eap6.client>6.1.0.ER7</eap6.client>
+        <eap6.controller.client>6.1.0.ER7</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
