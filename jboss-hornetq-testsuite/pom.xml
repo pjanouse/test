@@ -16,9 +16,11 @@
         <!--NOT USED FOR EAP 6 CONTAINER-->
 		<netty.version>3.2.5.Final</netty.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
-		<hornetq.version>2.2.16.Final</hornetq.version>
+		<!-- <hornetq.version>2.2.16.Final</hornetq.version> -->
+        <hornetq.version>2.3.1.Final</hornetq.version>
 
 		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10473</eap5.client>
+
 		<eap6.client>6.1.1.ER3</eap6.client>
         <eap6.controller.client>6.1.1.ER3</eap6.controller.client>
 
@@ -144,6 +146,12 @@
 			<scope>test</scope>
 			<type>jar</type>
 		</dependency>
+
+        <dependency>
+            <groupId>org.jboss.security</groupId>
+            <artifactId>jbosssx</artifactId>
+            <version>2.1.0.20091223</version>
+        </dependency>
 
 		<dependency>
 			<groupId>eap</groupId>
