@@ -1,14 +1,15 @@
 package org.jboss.qa.hornetq.test.security;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
 import org.jboss.qa.tools.JMSOperations;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -103,7 +104,7 @@ public abstract class SecurityTestBase extends HornetQTestCase {
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
         props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
-        props.put(TransportConstants.NEED_CLIENT_AUTH_PROP_NAME, "true");
+        props.put("need-client-auth", "true");
         this.createAcceptor(acceptorName, ops, props);
     }
 
