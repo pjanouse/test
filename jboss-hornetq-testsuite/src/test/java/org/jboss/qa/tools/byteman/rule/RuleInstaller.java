@@ -65,14 +65,16 @@ public class RuleInstaller {
         for (int level = 1; level < elements.length; level++) {
             try {
                 // climb up the stack trace and add all BM rules as long as they're on methods of the test class
-                if (!elements[level].getClassName().equals(testClass.getName())) {
-                    installed = true;
-                    break;
-                }
+//                if (!elements[level].getClassName().equals(testClass.getName())) {
+//                    installed = true;
+//                    break;
+//                }
 
                 callerMethodName = elements[level].getMethodName();
                 log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
                 ruleInstaller.installMethod(testClass.getMethod(callerMethodName));
+                installed = true;
+                break;
             } catch (Exception ex) {
 
                 // this means that method has parameters -> testClass.getMethod(...) thrown exception

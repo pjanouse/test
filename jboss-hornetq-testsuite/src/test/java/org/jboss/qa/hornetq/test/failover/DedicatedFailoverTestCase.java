@@ -227,7 +227,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
+     * some messages to first, kill first, receive messages from the second one
      *
      * @param acknowledge acknowledge type
      * @param failback    whether to test failback
@@ -257,6 +257,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.startClients();
 
         waitForReceiversUntil(clients.getConsumers(), 320, 300000);
+
+        logger.warn("Deploy byteman rule:");
 
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
