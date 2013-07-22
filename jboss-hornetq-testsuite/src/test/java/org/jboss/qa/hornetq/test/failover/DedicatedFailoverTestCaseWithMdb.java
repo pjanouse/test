@@ -9,7 +9,6 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
@@ -139,7 +138,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         Thread.sleep(40000);
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
         receiver1.start();
         receiver1.join();
 
@@ -181,24 +180,27 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start mdb server
         deployer.deploy("mdb1");
         logger.info("MDB was deployed to mdb server - container 3");
-        Thread.sleep(40000);
+
+        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessages(...) timeouted.",
+                waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             stopServer(CONTAINER1);
             logger.info("Container 1 shut downed.");
         } else {
             killServer(CONTAINER1);
+            controller.kill(CONTAINER1);
             logger.info("Container 1 killed.");
         }
 
-        Thread.sleep(300000);
-        try {
-            controller.stop(CONTAINER1);
-        } catch (Exception ex)  {}
+        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
+        Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
+                waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 300000));
+        Thread.sleep(10000);
         controller.start(CONTAINER1);
         logger.info("Container 1 started again");
-        waitHornetQToAlive(CONTAINER1_IP, 5445, 300000);
-        Thread.sleep(60000);
+        Assert.assertTrue("Container 1 did not start after failback. Timeout 5 min.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+        Thread.sleep(10000);
         logger.info("Container 2 stopping");
         stopServer(CONTAINER2);
         logger.info("Container 2 stopped");
@@ -221,6 +223,28 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         stopServer(CONTAINER1);
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+    }
+
+    /**
+     * Return true if numberOfMessages is in queue in the given timeout. Otherwise false.
+     *
+     * @param containerName container name
+     * @param queueName queue name (not jndi name)
+     * @param numberOfMessages number of messages
+     * @param timeout time out
+     * @return returns true if numberOfMessages is in queue in the given timeout. Otherwise false.
+     * @throws Exception
+     */
+    private boolean waitForMessages(String containerName, String queueName, int numberOfMessages, long timeout) throws Exception{
+        long startTime = System.currentTimeMillis();
+        while (numberOfMessages > (getJMSOperations(containerName).getCountOfMessagesOnQueue(queueName)))   {
+            if (System.currentTimeMillis() - startTime > timeout)  {
+                return false;
+            }
+            Thread.sleep(1000);
+        }
+
+        return true;
     }
 
     /**

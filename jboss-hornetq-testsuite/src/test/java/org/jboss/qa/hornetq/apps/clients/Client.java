@@ -91,6 +91,10 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
         if (message.getStringProperty("_HQ_DUPL_ID") != null)   {
             mapOfPropertiesOfTheMessage.put("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
         }
+        // this is for MDB test versification (MDB creates new message with inMessageId property)
+        if (message.getStringProperty("inMessageId") != null)   {
+            mapOfPropertiesOfTheMessage.put("inMessageId", message.getStringProperty("inMessageId"));
+        }
         listOfReceivedMessages.add(mapOfPropertiesOfTheMessage);
     }
 
