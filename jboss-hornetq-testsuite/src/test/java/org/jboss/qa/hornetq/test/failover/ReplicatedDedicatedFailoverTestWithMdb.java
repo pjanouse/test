@@ -62,6 +62,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.setBackupGroupName("firstPair");
         jmsAdminOperations.setCheckForLiveServer(true);
+        jmsAdminOperations.setBackup(false);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
