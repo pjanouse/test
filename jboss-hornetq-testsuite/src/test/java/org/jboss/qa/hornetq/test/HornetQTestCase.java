@@ -424,7 +424,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.debug("Killer servlet was not deployed. Deployed it.");
         }
         deployer.deploy(killerServletName);
-        HttpRequest.get("http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill", 4, TimeUnit.SECONDS);
+        if (serverIP.contains(":")) {
+            StringBuilder ip6 = new StringBuilder("[").append(serverIP).append("]");
+            serverIP = ip6.toString();
+        }
+        String callingURLForKill = "http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill";
+        log.info("Calling url to kill server: " + callingURLForKill);
+        HttpRequest.get(callingURLForKill, 4, TimeUnit.SECONDS);
         Thread.sleep(3000);
         controller.kill(container);
     }
