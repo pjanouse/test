@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Testing compression of messages
@@ -41,6 +42,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testCompression() throws Exception {
         prepareServer(CONTAINER1);
 
