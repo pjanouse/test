@@ -198,8 +198,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         String socketBindingName = "messaging";
         HashMap<String, String> connectorParams = new HashMap<String, String>();
         connectorParams.put("ssl-enabled", "true");
-        connectorParams.put("key-store-path", keyStoreNew.getAbsolutePath());
-        connectorParams.put("key-store-password", "hornetqexample");
+        connectorParams.put("trust-store-path", trustStoreNew.getAbsolutePath());
+        connectorParams.put("trust-store-password", "hornetqexample");
         HashMap<String, String> acceptorParams = new HashMap<String, String>();
         acceptorParams.put("ssl-enabled", "true");
         acceptorParams.put("key-store-path", keyStoreNew.getAbsolutePath());
