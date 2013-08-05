@@ -12,7 +12,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -68,7 +68,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void dummySendReceiveTest() throws InterruptedException {
 
         final int MESSAGES = 10;
@@ -115,7 +115,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -144,7 +144,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -174,7 +174,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -202,7 +202,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -232,7 +232,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -261,7 +261,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -290,7 +290,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -319,7 +319,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before delivered to the consumer - recieve",
             targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
@@ -347,7 +347,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after delivered to the consumer - recieve",
     		targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
@@ -383,7 +383,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -411,7 +411,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -440,7 +440,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -468,7 +468,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
@@ -498,7 +498,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before record is written into the journal - send",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
@@ -528,7 +528,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after record is written into a journal - send",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
@@ -559,7 +559,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before delivered to the consumer - recieve",
                     targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
@@ -588,7 +588,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after delivered to the consumer - recieve",
             		targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
@@ -623,7 +623,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules({
             @BMRule(name = "Kill before ack is written in journal",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
@@ -654,7 +654,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill after acknowledge()",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
@@ -684,7 +684,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     @BMRules(
             @BMRule(name = "Kill before the record is written into the journal - send",
                     targetClass = "org.hornetq.core.journal.impl.JournalImpl",
