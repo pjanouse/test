@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Test administration console - cli
@@ -42,6 +43,7 @@ public class AdministrationTestCase extends HornetQTestCase {
 
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
         configure(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
     }
