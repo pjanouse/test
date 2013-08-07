@@ -6,10 +6,11 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakPublisherClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -57,6 +58,8 @@ public class Lodh2TestCase extends HornetQTestCase {
     String queueNamePrefix = "testQueue";
 
     String queueJndiNamePrefix = "jms/queue/testQueue";
+
+    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -356,11 +359,12 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer1 = new ProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
+        producer1.setMessageVerifier(messageVerifier);
         producer1.setTimeout(0);
         producer1.start();
         producer1.join();
@@ -380,29 +384,25 @@ public class Lodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 300000, 10, 10);
-
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 300000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
-
         receiver1.join();
 
-        logger.info("Number of sent messages: " + (producer1.getCounter()
-                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages"));
 
-        logger.info("Number of received messages: " + (receiver1.getCount()
-                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
 
+        logger.info("Number of sent messages: " + (producer1.getListOfSentMessages().size()
+                + ", Producer to jms1 server sent: " + producer1.getListOfSentMessages().size() + " messages"));
+
+        logger.info("Number of received messages: " + (receiver1.getListOfReceivedMessages().size()
+                + ", Consumer from jms1 server received: " + receiver1.getListOfReceivedMessages().size() + " messages"));
+
+        Assert.assertTrue("Test failed: ", messageVerifier.verifyMessages());
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(), receiver1.getCount());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("Receivers did not get any messages.",
                 receiver1.getCount() > 0);
-
-        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
-        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
-        for (String dupId : lostMessages) {
-            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
-        }
 
         if (isFiltered) {
             deployer.undeploy("mdb1WithFilter");
@@ -422,6 +422,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         // TODO optimize or use some libraries
         //get lost messages
         List<String> listOfLostMessages = new ArrayList<String>();
+
+
         boolean messageIdIsMissing = false;
         for (String sentMessageId : listOfSentMessages) {
             for (String receivedMessageId : listOfReceivedMessages) {

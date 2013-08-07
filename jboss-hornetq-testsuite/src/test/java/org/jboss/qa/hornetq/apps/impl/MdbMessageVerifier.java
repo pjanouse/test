@@ -38,7 +38,7 @@ public class MdbMessageVerifier implements FinalTestMessageVerifier {
 
         // set of lost messages -- (sendMessages - receivedMessages) = lostMessages
         if (getLostMessages().size() != 0) {
-            logger.error("Lost message detected: " + getLostMessages());
+            logger.error("Lost message detected - there are not corresponding messages for: " + getLostMessages());
             isOk = false;
         }
 
@@ -116,7 +116,6 @@ public class MdbMessageVerifier implements FinalTestMessageVerifier {
         }
 
         List<String> listOfLostMessages = new ArrayList<String>();
-
 
         for (Map<String,String> mapOfSentMessageProperties: sentMessages) {
             if (helpSet.add(mapOfSentMessageProperties.get("messageId"))) {

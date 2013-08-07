@@ -91,7 +91,6 @@ public class    MdbWithRemoteOutQueueToContaniner1 implements MessageListener {
             log.error(t.getMessage(), t);
             this.context.setRollbackOnly();
         } finally {
-
             if (con != null) {
                 try {
                     con.close();

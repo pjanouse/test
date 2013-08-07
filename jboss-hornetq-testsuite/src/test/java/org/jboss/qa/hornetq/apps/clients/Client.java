@@ -78,10 +78,11 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
     protected Message cleanMessage(Message m) throws JMSException {
 
         String dupId = m.getStringProperty("_HQ_DUPL_ID");
+        String inMessageId = m.getStringProperty("inMessageId");
         m.clearBody();
         m.clearProperties();
-        m.setStringProperty("text", "");
         m.setStringProperty("_HQ_DUPL_ID", dupId);
+        m.setStringProperty("inMessageId", inMessageId);
         return m;
     }
 
