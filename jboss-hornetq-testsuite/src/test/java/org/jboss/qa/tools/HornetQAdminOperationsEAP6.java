@@ -2446,6 +2446,44 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Adds address settings
+     *
+     * @param address             address specification
+     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes        The max bytes size
+     * @param redeliveryDelay     Defines how long to wait before attempting
+     *                            redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last
+     *                            consumer is closed on a queue before redistributing any messages
+     * @param pageSizeBytes       The paging size
+     * @param expireQueue           Expire queue
+     * @param deadLetterQueue       dead letter queue jms.queue.DLQ
+     */
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                                   long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
+        ModelNode setAddressAttributes = new ModelNode();
+        setAddressAttributes.get(ClientConstants.OP).set("add");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+        setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
+        setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
+        setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
+        setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
+        setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        setAddressAttributes.get("expiry-address").set(expireQueue);
+        setAddressAttributes.get("dead-letter-address").set(deadLetterQueue);
+
+
+        try {
+            this.applyUpdate(setAddressAttributes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Sets transaction node identifier.
      *
      * @param i

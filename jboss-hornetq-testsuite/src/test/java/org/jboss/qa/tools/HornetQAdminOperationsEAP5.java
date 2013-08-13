@@ -1489,6 +1489,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeConnectionFactory(String connectionFactoryName) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
+        logger.info("This operation is not supported: " + getMethodName());
     }
 }

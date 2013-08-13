@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithConnectionParameters;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
@@ -28,6 +29,8 @@ import org.junit.runner.RunWith;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
@@ -42,6 +45,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_DESTINATIONS = 2;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
+    private static final String MDB1 = "mdb1";
+    private static final String MDB2 = "mdb2";
+    private static final String MDB1_WITH_CONNECTOR_PARAMETERS = "mdbWithConnectionParameters";
+
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -52,7 +59,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
+    @Deployment(managed = false, testable = false, name = MDB1)
     @TargetsContainer(CONTAINER2)
     public static Archive getDeployment1() throws Exception {
 
@@ -64,7 +71,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = "mdb2")
+    @Deployment(managed = false, testable = false, name = MDB2)
     @TargetsContainer(CONTAINER4)
     public static Archive getDeployment2() throws Exception {
 
@@ -74,6 +81,43 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
+
+    @Deployment(managed = false, testable = false, name = MDB1_WITH_CONNECTOR_PARAMETERS)
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeploymentMdbWithConnectorParameters() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithConnectorParameters.jar");
+        mdbJar.addClasses(MdbWithConnectionParameters.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset(createHornetqJmsXml()), "hornetq-jms.xml");
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+    }
+
+    public static String createHornetqJmsXml() {
+
+        StringBuffer hornetqJmsXml = new StringBuffer();
+
+        hornetqJmsXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
+        hornetqJmsXml.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
+        hornetqJmsXml.append("<hornetq-server>\n");
+        hornetqJmsXml.append("<jms-destinations>\n");
+        hornetqJmsXml.append("<jms-queue name=\"InQueue\">\n");
+        hornetqJmsXml.append("<entry name=\"jms/queue/InQueue\" />\n");
+        hornetqJmsXml.append("<entry name=\"java:jboss/exported/jms/queue/InQueue\" />\n");
+        hornetqJmsXml.append("</jms-queue>\n");
+        hornetqJmsXml.append("<jms-queue name=\"OutQueue\">\n");
+        hornetqJmsXml.append("<entry name=\"jms/queue/OutQueue\" />\n");
+        hornetqJmsXml.append("<entry name=\"java:jboss/exported/jms/queue/OutQueue\" />\n");
+        hornetqJmsXml.append("</jms-queue>\n");
+        hornetqJmsXml.append("</jms-destinations>\n");
+        hornetqJmsXml.append("</hornetq-server>\n");
+        hornetqJmsXml.append("</messaging-deployment>\n");
+        hornetqJmsXml.append("\n");
+
+        return hornetqJmsXml.toString();
+    }
+
 
     /**
      * @throws Exception
@@ -91,8 +135,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        deployer.deploy("mdb1");
-        deployer.deploy("mdb2");
+        deployer.deploy(MDB1);
+        deployer.deploy(MDB2);
 
         ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ProducerClientAck producer2 = new ProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -121,8 +165,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
                 receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
 
-        deployer.undeploy("mdb1");
-        deployer.undeploy("mdb2");
+        deployer.undeploy(MDB1);
+        deployer.undeploy(MDB2);
         stopServer(CONTAINER2);
         stopServer(CONTAINER4);
         stopServer(CONTAINER1);
@@ -145,7 +189,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         // cluster B
         controller.start(CONTAINER2);
 
-        deployer.deploy("mdb1");
+        deployer.deploy(MDB1);
 
         ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
@@ -166,7 +210,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
@@ -185,15 +229,15 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);//jms server
         controller.start(CONTAINER2);// mdb server
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB1);
 
         SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, 1000);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
-        deployer.deploy("mdb1");
+        deployer.deploy(MDB1);
         Thread.sleep(20000);
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
@@ -201,7 +245,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        deployer.deploy("mdb1");
+        deployer.deploy(MDB1);
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, 1000);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
@@ -213,18 +257,72 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
         Assert.assertEquals("Number of sent and received messages should be equal.", 2 * 1000, receiverClientAck.getCount());
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB1);
 
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
     }
 
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testRAConfiguredByMdbInRemoteJcaTopology() throws Exception {
+
+        prepareJmsServer(CONTAINER1); // jms server
+        prepareJmsServer(CONTAINER2); // jms server
+        prepareJmsServer(CONTAINER3); // jms server with mdb with cluster with container 1 and 2
+
+        // cluster A
+        controller.start(CONTAINER1);
+        deployDestinations(CONTAINER1);
+        controller.start(CONTAINER3);
+        deployDestinations(CONTAINER3);
+        // cluster B with mdbs
+        controller.start(CONTAINER2);
+
+        deployer.deploy(MDB1_WITH_CONNECTOR_PARAMETERS);
+
+        ProducerClientAck producer1 = new ProducerClientAck(CONTAINER1_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer2 = new ProducerClientAck(CONTAINER3_IP, 4447, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        producer1.start();
+        producer2.start();
+
+        //        Thread.sleep(10 * 60 * 1000); // min
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 10000, 10, 10);
+
+        receiver1.start();
+        receiver2.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(60 * 1000);
+
+        producer1.stopSending();
+        producer2.stopSending();
+        producer1.join();
+        producer2.join();
+
+        receiver1.join();
+        receiver2.join();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+
+        deployer.undeploy(MDB1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
+
+
+    }
+
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
-     * @throws Exception
      */
     @Before
     @After
@@ -294,7 +392,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
+        Map<String,String> map = new HashMap<String,String>();
+        map.put("use-nio","true");
+        jmsAdminOperations.createRemoteAcceptor("netty", "messaging", map);
+
         jmsAdminOperations.close();
         controller.stop(containerName);
 

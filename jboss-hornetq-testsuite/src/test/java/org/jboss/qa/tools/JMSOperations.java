@@ -1280,4 +1280,7 @@ public interface JMSOperations {
 
     void removeConnectionFactory(String connectionFactoryName);
 
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                                   long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue);
+
 }
