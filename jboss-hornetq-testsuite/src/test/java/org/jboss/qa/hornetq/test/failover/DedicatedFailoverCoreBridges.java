@@ -120,6 +120,22 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         testDeployBridgeLiveThenBackupWithStaticConnectors(true, false);
     }
 
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testInitialFailoverWithDiscovery() throws Exception {
+        testInitialFailover(false);
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testInitialFailoverWithStaticConnectors() throws Exception {
+        testInitialFailover(true);
+    }
+
 
     protected void deployBridge(String containerName, boolean useDiscovery) {
 
@@ -130,7 +146,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         if (useDiscovery) {
             jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
         } else {
-            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
+            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
         }
 
         jmsAdminOperations.close();
@@ -167,6 +183,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 Assert.fail("Target queue for the bridge does not receive any messages. Failing the test");
             }
         }
+        jmsOperations.close();
         logger.warn("###################################");
         if (shutdown) {
             stopServer(CONTAINER1);
@@ -197,6 +214,49 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         stopServer(CONTAINER1);
 
 
+    }
+
+    /**
+     * @throws Exception
+     */
+    public void testInitialFailover(boolean useDiscovery) throws Exception {
+
+        prepareTopology();
+
+        deployBridge(CONTAINER3, useDiscovery);
+
+        // start live-backup servers
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER3);
+
+        stopServer(CONTAINER1);
+
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+
+        // give it some time for backup to alive
+        waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 10000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+        producerToInQueue1.join();
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+
+        messageVerifier.verifyMessages();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER2);
     }
 
     /**
@@ -381,6 +441,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER1_IP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge-backup", CONTAINER2_IP, 5445);
+        jmsAdminOperations.createRemoteConnector("bridge-connector-backup", "messaging-bridge-backup", null);
         jmsAdminOperations.close();
 
         stopServer(containerName);
