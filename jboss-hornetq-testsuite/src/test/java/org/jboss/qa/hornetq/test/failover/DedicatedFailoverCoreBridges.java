@@ -146,7 +146,11 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         if (useDiscovery) {
             jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
         } else {
-            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
+            if (CONTAINER1.equals(containerName) || CONTAINER2.equals(containerName))   {
+                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
+            } else if (CONTAINER3.equals(containerName)) {
+                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
+            }
         }
 
         jmsAdminOperations.close();
@@ -375,7 +379,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareServerWithBridge(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) {
+    protected void prepareServerWithBridge(String containerName, String jmsLiveServerBindingAddress, String jmsBackupServerBindingAddress) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -413,7 +417,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
         jmsAdminOperations.setClusterUserPassword("heslo");
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsLiveServerBindingAddress, 5445);
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", jmsBackupServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
