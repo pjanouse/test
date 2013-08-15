@@ -203,8 +203,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         controller.start(CONTAINER1);
-        logger.info("Container 1 started again");
         waitHornetQToAlive(CONTAINER1_IP, 5445, 600000);
+        logger.info("Container 1 started again");
         Thread.sleep(10000);
         logger.info("Container 2 stopping...");
         stopServer(CONTAINER2);
