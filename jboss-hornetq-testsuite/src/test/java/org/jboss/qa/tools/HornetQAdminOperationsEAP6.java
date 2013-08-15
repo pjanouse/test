@@ -486,7 +486,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         model.get("entries").add(jndiName);
 
-        model.get("name").set("connector");
+//        model.get("name").set("connector");
         ModelNode modelnew = new ModelNode();
         modelnew.get(connectorName).clear();
         model.get("connector").set(modelnew);
