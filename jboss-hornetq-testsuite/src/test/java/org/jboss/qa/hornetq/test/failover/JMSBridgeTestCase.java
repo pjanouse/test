@@ -16,8 +16,10 @@ public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
     protected void deployBridge(String containerName, boolean useDiscovery) {
 
         String bridgeName = "myBridge";
-        String sourceConnectionFactory = "java:/ConnectionFactory";
+//        String sourceConnectionFactory = "java:/ConnectionFactory";
+        String sourceConnectionFactory = "jms/RemoteConnectionFactory";
         String sourceDestination = inQueueJndiName;
+
 //        Map<String,String> sourceContext = new HashMap<String, String>();
 //        sourceContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
 //        sourceContext.put("java.naming.provider.url", "remote://" + getHostname(containerName) + ":4447");
@@ -30,7 +32,8 @@ public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
             targetContext.put("java.naming.provider.url", "remote://" + CONTAINER3_IP + ":4447");
         } else if (CONTAINER2.equalsIgnoreCase(containerName)) { // if deployed to container 2 then target is container 3
             targetContext.put("java.naming.provider.url", "remote://" + CONTAINER3_IP + ":4447");
-        } else if (CONTAINER3.equalsIgnoreCase(containerName)) { // if deployed to container 3 then target is container 1
+        } else if (CONTAINER3.equalsIgnoreCase(containerName)) { // if deployed to container 3 then target is container 1 and 2
+//            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447,remote://" + CONTAINER2_IP + ":4447");
             targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447");
         }
 
@@ -44,6 +47,9 @@ public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        // set XA on sourceConnectionFactory
+        jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
 
         jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, null,
                 targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,

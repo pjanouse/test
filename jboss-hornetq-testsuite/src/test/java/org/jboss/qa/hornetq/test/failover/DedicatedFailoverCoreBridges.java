@@ -399,9 +399,10 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
 
-        jmsAdminOperations.setFailoverOnShutdown("RemoteConnectionFactory", true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
         jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setFailoverOnShutdown(true);
+        jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
 //        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
