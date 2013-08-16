@@ -8,7 +8,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
@@ -24,7 +24,6 @@ import java.io.File;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@RestoreConfigAfterTest
 public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedClusterFailoverTestCase.class);
@@ -189,6 +188,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false);
     }
@@ -198,6 +198,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -208,6 +209,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -217,6 +219,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackAutoAckQueue() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true);
     }
@@ -226,6 +229,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -235,6 +239,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -244,6 +249,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
@@ -253,6 +259,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -262,6 +269,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -271,6 +279,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackAutoAckTopic() throws Exception {
         testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
     }
@@ -280,6 +289,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -289,6 +299,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
