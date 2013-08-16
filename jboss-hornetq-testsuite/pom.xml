@@ -21,8 +21,8 @@
 
 		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10473</eap5.client>
 
-		<eap6.client>6.1.1.ER5</eap6.client>
-        <eap6.controller.client>6.1.1.ER5</eap6.controller.client>
+		<eap6.client>6.1.1.ER6</eap6.client>
+        <eap6.controller.client>6.1.1.ER6</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
