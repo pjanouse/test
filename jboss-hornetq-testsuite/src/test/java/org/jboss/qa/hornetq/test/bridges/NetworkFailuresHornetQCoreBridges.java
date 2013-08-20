@@ -53,7 +53,7 @@ import java.rmi.RemoteException;
 public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
+    static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
 
     // Logger
     private static final Logger log = Logger.getLogger(NetworkFailuresHornetQCoreBridges.class);

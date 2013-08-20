@@ -86,6 +86,7 @@ public class ProducerTransAck extends Client {
             while (counter < MESSAGES_COUNT && !stop) {
 
                 msg = messageBuilder.createMessage(session);
+                msg.setIntProperty("count", counter);
 
                 sendMessage(msg);
 

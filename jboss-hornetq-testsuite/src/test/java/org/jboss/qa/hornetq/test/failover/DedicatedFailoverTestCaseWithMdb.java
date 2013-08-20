@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -41,7 +42,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 3000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 20000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -153,6 +154,56 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         stopServer(CONTAINER3);
         stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    public void testSimpleSendReceiveWithRemoteJca() throws Exception {
+
+        prepareRemoteJcaTopology();
+        // start live-backup servers
+        controller.start(CONTAINER1);
+//        controller.start(CONTAINER2);
+
+//        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+//        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setCommitAfter(100);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        controller.start(CONTAINER3);
+        logger.info("Deploying MDB to mdb server.");
+        // start mdb server
+        deployer.deploy("mdb1");
+
+        waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 600000);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        deployer.undeploy("mdb1");
+
+        stopServer(CONTAINER3);
+//        stopServer(CONTAINER2);
         stopServer(CONTAINER1);
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
@@ -348,6 +399,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("ra-connection-factory", connectorName);
         jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory("ra-connection-factory", true);
         jmsAdminOperations.setFailoverOnShutdown(true);
+
+        jmsAdminOperations.setNodeIdentifier(123);
+
         jmsAdminOperations.close();
         controller.stop(containerName);
     }
