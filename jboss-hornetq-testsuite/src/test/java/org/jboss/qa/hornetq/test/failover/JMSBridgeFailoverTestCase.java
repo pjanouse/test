@@ -1,5 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
-// TODO prepare this for all types of quality service and also for failback, large small messages
+
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
