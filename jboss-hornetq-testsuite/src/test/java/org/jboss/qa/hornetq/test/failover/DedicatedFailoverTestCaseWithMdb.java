@@ -115,7 +115,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -162,56 +162,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
-     */
-    @RunAsClient
-    @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
-    public void testSimpleSendReceiveWithRemoteJca() throws Exception {
-
-        prepareRemoteJcaTopology();
-        // start live-backup servers
-        controller.start(CONTAINER1);
-//        controller.start(CONTAINER2);
-
-//        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-//        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
-        producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
-        producerToInQueue1.setCommitAfter(100);
-        producerToInQueue1.start();
-        producerToInQueue1.join();
-
-        controller.start(CONTAINER3);
-        logger.info("Deploying MDB to mdb server.");
-        // start mdb server
-        deployer.deploy("mdb1");
-
-        waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 600000);
-
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.start();
-        receiver1.join();
-
-        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
-        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
-        messageVerifier.verifyMessages();
-
-        deployer.undeploy("mdb1");
-
-        stopServer(CONTAINER3);
-//        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-
-
-    }
-
-    /**
      * @param shutdown shutdown server
      * @throws Exception
      */
@@ -222,7 +172,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);

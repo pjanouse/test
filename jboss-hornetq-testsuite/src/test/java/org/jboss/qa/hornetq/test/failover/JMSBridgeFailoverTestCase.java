@@ -288,14 +288,6 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     //////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
-
-
-
     protected void deployBridge(String containerName, String qualityOfService) {
 
         String bridgeName = "myBridge";
