@@ -89,8 +89,6 @@ public class ProducerTransAck extends Client {
 
                 sendMessage(msg);
 
-                counter++;
-
                 listOfMessagesToBeCommited.add(msg);
 
                 Thread.sleep(getTimeout());
