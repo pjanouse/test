@@ -36,7 +36,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3, AT_MOST_ONCE);
+        deployBridge(CONTAINER3, AT_MOST_ONCE, 5);
 
         testInitialFailover();
     }
@@ -47,7 +47,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3, DUPLICATES_OK);
+        deployBridge(CONTAINER3, DUPLICATES_OK, 5);
 
         testInitialFailover();
     }
@@ -58,7 +58,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE);
+        deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE, 5);
 
         testInitialFailover();
     }
@@ -287,8 +287,11 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     //////////////////////////////////////////////////////////////////////////////////
 
-
     protected void deployBridge(String containerName, String qualityOfService) {
+        deployBridge(containerName, qualityOfService, -1);
+    }
+
+    protected void deployBridge(String containerName, String qualityOfService, int maxRetries) {
 
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
@@ -308,8 +311,8 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         } else if (CONTAINER2.equalsIgnoreCase(containerName)) { // if deployed to container 2 then target is container 3
             targetContext.put("java.naming.provider.url", "remote://" + CONTAINER3_IP + ":4447");
         } else if (CONTAINER3.equalsIgnoreCase(containerName)) { // if deployed to container 3 then target is container 1 and 2
-//            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447,remote://" + CONTAINER2_IP + ":4447");
-            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447");
+            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447,remote://" + CONTAINER2_IP + ":4447");
+//            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447");
         }
 
         if (qualityOfService == null || "".equals(qualityOfService))
@@ -318,7 +321,6 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         }
 
         long failureRetryInterval = 1000;
-        int maxRetries = -1;
         long maxBatchSize = 10;
         long maxBatchTime = 100;
         boolean addMessageIDInHeader = true;

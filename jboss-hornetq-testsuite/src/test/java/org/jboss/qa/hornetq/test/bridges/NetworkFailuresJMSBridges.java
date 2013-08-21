@@ -102,7 +102,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         targetContext.put("java.naming.provider.url", "remote://" + CONTAINER2_IP + ":4447");
-        String qualityOfService = "AT_MOST_ONCE";
+        String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
         long maxBatchTime = 100;

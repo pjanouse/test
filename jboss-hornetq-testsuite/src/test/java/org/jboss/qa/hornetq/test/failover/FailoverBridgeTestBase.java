@@ -33,7 +33,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(FailoverBridgeTestBase.class);
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
+    static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1500;
 
     // Queue to send messages in
     String inQueueName = "InQueue";
@@ -156,6 +156,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER3);
 
+        Thread.sleep(5000);
+
         ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -166,7 +168,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         // verify that some messages got to outqueue on container1
         JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
         long startTime = System.currentTimeMillis();
-        while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < NUMBER_OF_MESSAGES_PER_PRODUCER / 10) {
+        while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < NUMBER_OF_MESSAGES_PER_PRODUCER / 20) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > 600000) {
                 Assert.fail("Target queue for the bridge does not receive any messages. Failing the test");
@@ -211,9 +213,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         ReceiverClientAck receiver1;
         if (failback) {
-            receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 10000, 100, 10);
+            receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
         } else {
-            receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 10000, 100, 10);
+            receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
         }
 
         receiver1.setMessageVerifier(messageVerifier);
