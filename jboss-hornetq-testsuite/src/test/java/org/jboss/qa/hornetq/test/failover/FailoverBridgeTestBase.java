@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author mnovak@redhat.com
@@ -291,6 +292,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         connectorList.add(remoteConnectorName);
         connectorList.add(remoteConnectorNameBackup);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
+        // Random TX ID for TM
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);

@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.rmi.RemoteException;
+import java.util.Random;
 
 /**
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
@@ -474,6 +475,9 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        // Random TX ID for TM
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
 
         jmsAdminOperations.disableSecurity();
 

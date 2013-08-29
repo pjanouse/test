@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.SimpleProxyServer;
+import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +12,7 @@ import java.util.Map;
 /**
  * @author Miroslav Novak (mnovak@redhat.com)
  */
+@RunWith(Arquillian.class)
 public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges {
 
     private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridges.class);

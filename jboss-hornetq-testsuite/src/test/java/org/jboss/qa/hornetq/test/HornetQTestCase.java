@@ -621,9 +621,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         jbossWebXml.append("</jboss-web> \n");
         webXml.append("\n");
 
+        killerServlet.addClass(KillerServlet.class);
         killerServlet.addAsWebInfResource(new StringAsset(webXml.toString()), "web.xml");
         killerServlet.addAsWebInfResource(new StringAsset(jbossWebXml.toString()), "jboss-web.xml");
-        killerServlet.addClass(KillerServlet.class);
+
         if (log.isTraceEnabled()) {
             log.trace(webXml.toString());
             log.trace(jbossWebXml.toString());

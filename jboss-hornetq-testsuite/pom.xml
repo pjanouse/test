@@ -76,6 +76,7 @@
 	</build>
 
 	<dependencies>
+
 		<!-- JavaEE 6.0 APIs -->
 		<dependency>
 			<groupId>org.jboss.spec</groupId>
@@ -195,6 +196,31 @@
             <groupId>org.fusesource.stompjms</groupId>
             <artifactId>stompjms-client</artifactId>
             <version>1.10</version>
+        </dependency>
+        <!-- dependency for CLI libraris -->
+        <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jbossqe-eap-tests-management</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.remoting3</groupId>
+                    <artifactId>jboss-remoting</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jbossqe-eap-tests-management</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>test-jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.remoting3</groupId>
+                    <artifactId>jboss-remoting</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 	</dependencies>
 
@@ -397,6 +423,12 @@
 					<version>${arquillian.eap6x.container.version}</version>
                     <!--<version>7.1.3.Final</version>-->
                     <scope>test</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.remoting3</groupId>
+                            <artifactId>jboss-remoting</artifactId>
+                        </exclusion>
+                    </exclusions>
 				</dependency>
 
 			</dependencies>
