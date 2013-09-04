@@ -19,7 +19,7 @@
 		<!-- <hornetq.version>2.2.16.Final</hornetq.version> -->
         <hornetq.version>2.3.2.Final</hornetq.version>
 
-		<eap5.client>5.1.2.GA-HornetQ-JBPAPP-10473</eap5.client>
+		<eap5.client>5.1.2-HORNETQ-JBPAPP-10839</eap5.client>
 
 		<eap6.client>6.1.1.ER7</eap6.client>
         <eap6.controller.client>6.1.1.ER7</eap6.controller.client>
