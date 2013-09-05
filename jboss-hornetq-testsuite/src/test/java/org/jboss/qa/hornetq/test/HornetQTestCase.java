@@ -12,9 +12,12 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
+import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
+import org.jboss.qa.management.CliTestUtils;
+import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.tools.JBMAdminOperationsEAP5;
@@ -931,6 +934,60 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @After
     public void printTestMethodNameStop() {
         // keep this empty - this is just for arquillian extension to print stop of the test
+    }
+
+    public void writeReadAttributeTest(CliClient cliClient, String address, String attributeName, String value) throws Exception {
+
+        boolean isWritable = isWritable(address, attributeName);
+        log.info("Test attribute: " +  attributeName + ", writable: " + isWritable);
+
+        if (isWritable) {
+            CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
+            if (cliClient.reloadRequired()) {
+                cliClient.reload();
+            }
+        } else {
+            cliClient.readAttribute(address, attributeName);
+        }
+    }
+
+    /**
+     *
+     * @param address like messaging subsystem
+     * @param attribute name of the attribute
+     * @return true if attribute is writable, false if not
+     */
+    public boolean isWritable(String address, String attribute) {
+
+        boolean isWritable = false;
+
+        CLI cli = CLI.newInstance();
+        cli.connect(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, "", "".toCharArray());
+        CLI.Result result = cli.cmd(address + ":read-resource-description()");
+
+        // grep it for attribute and access-typ
+        String resultAsString = result.getResponse().asString();
+        if (resultAsString.contains(attribute))    {
+            // get index where attribute starts
+            resultAsString = resultAsString.substring(resultAsString.indexOf(attribute));
+            // grep access type
+            // find first access-type behind it - "access-type" => "read-write",
+            String accessType = resultAsString.substring(resultAsString.indexOf("access-type"), resultAsString.indexOf("access-type") + "\"access-type\" => \"read-write\"".length());
+
+            if (accessType.contains("read-write"))  {
+                isWritable = true;
+            } else if (accessType.contains("read-only")) {
+                isWritable = false;
+            }
+
+        } else {
+            throw new IllegalArgumentException("Attribute " + attribute + " is not in address " + address + ". Result: " + resultAsString);
+        }
+
+        cli.disconnect();
+
+        return isWritable;
+
     }
 
 }

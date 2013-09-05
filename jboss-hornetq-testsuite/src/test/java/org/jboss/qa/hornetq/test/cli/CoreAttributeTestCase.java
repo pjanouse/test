@@ -6,23 +6,16 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
-import org.jboss.as.osgi.parser.ModelConstants;
-import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.management.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
-import org.jboss.qa.management.cli.CliUtils;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
-
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.RESULT;
 
 /**
  * Test write, read operation for core messaging attributes.
@@ -94,9 +87,9 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.RES
 
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class MainAttributeTestCase extends HornetQTestCase {
+public class CoreAttributeTestCase extends HornetQTestCase {
 
-    private static final Logger log = Logger.getLogger(MainAttributeTestCase.class);
+    private static final Logger log = Logger.getLogger(CoreAttributeTestCase.class);
 
     private final String address = "/subsystem=messaging/hornetq-server=default";
 
@@ -161,61 +154,5 @@ public class MainAttributeTestCase extends HornetQTestCase {
 
         }
     }
-
-
-    public void writeReadAttributeTest(CliClient cliClient, String address, String attributeName, String value) throws Exception {
-
-        boolean isWritable = isWritable(address, attributeName);
-        log.info("Test attribute: " +  attributeName + ", writable: " + isWritable);
-
-        if (isWritable) {
-            CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
-            if (cliClient.reloadRequired()) {
-                cliClient.reload();
-            }
-        } else {
-            cliClient.readAttribute(address, attributeName);
-        }
-    }
-
-    /**
-     *
-     * @param address like messaging subsystem
-     * @param attribute name of the attribute
-     * @return true if attribute is writable, false if not
-     */
-    private boolean isWritable(String address, String attribute) {
-
-        boolean isWritable = false;
-
-        CLI cli = CLI.newInstance();
-        cli.connect(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, "", "".toCharArray());
-        CLI.Result result = cli.cmd(address + ":read-resource-description()");
-
-        // grep it for attribute and access-typ
-        String resultAsString = result.getResponse().asString();
-        if (resultAsString.contains(attribute))    {
-            // get index where attribute starts
-            resultAsString = resultAsString.substring(resultAsString.indexOf(attribute));
-            // grep access type
-            // find first access-type behind it - "access-type" => "read-write",
-            String accessType = resultAsString.substring(resultAsString.indexOf("access-type"), resultAsString.indexOf("access-type") + "\"access-type\" => \"read-write\"".length());
-
-            if (accessType.contains("read-write"))  {
-                isWritable = true;
-            } else if (accessType.contains("read-only")) {
-                isWritable = false;
-            }
-
-        } else {
-            throw new IllegalArgumentException("Attribute " + attribute + " is not in address " + address + ". Result: " + resultAsString);
-        }
-
-        cli.disconnect();
-
-        return isWritable;
-
-    }
-
 
 }

@@ -1,0 +1,13 @@
+consumer-count=0
+dead-letter-address=jms.queue.TestDLQ
+delivering-count=0
+durable=true
+entries=["java:jboss/exported/jms/queue/testQueue"]
+expiry-address=jms.queue.TestExpiryQueue
+message-count=0
+messages-added=0
+paused=false
+queue-address=jms.queue.testQueue
+scheduled-count=0
+selector=undefined
+temporary=true

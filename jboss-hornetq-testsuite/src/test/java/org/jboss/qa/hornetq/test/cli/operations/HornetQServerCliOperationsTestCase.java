@@ -28,7 +28,37 @@ import static org.junit.Assert.*;
 
 
 /**
+ *
+ close-connections-for-address
+ commit-prepared-transaction
+ force-failover
+ get-address-settings-as-json
+ get-connectors-as-json
+ get-last-sent-message-id
+ get-roles
+ get-roles-as-json
+ get-session-creation-time
+ list-all-consumers-as-json
+ list-connection-ids
+ list-connections-as-json
+ list-consumers-as-json
+ list-heuristic-committed-transactions
+ list-heuristic-rolled-back-transactions
+ list-prepared-transaction-details-as-html
+ list-prepared-transaction-details-as-json
+ list-prepared-transaction-jms-details-as-html
+ list-prepared-transaction-jms-details-as-json
+ list-prepared-transactions
+ list-producers-info-as-json
+ list-remote-addresses
+ list-sessions
+ list-sessions-as-json
+ list-target-destinations
+ reset-all-message-counter-histories
+ reset-all-message-counters
+ rollback-prepared-transaction
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 public class HornetQServerCliOperationsTestCase extends HornetQTestCase {
