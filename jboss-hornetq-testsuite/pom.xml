@@ -174,7 +174,15 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- this gives @depends annotation -->
+        <!-- json parser -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+        </dependency>
+
+
+        <!-- this gives @depends annotation -->
 		<dependency>
 			<groupId>org.jboss.ejb3</groupId>
 			<artifactId>jboss-ejb3-ext-api</artifactId>
