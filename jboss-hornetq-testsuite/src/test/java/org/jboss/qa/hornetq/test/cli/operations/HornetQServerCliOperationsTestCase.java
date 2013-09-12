@@ -70,8 +70,8 @@ import static org.junit.Assert.*;
  * <p/>
  * needs prepared transaction
  * commit-prepared-transaction                 - done
- * list-heuristic-committed-transactions         - done
- * list-heuristic-rolled-back-transactions              - done
+ * list-heuristic-committed-transactions
+ * list-heuristic-rolled-back-transactions
  * list-prepared-transaction-details-as-html        - done
  * list-prepared-transaction-details-as-json        - done
  * list-prepared-transaction-jms-details-as-html    - done
