@@ -32,30 +32,29 @@ import java.util.List;
 
  Needs some messages:
 
- change-message-priority
- change-messages-priority
- count-messages                                            - done
- expire-message
- expire-messages
+ change-message-priority                                  - done
+ change-messages-priority                                 - done
+ count-messages                                           - done
+ expire-message                                           - done
+ expire-messages                                          - done
  list-message-counter-as-html                             - done
  list-message-counter-as-json                             - done
  list-message-counter-history-as-html                     - done
  list-message-counter-history-as-json                     - done
  list-messages                                            - done
  list-messages-as-json                                    - done
- move-message
- move-messages
- remove-message
- remove-messages
- reset-message-counter
- send-message-to-dead-letter-address
- send-messages-to-dead-letter-address
+ move-message                                             - done
+ move-messages                                            - done
+ remove-message                                           - done
+ remove-messages                                          - done
+ reset-message-counter                                    - done
+ send-message-to-dead-letter-address                      - done
+ send-messages-to-dead-letter-address                     - done
 
  Needs clients sending/receiving messages:
 
- list-consumers-as-json
- pause
- resume
+ pause                                                    - done
+ resume                                                   - done
 
  * @author Miroslav Novak mnovak@redhat.com
  */
@@ -66,7 +65,7 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
 
     private final CliClient cli = new CliClient(new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6));
 
-    private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 10;
+    private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
     String coreQueueName = "testQueue";
     String queueJndiName = "jms/queue/" + coreQueueName;
@@ -104,7 +103,10 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
         ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
-        producer.join();
+        List<Client> producers = new ArrayList<Client>();
+        producers.add(producer);
+
+        waitForProducersUntil(producers, 10, 60000);
 
         Result r1 = runOperation("add-jndi ", "jndi-binding=" + queueJndiName + "2");
         logger.info("Result add-jndi : " + r1.getResponse().asString());
@@ -143,35 +145,74 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
         CliTestUtils.assertSuccess(r9);
 
         String expireMessageId = r6.getResponse().get("result").asList().get(0).get("JMSMessageID").asString();
+        String moveMessageId = r6.getResponse().get("result").asList().get(1).get("JMSMessageID").asString();
+        String removeMessageId = r6.getResponse().get("result").asList().get(2).get("JMSMessageID").asString();
+        String dlqMessageId = r6.getResponse().get("result").asList().get(3).get("JMSMessageID").asString();
+
         Result r10 = runOperation("expire-message", "message-id=" + expireMessageId);
         logger.info("Result expire-message: " + r10.getResponse().asString());
         CliTestUtils.assertSuccess(r10);
 
         //move message to dlq
-        String moveMessageId = r6.getResponse().get("result").asList().get(1).get("JMSMessageID").asString();
         Result r11 = runOperation("move-message", "message-id=" + moveMessageId + ",other-queue-name=" + dlqCoreQueueName);
         logger.info("Result move-message: " + r11.getResponse().asString());
         CliTestUtils.assertSuccess(r11);
 
         //move message to dlq
-        String removeMessageId = r6.getResponse().get("result").asList().get(2).get("JMSMessageID").asString();
         Result r12 = runOperation("remove-message", "message-id=" + removeMessageId);
         logger.info("Result remove-message: " + r12.getResponse().asString());
         CliTestUtils.assertSuccess(r12);
 
-        String dlqMessageId = r6.getResponse().get("result").asList().get(3).get("JMSMessageID").asString();
         Result r13 = runOperation("send-message-to-dead-letter-address", "message-id=" + dlqMessageId);
         logger.info("Result send-message-to-dead-letter-address: " + r13.getResponse().asString());
         CliTestUtils.assertSuccess(r13);
 
-        // TODO do the rest
-//        expire-messages
+        Result r24 = runOperation("pause", null);
+        logger.info("Result pause: " + r24.getResponse().asString());
+        CliTestUtils.assertSuccess(r24);
 
-//        move-messages
-//        remove-messages
-//        reset-message-counter
-//
-//        send-messages-to-dead-letter-address
+        Result r14 = runOperation("expire-messages", null);
+        logger.info("Result expire-messages: " + r14.getResponse().asString());
+        CliTestUtils.assertSuccess(r14);
+
+        Result r15 = runOperation("move-messages", "other-queue-name=" + dlqCoreQueueName);
+        logger.info("Result move-messages: " + r15.getResponse().asString());
+        CliTestUtils.assertSuccess(r15);
+
+        Result r16 = runOperation("move-messages", "other-queue-name=" + dlqCoreQueueName);
+        logger.info("Result move-messages: " + r16.getResponse().asString());
+        CliTestUtils.assertSuccess(r16);
+
+        Result r22 = runOperation("resume", null);
+        logger.info("Result resume: " + r22.getResponse().asString());
+        CliTestUtils.assertSuccess(r22);
+
+        Result r17 = runOperation("remove-messages", null);
+        logger.info("Result remove-messages: " + r17.getResponse().asString());
+        CliTestUtils.assertSuccess(r17);
+
+        Result r18 = runOperation("reset-message-counter", null);
+        logger.info("Result reset-message-counter: " + r18.getResponse().asString());
+        CliTestUtils.assertSuccess(r18);
+
+        Result r19 = runOperation("send-messages-to-dead-letter-address", null);
+        logger.info("Result send-messages-to-dead-letter-address: " + r19.getResponse().asString());
+        CliTestUtils.assertSuccess(r19);
+
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(CONTAINER1_IP, 4447, queueJndiName, 1000, 100, 10);
+        receiverClientAck.start();
+
+        List<Client> receivers = new ArrayList<Client>();
+        receivers.add(receiverClientAck);
+        waitForReceiversUntil(receivers, 10, 60000);
+
+        Result r20 = runOperation("list-consumers-as-json", null);
+        logger.info("Result :list-consumers-as-json: " + r20.getResponse().asString());
+        CliTestUtils.assertSuccess(r20);
+
+        producer.stopSending();
+        producer.join();
+        receiverClientAck.join();
 
     }
 
@@ -191,7 +232,7 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue" + dlqCoreQueueName);
+        jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);
 
         jmsAdminOperations.close();
     }
