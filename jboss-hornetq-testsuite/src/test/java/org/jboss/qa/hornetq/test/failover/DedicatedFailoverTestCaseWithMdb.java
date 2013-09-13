@@ -17,6 +17,9 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.tools.byteman.annotation.BMRule;
+import org.jboss.qa.tools.byteman.annotation.BMRules;
+import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -42,7 +45,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 20000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -108,6 +111,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @param shutdown shutdown server
      * @throws Exception
      */
+    @BMRules({
+            @BMRule(name = "print xid and error code ",
+                    targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+                    targetMethod = "rollback",
+                    targetLocation =   "AT LINE 1689",
+                    action = "debug(\"print xid: \" + $xid + \" and error code in response: \" + $response.getResponseCode() + \", response message: \"  + $response.getMessage() + \"print resposnse: \"  + $response);")
+            })
     public void testFailoverWithRemoteJca(boolean shutdown) throws Exception {
 
         prepareRemoteJcaTopology();
@@ -119,11 +129,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(1000);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
         controller.start(CONTAINER3);
+
         logger.info("Deploying MDB to mdb server.");
         // start mdb server
         deployer.deploy("mdb1");
@@ -132,9 +144,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
                 waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
+            logger.info("Stopping container 1.");
             stopServer(CONTAINER1);
+            logger.info("Container 1 stopped.");
         } else {
+            logger.info("Killing container 1.");
             killServer(CONTAINER1);
+            logger.info("Container 1 killed.");
         }
 
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
