@@ -42,6 +42,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     private static final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
     private static final String TEST_QUEUE_JNDI_NEW = "java:jboss/exported/jms/queue/dummyQueue_new_name";
     private static final String TEST_QUEUE_JNDI_CLIENT = "jms/queue/dummyQueue_new_name";
+    private static final String CONNECTION_FACTORY = "RemoteConnectionFactory";
     
     @Before
     public void preActionPrepareServers()
@@ -899,6 +900,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
 
         SimpleJMSClient client = new SimpleJMSClient(CONTAINER1_IP, 4447, 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
