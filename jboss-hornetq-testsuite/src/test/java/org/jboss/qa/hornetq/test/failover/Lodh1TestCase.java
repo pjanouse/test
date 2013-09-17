@@ -6,12 +6,13 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -48,6 +49,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
+
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     public static String createEjbXml(String mdbName) {
 
@@ -224,16 +228,20 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 150);
-        builder.setAddDuplicatedHeader(false);
-        producer1.setMessageBuilder(builder);
-        producer1.setTimeout(0);
+//        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+//        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 150);
+//        builder.setAddDuplicatedHeader(false);
+//        producer1.setMessageBuilder(builder);
+//        producer1.setTimeout(0);
 //        producer1.setMessageBuilder(new TextMessageBuilder(10000));
 
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setTimeout(0);
         logger.info("Start producer.");
-        producer1.start();
-        producer1.join();
+        producerToInQueue1.start();
+        producerToInQueue1.join();
 
         deployer.deploy("mdb1");
 
@@ -248,24 +256,20 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
         // SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
+//        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
+//        receiver1.start();
+//        receiver1.join();
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
-        logger.info("Number of sent messages: " + producer1.getCounter());
-        logger.info("Number of received messages: " + receiver1.getCount());
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
 
-        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1.getListOfReceivedMessages());
-        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
-        for (String dupId : lostMessages) {
-            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
-        }
-
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(),
-                receiver1.getCount());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
-
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
@@ -318,6 +322,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 killServer(containerName);
                 Thread.sleep(3000);
                 controller.kill(containerName);
+                logger.info("Server container1 killed!.");
                 logger.info("Start server: " + containerName);
                 controller.start(containerName);
                 logger.info("Server: " + containerName + " -- STARTED");

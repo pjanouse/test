@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
+import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +13,7 @@ import java.util.Map;
  * deploy/un-deploy
  *
  */
+@RunWith(Arquillian.class)
 public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
 
     protected void deployBridge(String containerName, boolean useDiscovery) {

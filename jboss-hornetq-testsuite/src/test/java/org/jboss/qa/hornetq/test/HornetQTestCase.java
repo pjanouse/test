@@ -10,13 +10,14 @@ import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.core.api.annotation.Observes;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
-import org.jboss.qa.management.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
 import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
@@ -27,6 +28,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -45,6 +47,7 @@ import java.util.concurrent.TimeoutException;
  * @author pslavice@redhat.com
  * @author mnovak@redhat.com
  */
+@RunWith(Arquillian.class)
 public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstants {
 
     // Logger

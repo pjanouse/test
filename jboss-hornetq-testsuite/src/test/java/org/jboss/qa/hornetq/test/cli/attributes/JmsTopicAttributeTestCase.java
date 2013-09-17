@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.cli;
+package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;

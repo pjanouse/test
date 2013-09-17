@@ -17,7 +17,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.management.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -111,15 +111,12 @@ public class HornetQServerCliOperationsTestCase extends HornetQTestCase {
     @Before
     public void startServer() {
         this.controller.start(CONTAINER1);
-
     }
-
 
     @After
     public void stopServer() {
         stopServer(CONTAINER1);
     }
-
 
     private void prepareServerForXATransactions() {
 
@@ -482,7 +479,7 @@ public class HornetQServerCliOperationsTestCase extends HornetQTestCase {
                 + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
                 + "\"redeliveryMultiplier\":1,"
                 + "\"addressFullMessagePolicy\":\"BLOCK\","
-                + "\"pageSizeBytes\":10485760,"
+                + "\"pageSizeBytes\":2097152,"
                 + "\"expiryDelay\":-1,"
                 + "\"DLA\":\"jms.queue.DLQ\","
                 + "\"maxRedeliveryDelay\":0,"

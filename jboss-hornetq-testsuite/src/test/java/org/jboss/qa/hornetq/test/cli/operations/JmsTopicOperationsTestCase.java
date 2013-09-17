@@ -7,7 +7,7 @@ import org.jboss.as.cli.scriptsupport.CLI.Result;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.management.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -26,20 +26,20 @@ import java.util.List;
 
 /**
 * Tested operations:
-
-add-jndi
-count-messages-for-subscription
-drop-all-subscriptions
-drop-durable-subscription
-list-all-subscriptions
-list-all-subscriptions-as-json
-list-durable-subscriptions
-list-durable-subscriptions-as-json
-list-messages-for-subscription
-list-messages-for-subscription-as-json
-list-non-durable-subscriptions
-list-non-durable-subscriptions-as-json
-remove-messages
+ All done:
+    add-jndi
+    count-messages-for-subscription
+    drop-all-subscriptions
+    drop-durable-subscription
+    list-all-subscriptions
+    list-all-subscriptions-as-json
+    list-durable-subscriptions
+    list-durable-subscriptions-as-json
+    list-messages-for-subscription
+    list-messages-for-subscription-as-json
+    list-non-durable-subscriptions
+    list-non-durable-subscriptions-as-json
+    remove-messages
 
 * @author Miroslav Novak mnovak@redhat.com
 */
@@ -53,7 +53,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
     String coreTopicName = "testTopic";
-    String topicJndiName = "jms/queue/" + coreTopicName;
+    String topicJndiName = "jms/topic/" + coreTopicName;
 
     String dlqCoreQueueName = "DLQ";
     String dlqCQueueJndiName = "jms/queue/" + dlqCoreQueueName;
@@ -61,7 +61,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
     String expireCoreQueueName = "Expire";
     String expireQueueJndiName = "jms/queue/" + expireCoreQueueName;
 
-    private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/jms-queue=" + coreTopicName;
+    private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/jms-topic=" + coreTopicName;
 
 
     @Before
@@ -92,6 +92,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
         subscriberClientAck.subscribe();
         PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, 4447, topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        publisher.start();
 
         List<Client> producers = new ArrayList<Client>();
         producers.add(publisher);
@@ -126,7 +127,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
         Result r33 = runOperation("list-all-subscriptions", null);
         logger.info("Result list-all-subscriptions : " + r33.getResponse().asString());
         CliTestUtils.assertSuccess(r33);
-        Assert.assertEquals("Bad client id on subscriber", "testSubscriberClientId", r33.getResponse().get("result").get("clientID").asString());
+        Assert.assertEquals("Bad client id on subscriber.", "testSubscriberClientId", r33.getResponse().get("result").asList().get(0).get("clientID").asString());
 
         Result r5 = runOperation("list-durable-subscriptions", null);
         logger.info("Result list-durable-subscriptions: " + r5.getResponse().asString());
@@ -149,8 +150,11 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
         CliTestUtils.assertSuccess(r9);
 
         Result r10 = runOperation("remove-messages", null);
-        logger.info("Result expire-message: " + r10.getResponse().asString());
+        logger.info("Result remove-messages: " + r10.getResponse().asString());
         CliTestUtils.assertSuccess(r10);
+
+        publisher.stopSending();
+        publisher.join();
 
     }
 
@@ -166,7 +170,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.createQueue(coreTopicName, topicJndiName);
+        jmsAdminOperations.createTopic(coreTopicName, topicJndiName);
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");

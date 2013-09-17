@@ -1,13 +1,11 @@
 // TODO write tests which verifies functionality of attributes
 // TODO write test for interceptors attributes
-package org.jboss.qa.hornetq.test.cli;
+package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.management.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;

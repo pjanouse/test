@@ -9,7 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.management.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -26,6 +26,8 @@ import java.util.List;
 
 
 /**
+ * OK
+ *
  * Tested operations:
 
  add-jndi - create queue with dlq in address settings     - done
@@ -78,11 +80,9 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
 
     private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/jms-queue=" + coreQueueName;
 
-
     @Before
     public void startServer() {
         this.controller.start(CONTAINER1);
-
     }
 
     @After
@@ -213,7 +213,6 @@ public class JmsQueueOperationsTestCase extends HornetQTestCase {
         producer.stopSending();
         producer.join();
         receiverClientAck.join();
-
     }
 
     private Result runOperation(final String operation, final String... params) {
