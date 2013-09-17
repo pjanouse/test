@@ -10,6 +10,7 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+
 import org.hornetq.api.core.Message;
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.core.client.ClientConsumer;
@@ -31,6 +32,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTes
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import static org.junit.Assert.*;
 
 
@@ -126,44 +128,37 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.stop(CONTAINER1);
         this.controller.start(CONTAINER1);
 
-        ServerLocator locator = null;
-        try {
-            Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-            props.put(TransportConstants.PORT_PROP_NAME, 5445);
-            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
-            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-            TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
-                    props);
+        Map<String, Object> props = new HashMap<String, Object>();
+        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
+                props);
 
-            HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
-            Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue testQueue = session.createQueue(QUEUE_NAME);
+        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
 
-            MessageProducer producer = session.createProducer(testQueue);
-            TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
-            producer.send(msg);
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
 
-            connection.start();
-            MessageConsumer consumer = session.createConsumer(testQueue);
-            TextMessage received = (TextMessage) consumer.receive(10000L);
-            connection.stop();
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
 
-            assertNotNull("Cannot consume test message", received);
-            assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
 
-            consumer.close();
-            producer.close();
-            session.close();
-            connection.close();
-            cf.close();
-        } finally {
-            if (locator != null) {
-                locator.close();
-            }
-        }
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+        cf.close();
     }
 
 
@@ -180,46 +175,40 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.stop(CONTAINER1);
         this.controller.start(CONTAINER1);
 
-        ServerLocator locator = null;
-        try {
-            Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-            props.put(TransportConstants.PORT_PROP_NAME, 5445);
-            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
-            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-            props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
-            props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
-            TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
-                    props);
+        Map<String, Object> props = new HashMap<String, Object>();
+        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
+                props);
 
-            HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
-            Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue testQueue = session.createQueue(QUEUE_NAME);
+        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
 
-            MessageProducer producer = session.createProducer(testQueue);
-            TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
-            producer.send(msg);
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
 
-            connection.start();
-            MessageConsumer consumer = session.createConsumer(testQueue);
-            TextMessage received = (TextMessage) consumer.receive(10000L);
-            connection.stop();
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
 
-            assertNotNull("Cannot consume test message", received);
-            assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
 
-            consumer.close();
-            producer.close();
-            session.close();
-            connection.close();
-            cf.close();
-        } finally {
-            if (locator != null) {
-                locator.close();
-            }
-        }
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+        cf.close();
+
     }
 
 
@@ -236,46 +225,39 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.stop(CONTAINER1);
         this.controller.start(CONTAINER1);
 
-        ServerLocator locator = null;
-        try {
-            Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-            props.put(TransportConstants.PORT_PROP_NAME, 5445);
-            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
-            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-            props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
-            props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
-            TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
-                    props);
+        Map<String, Object> props = new HashMap<String, Object>();
+        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
+                props);
 
-            HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
-            Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue testQueue = session.createQueue(QUEUE_NAME);
+        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
 
-            MessageProducer producer = session.createProducer(testQueue);
-            TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
-            producer.send(msg);
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
 
-            connection.start();
-            MessageConsumer consumer = session.createConsumer(testQueue);
-            TextMessage received = (TextMessage) consumer.receive(10000L);
-            connection.stop();
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
 
-            assertNotNull("Cannot consume test message", received);
-            assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
 
-            consumer.close();
-            producer.close();
-            session.close();
-            connection.close();
-            cf.close();
-        } finally {
-            if (locator != null) {
-                locator.close();
-            }
-        }
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+        cf.close();
     }
 
 

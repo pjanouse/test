@@ -84,7 +84,9 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         if (gosshipRouterProcess == null)   {
             log.warn("Gosship router is null. It must be started first!");
         }
-        gosshipRouterProcess.destroy();
+        if (gosshipRouterProcess != null) {
+            gosshipRouterProcess.destroy();
+        }
         gosshipRouterProcess = null;
 
     }

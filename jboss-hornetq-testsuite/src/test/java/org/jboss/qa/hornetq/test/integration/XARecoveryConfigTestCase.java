@@ -67,7 +67,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
-        String line = null;
+        String line;
         StringBuilder st = new StringBuilder();
         int numberOfLines = 0;
         while ((line = in.readLine()) != null) {
@@ -129,7 +129,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
-        String line = null;
+        String line;
         StringBuilder st = new StringBuilder();
         int numberOfLines = 0;
         while ((line = in.readLine()) != null) {
@@ -278,9 +278,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
                 st2.append(line);
             }
         } finally {
-            if (in != null) {
-                in.close();
-            }
+            in.close();
         }
 
         // check them
@@ -365,7 +363,6 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         int groupPort = 9876;
         long broadcastPeriod = 500;
         String connectorName = "netty";
-        String remoteConnectorName = "netty-remote";
 
         String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
         Map<String, String> connectionParameters = new HashMap<String, String>();

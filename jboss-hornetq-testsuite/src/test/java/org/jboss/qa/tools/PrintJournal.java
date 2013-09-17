@@ -18,7 +18,7 @@ public class PrintJournal {
 
     private static final Logger log = Logger.getLogger(PrintJournal.class);
 
-    private static String workingDirectory = System.getenv("WORKSPACE") != new File(".").getAbsolutePath() ? System.getenv("WORKSPACE") : null;
+    private static String workingDirectory = !System.getenv("WORKSPACE").equals(new File(".").getAbsolutePath()) ? System.getenv("WORKSPACE") : null;
     private static String jbossHome = System.getenv("JBOSS_HOME_1") != null ? System.getenv("JBOSS_HOME_1") : null;
 
     /**
@@ -106,9 +106,7 @@ public class PrintJournal {
                 }
             } finally {
 
-                if (out != null) {
-                    out.close();
-                }
+                out.close();
             }
 
         } catch (IOException e) {

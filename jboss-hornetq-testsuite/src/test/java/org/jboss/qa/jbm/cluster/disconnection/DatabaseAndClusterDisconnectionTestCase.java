@@ -151,8 +151,11 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
             stopServer(CONTAINER1);
             stopServer(CONTAINER2);
 
-            router.destroy();
-            log.info("Gosship router stopped.");
+            if (router != null) {
+                router.destroy();
+                log.info("Gosship router stopped.");
+            }
+
             proxyToDb.stop();
 
             printOutputLog(CONTAINER1);

@@ -67,7 +67,7 @@ public class MulticastProxy extends Thread {
 
                 log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
-                        + " content: " + line + " dest host:port - "
+                        + " content: " + Arrays.toString(line) + " dest host:port - "
                         + pkt.getAddress() + ":" + pkt.getPort());
 
                 // if we sent this packet before then don't send it again to prevent multicast packet flooding
@@ -76,7 +76,7 @@ public class MulticastProxy extends Thread {
                         sendPackets.remove(content);
                         log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                                 + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
-                                + ". content: " + line + " and destination host:port - "
+                                + ". content: " + Arrays.toString(line) + " and destination host:port - "
                                 + pkt.getAddress() + ":" + pkt.getPort() + " is DUPLICATE - DON'T SEND IT");
                         break;
                     }
