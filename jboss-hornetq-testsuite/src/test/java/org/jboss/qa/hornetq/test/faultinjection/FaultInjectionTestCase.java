@@ -742,8 +742,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     	boolean isTransacted = true;
     	
     	executeTestSequence(
-    			numMessagesSent,
-    			expectedNumMessagesRecieved,
+                expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
     			isRollbackOnly,
     			isTransacted,
@@ -782,8 +781,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     	boolean isTransacted = true; 
     	
     	executeTestSequence(
-    			numMessagesSent,
-    			expectedNumMessagesRecieved,
+                expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
     			isRollbackOnly,
     			isTransacted,
@@ -812,8 +810,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     	boolean isTransacted = false;
     	
     	executeTestSequence(
-    			numMessagesSent,
-    			expectedNumMessagesRecieved,
+                expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
     			isRollbackOnly,
     			isTransacted,
@@ -824,12 +821,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * TODO javadoc expected here
      */
     protected void executeTestSequence(
-    		int numMessagesSent,
-    		int expectedNumMessagesRecieved,
-    		int expectedNumMessagesOnQueue,
-    		boolean isRollbackOnly,
-    		boolean isTransacted,
-    		boolean isFaultOnReceive)
+            int expectedNumMessagesRecieved,
+            int expectedNumMessagesOnQueue,
+            boolean isRollbackOnly,
+            boolean isTransacted,
+            boolean isFaultOnReceive)
     {
     	int ackMode = isTransacted 
     			? Session.SESSION_TRANSACTED 

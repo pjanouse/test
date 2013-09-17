@@ -97,11 +97,11 @@ public class CleanUp {
         boolean successful = true;
         if (path.exists()) {
             File[] files = path.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    successful = successful && deleteFolder(files[i]);
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    successful = successful && deleteFolder(file);
                 } else {
-                    successful = successful && files[i].delete();
+                    successful = successful && file.delete();
                 }
             }
         }

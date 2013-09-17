@@ -18,7 +18,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +42,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
     private void testXAConnectionFactoryLookup(boolean preferFactoryRef) throws Exception {
 
-        prepareServer(CONTAINER1, preferFactoryRef);
+        prepareServer(preferFactoryRef);
 
         controller.start(CONTAINER1);
 
@@ -141,9 +140,8 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName, boolean preferFactoryRef) {
+    private void prepareServer(boolean preferFactoryRef) {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
 

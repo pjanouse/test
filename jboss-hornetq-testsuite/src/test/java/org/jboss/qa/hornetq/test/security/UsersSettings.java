@@ -80,7 +80,7 @@ public class UsersSettings {
             try {
                 fw = new FileWriter(this.getConfigurationDirectoryPath() + ROLES_FILE);
                 for (EapUser user : this.users.values()) {
-                    fw.append(user.getUserName() + "=" + user.getRolesString());
+                    fw.append(user.getUserName()).append("=").append(user.getRolesString());
                     fw.append("\n");
                 }
             } finally {
@@ -97,7 +97,7 @@ public class UsersSettings {
                 fw = new FileWriter(this.getConfigurationDirectoryPath() + USERS_FILE);
                 for (EapUser user : this.users.values()) {
                     if (user.getPlaintextPassword() != null && !user.getPlaintextPassword().isEmpty()) {
-                        fw.append(user.getUserName() + "=" + user.getEncryptedPassword());
+                        fw.append(user.getUserName()).append("=").append(user.getEncryptedPassword());
                         fw.append("\n");
                     }
                 }

@@ -140,7 +140,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
 
             producer = new HighLoadStompProducerWithSemaphores("producer", TOPIC_JNDI, stomp,
-                    semaphores[0], gapBetweenConsumers, messagesCount, 512);
+                    semaphores[0], gapBetweenConsumers, messagesCount, messageSize);
             for (int i = 0; i < consumers.length; i++) {
                 consumers[i] = new HighLoadConsumerWithSemaphores("consumer " + i, topic, cf, semaphores[i],
                         (i + 1 < semaphores.length) ? semaphores[i + 1] : null,

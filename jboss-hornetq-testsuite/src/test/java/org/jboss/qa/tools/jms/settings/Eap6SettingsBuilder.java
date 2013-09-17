@@ -33,7 +33,7 @@ class Eap6SettingsBuilder implements SettingsBuilder {
     }
 
 
-    public Eap6SettingsBuilder(final String containerName, final JMSOperations operations) {
+    public Eap6SettingsBuilder(final JMSOperations operations) {
         this.node = "default";
 
         if (operations instanceof HornetQAdminOperationsEAP6) {

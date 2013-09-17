@@ -137,9 +137,9 @@ public class MdbMessageVerifier implements FinalTestMessageVerifier {
         List<String> listOfDuplicatedMessages = new ArrayList<String>();
 
         HashSet<String> set = new HashSet<String>();
-        for (int i = 0; i < receivedMessages.size(); i++) {
-            if (!set.add(receivedMessages.get(i).get("inMessageId"))) {
-                listOfDuplicatedMessages.add(receivedMessages.get(i).get("messageId"));
+        for (Map<String, String> receivedMessage : receivedMessages) {
+            if (!set.add(receivedMessage.get("inMessageId"))) {
+                listOfDuplicatedMessages.add(receivedMessage.get("messageId"));
             }
         }
         return listOfDuplicatedMessages;

@@ -18,7 +18,7 @@ public final class JmsServerSettings {
 
     public static SettingsBuilder fromOperations(final String node, final JMSOperations operations) {
         if (operations instanceof HornetQAdminOperationsEAP6) {
-            return new Eap6SettingsBuilder(node, operations);
+            return new Eap6SettingsBuilder(operations);
         } else {
             throw new IllegalArgumentException("Unknown JMS operations implementation "
                     + operations.getClass().getName());

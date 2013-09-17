@@ -54,7 +54,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 		
 		preparator.prepareLive(this);
 		
-		preparator.prepareBackup(this);
+		preparator.prepareBackup();
 	}
 
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/

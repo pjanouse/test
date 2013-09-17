@@ -318,9 +318,9 @@ public class RestoreConfig {
             }
 
             String[] children = srcDir.list();
-            for (int i = 0; i < children.length; i++) {
-                copyDirectory(new File(srcDir, children[i]),
-                        new File(dstDir, children[i]));
+            for (String aChildren : children) {
+                copyDirectory(new File(srcDir, aChildren),
+                        new File(dstDir, aChildren));
             }
         } else {
             // This method is implemented in Copying a File

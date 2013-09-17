@@ -2403,13 +2403,13 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
      * @param maxSizeBytes        The max bytes size
      * @param redeliveryDelay     Defines how long to wait before attempting
-     *                            redelivery of a cancelled message
+*                            redelivery of a cancelled message
      * @param redistributionDelay Defines how long to wait when the last
-     *                            consumer is closed on a queue before redistributing any messages
+*                            consumer is closed on a queue before redistributing any messages
      * @param pageSizeBytes       The paging size
      */
     @Override
-    public void addAddressSettings(String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+    public void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes) {
         addAddressSettings("default", address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
     }
@@ -2426,7 +2426,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param pageSizeBytes       The paging size
      */
     @Override
-    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = new ModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");

@@ -203,7 +203,7 @@ public class JournalReplicationConfiguration
 	    copyFile(applicationRolesModified, applicationRolesOriginal);
 	}
 	
-	public void prepareBackup(JournalReplicationAbstract journalReplicationAbstractTestCase)
+	public void prepareBackup()
 	{
 		resetConfiguration(SERVER_DIR_BACKUP);
 		controller.stop(SERVER_BACKUP);

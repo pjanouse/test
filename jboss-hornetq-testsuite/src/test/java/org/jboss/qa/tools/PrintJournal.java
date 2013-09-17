@@ -178,7 +178,7 @@ public class PrintJournal {
         String outputFile = "/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite/journal_output.log";
         pj.setWorkingDirectory("/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite");
         pj.setJbossHome("/home/mnovak/tmp/jboss-eap-6.0");
-        pj.printJournal("", messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
+        printJournal("", messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
     }
 
 }

@@ -180,10 +180,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         if (!topologyCreated) {
 
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP);
-            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
-            prepareJmsServer(CONTAINER3, CONTAINER3_IP);
-            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+            prepareJmsServer(CONTAINER1);
+            prepareMdbServer(CONTAINER2, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER3);
+            prepareMdbServer(CONTAINER4, CONTAINER3_IP);
             topologyCreated = true;
         }
     }
@@ -194,9 +194,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * Prepares jms server for remote jca topology.
      *
      * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     *
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) {
+    private void prepareJmsServer(String containerName) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -284,7 +284,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";

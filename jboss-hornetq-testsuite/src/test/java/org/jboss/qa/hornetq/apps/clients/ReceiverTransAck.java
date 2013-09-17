@@ -228,7 +228,7 @@ public class ReceiverTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: " + m.getJMSMessageID() + " dupId: " + m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -252,7 +252,7 @@ public class ReceiverTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: " + m.getJMSMessageID() + " dupId: " + m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 

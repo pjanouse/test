@@ -33,7 +33,6 @@ public class RuleInstaller {
     // Logger
     private static final Logger log = Logger.getLogger(RuleInstaller.class);
 
-    public static final String CLASS_KEY_PREFIX = "Class:";
     public static final String METHOD_KEY_PREFIX = "Method:";
 
     /**
@@ -72,7 +71,9 @@ public class RuleInstaller {
 
                 callerMethodName = elements[level].getMethodName();
                 log.info(String.format("CallerClassName='%s', caller method name='%s'", testClass.getName(), callerMethodName));
-                ruleInstaller.installMethod(testClass.getMethod(callerMethodName));
+
+                    ruleInstaller.installMethod(testClass.getMethod(callerMethodName));
+
             } catch (Exception ex) {
 
                 // this means that method has parameters -> testClass.getMethod(...) thrown exception
@@ -81,10 +82,10 @@ public class RuleInstaller {
                 // so try to get all methods from test class and compare it with names from stacktrace
                 // and try to find byteman rules
                 Method[] testClassMethods = testClass.getMethods();
-                for (int i = 0; i < testClassMethods.length; i++) {
+                for (Method testClassMethod : testClassMethods) {
                     if (callerMethodName != null) {
-                        if (callerMethodName.equalsIgnoreCase(testClassMethods[i].getName())) {
-                            ruleInstaller.installMethod(testClassMethods[i]);
+                        if (callerMethodName.equalsIgnoreCase(testClassMethod.getName())) {
+                            ruleInstaller.installMethod(testClassMethod);
                         }
                     }
                 }

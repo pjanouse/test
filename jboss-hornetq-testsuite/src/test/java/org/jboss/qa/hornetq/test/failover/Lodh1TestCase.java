@@ -55,7 +55,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     public static String createEjbXml(String mdbName) {
 
-        StringBuffer ejbXml = new StringBuffer();
+        StringBuilder ejbXml = new StringBuilder();
 
         ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
         ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
@@ -67,7 +67,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("impl-version=\"2.0\">\n");
         ejbXml.append("<enterprise-beans>\n");
         ejbXml.append("<message-driven>\n");
-        ejbXml.append("<ejb-name>" + mdbName + "</ejb-name>\n");
+        ejbXml.append("<ejb-name>").append(mdbName).append("</ejb-name>\n");
         ejbXml.append("<ejb-class>org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue</ejb-class>\n");
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");

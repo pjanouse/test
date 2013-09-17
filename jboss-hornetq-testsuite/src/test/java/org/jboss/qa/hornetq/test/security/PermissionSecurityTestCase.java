@@ -240,7 +240,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         if (!topologyCreated) {
 
-            prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+            prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
 
             controller.start(CONTAINER1);
 
@@ -256,10 +256,9 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
      * Prepares live server for dedicated topology.
      *
      * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) throws IOException {
+    private void prepareLiveServer(String containerName, String journalDirectory) throws IOException {
 
         controller.start(containerName);
 

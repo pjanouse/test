@@ -96,7 +96,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     public static String createHornetqJmsXml() {
 
-        StringBuffer hornetqJmsXml = new StringBuffer();
+        StringBuilder hornetqJmsXml = new StringBuilder();
 
         hornetqJmsXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
         hornetqJmsXml.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
