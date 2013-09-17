@@ -61,7 +61,7 @@ class Eap6SettingsBuilder implements SettingsBuilder {
     public SettingsBuilder withQueue(String queueName, boolean isDurable) {
         try {
             this.ops.removeQueue(queueName);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         this.ops.createQueue(this.node, queueName, this.createQueueJndiName(queueName), isDurable);

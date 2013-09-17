@@ -159,7 +159,7 @@ public class PrintJournal {
     }
 
     public void setWorkingDirectory(String workingDirectory) {
-        this.workingDirectory = workingDirectory;
+        PrintJournal.workingDirectory = workingDirectory;
     }
 
     public String getJbossHome() {
@@ -167,7 +167,7 @@ public class PrintJournal {
     }
 
     public void setJbossHome(String jbossHome) {
-        this.jbossHome = jbossHome;
+        PrintJournal.jbossHome = jbossHome;
     }
 
     public static void main(String args[]) {

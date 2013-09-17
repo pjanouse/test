@@ -24,7 +24,6 @@ public class SubscriberAutoAck extends Client {
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
-    ;
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;

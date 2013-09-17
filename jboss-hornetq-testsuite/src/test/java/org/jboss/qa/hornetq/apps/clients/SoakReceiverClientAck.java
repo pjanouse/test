@@ -21,7 +21,7 @@ public class SoakReceiverClientAck extends Client {
     private String queueNameJndi = "jms/queue/testQueue0";
     private long receiveTimeOut;
     private int ackAfter;
-    private List<String> listOfReceivedMessages = new ArrayList<String>();;
+    private List<String> listOfReceivedMessages = new ArrayList<String>();
 //    private List<String> listOfReceivedMessagesToBeAcked = new ArrayList<String>();
     private int count = 0;
     private Exception exception = null;

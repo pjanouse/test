@@ -1060,7 +1060,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -1140,9 +1140,6 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     /**
      * Sets security on HornetQ
-     *
-     * @param value
-     * @param serverName
      */
     @Override
     public void setSecurityEnabled(String serverName, boolean value) {
@@ -1454,7 +1451,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 //            pingNode.setAttribute("num_initial_members", String.valueOf(2));
 
             XPath xpathInstance = XPathFactory.newInstance().newXPath();
-            Node parent = null;
+            Node parent;
             Node node =  (Node) xpathInstance.evaluate("//UDP", doc, XPathConstants.NODE);
             while (node != null)    {
                 Element tunnelNode = doc.createElement("TUNNEL");
@@ -1577,7 +1574,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     /**
      * Sets transaction node identifier.
      *
-     * @param i
+     * @param i node identifier
      */
     @Override
     public void setNodeIdentifier(int i) {
@@ -1630,12 +1627,12 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param doc
-     * @param description
-     * @param configPropertyName
-     * @param configPropertyType
-     * @param configPropertyValues
-     * @return
+     * @param doc                         doc
+     * @param description                 description
+     * @param configPropertyName          property name
+     * @param configPropertyType          type
+     * @param configPropertyValues        value
+     * @return      node
      */
     private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType, String configPropertyValues) {
 

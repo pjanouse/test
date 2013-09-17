@@ -120,7 +120,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
         logger.info("Result drop-all-subscriptions: " + r22.getResponse().asString());
         CliTestUtils.assertSuccess(r22);
 
-        subscriberClientAck = subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
+        subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 

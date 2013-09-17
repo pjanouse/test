@@ -28,11 +28,8 @@ public final class ArquillanDescriptorHelper {
             final ArquillianDescriptor arquillianDescriptor) {
 
         ContainerDef container = ArquillanDescriptorHelper.findContainer(containerName, arquillianDescriptor);
-        if (container != null) {
-            return container.isDefault();
-        }
+        return container != null && container.isDefault();
 
-        return false;
     }
 
 

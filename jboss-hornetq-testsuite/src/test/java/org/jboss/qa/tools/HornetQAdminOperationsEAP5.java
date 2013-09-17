@@ -1018,7 +1018,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -1099,8 +1099,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Sets security on HornetQ
      *
-     * @param value
-     * @param serverName
+     * @param value     value
+     * @param serverName     server name
      */
     @Override
     public void setSecurityEnabled(String serverName, boolean value) {
@@ -1350,7 +1350,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Sets transaction node identifier.
      *
-     * @param i
+     * @param i node identifier
      */
     @Override
     public void setNodeIdentifier(int i) {
@@ -1403,12 +1403,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param doc
-     * @param description
-     * @param configPropertyName
-     * @param configPropertyType
-     * @param configPropertyValues
-     * @return
+     * @param doc        document
+     * @param description           description
+     * @param configPropertyName     name
+     * @param configPropertyType     type
+     * @param configPropertyValues   value
+     * @return config property
      */
     private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType, String configPropertyValues) {
 

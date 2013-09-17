@@ -126,7 +126,7 @@ public class AddressSecuritySettings {
                 // try to remove existing settings for the address if there were any
                 // NOTE: server won't delete settings for '#' address
                 this.ops.removeSecuritySettings(this.hornetqServer, this.address);
-            } catch (RuntimeException e) {
+            } catch (RuntimeException ignored) {
             }
 
             if (!"#".equals(this.address)) {

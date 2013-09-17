@@ -169,11 +169,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                 return false;
             }
 
-            if (response == null || "".equals(response) || response.contains("Unable to connect")) {
-                return false;
-            } else {
-                return true;
-            }
+            return !(response == null || "".equals(response) || response.contains("Unable to connect"));
 
         } else {
             boolean stillRunning = true;
