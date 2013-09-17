@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 /**
- * Test attributes on remote connectio factory:
+ * Test attributes on remote connection factory:
  * ATTRIBUTE           VALUE                         TYPE
 
  *

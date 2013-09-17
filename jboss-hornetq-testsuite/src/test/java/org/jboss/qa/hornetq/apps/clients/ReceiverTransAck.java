@@ -112,13 +112,13 @@ public class ReceiverTransAck extends Client {
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            conn = (Connection) cf.createConnection();
+            conn = cf.createConnection();
 
             conn.start();
 
             queue = (Queue) context.lookup(queueNameJndi);
 
-            session = (Session) conn.createSession(true, Session.SESSION_TRANSACTED);
+            session = conn.createSession(true, Session.SESSION_TRANSACTED);
 
             MessageConsumer receiver = session.createConsumer(queue);
 

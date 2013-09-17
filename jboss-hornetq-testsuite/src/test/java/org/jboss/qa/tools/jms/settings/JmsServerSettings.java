@@ -16,7 +16,7 @@ public final class JmsServerSettings {
     }
 
 
-    public static SettingsBuilder fromOperations(final String node, final JMSOperations operations) {
+    public static SettingsBuilder fromOperations(final JMSOperations operations) {
         if (operations instanceof HornetQAdminOperationsEAP6) {
             return new Eap6SettingsBuilder(operations);
         } else {

@@ -79,7 +79,7 @@ public class SimpleMdbToDb implements MessageListener {
 
     // This method would use JPA in the real world to persist the data
     private void processMessageInfo(Message message, MessageInfo messageInfo, int count) throws SQLException, JMSException {
-        PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
                 + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
         ps.setString(1, message.getJMSMessageID());
         ps.setString(2, messageInfo.getName() + count);

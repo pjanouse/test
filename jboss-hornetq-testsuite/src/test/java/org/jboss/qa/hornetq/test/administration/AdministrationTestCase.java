@@ -52,7 +52,7 @@ public class AdministrationTestCase extends HornetQTestCase {
      * Test all possible things. Failed operation simply throw RuntimeException
      *
      * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
+     * @param bindingAddress   says on which ip container will be bound
      * @param journalDirectory path to journal directory
      */
     public void configure(String containerName, String bindingAddress, String journalDirectory) throws IOException {
@@ -113,7 +113,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        // set security persmissions for roles admin,users - user is already there
+        // set security permissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", false);

@@ -100,12 +100,12 @@ public class DbUtilServlet extends HttpServlet {
 //            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
 //            String sql = "DROP TABLE MESSAGE_INFO2 PURGE";
             String sql = "delete from MESSAGE_INFO2";
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
 
             String deleteTableSql = "drop table MESSAGE_INFO2";
-            PreparedStatement deleteTable = (PreparedStatement) connection.prepareStatement(deleteTableSql);
+            PreparedStatement deleteTable = connection.prepareStatement(deleteTableSql);
             deleteTable.execute();
             deleteTable.close();
 
@@ -146,7 +146,7 @@ public class DbUtilServlet extends HttpServlet {
             connection = getConnection();
             int counter = 5;
 
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
                     + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
             ps.setString(1, "myid");
             ps.setString(2, "name");
@@ -181,7 +181,7 @@ public class DbUtilServlet extends HttpServlet {
         try {
 
             connection = getConnection();
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT COUNT(*) FROM MESSAGE_INFO2");
+            PreparedStatement ps = connection.prepareStatement("SELECT COUNT(*) FROM MESSAGE_INFO2");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 result = rs.getLong(1);
@@ -212,7 +212,7 @@ public class DbUtilServlet extends HttpServlet {
         try {
 
             connection = getConnection();
-            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("SELECT * FROM MESSAGE_INFO2");
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM MESSAGE_INFO2");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 result = rs.getString(1);
