@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq.test;
 
+import org.jboss.qa.tools.ContainerInfo;
+
 /**
  * Class containing constants used in tests and tools.
  */
@@ -24,6 +26,16 @@ public interface HornetQTestCaseConstants {
     public static final int BYTEMAN_CONTAINER2_PORT = 9191;
     public static final int BYTEMAN_CONTAINER3_PORT = 9291;
     public static final int BYTEMAN_CONTAINER4_PORT = 9391;
+
+    // composite info objects for easier passing to utility classes
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, HornetQTestCase.CONTAINER1_IP,
+            BYTEMAN_CONTAINER1_PORT);
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, HornetQTestCase.CONTAINER2_IP,
+            BYTEMAN_CONTAINER2_PORT);
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, HornetQTestCase.CONTAINER3_IP,
+            BYTEMAN_CONTAINER3_PORT);
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, HornetQTestCase.CONTAINER4_IP,
+            BYTEMAN_CONTAINER4_PORT);
 
     // Management port - EAP 6
     public static int MANAGEMENT_PORT_EAP6 = 9999;
