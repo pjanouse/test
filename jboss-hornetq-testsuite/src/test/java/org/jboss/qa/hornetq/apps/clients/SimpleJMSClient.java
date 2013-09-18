@@ -33,7 +33,7 @@ public class SimpleJMSClient extends Client {
     private int ackMode;
     private boolean transactionSession;
     private int receivedMessages;
-    private int receiveTimeout = 1000;
+    private int receiveTimeout = 10000;
     private boolean rollbackOnly;
 
     private String initialContextClass = "org.jboss.naming.remote.client.InitialContextFactory";

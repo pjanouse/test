@@ -574,8 +574,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * @param messageBuilder instance of the message messageBuilder
      */
     private void testLogicForSourceServerLaterStart(MessageBuilder messageBuilder) {
-        final String TEST_QUEUE = "dummyQueue";
-        final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
+        final String sourceQueue = "sourceQueue";
+        final String sourceQueueJndiName = "jms/queue/" + sourceQueue;
+        final String targetQueue = "targetQueue";
+        final String targetQueueJndiName = "jms/queue/" + targetQueue;
         final int messages = 100;
 
         // Start servers
@@ -587,8 +589,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         JMSOperations jmsAdminContainer2 = this.getJMSOperations(CONTAINER2);
 
         // Create queue
-        jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminContainer1.createQueue(sourceQueue, sourceQueueJndiName);
+        jmsAdminContainer2.createQueue(targetQueue, targetQueueJndiName);
 
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
@@ -599,14 +601,14 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
-        client1.sendMessages(TEST_QUEUE_JNDI);
+        client1.sendMessages(sourceQueueJndiName);
         jmsAdminContainer1.close();
 
         stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
-        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + sourceQueue, "jms.queue." + targetQueue, -1, "bridge-connector");
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -615,10 +617,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         // Receive messages from the output node
         SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
-        client2.receiveMessages(TEST_QUEUE_JNDI);
+        client2.receiveMessages(targetQueueJndiName);
         assertEquals(messages, client2.getReceivedMessages());
 
-        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
+        assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(targetQueue));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
         stopServer(CONTAINER1);
