@@ -228,13 +228,6 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-//        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
-//        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 150);
-//        builder.setAddDuplicatedHeader(false);
-//        producer1.setMessageBuilder(builder);
-//        producer1.setTimeout(0);
-//        producer1.setMessageBuilder(new TextMessageBuilder(10000));
-
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
@@ -251,14 +244,9 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(CONTAINER1);
         }
 
-        // executeNodeFaillSequence(killSequence, 60000, shutdown);
         executeNodeFaillSequence(killSequence, 60000, shutdown);
 
         logger.info("Start receiver.");
-        // SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
-//        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 600000, 10, 10);
-//        receiver1.start();
-//        receiver1.join();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -274,19 +262,6 @@ public class Lodh1TestCase extends HornetQTestCase {
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
 
-    }
-
-    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-
-        //get lost messages
-        List<String> listOfLostMessages = new ArrayList<String>();
-
-        for (String duplicateId : listOfSentMessages) {
-            if (!listOfReceivedMessages.contains(duplicateId)) {
-                listOfLostMessages.add(duplicateId);
-            }
-        }
-        return listOfLostMessages;
     }
 
     /**
