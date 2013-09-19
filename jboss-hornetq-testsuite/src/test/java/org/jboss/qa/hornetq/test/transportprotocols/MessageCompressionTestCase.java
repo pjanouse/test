@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testCompression() throws Exception {
         prepareServer(CONTAINER1);
