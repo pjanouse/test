@@ -514,7 +514,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         String pid = "";
         try {
-            pid = HttpRequest.get("http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId", 4, TimeUnit.SECONDS);
+            log.info("Calling get pid: http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId");
+            pid = HttpRequest.get("http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId", 10, TimeUnit.SECONDS);
+            log.info("Pid is :" + pid);
         } catch (IOException e) {
             log.error("Error when calling killer servlet for pid.", e);
         } catch (TimeoutException e) {
