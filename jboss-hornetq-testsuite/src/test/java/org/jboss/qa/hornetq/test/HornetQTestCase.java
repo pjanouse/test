@@ -464,7 +464,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                     if (System.currentTimeMillis() - startTime > timeout) {
                         // kill server because shutdown hangs and fail test
                         try {
-                            if (System.getProperty("os.name").contains("Windows"))  {
+                            if (System.getProperty("os.name").contains("Windows")) {
                                 Runtime.getRuntime().exec("taskkill /PID " + pid);
                             } else { // it's linux or Solaris
                                 Runtime.getRuntime().exec("kill -9 " + pid);
@@ -501,12 +501,32 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
 
         if (CONTAINER1.equals(containerName)) {
+            try {
+                deployer.undeploy(SERVLET_KILLER_1);
+            } catch (Exception ex) {
+                log.error("Exception: ", ex);
+            }
             deployer.deploy(SERVLET_KILLER_1);
         } else if (CONTAINER2.equals(containerName)) {
+            try {
+                deployer.undeploy(SERVLET_KILLER_2);
+            } catch (Exception ex) {
+                log.error("Exception: ", ex);
+            }
             deployer.deploy(SERVLET_KILLER_2);
         } else if (CONTAINER3.equals(containerName)) {
+            try {
+                deployer.undeploy(SERVLET_KILLER_3);
+            } catch (Exception ex) {
+                log.error("Exception: ", ex);
+            }
             deployer.deploy(SERVLET_KILLER_3);
         } else if (CONTAINER4.equals(containerName)) {
+            try {
+                deployer.undeploy(SERVLET_KILLER_4);
+            } catch (Exception ex) {
+                log.error("Exception: ", ex);
+            }
             deployer.deploy(SERVLET_KILLER_4);
         } else {
             throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
@@ -817,7 +837,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param clients clients
      * @param timeout timeout
      */
-    public void waitForClientsToFinish(Clients clients, long timeout)  {
+    public void waitForClientsToFinish(Clients clients, long timeout) {
         long startTime = System.currentTimeMillis();
         try {
             while (!clients.isFinished()) {
@@ -944,7 +964,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public void writeReadAttributeTest(CliClient cliClient, String address, String attributeName, String value) throws Exception {
 
         boolean isWritable = isWritable(address, attributeName);
-        log.info("Test attribute: " +  attributeName + ", writable: " + isWritable);
+        log.info("Test attribute: " + attributeName + ", writable: " + isWritable);
 
         if (isWritable) {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
@@ -957,8 +977,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
-     *
-     * @param address like messaging subsystem
+     * @param address   like messaging subsystem
      * @param attribute name of the attribute
      * @return true if attribute is writable, false if not
      */
@@ -972,14 +991,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // grep it for attribute and access-typ
         String resultAsString = result.getResponse().asString();
-        if (resultAsString.contains(attribute))    {
+        if (resultAsString.contains(attribute)) {
             // get index where attribute starts
             resultAsString = resultAsString.substring(resultAsString.indexOf(attribute));
             // grep access type
             // find first access-type behind it - "access-type" => "read-write",
             String accessType = resultAsString.substring(resultAsString.indexOf("access-type"), resultAsString.indexOf("access-type") + "\"access-type\" => \"read-write\"".length());
 
-            if (accessType.contains("read-write"))  {
+            if (accessType.contains("read-write")) {
                 isWritable = true;
             } else if (accessType.contains("read-only")) {
                 isWritable = false;
