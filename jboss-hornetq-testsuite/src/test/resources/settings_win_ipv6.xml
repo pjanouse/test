@@ -88,20 +88,18 @@ under the License.
      | specification in this list marked as active will be used.
      |-->
     <proxies>
-        <!-- proxy
-         | Specification for one proxy, to be used in connecting to the network.
-         |
+
         <proxy>
           <id>optional</id>
           <active>true</active>
           <protocol>http</protocol>
           <username>proxyuser</username>
           <password>proxypass</password>
-          <host>proxy.host.net</host>
-          <port>80</port>
-          <nonProxyHosts>local.net|some.host.com</nonProxyHosts>
+          <host>proxy-01-ipv6.mw.lab.eng.bos.redhat.com</host>
+          <port>3128</port>
+          <nonProxyHosts></nonProxyHosts>
         </proxy>
-        -->
+
     </proxies>
 
     <!-- servers
