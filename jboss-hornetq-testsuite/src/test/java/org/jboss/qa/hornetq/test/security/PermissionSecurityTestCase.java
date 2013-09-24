@@ -44,7 +44,6 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String jndiContextPrefix = "java:jboss/exported/";
-    static boolean topologyCreated = false;
 
     /**
      * This test will start one server. And try to send/receive messages or
@@ -235,29 +234,18 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     }
 
-    @After
-    public void stopAllServers() {
+    public void prepareServer() throws Exception {
+
+
+        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
+
+        controller.start(CONTAINER1);
+
+        deployDestinations(CONTAINER1);
 
         stopServer(CONTAINER1);
 
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
-    }
-
-    public void prepareServer() throws Exception {
-
-        if (!topologyCreated) {
-
-            prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
-
-            controller.start(CONTAINER1);
-
-            deployDestinations(CONTAINER1);
-
-            stopServer(CONTAINER1);
-
-            topologyCreated = true;
-        }
     }
 
     /**
