@@ -23,8 +23,8 @@
 
 		<eap5.client>5.1.2-HORNETQ-JBPAPP-10839</eap5.client>
 
-		<eap6.client>6.2.0.ER1</eap6.client>
-        <eap6.controller.client>6.2.0.ER1</eap6.controller.client>
+		<eap6.client>6.2.0.ER3</eap6.client>
+        <eap6.controller.client>6.2.0.ER3</eap6.controller.client>
 
 		<arquillian.version>1.0.3.Final</arquillian.version>
 		<arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
