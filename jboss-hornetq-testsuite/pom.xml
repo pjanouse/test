@@ -207,31 +207,7 @@
             <artifactId>stompjms-client</artifactId>
             <version>1.10</version>
         </dependency>
-        <!-- dependency for CLI libraris -->
-        <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jbossqe-eap-tests-management</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <type>jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.remoting3</groupId>
-                    <artifactId>jboss-remoting</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jbossqe-eap-tests-management</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <type>test-jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.remoting3</groupId>
-                    <artifactId>jboss-remoting</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
 	</dependencies>
 
 	<profiles>
@@ -440,6 +416,31 @@
                         </exclusion>
                     </exclusions>
 				</dependency>
+                <!-- dependency for CLI libraris -->
+                <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jbossqe-eap-tests-management</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <type>jar</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.remoting3</groupId>
+                            <artifactId>jboss-remoting</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jbossqe-eap-tests-management</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <type>test-jar</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.remoting3</groupId>
+                            <artifactId>jboss-remoting</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
 			</dependencies>
 		</profile>
