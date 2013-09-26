@@ -504,28 +504,28 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             try {
                 deployer.undeploy(SERVLET_KILLER_1);
             } catch (Exception ex) {
-                log.error("Exception: ", ex);
+                log.debug("Ignore this exception: " + ex.getMessage());
             }
             deployer.deploy(SERVLET_KILLER_1);
         } else if (CONTAINER2.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_2);
             } catch (Exception ex) {
-                log.error("Exception: ", ex);
+                log.debug("Ignore this exception: " + ex.getMessage());
             }
             deployer.deploy(SERVLET_KILLER_2);
         } else if (CONTAINER3.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_3);
             } catch (Exception ex) {
-                log.error("Exception: ", ex);
+                log.debug("Ignore this exception: " + ex.getMessage());
             }
             deployer.deploy(SERVLET_KILLER_3);
         } else if (CONTAINER4.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_4);
             } catch (Exception ex) {
-                log.error("Exception: ", ex);
+                log.debug("Ignore this exception: " + ex.getMessage());
             }
             deployer.deploy(SERVLET_KILLER_4);
         } else {

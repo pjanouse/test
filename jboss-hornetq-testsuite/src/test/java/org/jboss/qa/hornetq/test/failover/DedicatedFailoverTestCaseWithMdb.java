@@ -7,7 +7,6 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -19,7 +18,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
-import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -111,13 +109,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @param shutdown shutdown server
      * @throws Exception
      */
-    @BMRules({
-            @BMRule(name = "print xid and error code ",
-                    targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
-                    targetMethod = "rollback",
-                    targetLocation =   "AT LINE 1689",
-                    action = "debug(\"print xid: \" + $xid + \" and error code in response: \" + $response.getResponseCode() + \", response message: \"  + $response.getMessage() + \"print resposnse: \"  + $response);")
-            })
     public void testFailoverWithRemoteJca(boolean shutdown) throws Exception {
 
         prepareRemoteJcaTopology();
@@ -316,7 +307,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
         String remoteConnectorNameBackup = "netty-remote-backup";
-//        String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
         controller.start(containerName);
 

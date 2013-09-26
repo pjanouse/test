@@ -18,7 +18,7 @@ public class PrintJournal {
 
     private static final Logger log = Logger.getLogger(PrintJournal.class);
 
-    private static String workingDirectory = !System.getenv("WORKSPACE").equals(new File(".").getAbsolutePath()) ? System.getenv("WORKSPACE") : null;
+    private static String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
     private static String jbossHome = System.getenv("JBOSS_HOME_1") != null ? System.getenv("JBOSS_HOME_1") : null;
 
     /**
@@ -29,20 +29,20 @@ public class PrintJournal {
      */
     public static void printJournal(String container, String relativePathToOutputFile) {
 
-        StringBuilder messagingBindingsDirectoryBuilder = new StringBuilder(HornetQTestCase.getJbossHome(container));
+        jbossHome = HornetQTestCase.getJbossHome(container);
+
+        StringBuilder messagingBindingsDirectoryBuilder = new StringBuilder(jbossHome);
         messagingBindingsDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
                 .append(File.separator).append("messagingbindings");
-        StringBuilder messagingJournalDirectoryBuilder = new StringBuilder(HornetQTestCase.getJbossHome(container));
+        StringBuilder messagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
         messagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
                 .append(File.separator).append("messagingjournal");
 
-        if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
-            workingDirectory = new File(".").getAbsolutePath();
-        }
 
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
-        printJournal("", messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
+
+        printJournal(jbossHome, messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
     }
 
     /**
