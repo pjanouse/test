@@ -506,28 +506,44 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             } catch (Exception ex) {
                 log.debug("Ignore this exception: " + ex.getMessage());
             }
-            deployer.deploy(SERVLET_KILLER_1);
+            try {
+                deployer.deploy(SERVLET_KILLER_1);
+            } catch (Exception ex) {
+                log.debug("Ignore this exception: " + ex.getMessage());
+            }
         } else if (CONTAINER2.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_2);
             } catch (Exception ex) {
                 log.debug("Ignore this exception: " + ex.getMessage());
             }
-            deployer.deploy(SERVLET_KILLER_2);
+            try {
+                deployer.deploy(SERVLET_KILLER_2);
+            } catch (Exception ex) {
+                log.debug("Ignore this exception: " + ex.getMessage());
+            }
         } else if (CONTAINER3.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_3);
             } catch (Exception ex) {
                 log.debug("Ignore this exception: " + ex.getMessage());
             }
-            deployer.deploy(SERVLET_KILLER_3);
+            try {
+                deployer.deploy(SERVLET_KILLER_3);
+            } catch (Exception ex) {
+                log.debug("Ignore this exception: " + ex.getMessage());
+            }
         } else if (CONTAINER4.equals(containerName)) {
             try {
                 deployer.undeploy(SERVLET_KILLER_4);
             } catch (Exception ex) {
                 log.debug("Ignore this exception: " + ex.getMessage());
             }
-            deployer.deploy(SERVLET_KILLER_4);
+            try {
+                deployer.deploy(SERVLET_KILLER_4);
+            } catch (Exception ex) {
+                log.debug("Ignore this exception: " + ex.getMessage());
+            }
         } else {
             throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
         }
