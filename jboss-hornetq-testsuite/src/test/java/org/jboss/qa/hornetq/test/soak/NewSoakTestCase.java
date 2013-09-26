@@ -46,7 +46,7 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     private static final String CONTAINER2_DEPLOYMENT = "container2-deployment";
 
-    private static final long DEFAULT_DURATION = TimeUnit.MINUTES.toMillis(15);
+    private static final long DEFAULT_DURATION = TimeUnit.DAYS.toMillis(3);
 
     private static final int NUMBER_OF_MESSAGES = 10000000;
 
