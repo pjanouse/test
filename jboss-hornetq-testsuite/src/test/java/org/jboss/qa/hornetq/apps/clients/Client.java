@@ -115,6 +115,10 @@ public class Client extends Thread implements HornetQTestCaseConstants  {
         return counter;
     }
 
+    public void incrementCount() {
+        counter++;
+    }
+
     public int getTimeout() {
         return timeout;
     }
