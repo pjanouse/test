@@ -1723,4 +1723,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
+            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue,
+            String deadLetterQueue, int maxDeliveryAttempts) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }
