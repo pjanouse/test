@@ -99,17 +99,22 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 break;
             case JMS:
             default:
+                JMSOperations localOps = this.getJMSOperations(this.queueContainer.getName());
+                localOps.setFactoryType("RemoteConnectionFactory", "XA_GENERIC");
+                localOps.close();
+
                 Map<String, String> targetContext = new HashMap<String, String>(2);
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
                         "remote://" + this.queueContainer.getIpAddress() + ":4447");
 
+                remoteOps.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
                 remoteOps.createJMSBridge("soak-inbound-bridge", "java:/ConnectionFactory",
                         "java:/" + BRIDGE_REMOTE_QUEUE_JNDI, null,
-                        "java:/jms/RemoteConnectionFactory",
+                        "jms/RemoteConnectionFactory",
                         "java:/" + BRIDGE_OUT_QUEUE_JNDI, targetContext,
-                        "AT_MOST_ONCE", 1000, -1, 10, 100, true);
+                        "ONCE_AND_ONLY_ONCE", 1000, -1, 10, 100, true);
                 break;
 
         }
