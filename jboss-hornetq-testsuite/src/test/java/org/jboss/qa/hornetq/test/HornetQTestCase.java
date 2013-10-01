@@ -448,9 +448,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      */
     public void stopServer(final String containerName) {
+
+        // there is problem with calling stop on already stopped server
+        // it throws exception when server is already stopped
+        // so check whether server is still running and return if not
+        if (!checkThatServerIsReallyUp(getHostname(containerName), 9999)) {
+            return;
+        }
+
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
         // we kill server when it takes too long
-
         final long pid = getProcessId(containerName);
 
         Thread shutdownHook = new Thread() {
