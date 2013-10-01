@@ -1283,4 +1283,8 @@ public interface JMSOperations {
     void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue);
 
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
+            int redeliveryDelay, long redistributionDelay, long pageSizeBytes,
+            String expireQueue, String deadLetterQueue, int maxDeliveryAttempts);
+
 }
