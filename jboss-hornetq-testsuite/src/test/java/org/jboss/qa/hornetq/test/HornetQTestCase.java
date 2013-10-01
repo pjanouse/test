@@ -464,35 +464,54 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             public void run() {
                 long timeout = 120000;
                 long startTime = System.currentTimeMillis();
-                while (checkThatServerIsReallyUp(getHostname(containerName), 9999)
-                        || checkThatServerIsReallyUp(getHostname(containerName), 5445)
-                        || checkThatServerIsReallyUp(getHostname(containerName), 8080)) {
+                try {
+                    while (checkThatServerIsReallyUp(getHostname(containerName), 9999)
+                            || checkThatServerIsReallyUp(getHostname(containerName), 5445)
+                            || checkThatServerIsReallyUp(getHostname(containerName), 8080)
+                            || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
 
-                    if (System.currentTimeMillis() - startTime > timeout) {
-                        // kill server because shutdown hangs and fail test
-                        try {
-                            if (System.getProperty("os.name").contains("Windows")) {
-                                Runtime.getRuntime().exec("taskkill /PID " + pid);
-                            } else { // it's linux or Solaris
-                                Runtime.getRuntime().exec("kill -9 " + pid);
+                        if (System.currentTimeMillis() - startTime > timeout) {
+                            // kill server because shutdown hangs and fail test
+                            try {
+                                if (System.getProperty("os.name").contains("Windows")) {
+                                    Runtime.getRuntime().exec("taskkill /PID " + pid);
+                                } else { // it's linux or Solaris
+                                    Runtime.getRuntime().exec("kill -9 " + pid);
+                                }
+                            } catch (IOException e) {
+                                log.error("Invoking kill -9 " + pid + " failed.", e);
                             }
-                        } catch (IOException e) {
-                            log.error("Invoking kill -9 " + pid + " failed.", e);
+                            Assert.fail("Server: " + containerName + " did not shutdown more than: " + timeout + " and will be killed.");
+                            return;
                         }
-                        Assert.fail("Server: " + containerName + " did not shutdown more than: " + timeout + " and will be killed.");
-                        return;
-                    }
 
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        //ignore
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            //ignore
+                        }
                     }
+                } catch (Exception e) {
+                    log.error("Exception occured in shutdownHook: ", e);
                 }
             }
         };
         shutdownHook.start();
         controller.stop(containerName);
+    }
+
+    public int getBytemanPort(String containerName) throws Exception {
+        if (CONTAINER1.equals(containerName))   {
+            return BYTEMAN_CONTAINER1_PORT;
+        } else if (CONTAINER2.equals(containerName))    {
+            return BYTEMAN_CONTAINER2_PORT;
+        } else if (CONTAINER3.equals(containerName))    {
+            return BYTEMAN_CONTAINER3_PORT;
+        } else if (CONTAINER4.equals(containerName))    {
+            return BYTEMAN_CONTAINER4_PORT;
+        }   else {
+            throw new Exception("There is no such container: " + containerName);
+        }
     }
 
     /**
