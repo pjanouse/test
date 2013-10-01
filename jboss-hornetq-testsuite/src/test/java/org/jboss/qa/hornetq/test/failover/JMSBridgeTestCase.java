@@ -39,7 +39,7 @@ public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
 
         String qualityOfService = "AT_MOST_ONCE";
         long failureRetryInterval = 1000;
-        int maxRetries = -1;
+        int maxRetries = 10;
         long maxBatchSize = 10;
         long maxBatchTime = 100;
         boolean addMessageIDInHeader = true;
