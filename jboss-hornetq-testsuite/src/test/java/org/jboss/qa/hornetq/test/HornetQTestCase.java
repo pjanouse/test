@@ -118,11 +118,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Stops all servers
      */
-    @Before
     @After
     public void stopAllServers() {
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
     }
 
     /**
@@ -501,15 +502,15 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     public int getBytemanPort(String containerName) throws Exception {
-        if (CONTAINER1.equals(containerName))   {
+        if (CONTAINER1.equals(containerName)) {
             return BYTEMAN_CONTAINER1_PORT;
-        } else if (CONTAINER2.equals(containerName))    {
+        } else if (CONTAINER2.equals(containerName)) {
             return BYTEMAN_CONTAINER2_PORT;
-        } else if (CONTAINER3.equals(containerName))    {
+        } else if (CONTAINER3.equals(containerName)) {
             return BYTEMAN_CONTAINER3_PORT;
-        } else if (CONTAINER4.equals(containerName))    {
+        } else if (CONTAINER4.equals(containerName)) {
             return BYTEMAN_CONTAINER4_PORT;
-        }   else {
+        } else {
             throw new Exception("There is no such container: " + containerName);
         }
     }
