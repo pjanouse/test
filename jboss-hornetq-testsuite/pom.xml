@@ -1,154 +1,152 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.jboss.qa.hornetq</groupId>
-	<artifactId>qa-hornetq-testsuite</artifactId>
-	<name>jboss-hornetq-testsuite</name>
-	<version>1.0-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
+    <groupId>org.jboss.qa.hornetq</groupId>
+    <artifactId>qa-hornetq-testsuite</artifactId>
+    <name>jboss-hornetq-testsuite</name>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
 
     <properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
+        <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
-		<netty.version>3.2.5.Final</netty.version>
+        <netty.version>3.2.5.Final</netty.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
-		<!-- <hornetq.version>2.2.16.Final</hornetq.version> -->
+        <!-- <hornetq.version>2.2.16.Final</hornetq.version> -->
         <hornetq.version>2.3.2.Final</hornetq.version>
 
-		<eap5.client>5.1.2-HORNETQ-JBPAPP-10839</eap5.client>
+        <eap5.client>5.2.0.GA</eap5.client>
 
-		<eap6.client>6.2.0.ER3</eap6.client>
+        <eap6.client>6.2.0.ER3</eap6.client>
         <eap6.controller.client>6.2.0.ER3</eap6.controller.client>
 
-		<arquillian.version>1.0.3.Final</arquillian.version>
-		<arquillian.eap6x.container.version>7.3.0.Final-redhat-6</arquillian.eap6x.container.version>
+        <arquillian.version>1.0.3.Final</arquillian.version>
+        <arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
-		<version.byteman>2.1.2</version.byteman>
-		<version.junit>4.9</version.junit>
-		<version.log4j>1.2.16</version.log4j>
-		<version.jnp-client>5.0.5.Final</version.jnp-client>
-		<xalan.version>2.7.0</xalan.version>
-		<httpclient.version>4.1.3</httpclient.version>
-	</properties>
+        <version.byteman>2.1.2</version.byteman>
+        <version.junit>4.9</version.junit>
+        <version.log4j>1.2.16</version.log4j>
+        <version.jnp-client>5.0.5.Final</version.jnp-client>
+        <xalan.version>2.7.0</xalan.version>
+        <httpclient.version>4.1.3</httpclient.version>
+    </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.0.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.9</version>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
                 <configuration>
                     <!--<argLine>-Xmx4096m</argLine>-->
-					<systemPropertyVariables>
-						<BYTEMAN_JAR>
-							${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar
-						</BYTEMAN_JAR>
-						<BYTEMAN_SUBMIT_JAR>
-							${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar
-						</BYTEMAN_SUBMIT_JAR>
-						<JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
-						<JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
-						<JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>
-						<JBOSS_HOME_4>${env.JBOSS_HOME_4}</JBOSS_HOME_4>
-						<MYTESTIP_1>${env.MYTESTIP_1}</MYTESTIP_1>
-						<MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
-						<MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
-						<MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
-						<MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
-						<JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
-						<JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+                    <systemPropertyVariables>
+                        <BYTEMAN_JAR>
+                            ${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar
+                        </BYTEMAN_JAR>
+                        <BYTEMAN_SUBMIT_JAR>
+                            ${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar
+                        </BYTEMAN_SUBMIT_JAR>
+                        <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
+                        <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
+                        <JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>
+                        <JBOSS_HOME_4>${env.JBOSS_HOME_4}</JBOSS_HOME_4>
+                        <MYTESTIP_1>${env.MYTESTIP_1}</MYTESTIP_1>
+                        <MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
+                        <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
+                        <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
+                        <MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
+                        <JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
+                        <JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-	<dependencies>
+    <dependencies>
 
-		<!-- JavaEE 6.0 APIs -->
-		<dependency>
-			<groupId>org.jboss.spec</groupId>
-			<artifactId>jboss-javaee-6.0</artifactId>
-			<version>${jboss.javaee.version}</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.junit</groupId>
-			<artifactId>arquillian-junit-container</artifactId>
-			<version>${arquillian.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.protocol</groupId>
-			<artifactId>arquillian-protocol-servlet</artifactId>
-			<version>${arquillian.version}</version>
-			<scope>test</scope>
-		</dependency>
+        <!-- JavaEE 6.0 APIs -->
+        <dependency>
+            <groupId>org.jboss.spec</groupId>
+            <artifactId>jboss-javaee-6.0</artifactId>
+            <version>${jboss.javaee.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <version>${arquillian.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.protocol</groupId>
+            <artifactId>arquillian-protocol-servlet</artifactId>
+            <version>${arquillian.version}</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${version.junit}</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.jboss.naming</groupId>
-			<artifactId>jnp-client</artifactId>
-			<version>${version.jnp-client}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging-spi</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <dependency>
+            <groupId>org.jboss.naming</groupId>
+            <artifactId>jnp-client</artifactId>
+            <version>${version.jnp-client}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging-spi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-		<dependency>
-			<groupId>org.jboss.byteman</groupId>
-			<artifactId>byteman</artifactId>
-			<version>${version.byteman}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.byteman</groupId>
-			<artifactId>byteman-submit</artifactId>
-			<version>${version.byteman}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.jboss.byteman</groupId>
+            <artifactId>byteman</artifactId>
+            <version>${version.byteman}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.byteman</groupId>
+            <artifactId>byteman-submit</artifactId>
+            <version>${version.byteman}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>${xalan.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${version.log4j}</version>
-		</dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>${xalan.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${version.log4j}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.jboss.jbossts</groupId>
-			<artifactId>jbossjts</artifactId>
-			<version>4.16.4.Final</version>
-			<scope>test</scope>
-			<type>jar</type>
-		</dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjts</artifactId>
+            <version>4.16.4.Final</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
 
         <dependency>
             <groupId>org.jboss.security</groupId>
@@ -156,25 +154,25 @@
             <version>2.1.0.20091223</version>
         </dependency>
 
-		<dependency>
-			<groupId>eap</groupId>
-			<artifactId>eap-jboss-as-controller-client</artifactId>
-			<version>${eap6.controller.client}</version>
-			<scope>test</scope>
-			<type>jar</type>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom</artifactId>
-			<version>2.0.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>eap</groupId>
+            <artifactId>eap-jboss-as-controller-client</artifactId>
+            <version>${eap6.controller.client}</version>
+            <scope>test</scope>
+            <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jdom</groupId>
+            <artifactId>jdom</artifactId>
+            <version>2.0.2</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- json parser -->
         <dependency>
@@ -185,22 +183,22 @@
 
 
         <!-- this gives @depends annotation -->
-		<dependency>
-			<groupId>org.jboss.ejb3</groupId>
-			<artifactId>jboss-ejb3-ext-api</artifactId>
-			<version>1.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging-spi</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss</groupId>
-			<artifactId>jboss-dmr</artifactId>
-			<version>1.1.1.Final</version>
-		</dependency>
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging-spi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jboss-dmr</artifactId>
+            <version>1.1.1.Final</version>
+        </dependency>
 
         <dependency>
             <groupId>org.fusesource.stompjms</groupId>
@@ -208,173 +206,173 @@
             <version>1.10</version>
         </dependency>
 
-	</dependencies>
+    </dependencies>
 
-	<profiles>
-		<!-- ################################################### -->
-		<!-- # Standard EAP 5 - managed -->
-		<!-- ################################################### -->
-		<profile>
-			<id>eap5x</id>
-			<activation>
+    <profiles>
+        <!-- ################################################### -->
+        <!-- # Standard EAP 5 - managed -->
+        <!-- ################################################### -->
+        <profile>
+            <id>eap5x</id>
+            <activation>
                 <activeByDefault>false</activeByDefault>
-				<property>
-					<name>eap</name>
-					<value>5x</value>
-				</property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-jbossas-managed-5.1</artifactId>
-					<version>${arquillian.eap5x.container.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.jbossas</groupId>
-					<artifactId>jboss-server-manager</artifactId>
-					<version>1.0.4.Final</version>
-				</dependency>
-				<dependency>
-					<groupId>eap</groupId>
-					<artifactId>eap-client</artifactId>
-					<version>${eap5.client}</version>
-					<type>pom</type>
-				</dependency>
+                <property>
+                    <name>eap</name>
+                    <value>5x</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>${eap5.client}</version>
+                    <type>pom</type>
+                </dependency>
 
-				<!-- those are extra dependencies for arquillian to start EAP 5 server -->
-				<dependency>
-					<groupId>org.jboss.aspects</groupId>
-					<artifactId>jboss-security-aspects</artifactId>
-					<version>1.0.0.GA</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.man</groupId>
-					<artifactId>jboss-managed</artifactId>
-					<version>2.1.1.SP2</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>eap5xWithJbm</id>
-			<activation>
+                <!-- those are extra dependencies for arquillian to start EAP 5 server -->
+                <dependency>
+                    <groupId>org.jboss.aspects</groupId>
+                    <artifactId>jboss-security-aspects</artifactId>
+                    <version>1.0.0.GA</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.man</groupId>
+                    <artifactId>jboss-managed</artifactId>
+                    <version>2.1.1.SP2</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>eap5xWithJbm</id>
+            <activation>
                 <activeByDefault>false</activeByDefault>
-				<property>
-					<name>eap</name>
-					<value>5xWithJbm</value>
-				</property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-jbossas-managed-5.1</artifactId>
-					<version>${arquillian.eap5x.container.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.jbossas</groupId>
-					<artifactId>jboss-server-manager</artifactId>
-					<version>1.0.4.Final</version>
-				</dependency>
-				<dependency>
-					<groupId>eap</groupId>
-					<artifactId>eap-client</artifactId>
-					<version>${eap5.client}</version>
-					<type>pom</type>
-					<exclusions>
-						<exclusion>
-							<groupId>org.hornetq</groupId>
-							<artifactId>hornetq-core-client</artifactId>
-						</exclusion>
-						<exclusion>
-							<groupId>org.hornetq</groupId>
-							<artifactId>hornetq-jms-client</artifactId>
-						</exclusion>
-						<exclusion>
-							<groupId>org.jboss.netty</groupId>
-							<artifactId>netty</artifactId>
-						</exclusion>
-					</exclusions>
-				</dependency>
+                <property>
+                    <name>eap</name>
+                    <value>5xWithJbm</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>${eap5.client}</version>
+                    <type>pom</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
-				<!-- those are extra dependencies for arquillian to start EAP 5 server -->
-				<dependency>
-					<groupId>org.jboss.aspects</groupId>
-					<artifactId>jboss-security-aspects</artifactId>
-					<version>1.0.0.GA</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.man</groupId>
-					<artifactId>jboss-managed</artifactId>
-					<version>2.1.1.SP2</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>eap5x-backward-compatibility</id>
-			<activation>
+                <!-- those are extra dependencies for arquillian to start EAP 5 server -->
+                <dependency>
+                    <groupId>org.jboss.aspects</groupId>
+                    <artifactId>jboss-security-aspects</artifactId>
+                    <version>1.0.0.GA</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.man</groupId>
+                    <artifactId>jboss-managed</artifactId>
+                    <version>2.1.1.SP2</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>eap5x-backward-compatibility</id>
+            <activation>
                 <activeByDefault>false</activeByDefault>
-				<property>
-					<name>eap</name>
-					<value>5x</value>
-				</property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.hornetq</groupId>
-					<artifactId>hornetq-core-client</artifactId>
-					<version>${hornetq.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.hornetq</groupId>
-					<artifactId>hornetq-jms-client</artifactId>
-					<version>${hornetq.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.netty</groupId>
-					<artifactId>netty</artifactId>
-					<version>${netty.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-jbossas-managed-5.1</artifactId>
-					<version>${arquillian.eap5x.container.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.jbossas</groupId>
-					<artifactId>jboss-server-manager</artifactId>
-					<version>1.0.4.Final</version>
-				</dependency>
-				<dependency>
-					<groupId>eap</groupId>
-					<artifactId>eap-client</artifactId>
-					<version>${eap5.client}</version>
-					<type>pom</type>
-					<exclusions>
-						<exclusion>
-							<groupId>org.hornetq</groupId>
-							<artifactId>hornetq-core-client</artifactId>
-						</exclusion>
-						<exclusion>
-							<groupId>org.hornetq</groupId>
-							<artifactId>hornetq-jms-client</artifactId>
-						</exclusion>
-						<exclusion>
-							<groupId>org.jboss.netty</groupId>
-							<artifactId>netty</artifactId>
-						</exclusion>
-					</exclusions>
-				</dependency>
+                <property>
+                    <name>eap</name>
+                    <value>5x</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-core-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-jms-client</artifactId>
+                    <version>${hornetq.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                    <version>${netty.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>${eap5.client}</version>
+                    <type>pom</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
-				<!-- those are extra dependencies for arquillian to start EAP 5 server -->
-				<dependency>
-					<groupId>org.jboss.aspects</groupId>
-					<artifactId>jboss-security-aspects</artifactId>
-					<version>1.0.0.GA</version>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.man</groupId>
-					<artifactId>jboss-managed</artifactId>
-					<version>2.1.1.SP2</version>
-				</dependency>
+                <!-- those are extra dependencies for arquillian to start EAP 5 server -->
+                <dependency>
+                    <groupId>org.jboss.aspects</groupId>
+                    <artifactId>jboss-security-aspects</artifactId>
+                    <version>1.0.0.GA</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.man</groupId>
+                    <artifactId>jboss-managed</artifactId>
+                    <version>2.1.1.SP2</version>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.threads</groupId>
                     <artifactId>jboss-threads</artifactId>
@@ -382,19 +380,29 @@
                 </dependency>
 
 
-			</dependencies>
-		</profile>
-		<profile>
-			<id>eap6x</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>eap</name>
-					<value>6x</value>
-				</property>
-			</activation>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>eap6x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>6x</value>
+                </property>
+            </activation>
 
-			<dependencies>
+            <dependencies>
+
+
+                <!--<dependency>-->
+                    <!--<groupId>org.jboss.as</groupId>-->
+                    <!--<artifactId>jboss-as-arquillian-common</artifactId>-->
+                    <!--<version>6.2.0.ER3-patched</version>-->
+                    <!--<type>jar</type>-->
+                    <!--<scope>test</scope>-->
+                <!--</dependency>-->
+
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>
@@ -402,149 +410,184 @@
                     <type>jar</type>
                     <scope>test</scope>
                 </dependency>
-                
-				<dependency>
-					<groupId>org.jboss.as</groupId>
-					<artifactId>jboss-as-arquillian-container-managed</artifactId>
-					<version>${arquillian.eap6x.container.version}</version>
-                    <!--<version>7.1.3.Final</version>-->
+
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed-patched</artifactId>
+                    <version>6.2.0.ER3-patched</version>
                     <scope>test</scope>
                     <exclusions>
                         <exclusion>
-                            <groupId>org.jboss.remoting3</groupId>
-                            <artifactId>jboss-remoting</artifactId>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
                         </exclusion>
                     </exclusions>
-				</dependency>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                    <!--<version>7.1.3.Final</version>-->
+                    <scope>test</scope>
+                    <!--<exclusions>-->
+                        <!--<exclusion>-->
+                            <!--<groupId>org.jboss.remoting3</groupId>-->
+                            <!--<artifactId>jboss-remoting</artifactId>-->
+                        <!--</exclusion>-->
+                    <!--</exclusions>-->
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-cli</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                </dependency>
+
                 <!-- dependency for CLI libraris -->
                 <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jbossqe-eap-tests-management</artifactId>
                     <version>1.0-SNAPSHOT</version>
                     <type>jar</type>
+                    <scope>test</scope>
                     <exclusions>
                         <exclusion>
-                            <groupId>org.jboss.remoting3</groupId>
-                            <artifactId>jboss-remoting</artifactId>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
-                <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+
+
+                <!--<dependency>                       &lt;!&ndash; TODO exclude all dependencies they have in this jar &ndash;&gt;-->
+                    <!--<groupId>org.jboss.as</groupId>-->
+                    <!--<artifactId>jbossqe-eap-tests-management</artifactId>-->
+                    <!--<version>1.0-SNAPSHOT</version>-->
+                    <!--<type>test-jar</type>-->
+                    <!--<exclusions>-->
+                        <!--<exclusion>-->
+                            <!--<groupId>org.jboss.remoting3</groupId>-->
+                            <!--<artifactId>jboss-remoting</artifactId>-->
+                        <!--</exclusion>-->
+                    <!--</exclusions>-->
+                <!--</dependency>-->
+
+            </dependencies>
+        </profile>
+        <profile>
+            <id>multiContainer</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>multiContainer</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                    <version>2.1.2.GA-compat</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
+                    <version>${arquillian.eap5x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.jbossas</groupId>
+                    <artifactId>jboss-server-manager</artifactId>
+                    <version>1.0.4.Final</version>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-client</artifactId>
+                    <version>5.1.2.GA-HornetQ-all-unsigned</version>
+                    <type>pom</type>
+                </dependency>
+                <dependency>
                     <groupId>org.jboss.as</groupId>
-                    <artifactId>jbossqe-eap-tests-management</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <type>test-jar</type>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                    <scope>test</scope>
                     <exclusions>
                         <exclusion>
-                            <groupId>org.jboss.remoting3</groupId>
-                            <artifactId>jboss-remoting</artifactId>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging-processor</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
-			</dependencies>
-		</profile>
-		<profile>
-			<id>multiContainer</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<property>
-					<name>eap</name>
-					<value>multiContainer</value>
-				</property>
-			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-					<version>2.1.2.GA-compat</version>
-					<scope>test</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-jbossas-managed-5.1</artifactId>
-					<version>${arquillian.eap5x.container.version}</version>
-					<exclusions>
-						<exclusion>
-							<groupId>org.jboss.logging</groupId>
-							<artifactId>jboss-logging</artifactId>
-						</exclusion>
-					</exclusions>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.jbossas</groupId>
-					<artifactId>jboss-server-manager</artifactId>
-					<version>1.0.4.Final</version>
-				</dependency>
-				<dependency>
-					<groupId>eap</groupId>
-					<artifactId>eap-client</artifactId>
-					<version>5.1.2.GA-HornetQ-all-unsigned</version>
-					<type>pom</type>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.as</groupId>
-					<artifactId>jboss-as-arquillian-container-managed</artifactId>
-					<version>${arquillian.eap6x.container.version}</version>
-					<scope>test</scope>
-					<exclusions>
-						<exclusion>
-							<groupId>org.jboss.logging</groupId>
-							<artifactId>jboss-logging</artifactId>
-						</exclusion>
-						<exclusion>
-							<groupId>org.jboss.logging</groupId>
-							<artifactId>jboss-logging-processor</artifactId>
-						</exclusion>
-					</exclusions>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
-
-	<repositories>
+    <repositories>
 
         <repository>
             <id>jboss-qa-releases</id>
             <name>JBoss QA Release Repository</name>
             <url>http://repository.engineering.redhat.com/nexus/content/repositories/jboss-qa-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
         </repository>
         <repository>
             <id>jboss-qa-snapshots</id>
             <name>JBoss QA Snapshot Repository</name>
             <url>http://repository.engineering.redhat.com/nexus/content/repositories/jboss-qa-snapshots/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
         </repository>
 
         <repository>
-			<id>jboss-snapshots</id>
-			<url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>daily</updatePolicy>
-			</snapshots>
-		</repository>
-		<!-- added our jboss qa repository with old HornetQ client jars -->
+            <id>jboss-snapshots</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+        <!-- added our jboss qa repository with old HornetQ client jars -->
 
-		<repository>
-			<id>jboss-releases</id>
-			<url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-		</repository>
-		<repository>
-			<id>jboss-thirdparty</id>
-			<url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
-		</repository>
-		<repository>
-			<id>jboss-deprecated</id>
-			<url>https://repository.jboss.org/nexus/content/repositories/deprecated</url>
-		</repository>
-		<repository>
-			<id>jboss-maven-central</id>
-			<url>https://repository.jboss.org/nexus/content/repositories/central</url>
-		</repository>
+        <repository>
+            <id>jboss-releases</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>jboss-thirdparty</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+        </repository>
+        <repository>
+            <id>jboss-deprecated</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/deprecated</url>
+        </repository>
+        <repository>
+            <id>jboss-maven-central</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/central</url>
+        </repository>
         <repository>
             <id>jboss-product-repository</id>
             <name>JBoss Internal Product Repository</name>
@@ -555,10 +598,10 @@
                 <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
-	</repositories>
+    </repositories>
 
 </project>
