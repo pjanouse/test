@@ -150,6 +150,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
         try {
             this.testDLQDelivery();
+            Assert.fail("Message was not supposed to be re-routed to non-existent DLQ");
         } catch (NameNotFoundException ex) {
             // test couldn't find DLQ to read lost message from it
         }
@@ -187,10 +188,12 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
             MessageConsumer consumer = session.createConsumer(queue);
             msg = consumer.receive(RECEIVE_TIMEOUT);
+            Assert.assertNotNull("There should be message in test queue", msg);
             LOG.info("1st delivery attempt, got id " + msg.getJMSMessageID());
             session.rollback();
 
             msg = consumer.receive(RECEIVE_TIMEOUT);
+            Assert.assertNotNull("There should be message in test queue", msg);
             LOG.info("2nd delivery attempt, got id " + msg.getJMSMessageID());
             session.rollback();
 
