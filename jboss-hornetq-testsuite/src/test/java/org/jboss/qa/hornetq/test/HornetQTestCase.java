@@ -453,8 +453,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // there is problem with calling stop on already stopped server
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
-        if (!checkThatServerIsReallyUp(getHostname(containerName), 9999)) {
-            return;
+        try {
+            if (!(checkThatServerIsReallyUp(getHostname(containerName), 9999)
+                    && checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
+                return;
+            }
+        } catch (Exception ex)  {
+            log.warn("Error during getting port of byteman agent.", ex);
         }
 
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
