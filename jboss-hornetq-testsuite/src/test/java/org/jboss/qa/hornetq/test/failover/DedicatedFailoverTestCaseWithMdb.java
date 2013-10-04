@@ -16,8 +16,6 @@ import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -128,7 +126,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         controller.start(CONTAINER3);
 
         logger.info("Deploying MDB to mdb server.");
-        // start mdb server
+//        // start mdb server
         deployer.deploy("mdb1");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessages(...) timeouted.",
@@ -336,8 +334,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setClusterUserPassword("heslo");
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", jmsBackupServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", jmsBackupServerBindingAddress, 5445);
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
         List<String> connectorList = new ArrayList<String>();
