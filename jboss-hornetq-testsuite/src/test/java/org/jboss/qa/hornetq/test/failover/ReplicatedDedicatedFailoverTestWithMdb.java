@@ -49,6 +49,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
+        controller.kill(containerName);
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);

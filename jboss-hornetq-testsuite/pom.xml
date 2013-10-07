@@ -23,9 +23,11 @@
 
         <eap6.client>6.2.0.ER3</eap6.client>
         <eap6.controller.client>6.2.0.ER3</eap6.controller.client>
+        <eap6.cli.client>7.3.0.Final-redhat-7</eap6.cli.client>
 
         <arquillian.version>1.0.3.Final</arquillian.version>
-        <arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>
+        <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
+        <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
         <version.byteman>2.1.2</version.byteman>
         <version.junit>4.9</version.junit>
@@ -140,13 +142,13 @@
             <version>${version.log4j}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.jboss.jbossts</groupId>
-            <artifactId>jbossjts</artifactId>
-            <version>4.16.4.Final</version>
-            <scope>test</scope>
-            <type>jar</type>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.jboss.jbossts</groupId>-->
+            <!--<artifactId>jbossjts</artifactId>-->
+            <!--<version>4.16.4.Final</version>-->
+            <!--<scope>test</scope>-->
+            <!--<type>jar</type>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.jboss.security</groupId>
@@ -394,14 +396,11 @@
 
             <dependencies>
 
-
-                <!--<dependency>-->
-                    <!--<groupId>org.jboss.as</groupId>-->
-                    <!--<artifactId>jboss-as-arquillian-common</artifactId>-->
-                    <!--<version>6.2.0.ER3-patched</version>-->
-                    <!--<type>jar</type>-->
-                    <!--<scope>test</scope>-->
-                <!--</dependency>-->
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-cli</artifactId>
+                    <version>${eap6.cli.client}</version>
+                </dependency>
 
                 <dependency>
                     <groupId>org.jboss.as</groupId>
@@ -413,33 +412,9 @@
 
                 <dependency>
                     <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-arquillian-container-managed-patched</artifactId>
-                    <version>6.2.0.ER3-patched</version>
-                    <scope>test</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
-                    <!--<version>7.1.3.Final</version>-->
                     <scope>test</scope>
-                    <!--<exclusions>-->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.jboss.remoting3</groupId>-->
-                            <!--<artifactId>jboss-remoting</artifactId>-->
-                        <!--</exclusion>-->
-                    <!--</exclusions>-->
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-cli</artifactId>
-                    <version>${arquillian.eap6x.container.version}</version>
                 </dependency>
 
                 <!-- dependency for CLI libraris -->
@@ -456,20 +431,6 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-
-
-                <!--<dependency>                       &lt;!&ndash; TODO exclude all dependencies they have in this jar &ndash;&gt;-->
-                    <!--<groupId>org.jboss.as</groupId>-->
-                    <!--<artifactId>jbossqe-eap-tests-management</artifactId>-->
-                    <!--<version>1.0-SNAPSHOT</version>-->
-                    <!--<type>test-jar</type>-->
-                    <!--<exclusions>-->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.jboss.remoting3</groupId>-->
-                            <!--<artifactId>jboss-remoting</artifactId>-->
-                        <!--</exclusion>-->
-                    <!--</exclusions>-->
-                <!--</dependency>-->
 
             </dependencies>
         </profile>

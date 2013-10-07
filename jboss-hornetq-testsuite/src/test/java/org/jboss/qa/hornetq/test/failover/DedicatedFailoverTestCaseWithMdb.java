@@ -270,7 +270,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @After
     public void stopAllServers() {
         stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
     }
@@ -376,6 +375,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
+        controller.kill(containerName);
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
