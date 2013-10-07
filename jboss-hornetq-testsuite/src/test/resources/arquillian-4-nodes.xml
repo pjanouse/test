@@ -22,6 +22,8 @@
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
 
@@ -43,6 +45,8 @@
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
         
@@ -64,6 +68,8 @@
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
         
@@ -85,6 +91,8 @@
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
     </group>
