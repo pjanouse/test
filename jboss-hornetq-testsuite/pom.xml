@@ -222,6 +222,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-cli</artifactId>
+            <version>${eap6.cli.client}</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>
@@ -409,12 +415,6 @@
             </activation>
 
             <dependencies>
-
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-cli</artifactId>
-                    <version>${eap6.cli.client}</version>
-                </dependency>
 
                 <dependency>
                     <groupId>org.jboss.as</groupId>
