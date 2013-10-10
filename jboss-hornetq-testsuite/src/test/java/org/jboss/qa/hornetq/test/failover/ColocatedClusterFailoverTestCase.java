@@ -2,12 +2,18 @@ package org.jboss.qa.hornetq.test.failover;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -15,6 +21,10 @@ import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTes
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +32,8 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -41,6 +53,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
+
+    static String inQueueName = "InQueue";
+    static String inQueue = "jms/queue/" + inQueueName;
+    // queue for receive messages out
+    static String outQueueName = "OutQueue";
+    static String outQueue = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
 //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
@@ -150,6 +168,145 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
         stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testFailoverWithMdbsKill() throws Exception {
+
+        testFailWithMdbs(false);
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testFailoverWithMdbsShutdown() throws Exception {
+
+        testFailWithMdbs(true);
+    }
+
+    public void testFailWithMdbs(boolean shutdown) throws Exception {
+
+        prepareColocatedTopologyInCluster();
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        // give some time for servers to find each other
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+
+        int numberOfMessages = 6000;
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER2_IP, getJNDIPort(), inQueue, numberOfMessages);
+        MessageBuilder messageBuilder = new TextMessageBuilder(10);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(1000);
+        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+//        Thread.sleep(120000); // just for sure to announce backups
+
+        deployer.deploy("mdb2");
+        deployer.deploy("mdb1");
+
+        JMSOperations jmsOperations1 = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations2 = getJMSOperations(CONTAINER2);
+        long startTime = System.currentTimeMillis();
+        long timeout = 300000;
+        double numberOfMessagesForFailover = numberOfMessages * 0.7;
+
+        while (jmsOperations1.getCountOfMessagesOnQueue(inQueueName) + jmsOperations2.getCountOfMessagesOnQueue(inQueueName) > numberOfMessagesForFailover
+                && System.currentTimeMillis() - startTime < timeout) {
+            logger.info("Waiting for mdbs to process: " + numberOfMessagesForFailover + " from InQueue.");
+        }
+        jmsOperations1.close();
+        jmsOperations2.close();
+
+        logger.info("########################################");
+        logger.info("kill - second server");
+        logger.info("########################################");
+        if (shutdown)   {
+            controller.stop(CONTAINER2);
+        } else {
+            killServer(CONTAINER2);
+            controller.kill(CONTAINER2);
+        }
+
+        Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(CONTAINER1_IP, 5446, 300000));
+        Thread.sleep(10000);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+
+        List<Client> listOfReceiverClientAckList = new ArrayList<Client>();
+        waitForReceiversUntil(listOfReceiverClientAckList, numberOfMessages - numberOfMessages/10, 300000);
+        controller.start(CONTAINER2);
+
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        deployer.undeploy("mdb1");
+        deployer.undeploy("mdb2");
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb1")
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createLodh1Deployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = "mdb2")
+    @TargetsContainer(CONTAINER2)
+    public static JavaArchive createLodh1Deployment2() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh2");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb2.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
 
     }
 
@@ -332,10 +489,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
-
-        deleteFolder(new File(JOURNAL_DIRECTORY_B));
-
     }
 
     /**
@@ -418,6 +571,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
 
         jmsAdminOperations.close();
         controller.stop(containerName);
@@ -476,13 +631,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
+//        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+//            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+//        }
+//
+//        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+//            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+//        }
+//        jmsAdminOperations.createQueue(backupServerName, inQueueName, inQueue, true);
+//        jmsAdminOperations.createQueue(backupServerName, outQueueName, outQueue, true);
 
         jmsAdminOperations.close();
 

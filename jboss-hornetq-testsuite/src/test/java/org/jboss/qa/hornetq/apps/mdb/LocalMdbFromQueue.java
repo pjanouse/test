@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
-                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "50")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
@@ -70,14 +69,6 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
             con = cf.createConnection();
 
-//            if (globalCounter.get() % 3 == 0) {
-//                con = cf.createConnection();
-//            } else if (globalCounter.get() % 3 == 1) {
-//                con = cf.createConnection("admin", "adminadmin");
-//            } else if (globalCounter.get() % 3 == 2) {
-//                con = cf.createConnection("user", "useruser");
-//            }
-
             con.start();
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -92,7 +83,6 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
             log.log(Level.DEBUG, " End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
-            t.printStackTrace();
             log.log(Level.FATAL, t.getMessage(), t);
             context.setRollbackOnly();
 

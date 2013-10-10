@@ -10,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Failover tests just with replicated journal.
@@ -60,6 +62,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
+        String pooledConnectionFactoryName = "hornetq-ra";
+        String remoteConnectorName = "netty-remote2";
+        String remoteConnectorNameBackup = "netty-remote-backup";
 
         controller.start(containerName);
 
@@ -73,6 +78,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setBackupGroupName(backupGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
         jmsAdminOperations.setJournalFileSize(10 * 1024 *1024);
+        jmsAdminOperations.disableSecurity();
 
         jmsAdminOperations.setJournalType("ASYNCIO");
 
@@ -98,6 +104,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory(pooledConnectionFactoryName, true);
 
         jmsAdminOperations.setPagingDirectory(journalDirectoryPath);
         jmsAdminOperations.setBindingsDirectory(journalDirectoryPath);
@@ -112,13 +119,40 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
 
-
-        jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.setClusterUserPassword("heslo");
 
         jmsAdminOperations.removeAddressSettings("#");
 
         setAddressSettings(jmsAdminOperations);
+
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+        jmsAdminOperations.setNodeIdentifier(containerName.hashCode());
+
+//        if (CONTAINER1.equalsIgnoreCase(containerName)) {
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER1_IP, 5445);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER1_IP, 5446);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+//        } else if (CONTAINER2.equalsIgnoreCase(containerName)) {
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER2_IP, 5445);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5446);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+//        }
+//
+//        List<String> connectorList = new ArrayList<String>();
+//        connectorList.add(remoteConnectorName);
+//        connectorList.add(remoteConnectorNameBackup);
+//        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
+//
+////        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorName);
+//
+//        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+//        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+//        jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
+//        jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
+//        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
@@ -175,7 +209,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
 
-        jmsAdminOperations.setSecurityEnabled(backupServerName, true);
+        jmsAdminOperations.setSecurityEnabled(backupServerName, false);
         jmsAdminOperations.setClusterUserPassword(backupServerName, "heslo");
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, false);
@@ -209,13 +243,15 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "send", true);
 
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
+//        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+//            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+//        }
+//
+//        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+//            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+//        }
+//        jmsAdminOperations.createQueue(backupServerName, inQueueName, inQueue, true);
+//        jmsAdminOperations.createQueue(backupServerName, outQueueName, outQueue, true);
 
         jmsAdminOperations.close();
 
