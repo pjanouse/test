@@ -207,6 +207,20 @@
             <artifactId>stompjms-client</artifactId>
             <version>1.10</version>
         </dependency>
+        <!-- dependency for CLI libraris -->
+        <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jbossqe-eap-tests-management</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
     </dependencies>
 
@@ -415,21 +429,6 @@
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
                     <scope>test</scope>
-                </dependency>
-
-                <!-- dependency for CLI libraris -->
-                <dependency>                       <!-- TODO exclude all dependencies they have in this jar -->
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jbossqe-eap-tests-management</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <type>jar</type>
-                    <scope>test</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
                 </dependency>
 
             </dependencies>
