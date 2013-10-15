@@ -51,12 +51,13 @@ public class JmsTopicAttributeTestCase extends HornetQTestCase {
 
     private Properties attributes;
 
+    CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+
     @Before
     public void startServer() throws InterruptedException {
         controller.start(CONTAINER1);
 
         // deploy queue
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
         cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
 
@@ -90,7 +91,6 @@ public class JmsTopicAttributeTestCase extends HornetQTestCase {
         attributes = new Properties();
         attributes.load(this.getClass().getResourceAsStream(attributeFileName));
 
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
 
         String value;

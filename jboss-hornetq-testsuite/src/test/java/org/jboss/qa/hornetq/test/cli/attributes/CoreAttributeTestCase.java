@@ -93,6 +93,8 @@ public class CoreAttributeTestCase extends HornetQTestCase {
 
     private Properties attributes;
 
+    CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+
     @Before
     public void startServer() {
         controller.start(CONTAINER1);
@@ -140,7 +142,6 @@ public class CoreAttributeTestCase extends HornetQTestCase {
         attributes = new Properties();
         attributes.load(this.getClass().getResourceAsStream(attributeFileName));
 
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
 
         String value;

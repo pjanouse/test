@@ -749,6 +749,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
      *
+     * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
+     *
      * @param receivers        receivers
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
@@ -982,6 +984,50 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Return username as defined in arquillian.xml.
+     *
+     * @param containerName name of the container
+     * @return username or null if empty
+     */
+    public static String getUsername(String containerName) {
+
+        String username;
+
+        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+                    if (containerDef.getContainerProperties().containsKey("username")) {
+                        return containerDef.getContainerProperties().get("username");
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Return password as defined in arquillian.xml.
+     *
+     * @param containerName name of the container
+     * @return password or null if empty
+     */
+    public static String getPassword(String containerName) {
+
+        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+                    if (containerDef.getContainerProperties().containsKey("password")) {
+                        return containerDef.getContainerProperties().get("password");
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Gets current container for test.
      *
      * @return name
@@ -1034,7 +1080,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         boolean isWritable = false;
 
         CLI cli = CLI.newInstance();
-        cli.connect(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, "", "".toCharArray());
+        cli.connect(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1).toCharArray());
         CLI.Result result = cli.cmd(address + ":read-resource-description()");
 
         // grep it for attribute and access-typ

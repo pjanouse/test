@@ -65,6 +65,8 @@ public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
 
     private Properties attributes;
 
+    CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+
     @Before
     public void startServer() throws InterruptedException {
         controller.start(CONTAINER1);
@@ -81,7 +83,6 @@ public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void connectorWriteReadAttributeTest() throws Exception {
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
 
         writeReadAttributeTest(cliClient, address, "connector", "{\"netty\" => undefined}");
@@ -91,7 +92,6 @@ public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void discoveryGroupWriteReadAttributeTest() throws Exception {
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
 
         writeReadAttributeTest(cliClient, address, "discovery-group-name", "dg-group1");
@@ -110,7 +110,6 @@ public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
         attributes = new Properties();
         attributes.load(this.getClass().getResourceAsStream(attributeFileName));
 
-        CliConfiguration cliConf = new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6);
         CliClient cliClient = new CliClient(cliConf);
 
         String value;
