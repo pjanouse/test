@@ -532,11 +532,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
 
         // install rule to first server
-        new Thread()    {
-            public void run()   {
-                RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
-            }
-        }.start();
+        RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
 
         try {
             Thread.sleep(1000);
