@@ -489,7 +489,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * @param messageBuilder     instance of the message builder
      */
     private void testLogicForTestWithByteman(int messages, String restartedContainer,
-                                             String bytemanTargetHost, int bytemanPort,
+                                             final String bytemanTargetHost, final int bytemanPort,
                                              MessageBuilder messageBuilder) {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
@@ -532,10 +532,14 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
 
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
+        new Thread()    {
+            public void run()   {
+                RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
+            }
+        }.start();
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }
