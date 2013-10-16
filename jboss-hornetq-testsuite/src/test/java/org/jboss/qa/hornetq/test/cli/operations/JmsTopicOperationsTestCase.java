@@ -48,7 +48,7 @@ public class JmsTopicOperationsTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6));
+    private final CliClient cli = new CliClient(new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
