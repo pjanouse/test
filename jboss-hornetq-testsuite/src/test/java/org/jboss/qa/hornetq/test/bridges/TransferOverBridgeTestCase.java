@@ -18,6 +18,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.tools.byteman.annotation.BMRule;
 import org.jboss.qa.tools.byteman.annotation.BMRules;
+import org.jboss.qa.tools.byteman.rule.HornetQCallsTracking;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
@@ -532,6 +533,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
 
         // install rule to first server
+        HornetQCallsTracking.installTrackingRules(bytemanTargetHost, bytemanPort, HornetQCallsTracking.JOURNAL_RULES);
         RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
 
         try {
