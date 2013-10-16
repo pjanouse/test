@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
@@ -206,8 +207,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER2_IP, getJNDIPort(), inQueue, numberOfMessages);
-        MessageBuilder messageBuilder = new TextMessageBuilder(10);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueue, numberOfMessages);
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -215,7 +216,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
-//        Thread.sleep(120000); // just for sure to announce backups
 
         deployer.deploy("mdb2");
         deployer.deploy("mdb1");
@@ -233,9 +233,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsOperations1.close();
         jmsOperations2.close();
 
+        printQueueStatus(CONTAINER1, inQueueName);
+        printQueueStatus(CONTAINER1, outQueueName);
+        printQueueStatus(CONTAINER2, inQueueName);
+        printQueueStatus(CONTAINER1, outQueueName);
+
         logger.info("########################################");
         logger.info("kill - second server");
         logger.info("########################################");
+
         if (shutdown)   {
             controller.stop(CONTAINER2);
         } else {
@@ -243,7 +249,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.kill(CONTAINER2);
         }
 
-        Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(CONTAINER1_IP, 5446, 300000));
+        Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(CONTAINER1_IP, 5446, 300000));
         Thread.sleep(10000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
@@ -252,19 +258,139 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         List<Client> listOfReceiverClientAckList = new ArrayList<Client>();
         waitForReceiversUntil(listOfReceiverClientAckList, numberOfMessages - numberOfMessages/10, 300000);
+
+        printQueueStatus(CONTAINER1, inQueueName);
+        printQueueStatus(CONTAINER1, outQueueName);
+
+        logger.info("########################################");
+        logger.info("Start again - second server");
+        logger.info("########################################");
         controller.start(CONTAINER2);
+        logger.info("########################################");
+        logger.info("Second server started");
+        logger.info("########################################");
 
         receiver1.join();
 
         logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
         messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
+
+    }
+
+
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testKillInClusterSmallMessages() throws Exception {
+        testFailInCluster(false, new TextMessageBuilder(10));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShutdowonInClusterSmallMessages() throws Exception {
+        testFailInCluster(true, new TextMessageBuilder(10));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testKillInClusterMixMessages() throws Exception {
+        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShutdowonInClusterMixMessages() throws Exception {
+        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
+    }
+
+    public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
+
+
+        prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_B);
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        // give some time for servers to find each other
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+
+        int numberOfMessages = 6000;
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueue, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(1000);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        logger.info("########################################");
+        logger.info("kill - second server");
+        logger.info("########################################");
+
+        if (shutdown)   {
+            controller.stop(CONTAINER2);
+        } else {
+            killServer(CONTAINER2);
+            controller.kill(CONTAINER2);
+        }
+
+        logger.info("########################################");
+        logger.info("Start again - second server");
+        logger.info("########################################");
+        controller.start(CONTAINER2);
+        logger.info("########################################");
+        logger.info("Second server started");
+        logger.info("########################################");
+
+        Thread.sleep(10000);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, inQueue, 30000, 1000, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setAckAfter(1000);
+        printQueueStatus(CONTAINER1, inQueueName);
+        printQueueStatus(CONTAINER2, inQueueName);
+
+        receiver1.start();
+        List<Client> listOfReceiverClientAckList = new ArrayList<Client>();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
+    private void printQueueStatus(String containerName, String queueCoreName) {
+
+        JMSOperations jmsOperations1 = getJMSOperations(CONTAINER1);
+
+        long count = jmsOperations1.getCountOfMessagesOnQueue(queueCoreName);
+
+        logger.info("########################################");
+        logger.info("Status of queue - " + queueCoreName + " - on node " + containerName + " is: " + count);
+        logger.info("########################################");
+
+        jmsOperations1.close();
 
     }
 
