@@ -41,15 +41,27 @@ public class SubmitUtil {
     // Logger
     private static final Logger log = Logger.getLogger(SubmitUtil.class);
 
-    public static void install(String key, String script) {
-        try {
-            Submit submit = new Submit(host, port);
-            submit.addScripts(Arrays.asList(new ScriptText(key, script)));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new SubmitException("Could not install script from file", e);
+    public static void install(final String key, final String script) throws Exception {
 
-        }
+            final Submit submit = new Submit(host, port);
+
+            // this can hang on some machines because agent does not sent a response
+            // adding timeout 60 s
+            Thread submitThread = new Thread()  {
+                public void run()   {
+                    try {
+                        submit.addScripts(Arrays.asList(new ScriptText(key, script)));
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                }
+            };
+            submitThread.run();
+            submitThread.join(60000);
+            if (submitThread.isAlive()) {
+                throw new Exception("Could not install byteman rule because byteman agent did not answer when rule was deployed. For this " +
+                        "reason submit.addScripts() method did not returned and hangs.");
+            }
     }
 
 //    public static void installFromStream(InputStream rules) {
