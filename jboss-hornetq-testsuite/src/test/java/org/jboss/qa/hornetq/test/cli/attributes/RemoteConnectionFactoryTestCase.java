@@ -1,3 +1,4 @@
+//TODO create test for setting discovery group and connectors
 package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -78,24 +79,24 @@ public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void connectorWriteReadAttributeTest() throws Exception {
-        CliClient cliClient = new CliClient(cliConf);
-
-        writeReadAttributeTest(cliClient, address, "connector", "{\"netty\" => undefined}");
-    }
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void discoveryGroupWriteReadAttributeTest() throws Exception {
-        CliClient cliClient = new CliClient(cliConf);
-
-        writeReadAttributeTest(cliClient, address, "discovery-group-name", "dg-group1");
-    }
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void connectorWriteReadAttributeTest() throws Exception {
+//        CliClient cliClient = new CliClient(cliConf);
+//
+//        writeReadAttributeTest(cliClient, address, "connector", "{\"netty\" => undefined}");
+//    }
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void discoveryGroupWriteReadAttributeTest() throws Exception {
+//        CliClient cliClient = new CliClient(cliConf);
+//
+//        writeReadAttributeTest(cliClient, address, "discovery-group-name", "dg-group1");
+//    }
 
     @Test
     @RunAsClient
