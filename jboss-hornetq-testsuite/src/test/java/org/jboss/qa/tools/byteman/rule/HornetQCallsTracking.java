@@ -1,6 +1,9 @@
 package org.jboss.qa.tools.byteman.rule;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Utility class for helping with method calls tracking inside HornetQ server.
  *
@@ -49,13 +52,7 @@ public final class HornetQCallsTracking {
         SubmitUtil.host = host;
         SubmitUtil.port = port;
 
-        for (String file : rulesFiles) {
-            try {
-                SubmitUtil.installFromStream(HornetQCallsTracking.class.getClassLoader().getResourceAsStream(file));
-            } catch (SubmitException e) {
-                throw new SubmitException("Cannot load rules from file " + file, e);
-            }
-        }
+        SubmitUtil.installFromFiles(rulesFiles);
     }
 
 }

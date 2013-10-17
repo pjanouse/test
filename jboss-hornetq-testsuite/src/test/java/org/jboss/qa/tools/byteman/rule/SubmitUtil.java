@@ -17,12 +17,15 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
+import java.io.File;
 import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.jboss.byteman.agent.submit.ScriptText;
 import org.jboss.byteman.agent.submit.Submit;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * SumitUtil
@@ -49,10 +52,27 @@ public class SubmitUtil {
         }
     }
 
-    public static void installFromStream(InputStream rules) {
+//    public static void installFromStream(InputStream rules) {
+//        try {
+//            Submit submit = new Submit(host, port);
+//            submit.addRulesFromResources(Arrays.asList(new InputStream[]{rules}));
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            throw new SubmitException("Could not install scripts from resource", e);
+//        }
+//    }
+
+    public static void installFromFiles(String[] filesWithRules) {
         try {
             Submit submit = new Submit(host, port);
-            submit.addRulesFromResources(Arrays.asList(new InputStream[]{rules}));
+
+            File file = null;
+            List<String> listPathToFilesWithRules = new ArrayList<String>();
+            for (String ruleFile : filesWithRules)  {
+                file = new File(HornetQCallsTracking.class.getResource(ruleFile).toString());
+                listPathToFilesWithRules.add(file.getAbsolutePath());
+            }
+            submit.addRulesFromFiles(listPathToFilesWithRules);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new SubmitException("Could not install scripts from resource", e);
