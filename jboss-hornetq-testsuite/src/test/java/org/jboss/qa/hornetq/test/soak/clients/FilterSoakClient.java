@@ -93,10 +93,7 @@ public class FilterSoakClient extends Client {
 
             // wait for execution finish
             this.numberOfSentMessages = sentMessagesFuture.get().intValue();
-            this.sentMessages.addAll(this.producerThread.getListOfMessages());
-
             this.numberOfReceivedMessages = receivedMessagesFuture.get().intValue();
-            this.receivedMessages.addAll(consumerThread.getListOfMessages());
         } catch (Exception ex) {
             LOG.error("Error while running the clients", ex);
         } finally {
@@ -157,7 +154,7 @@ public class FilterSoakClient extends Client {
 
     private static final class ProducerThread implements Callable<Integer> {
 
-        private final List<String> listOfSentMessages = new LinkedList<String>();
+        private static final long MSG_GAP = 100;
 
         private final Connection connection;
 
@@ -194,7 +191,8 @@ public class FilterSoakClient extends Client {
                     msg = this.messageBuilder.createMessage(session);
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setIntProperty("filterProperty", this.counter % 2);
-                    this.listOfSentMessages.add(ClientUtils.sendMessage(producer, msg));
+                    ClientUtils.sendMessage(producer, msg);
+                    Thread.sleep(MSG_GAP);
                 }
                 return this.counter;
             } finally {
@@ -209,11 +207,6 @@ public class FilterSoakClient extends Client {
             this.stop = true;
         }
 
-
-        public List<String> getListOfMessages() {
-            return this.listOfSentMessages;
-        }
-
     }
 
 
@@ -222,8 +215,6 @@ public class FilterSoakClient extends Client {
         private final Connection connection;
 
         private final Queue queue;
-
-        private final List<String> receivedMessages = new LinkedList<String>();
 
         private int counter = 0;
 
@@ -250,7 +241,6 @@ public class FilterSoakClient extends Client {
                             + this.counter + ", message-counter: " + msg.getStringProperty("counter")
                             + ", messageId:" + msg.getJMSMessageID());
                     msg.acknowledge();
-                    this.receivedMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
                 }
 
                 return this.counter;
@@ -259,11 +249,6 @@ public class FilterSoakClient extends Client {
                     session.close();
                 }
             }
-        }
-
-
-        public List<String> getListOfMessages() {
-            return this.receivedMessages;
         }
 
     }

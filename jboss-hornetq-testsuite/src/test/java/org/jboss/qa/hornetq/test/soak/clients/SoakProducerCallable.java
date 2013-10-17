@@ -21,9 +21,9 @@ public class SoakProducerCallable implements Callable<Integer> {
 
     private static final Logger LOG = Logger.getLogger(SoakProducerCallable.class);
 
-    private static final int MAX_RETRIES = 30;
+    private static final long MSG_GAP = 100;
 
-    private final List<String> listOfSentMessages = new LinkedList<String>();
+    private static final int MAX_RETRIES = 30;
 
     private final Connection connection;
 
@@ -60,6 +60,7 @@ public class SoakProducerCallable implements Callable<Integer> {
                 msg = this.messageBuilder.createMessage(session);
                 msg.setIntProperty("counter", ++this.counter);
                 this.sendMessage(producer, msg);
+                Thread.sleep(MSG_GAP);
             }
             return this.counter;
         } finally {
@@ -75,11 +76,6 @@ public class SoakProducerCallable implements Callable<Integer> {
     }
 
 
-    public List<String> getListOfMessages() {
-        return this.listOfSentMessages;
-    }
-
-
     private void sendMessage(final MessageProducer producer, final Message msg) throws Exception {
         int numberOfRetries = 0;
         while (numberOfRetries < MAX_RETRIES) {
@@ -87,9 +83,6 @@ public class SoakProducerCallable implements Callable<Integer> {
                 producer.send(msg);
                 LOG.info("SENT message with count " + this.counter
                         + " with destination " + msg.getJMSReplyTo().toString());
-                if (msg.getStringProperty("_HQ_DUPL_ID") != null) {
-                    listOfSentMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
-                }
                 return;
             } catch (JMSException ex) {
                 LOG.info("SEND RETRY - Sent message with property count: " + this.counter

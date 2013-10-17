@@ -53,10 +53,6 @@ public class TemporaryQueuesSoakClient extends Client {
 
     private int numberOfReceivedMessages = 0;
 
-    private List<String> sentMessages = new ArrayList<String>();
-
-    private List<String> receivedMessages = new ArrayList<String>();
-
 
     public TemporaryQueuesSoakClient(final ContainerInfo container, final long numberOfMessages) {
         this(container, 4447, numberOfMessages, 10);
@@ -108,11 +104,9 @@ public class TemporaryQueuesSoakClient extends Client {
 
             // wait for execution finish
             this.numberOfSentMessages = sentMessagesFuture.get().intValue();
-            this.sentMessages = producerThread.getListOfMessages();
 
             for (int i = 0; i < this.responseQueues.length; i++) {
                 this.numberOfReceivedMessages += consumerFutures[i].get().intValue();
-                this.receivedMessages.addAll(consumerThreads[i].getListOfMessages());
             }
         } catch (Exception ex) {
             LOG.error("Error while running the clients", ex);
@@ -172,21 +166,11 @@ public class TemporaryQueuesSoakClient extends Client {
     }
 
 
-    public List<String> getSentMessages() {
-        return this.sentMessages;
-    }
-
-
-    public List<String> getReceivedMessages() {
-        return this.receivedMessages;
-    }
-
-
     private static final class ProducerThread implements Callable<Integer> {
 
-        private static final int MAX_RETRIES = 30;
+        private static final long MSG_GAP = 100;
 
-        private final List<String> listOfSentMessages = new LinkedList<String>();
+        private static final int MAX_RETRIES = 30;
 
         private final Connection connection;
 
@@ -228,6 +212,7 @@ public class TemporaryQueuesSoakClient extends Client {
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setJMSReplyTo(this.responseQueues[this.counter % this.responseQueues.length]);
                     this.sendMessage(producer, msg);
+                    Thread.sleep(MSG_GAP);
                 }
                 return this.counter;
             } finally {
@@ -243,11 +228,6 @@ public class TemporaryQueuesSoakClient extends Client {
         }
 
 
-        public List<String> getListOfMessages() {
-            return this.listOfSentMessages;
-        }
-
-
         private void sendMessage(final MessageProducer producer, final Message msg) throws Exception {
             int numberOfRetries = 0;
             while (numberOfRetries < MAX_RETRIES) {
@@ -255,9 +235,6 @@ public class TemporaryQueuesSoakClient extends Client {
                     producer.send(msg);
                     LOG.info("SENT message with count " + this.counter
                             + " with destination " + msg.getJMSReplyTo().toString());
-                    if (msg.getStringProperty("_HQ_DUPL_ID") != null) {
-                        listOfSentMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
-                    }
                     return;
                 } catch (JMSException ex) {
                     LOG.info("SEND RETRY - Sent message with property count: " + this.counter
@@ -285,8 +262,6 @@ public class TemporaryQueuesSoakClient extends Client {
         private final Connection connection;
 
         private final TemporaryQueue queue;
-
-        private final List<String> receivedMessages = new LinkedList<String>();
 
         private int counter = 0;
 
@@ -319,7 +294,6 @@ public class TemporaryQueuesSoakClient extends Client {
                             + this.counter + ", message-counter: " + msg.getStringProperty("counter")
                             + ", messageId:" + msg.getJMSMessageID());
                     msg.acknowledge();
-                    this.receivedMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
                 }
 
                 return this.counter;
@@ -328,11 +302,6 @@ public class TemporaryQueuesSoakClient extends Client {
                     session.close();
                 }
             }
-        }
-
-
-        public List<String> getListOfMessages() {
-            return this.receivedMessages;
         }
 
 
