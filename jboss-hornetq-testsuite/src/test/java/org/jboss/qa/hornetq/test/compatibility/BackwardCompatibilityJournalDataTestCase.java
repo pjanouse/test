@@ -158,7 +158,6 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
      *
-     * @throws Exception
      */
     @Before
     @After
@@ -267,7 +266,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.setNodeIdentifier(12);
 
             jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 500 * 1024, 0, 0, 50 * 1024);
             jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);

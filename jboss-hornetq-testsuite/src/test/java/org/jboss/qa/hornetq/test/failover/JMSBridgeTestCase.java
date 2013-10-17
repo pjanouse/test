@@ -16,6 +16,7 @@ import java.util.Map;
 @RunWith(Arquillian.class)
 public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
 
+    @Override
     protected void deployBridge(String containerName, boolean useDiscovery) {
 
         String bridgeName = "myBridge";
@@ -37,7 +38,7 @@ public class JMSBridgeTestCase extends DedicatedFailoverCoreBridges {
             targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447");
         }
 
-        String qualityOfService = "AT_MOST_ONCE";
+        String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         int maxRetries = 10;
         long maxBatchSize = 10;
