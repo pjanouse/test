@@ -37,8 +37,6 @@ public class DurableSubscriptionClient extends Client {
 
     private final int port;
 
-    private final List<String> receivedMessages = new LinkedList<String>();
-
 
     public DurableSubscriptionClient(final ContainerInfo container) {
         this(container, 4447);
@@ -107,11 +105,6 @@ public class DurableSubscriptionClient extends Client {
     }
 
 
-    public List<String> getReceivedMessages() {
-        return this.receivedMessages;
-    }
-
-
     /**
      *
      * @param session
@@ -139,7 +132,6 @@ public class DurableSubscriptionClient extends Client {
                         + " received message with counter" + this.counter
                         + " and id " + msg.getJMSMessageID());
                 msg.acknowledge();
-                this.receivedMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
             }
 
             LOG.info("reconnectionCounter = " + reconnectionCounter);
