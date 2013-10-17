@@ -19,6 +19,7 @@ package org.jboss.qa.tools.byteman.rule;
 
 
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 
 import java.lang.reflect.Method;
 
@@ -40,8 +41,10 @@ public class RuleInstaller {
      *
      * @param testClass class with test
      */
-    public static void installRule(Class testClass) {
+    public static void installRule(Class testClass)  {
+
         installRule(testClass, "localhost", 9091);
+
     }
 
     /**
@@ -51,7 +54,7 @@ public class RuleInstaller {
      * @param host      hostname where byteman listen to
      * @param port      port where byteman listen to
      */
-    public static void installRule(Class testClass, String host, int port) {
+    public static void installRule(Class testClass, String host, int port)  {
 
         SubmitUtil.host = host;
         SubmitUtil.port = port;

@@ -17,12 +17,12 @@
  */
 package org.jboss.qa.tools.byteman.rule;
 
-import java.io.File;
-import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.jboss.byteman.agent.submit.ScriptText;
 import org.jboss.byteman.agent.submit.Submit;
+import org.junit.Assert;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,27 +41,31 @@ public class SubmitUtil {
     // Logger
     private static final Logger log = Logger.getLogger(SubmitUtil.class);
 
-    public static void install(final String key, final String script) throws Exception {
+    public static void install(final String key, final String script) {
 
-            final Submit submit = new Submit(host, port);
+        final Submit submit = new Submit(host, port);
 
-            // this can hang on some machines because agent does not sent a response
-            // adding timeout 60 s
-            Thread submitThread = new Thread()  {
-                public void run()   {
-                    try {
-                        submit.addScripts(Arrays.asList(new ScriptText(key, script)));
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                    }
+        // this can hang on some machines because agent does not sent a response
+        // adding timeout 60 s
+        Thread submitThread = new Thread() {
+            public void run() {
+                try {
+                    submit.addScripts(Arrays.asList(new ScriptText(key, script)));
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
                 }
-            };
-            submitThread.run();
-            submitThread.join(60000);
-            if (submitThread.isAlive()) {
-                throw new Exception("Could not install byteman rule because byteman agent did not answer when rule was deployed. For this " +
-                        "reason submit.addScripts() method did not returned and hangs.");
             }
+        };
+        submitThread.run();
+        try {
+            submitThread.join(60000);
+        } catch (InterruptedException e) {
+            //ignore
+        }
+        if (submitThread.isAlive()) {
+            Assert.fail("Could not install byteman rule because byteman agent did not answer when rule was deployed. For this " +
+                    "reason submit.addScripts() method did not returned and hangs.");
+        }
     }
 
 //    public static void installFromStream(InputStream rules) {
@@ -78,9 +82,9 @@ public class SubmitUtil {
         try {
             Submit submit = new Submit(host, port);
 
-            File file = null;
+            File file;
             List<String> listPathToFilesWithRules = new ArrayList<String>();
-            for (String ruleFile : filesWithRules)  {
+            for (String ruleFile : filesWithRules) {
                 file = new File(HornetQCallsTracking.class.getResource(ruleFile).toString());
                 listPathToFilesWithRules.add(file.getAbsolutePath());
             }

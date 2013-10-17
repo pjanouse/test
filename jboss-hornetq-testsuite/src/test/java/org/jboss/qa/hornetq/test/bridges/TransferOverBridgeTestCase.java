@@ -211,7 +211,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             })
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void killSourceServerTest() throws InterruptedException {
+    public void killSourceServerTest() throws Exception {
         testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, null);
     }
 
@@ -241,7 +241,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             })
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void killTargetServerTest() throws InterruptedException {
+    public void killTargetServerTest() throws Exception {
         testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, null);
     }
 
@@ -273,7 +273,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             })
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void killSourceServerWithLargeMessagesTest() throws InterruptedException {
+    public void killSourceServerWithLargeMessagesTest() throws Exception {
         testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
@@ -304,7 +304,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void killTargetServerWithLargeMessagesTest() throws InterruptedException {
+    public void killTargetServerWithLargeMessagesTest() throws Exception {
         testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
@@ -491,7 +491,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      */
     private void testLogicForTestWithByteman(int messages, String restartedContainer,
                                              final String bytemanTargetHost, final int bytemanPort,
-                                             MessageBuilder messageBuilder) {
+                                             MessageBuilder messageBuilder) throws Exception {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
         final String TEST_QUEUE_OUT = "dummyQueueOut";
