@@ -81,8 +81,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void normalMessagesKillTest() throws Exception {
         testLogic(new ByteMessageBuilder(30));
     }
