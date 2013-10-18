@@ -504,6 +504,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         };
         shutdownHook.start();
         controller.stop(containerName);
+        try {
+            controller.kill(containerName);
+        } catch (Exception ex)  {
+            log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
+                    "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
+                    "controller.kill() will do that.", ex);
+        }
     }
 
     public int getBytemanPort(String containerName) throws Exception {
