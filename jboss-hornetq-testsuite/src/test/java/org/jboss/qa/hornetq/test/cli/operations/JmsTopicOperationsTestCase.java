@@ -14,10 +14,8 @@ import org.jboss.qa.management.cli.CliUtils;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -45,6 +43,9 @@ import java.util.List;
 */
 @RunWith(Arquillian.class)
 public class JmsTopicOperationsTestCase extends HornetQTestCase {
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 

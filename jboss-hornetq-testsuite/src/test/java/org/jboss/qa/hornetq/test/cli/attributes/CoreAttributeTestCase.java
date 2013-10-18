@@ -11,6 +11,7 @@ import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.*;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
@@ -86,6 +87,9 @@ import java.util.Properties;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class CoreAttributeTestCase extends HornetQTestCase {
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger log = Logger.getLogger(CoreAttributeTestCase.class);
 

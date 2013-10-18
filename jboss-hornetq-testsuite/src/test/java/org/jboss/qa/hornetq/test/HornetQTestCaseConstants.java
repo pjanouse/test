@@ -45,5 +45,8 @@ public interface HornetQTestCaseConstants {
     public static final String EAP6_CONTAINER = "EAP6";
     public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM";
 
+    // Timeout for CLI tests
+    public static final int DEFAULT_TEST_TIMEOUT = 300000;
+
 
 }

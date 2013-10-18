@@ -11,7 +11,9 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
@@ -38,6 +40,9 @@ import java.util.Properties;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class JmsQueueAttributeTestCase extends HornetQTestCase {
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
 //    private static final Logger log = Logger.getLogger(JmsQueueAttributeTestCase.class);
 

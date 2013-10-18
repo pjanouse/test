@@ -30,7 +30,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -93,6 +95,9 @@ import static org.junit.Assert.*;
  */
 @RunWith(Arquillian.class)
 public class HornetQServerCliOperationsTestCase extends HornetQTestCase {
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger logger = Logger.getLogger(HornetQServerCliOperationsTestCase.class);
 
