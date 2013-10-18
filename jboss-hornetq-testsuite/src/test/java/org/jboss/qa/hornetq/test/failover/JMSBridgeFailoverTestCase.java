@@ -23,12 +23,6 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);
 
-    // quality services
-    final static String AT_MOST_ONCE = "AT_MOST_ONCE";
-    final static String DUPLICATES_OK = "DUPLICATES_OK";
-    final static String ONCE_AND_ONLY_ONCE = "ONCE_AND_ONLY_ONCE";
-
-
     /////////////////// Test Initial Failover /////////////////
     @Test
     @RunAsClient
@@ -73,7 +67,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, AT_MOST_ONCE);
 
-        testFailoverWithBridge(false, false);
+        testFailoverWithBridge(false, false, AT_MOST_ONCE);
     }
 
     @Test
@@ -84,7 +78,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, DUPLICATES_OK);
 
-        testFailoverWithBridge(false, false);
+        testFailoverWithBridge(false, false, DUPLICATES_OK);
     }
 
     @Test
@@ -95,7 +89,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE);
 
-        testFailoverWithBridge(false, false);
+        testFailoverWithBridge(false, false, ONCE_AND_ONLY_ONCE);
     }
 
     @Test
@@ -106,7 +100,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, AT_MOST_ONCE);
 
-        testFailoverWithBridge(true, false);
+        testFailoverWithBridge(true, false, AT_MOST_ONCE);
     }
 
     @Test
@@ -117,7 +111,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, DUPLICATES_OK);
 
-        testFailoverWithBridge(true, false);
+        testFailoverWithBridge(true, false, DUPLICATES_OK);
     }
 
     @Test
@@ -128,7 +122,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE);
 
-        testFailoverWithBridge(true, false);
+        testFailoverWithBridge(true, false, ONCE_AND_ONLY_ONCE);
     }
 
     ////////////////////////////////////// Test Failback ///////////////// ///////////////////
@@ -141,7 +135,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, AT_MOST_ONCE);
 
-        testFailoverWithBridge(false, true);
+        testFailoverWithBridge(false, true, AT_MOST_ONCE);
     }
 
     @Test
@@ -152,7 +146,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, DUPLICATES_OK);
 
-        testFailoverWithBridge(false, true);
+        testFailoverWithBridge(false, true, DUPLICATES_OK);
     }
 
     @Test
@@ -163,7 +157,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE);
 
-        testFailoverWithBridge(false, true);
+        testFailoverWithBridge(false, true, ONCE_AND_ONLY_ONCE);
     }
 
     @Test
@@ -174,7 +168,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, AT_MOST_ONCE);
 
-        testFailoverWithBridge(true, true);
+        testFailoverWithBridge(true, true, AT_MOST_ONCE);
     }
 
     @Test
@@ -185,7 +179,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, DUPLICATES_OK);
 
-        testFailoverWithBridge(true, true);
+        testFailoverWithBridge(true, true, DUPLICATES_OK);
     }
 
     @Test
@@ -196,7 +190,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER3, ONCE_AND_ONLY_ONCE);
 
-        testFailoverWithBridge(true, true);
+        testFailoverWithBridge(true, true, ONCE_AND_ONLY_ONCE);
     }
 
     //////////////////////////////// Test Redeploy live -> backup ////////////////////////////

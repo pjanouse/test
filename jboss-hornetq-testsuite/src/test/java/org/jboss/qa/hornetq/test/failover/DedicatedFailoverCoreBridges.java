@@ -189,7 +189,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         if (useDiscovery) {
-            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
+            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupNameForBridges);
         } else {
             if (CONTAINER1.equals(containerName) || CONTAINER2.equals(containerName))   {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
