@@ -5,6 +5,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -36,6 +37,11 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1500;
 
+    // quality services
+    public final static String AT_MOST_ONCE = "AT_MOST_ONCE";
+    public final static String DUPLICATES_OK = "DUPLICATES_OK";
+    public final static String ONCE_AND_ONLY_ONCE = "ONCE_AND_ONLY_ONCE";
+
     // Queue to send messages in
     String inQueueName = "InQueue";
     String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -45,6 +51,10 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     //    MessageBuilder messageBuilder = new TextMessageBuilder(10);
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 1000);
     String discoveryGroupName = "dg-group1";
+    String discoveryGroupNameForBridges = "dg-group2";
+
+    String messagingGroupSocketBindingNameForBridges = "messaging-group-bridges";
+    String messagingGroupMulticastAddressForBridgeDiscovery = "234.46.21.68";
 
     FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
@@ -63,12 +73,12 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        // verify that some messages got to outqueue on container1
+        // verify that some messages got to outqueue on container3
         JMSOperations jmsOperations = getJMSOperations(CONTAINER3);
         long startTime = System.currentTimeMillis();
         while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < NUMBER_OF_MESSAGES_PER_PRODUCER / 10) {
             Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime > 600000) {
+            if (System.currentTimeMillis() - startTime > 120000) {
                 Assert.fail("Target queue for the bridge does not receive any messages. Failing the test");
             }
         }
@@ -112,11 +122,27 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     public void testInitialFailover() throws Exception {
 
         // start live-backup servers
+        // Without starting live first the backup server will not start
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        Thread.sleep(10000);
+        controller.stop(CONTAINER1);
+
         controller.start(CONTAINER3);
 
+        Thread.sleep(10000);
+        logger.info("#############################");
+        logger.info("JMS bridge should be connected now. Check logs above that is really so!");
+        logger.info("#############################");
+        logger.info("#############################");
+        logger.info("Stopping container 1");
+        logger.info("#############################");
         stopServer(CONTAINER1);
+        logger.info("#############################");
+        logger.info("Container 1 stopped");
+        logger.info("#############################");
+
 
         ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -151,15 +177,23 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      * @throws Exception
      */
     public void testFailoverWithBridge(boolean shutdown, boolean failback) throws Exception {
+        testFailoverWithBridge(shutdown, failback, ONCE_AND_ONLY_ONCE);
+    }
+
+    /**
+     * @param failback whether to do failback
+     * @param shutdown shutdown server
+     * @param qualityOfService quality of service
+     * @throws Exception
+     */
+    public void testFailoverWithBridge(boolean shutdown, boolean failback, String qualityOfService) throws Exception {
 
         // start live-backup servers
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
         controller.start(CONTAINER3);
 
-        Thread.sleep(5000);
-
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -229,8 +263,16 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         messageVerifier.verifyMessages();
 
-        Assert.assertEquals("There is different number of sent and received messages.",
+        if (ONCE_AND_ONLY_ONCE.equals(qualityOfService)) {
+            Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        } else if (AT_MOST_ONCE.equals(qualityOfService)) {
+            Assert.assertTrue("There is more received messages then sent. That's bad for AT_MOST_ONCE.",
+                    producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
+        } else if (DUPLICATES_OK.equals(qualityOfService)) {
+            Assert.assertTrue("There is more send messages then sent. That's bad for DUPLICATES_OK.",
+                    producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
+        }
 
         stopServer(CONTAINER3);
         stopServer(CONTAINER2);
@@ -270,7 +312,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-//        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        // add broadcast group to 3rd server
+        jmsAdminOperations.addSocketBinding(messagingGroupSocketBindingNameForBridges, messagingGroupMulticastAddressForBridgeDiscovery, 9876);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingNameForBridges, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
@@ -339,9 +383,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
@@ -362,6 +403,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.addSocketBinding(messagingGroupSocketBindingNameForBridges, messagingGroupMulticastAddressForBridgeDiscovery, 9876);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupNameForBridges, messagingGroupSocketBindingNameForBridges, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -407,10 +450,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
-
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
@@ -420,13 +459,18 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalType("ASYNCIO");
-        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        // this is necessary for failover tests with discovery
+        // add discovery group to live/backup pair
+        jmsAdminOperations.addSocketBinding(messagingGroupSocketBindingNameForBridges, messagingGroupMulticastAddressForBridgeDiscovery, 9876);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupNameForBridges, messagingGroupSocketBindingNameForBridges, 10000);
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
