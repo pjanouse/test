@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 // TODO test re-deploy from backup -> live (failback)
+
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -189,9 +190,14 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         if (useDiscovery) {
-            jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupNameForBridges);
+            if (CONTAINER3.equals(containerName)) {
+                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
+            } else {
+                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupNameForBridges);
+            }
+
         } else {
-            if (CONTAINER1.equals(containerName) || CONTAINER2.equals(containerName))   {
+            if (CONTAINER1.equals(containerName) || CONTAINER2.equals(containerName)) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
             } else if (CONTAINER3.equals(containerName)) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
