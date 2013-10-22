@@ -142,7 +142,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
+        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(CONTAINER2_IP, 5445, 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 300000));
 
