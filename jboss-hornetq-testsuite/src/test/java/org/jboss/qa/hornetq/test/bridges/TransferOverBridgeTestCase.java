@@ -22,7 +22,9 @@ import org.jboss.qa.tools.byteman.rule.HornetQCallsTracking;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import javax.jms.Message;
@@ -47,6 +49,9 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     /**
      * Stops all servers

@@ -18,7 +18,9 @@ import org.jboss.qa.tools.byteman.annotation.BMRules;
 import org.jboss.qa.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 /**
@@ -31,6 +33,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
+
+    @Rule
+    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
     
