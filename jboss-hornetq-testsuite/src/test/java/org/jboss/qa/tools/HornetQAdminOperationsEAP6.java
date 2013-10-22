@@ -2839,6 +2839,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
         model.get("source-connection-factory").set(sourceConnectionFactory);
         model.get("ha").set(true);
+        model.get("module").set("org.hornetq");
         model.get("source-destination").set(sourceDestination);
         if (sourceContext != null) {
             for (String key : sourceContext.keySet()) {
