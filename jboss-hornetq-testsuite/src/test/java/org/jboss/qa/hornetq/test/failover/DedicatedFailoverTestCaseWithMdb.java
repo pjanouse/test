@@ -118,7 +118,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
+        producerToInQueue1.setCommitAfter(500);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -180,6 +180,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setCommitAfter(500);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
         producerToInQueue1.join();
