@@ -25,7 +25,8 @@
         <eap6.controller.client>6.2.0.ER6</eap6.controller.client>
         <eap6.cli.client>7.3.0.Final-redhat-7</eap6.cli.client>
 
-        <arquillian.version>1.0.3.Final</arquillian.version>
+        <!--<arquillian.version>1.0.3.Final</arquillian.version>-->
+        <arquillian.version>1.1.1.Final</arquillian.version>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
         <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>

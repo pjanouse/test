@@ -82,10 +82,11 @@ public class SubmitUtil {
         try {
             Submit submit = new Submit(host, port);
 
+            File ruleDir = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator);
             File file;
             List<String> listPathToFilesWithRules = new ArrayList<String>();
             for (String ruleFile : filesWithRules) {
-                file = new File(HornetQCallsTracking.class.getResource(ruleFile).toString());
+                file = new File(ruleDir, ruleFile);
                 listPathToFilesWithRules.add(file.getAbsolutePath());
             }
             submit.addRulesFromFiles(listPathToFilesWithRules);

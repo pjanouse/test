@@ -47,11 +47,11 @@ import static junit.framework.Assert.assertTrue;
 @RestoreConfigBeforeTest
 public class TransferOverBridgeTestCase extends HornetQTestCase {
 
-    // Logger
-    private static final Logger log = Logger.getLogger(HornetQTestCase.class);
-
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+
+    // Logger
+    private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     /**
      * Stops all servers
@@ -538,7 +538,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
 
         // install rule to first server
-        HornetQCallsTracking.installTrackingRules(bytemanTargetHost, bytemanPort, HornetQCallsTracking.JOURNAL_RULES);
+//        HornetQCallsTracking.installTrackingRules(bytemanTargetHost, bytemanPort, HornetQCallsTracking.JOURNAL_RULES);
         RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
 
         try {
