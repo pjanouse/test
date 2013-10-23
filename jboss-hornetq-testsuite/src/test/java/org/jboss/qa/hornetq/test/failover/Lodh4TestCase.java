@@ -13,9 +13,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
@@ -56,7 +54,6 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @Before
     public void stopAllServers() {
-        prepareServers();
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
@@ -192,6 +189,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     private void testLogic(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
 
+        prepareServers();
+
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
         controller.start(CONTAINER1);
@@ -245,6 +244,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      * @param shutdown       clean shutdown?
      */
     private void testLogicLargeMessages(MessageBuilder messageBuilder, List<String> killSequence, boolean shutdown) throws Exception {
+
+        prepareServers();
 
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
@@ -329,20 +330,6 @@ public class Lodh4TestCase extends HornetQTestCase {
         prepareTargetServer(CONTAINER2, CONTAINER2_IP);
         prepareTargetServer(CONTAINER4, CONTAINER4_IP);
 
-        // deploy destinations
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER3);
-        deployDestinations(CONTAINER3, "default", hornetqInQueueName, relativeJndiInQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-        stopServer(CONTAINER3);
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-        stopServer(CONTAINER2);
-        controller.start(CONTAINER4);
-        deployDestinations(CONTAINER4, "default", hornetqOutQueueName, relativeJndiOutQueueName, NUMBER_OF_DESTINATIONS_BRIDGES);
-        stopServer(CONTAINER4);
-
     }
 
     /**
@@ -394,10 +381,22 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
+        try {
+            jmsAdminOperations.removeRemoteSocketBinding("messaging-bridge");
+        } catch (Exception ex)    {
+            // ignore
+        }
+        jmsAdminOperations.close();
+        stopServer(containerName);
+        controller.start(containerName);
+
+        jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServerIpAddress, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
+            jmsAdminOperations.createQueue("default", hornetqInQueueName + queueNumber, relativeJndiInQueueName + queueNumber, true);                 }
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -408,6 +407,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
         }
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -457,6 +457,9 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.disableSecurity();
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
+            jmsAdminOperations.createQueue("default", hornetqOutQueueName + queueNumber, relativeJndiOutQueueName + queueNumber, true);
+        }
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -467,21 +470,4 @@ public class Lodh4TestCase extends HornetQTestCase {
 
     }
 
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param serverName     server name of the hornetq server
-     * @param numberOfQueues number of queue with the given queue name prefix
-     */
-    private void deployDestinations(String containerName, String serverName, String hornetqQueueNamePrefix,
-                                    String relativeJndiQueueNamePrefix, int numberOfQueues) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        for (int queueNumber = 0; queueNumber < numberOfQueues; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, hornetqQueueNamePrefix + queueNumber, relativeJndiQueueNamePrefix + queueNumber, true);
-        }
-
-        jmsAdminOperations.close();
-    }
 }
