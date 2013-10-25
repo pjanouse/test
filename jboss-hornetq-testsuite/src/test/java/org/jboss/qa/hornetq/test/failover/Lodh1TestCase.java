@@ -264,6 +264,46 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     }
 
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLodhWithoutKill() throws Exception {
+
+        // we use only the first server
+        prepareServer();
+
+        controller.start(CONTAINER1);
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setTimeout(0);
+        logger.info("Start producer.");
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        deployer.deploy("mdb1");
+
+        logger.info("Start receiver.");
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+
+        deployer.undeploy("mdb1");
+        stopServer(CONTAINER1);
+
+    }
+
     /**
      * Executes kill sequence.
      *
