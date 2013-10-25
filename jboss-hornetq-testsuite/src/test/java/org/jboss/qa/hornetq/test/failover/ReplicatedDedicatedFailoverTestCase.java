@@ -405,7 +405,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.setClusterUserPassword("heslo");
         jmsAdminOperations.removeAddressSettings("#");
@@ -504,7 +504,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         jmsAdminOperations.setClusterUserPassword("heslo");
 
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.removeAddressSettings("#");
 
