@@ -172,27 +172,29 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsKill() throws Exception {
+    // TODO UNCOMMENT WHEN IS FIXED: https://bugzilla.redhat.com/show_bug.cgi?id=1019378
 
-        testFailWithMdbs(false);
-    }
-
-    /**
-     * Start simple failover test with client_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsShutdown() throws Exception {
-
-        testFailWithMdbs(true);
-    }
+//    /**
+//     * Start simple failover test with client_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverWithMdbsKill() throws Exception {
+//
+//        testFailWithMdbs(false);
+//    }
+//
+//    /**
+//     * Start simple failover test with client_ack on queues
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testFailoverWithMdbsShutdown() throws Exception {
+//
+//        testFailWithMdbs(true);
+//    }
 
     public void testFailWithMdbs(boolean shutdown) throws Exception {
 
@@ -286,34 +288,34 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
 
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testKillInClusterSmallMessages() throws Exception {
-        testFailInCluster(false, new TextMessageBuilder(10));
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShutdowonInClusterSmallMessages() throws Exception {
-        testFailInCluster(true, new TextMessageBuilder(10));
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testKillInClusterMixMessages() throws Exception {
-        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShutdowonInClusterMixMessages() throws Exception {
-        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
-    }
+    // TODO UNCOMMENT WHEN https://bugzilla.redhat.com/show_bug.cgi?id=1019378 IS FIXED
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testKillInClusterSmallMessages() throws Exception {
+//        testFailInCluster(false, new TextMessageBuilder(10));
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testShutdowonInClusterSmallMessages() throws Exception {
+//        testFailInCluster(true, new TextMessageBuilder(10));
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testKillInClusterMixMessages() throws Exception {
+//        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest @RestoreConfigBeforeTest
+//    public void testShutdowonInClusterMixMessages() throws Exception {
+//        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
+//    }
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
