@@ -5,8 +5,6 @@ import org.jboss.dmr.*;
 import org.jboss.qa.management.cli.*;
 import static org.junit.Assert.*;
 
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.*;
-
 /**
  * This class is used by tests in different projects. Only safe changes to API is to add new methods and keep the old ones.
  *
@@ -15,6 +13,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.*;
  */
 public class CliTestUtils {
 
+    public static final String FAILURE_DESCRIPTION = "failure-description";
 
     /**
      * Verify that command was executed successfully. Fail the test otherwise.
