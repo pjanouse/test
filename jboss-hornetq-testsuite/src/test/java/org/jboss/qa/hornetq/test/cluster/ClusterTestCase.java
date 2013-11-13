@@ -7,8 +7,10 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
+import java.util.UUID;
 
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
@@ -370,6 +373,117 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
         stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producer connected to A to queue and send some messages with message grouping id1.
+     * Start producer connected to B to queue and send some messages with message grouping id2.
+     * Kill server with local message handler - A
+     * Kill the other server - B
+     * Start the server with local message handler
+     * Start producer connected to A to queue and send some messages with message grouping id1.
+     * Start producer connected to A to queue and send some messages with message grouping id2 -> this will print error
+     * Read messages
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWitMessageGrouping() throws Exception {
+
+        prepareServers();
+
+        String name = "my-grouping-handler";
+        String address = "jms";
+        long timeout = 5000;
+
+        // set local grouping-handler on 1st node
+        addMessageGrouping(CONTAINER1, name, "LOCAL", address, timeout);
+
+        // set remote grouping-handler on 2nd node
+        addMessageGrouping(CONTAINER2, name, "REMOTE", address, timeout);
+
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER1);
+
+
+
+        SecurityClient client1 = createConsumer(CONTAINER1_IP, inQueueJndiNameForMdb);
+        SecurityClient client2 = createConsumer(CONTAINER2_IP, inQueueJndiNameForMdb);
+
+        sendMesages(CONTAINER1_IP, inQueueJndiNameForMdb, new GroupMessageBuilder("id1"));
+        sendMesages(CONTAINER2_IP, inQueueJndiNameForMdb, new GroupMessageBuilder("id2"));
+
+        // wait timeout time to get messages redistributed to the other node
+        Thread.sleep(2 * timeout);
+
+        client1.close();
+        client2.close();
+
+        // kill both of the servers
+        killServer(CONTAINER1);
+        controller.kill(CONTAINER1);
+        killServer(CONTAINER2);
+        controller.kill(CONTAINER2);
+
+        // start 1st server
+        controller.start(CONTAINER1);
+
+        // send messages to 1st node
+        sendMesages(CONTAINER1_IP, inQueueJndiNameForMdb, new GroupMessageBuilder("id1"));
+        sendMesages(CONTAINER1_IP, inQueueJndiNameForMdb, new GroupMessageBuilder("id2"));
+
+        // wait timeout time to get messages redistributed to the other node
+        Thread.sleep(2 * timeout);
+
+        // try to read them from 2nd node
+        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, 4447, inQueueJndiNameForMdb, 10000, 100, 10);
+        receiver.start();
+        receiver.join();
+
+        log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 3 * NUMBER_OF_MESSAGES_PER_PRODUCER
+                + " recieved but it's : " + receiver.getListOfReceivedMessages().size(), 3 * NUMBER_OF_MESSAGES_PER_PRODUCER,
+                receiver.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
+    private SecurityClient createConsumer(String containerIp, String queue) throws Exception {
+
+        SecurityClient securityClient = new SecurityClient(containerIp, 4447, queue, NUMBER_OF_MESSAGES_PER_PRODUCER, null, null);
+        securityClient.initializeClient();
+        return securityClient;
+    }
+
+    private void sendMesages(String containerIp, String queue, MessageBuilder messageBuilder) throws InterruptedException {
+
+        // send messages to 1st node
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), containerIp, getJNDIPort(),
+                queue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        log.info("Start producer to send messages to node " + containerIp + " to destination: " + queue);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+    }
+
+    private void addMessageGrouping(String containerName, String name, String type, String address, long timeout) {
+
+        controller.start(containerName);
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        jmsAdminOperations.addMessageGrouping(name, type, address, timeout);
+
+        jmsAdminOperations.close();
+
+        stopServer(containerName);
 
     }
 

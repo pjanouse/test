@@ -1287,4 +1287,5 @@ public interface JMSOperations {
             int redeliveryDelay, long redistributionDelay, long pageSizeBytes,
             String expireQueue, String deadLetterQueue, int maxDeliveryAttempts);
 
+    void addMessageGrouping(String name, String type, String address, long timeout);
 }

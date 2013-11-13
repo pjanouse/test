@@ -2511,6 +2511,32 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    /**
+     * Adds grouping handler
+     *
+     * @param name name
+     * @param type type - LOCAL, REMOTE
+     * @param address cluster address
+     * @param timeout timeout to have decision where the message will be routed
+     */
+    @Override
+    public void addMessageGrouping(String name, String type, String address, long timeout) {
+        ModelNode modelNode = new ModelNode();
+        modelNode.get(ClientConstants.OP).set("add");
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        modelNode.get(ClientConstants.OP_ADDR).add("grouping-handler", name);
+        modelNode.get("grouping-handler-address").set(address);
+        modelNode.get("type").set(type);
+        modelNode.get("timeout").set(timeout);
+
+        try {
+            this.applyUpdate(modelNode);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * Sets transaction node identifier.
@@ -2839,7 +2865,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
         model.get("source-connection-factory").set(sourceConnectionFactory);
         model.get("ha").set(true);
-        model.get("module").set("org.hornetq");
         model.get("source-destination").set(sourceDestination);
         if (sourceContext != null) {
             for (String key : sourceContext.keySet()) {

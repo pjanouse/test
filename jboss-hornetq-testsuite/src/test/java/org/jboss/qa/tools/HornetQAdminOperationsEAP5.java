@@ -1505,4 +1505,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addMessageGrouping(String name, String type, String address, long timeout) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }
