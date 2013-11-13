@@ -246,6 +246,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
         }
         jmsAdminOperations.removeQueue(QUEUE_NAME);
+        jmsAdminOperations.close();
         stopServer(CONTAINER1);
     }
 
@@ -303,13 +304,83 @@ public class BasicStompTestCase extends HornetQTestCase {
     public void testSizeLimits() {
         /**
          http://stomp.github.io/stomp-specification-1.1.html
-         //TODO Test maximal size limits - HQ does not implement it
-
          the number of frame headers allowed in a single frame
          the maximum length of header lines
          the maximum size of a frame body
-
          **/
+
+        final String QUEUE_NAME = "queueStomp";
+        final String TEST = "test";
+        final String QUEUE_JNDI = "/queue/" + QUEUE_NAME;
+        final String QUEUE_ADDRESS = "jms.queue." + QUEUE_NAME;
+        final int MSG_APPENDS = 1 * 1024 * 1024;
+
+        BlockingConnection connection = null;
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
+        try {
+            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            connection = stomp.connectBlocking();
+
+            // Subscribe
+            StompFrame frame = new StompFrame(SUBSCRIBE);
+            frame.addHeader(DESTINATION, StompFrame.encodeHeader(QUEUE_ADDRESS));
+            StompFrame response = connection.request(frame);
+            assertNotNull(response);
+
+            // Send message
+            frame = new StompFrame(SEND);
+            frame.addHeader(DESTINATION, StompFrame.encodeHeader(QUEUE_ADDRESS));
+            frame.content(new Buffer(TEST.getBytes()));
+            connection.send(frame);
+
+            // Try to get the received message.
+            StompFrame received = connection.receive();
+            assertTrue(received.action().equals(MESSAGE));
+            assertEquals(TEST, received.contentAsString());
+
+            // Try to send large message
+            // Send message
+            final String CHAIN = "0123456789";
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < MSG_APPENDS; i++) {
+                sb.append(CHAIN);
+            }
+            log.info("Body of messages wil have: " + sb.toString().length() + " characters.");
+            frame = new StompFrame(SEND);
+            frame.addHeader(DESTINATION, StompFrame.encodeHeader(QUEUE_ADDRESS));
+            frame.content(new Buffer(sb.toString().getBytes("ISO-8859-1")));
+            frame.addContentLengthHeader();
+            for (StompFrame.HeaderEntry e : frame.headerList()) {
+                log.info("Header: " + e.getKey().toString() + " Value: " + e.getValue().toString());
+            }
+
+            connection.send(frame);
+
+            // Try to get the received message.
+            received = connection.receive();
+            assertTrue(received.action().equals(MESSAGE));
+            assertEquals(CHAIN.length() * MSG_APPENDS, received.content().getLength());
+            String content = received.contentAsString();
+            assertNotNull(content);
+            assertEquals(CHAIN.length() * MSG_APPENDS, content.getBytes().length);
+
+        } catch (Exception e) {
+            log.error("Exception was thrown: ", e);
+            fail(e.getMessage());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        jmsAdminOperations.removeQueue(QUEUE_NAME);
+        jmsAdminOperations.close();
+        stopServer(CONTAINER1);
     }
 
     /**
