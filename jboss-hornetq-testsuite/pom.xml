@@ -229,6 +229,12 @@
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
             <version>${eap6.cli.client}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -360,6 +366,12 @@
                     <groupId>org.jboss.arquillian.container</groupId>
                     <artifactId>arquillian-jbossas-managed-5.1</artifactId>
                     <version>${arquillian.eap5x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.jbossas</groupId>
@@ -403,7 +415,6 @@
                     <artifactId>jboss-threads</artifactId>
                     <version>2.1.0.Final</version>
                 </dependency>
-
 
             </dependencies>
         </profile>
