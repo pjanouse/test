@@ -21,8 +21,10 @@
 
         <eap5.client>5.2.0.GA</eap5.client>
 
-        <eap6.client>6.2.0.ER7</eap6.client>
-        <eap6.controller.client>6.2.0.ER7</eap6.controller.client>
+        <!-- <eap6.client>6.2.0.ER7</eap6.client>
+        <eap6.controller.client>6.2.0.ER7</eap6.controller.client> -->
+        <eap6.client>6.1.1.BZ1024503</eap6.client>
+        <eap6.controller.client>6.1.1.ER7</eap6.controller.client>
         <eap6.cli.client>7.3.0.Final-redhat-7</eap6.cli.client>
 
         <!--<arquillian.version>1.0.3.Final</arquillian.version>-->
