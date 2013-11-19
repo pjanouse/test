@@ -21,17 +21,16 @@
 
         <eap5.client>5.2.0.GA</eap5.client>
 
-        <!-- <eap6.client>6.2.0.ER7</eap6.client>
-        <eap6.controller.client>6.2.0.ER7</eap6.controller.client> -->
-        <eap6.client>6.1.1.BZ1024503</eap6.client>
-        <eap6.controller.client>6.1.1.ER7</eap6.controller.client>
+        <eap6.client>6.1.0.GA-BZ1025862</eap6.client>
+        <eap6.controller.client>6.2.0.ER7</eap6.controller.client>
+
         <eap6.cli.client>7.3.0.Final-redhat-7</eap6.cli.client>
 
         <!--<arquillian.version>1.0.3.Final</arquillian.version>-->
         <arquillian.version>1.1.1.Final</arquillian.version>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
         <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
-        <arquillian.eap5x.container.version>1.0.0.Final-SNAPSHOT</arquillian.eap5x.container.version>
+        <arquillian.eap5x.container.version>1.0.0.CR3</arquillian.eap5x.container.version>
         <version.byteman>2.0.1</version.byteman>
         <version.junit>4.9</version.junit>
         <version.log4j>1.2.16</version.log4j>
@@ -458,6 +457,12 @@
             </activation>
 
             <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.extension</groupId>
+                    <artifactId>arquillian-multiple-containers</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+
                 <dependency>
                     <groupId>org.jboss.logging</groupId>
                     <artifactId>jboss-logging</artifactId>
