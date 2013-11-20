@@ -47,6 +47,7 @@
         <!-- -->
         <container qualifier="node-3" default="false" mode="manual">
             <configuration>
+                <property name="adapterImplClass">org.jboss.as.arquillian.container.managed.ManagedDeployableContainer</property>
                 <property name="jbossHome">${JBOSS_HOME_3}</property>
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
@@ -64,12 +65,14 @@
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
                 <property name="managementPort" >9999</property>
-                <property name="adapterImplClass">org.jboss.as.arquillian.container.managed.ManagedDeployableContainer</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
 
         <container qualifier="node-4" default="false" mode="manual">
             <configuration>
+                <property name="adapterImplClass">org.jboss.as.arquillian.container.managed.ManagedDeployableContainer</property>
                 <property name="jbossHome">${JBOSS_HOME_4}</property>
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
@@ -87,7 +90,8 @@
                 <property name="startupTimeoutInSeconds">10</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
                 <property name="managementPort" >9999</property>
-                <property name="adapterImplClass">org.jboss.as.arquillian.container.managed.ManagedDeployableContainer</property>
+                <property name="username">admin</property>
+                <property name="password">minono532/20</property>
             </configuration>
         </container>
     </group>
