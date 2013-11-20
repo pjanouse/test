@@ -65,7 +65,7 @@ public class MulticastProxy extends Thread {
 
                 sourceMulticastSocket.receive(pkt);
 
-                log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                log.trace("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                         + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
                         + " content: " + Arrays.toString(line) + " dest host:port - "
                         + pkt.getAddress() + ":" + pkt.getPort());
@@ -74,7 +74,7 @@ public class MulticastProxy extends Thread {
                 for (byte[] content : sendPackets)  {
                     if (Arrays.equals(content, line)) {
                         sendPackets.remove(content);
-                        log.debug("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+                        log.trace("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
                                 + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
                                 + ". content: " + Arrays.toString(line) + " and destination host:port - "
                                 + pkt.getAddress() + ":" + pkt.getPort() + " is DUPLICATE - DON'T SEND IT");
