@@ -511,6 +511,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                     "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
                     "controller.kill() will do that.", ex);
         }
+        try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
+            shutdownHook.join();
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
+        log.info("Server " + containerName + " was stopped. There is no from tracking ports (9999, 5445, 8080, ..." +
+                ") running on its IP " + getHostname(containerName));
     }
 
     public int getBytemanPort(String containerName) throws Exception {
