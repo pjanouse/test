@@ -289,33 +289,33 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
 
     // TODO UNCOMMENT WHEN https://bugzilla.redhat.com/show_bug.cgi?id=1019378 IS FIXED
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testKillInClusterSmallMessages() throws Exception {
-//        testFailInCluster(false, new TextMessageBuilder(10));
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testShutdowonInClusterSmallMessages() throws Exception {
-//        testFailInCluster(true, new TextMessageBuilder(10));
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testKillInClusterMixMessages() throws Exception {
-//        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testShutdowonInClusterMixMessages() throws Exception {
-//        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
-//    }
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testKillInClusterSmallMessages() throws Exception {
+        testFailInCluster(false, new TextMessageBuilder(10));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShutdowonInClusterSmallMessages() throws Exception {
+        testFailInCluster(true, new TextMessageBuilder(10));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testKillInClusterMixMessages() throws Exception {
+        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShutdowonInClusterMixMessages() throws Exception {
+        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
+    }
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
