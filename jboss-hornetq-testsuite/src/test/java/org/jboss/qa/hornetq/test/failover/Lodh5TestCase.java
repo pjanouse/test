@@ -45,7 +45,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final String ORACLE11GR2 = "oracle11gr2";
     private static final String MYSQL55 = "mysql55";
-    private static final String POSTGRESQL92 = "postgresplus92";
+    private static final String POSTGRESQL92 = "postgresplus92-xa";
     private static final String MDBTODB = "mdbToDb";
 
     // queue to send messages in 
@@ -114,7 +114,14 @@ public class Lodh5TestCase extends HornetQTestCase {
         // 5 min
         long howLongToWait = 300000;
         long startTime = System.currentTimeMillis();
-        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER && (System.currentTimeMillis() - startTime) < howLongToWait) {
+        long lastValue = 0;
+        long newValue = 0;
+        // wait until:
+        //          there is enough records
+        //          messages are still consumed
+        //          timeout did expire
+        while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue || (System.currentTimeMillis() - startTime) < howLongToWait)) {
+            lastValue = newValue;
             Thread.sleep(5000);
         }
 //        PrintJournal.printJournal(CONTAINER1, "journal_content_before_shutdown3.txt");
@@ -308,6 +315,14 @@ public class Lodh5TestCase extends HornetQTestCase {
                     properties.put((property[0]), property[1].replaceAll("\\\\", ""));
                     logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
                 }
+            }
+
+            // Clean up DB
+            try {
+                response = HttpRequest.get("dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
+                        properties.get("uuid"), 20, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.error("Error during allocating Database.", e);
             }
 
 //            String username = properties.get("db.username");   // db.username=dballo02
