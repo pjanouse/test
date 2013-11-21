@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author mnovak@redhat.com
@@ -41,6 +42,12 @@ public class Lodh5TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+
+    private static final String ORACLE11GR2 = "oracle11gr2";
+    private static final String MYSQL55 = "mysql55";
+    private static final String POSTGRESQL92 = "postgresplus92";
+    private static final String MDBTODB = "mdbToDb";
+
     // queue to send messages in 
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
@@ -51,7 +58,7 @@ public class Lodh5TestCase extends HornetQTestCase {
      *
      * @return test artifact with MDBs
      */
-    @Deployment(managed = false, testable = false, name = "mdbToDb")
+    @Deployment(managed = false, testable = false, name = MDBTODB)
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createDeployment() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbToDb.jar");
@@ -91,7 +98,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        deployer.deploy("mdbToDb");
+        deployer.deploy(MDBTODB);
 
         Thread.sleep(30000);
 
@@ -122,8 +129,9 @@ public class Lodh5TestCase extends HornetQTestCase {
             logger.info("Lost Message: " + m);
         }
         Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
-        deployer.undeploy("mdbToDb");
+        deployer.undeploy(MDBTODB);
         stopServer(CONTAINER1);
+
 //        PrintJournal.printJournal(CONTAINER1, "journal_content_after_shutdown4.txt");
 
     }
@@ -165,7 +173,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "oracle11gr2");
+            prepareJmsServer(CONTAINER1, CONTAINER1_IP, POSTGRESQL92);
             topologyCreated = true;
         }
     }
@@ -178,18 +186,28 @@ public class Lodh5TestCase extends HornetQTestCase {
      */
     private void prepareJmsServer(String containerName, String bindingAddress, String database) throws IOException {
 
+        String poolName = "lodhDb";
+        String postgreJdbDriver = "edb-jdbc14.jar";
+
+        if (POSTGRESQL92.equals(database)) {
+            // copy jdbc driver to deployements directory
+            File postgresJdbcDriverFile = new File("src/test/resources/com/posgresql/jdbc/" + postgreJdbDriver);
+            File targetDirDeployments = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+                    + "deployments" + File.separator + postgreJdbDriver);
+            copyFile(postgresJdbcDriverFile, targetDirDeployments);
+        }
+
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
 
         jmsAdminOperations.setPersistenceEnabled(true);
 
-        if ("oracle11gr2".equalsIgnoreCase(database)) {
+        jmsAdminOperations.setNodeIdentifier((int) System.currentTimeMillis() % Integer.MAX_VALUE);
+
+        if (ORACLE11GR2.equalsIgnoreCase(database)) {
 
 
             /** ORACLE 11GR2 XA DATASOURCE **/
@@ -203,27 +221,27 @@ public class Lodh5TestCase extends HornetQTestCase {
             copyFolder(oracleModuleDir, targetDir);
 
             jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", false, false, "oracle", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, "oracle", "TRANSACTION_READ_COMMITTED",
                     "oracle.jdbc.xa.client.OracleXADataSource", false, true);
-//        jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "MESSAGING");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "MESSAGING");
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-prefill", "true"); // <prefill>true</prefill>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "background-validation", "false"); //<background-validation>false</background-validation>
-//        jmsAdminOperations.addDatasourceProperty("lodhDb", "query-timeout", "true"); //<set-tx-query-timeout>true</set-tx-query-timeout>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
-            jmsAdminOperations.addDatasourceProperty("lodhDb", "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
-        } else if ("mysql55".equalsIgnoreCase(database)) {
+//        jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "User", "MESSAGING");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", "MESSAGING");
+            jmsAdminOperations.addDatasourceProperty(poolName, "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
+            jmsAdminOperations.addDatasourceProperty(poolName, "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
+            jmsAdminOperations.addDatasourceProperty(poolName, "pool-prefill", "true"); // <prefill>true</prefill>
+            jmsAdminOperations.addDatasourceProperty(poolName, "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
+            jmsAdminOperations.addDatasourceProperty(poolName, "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
+            jmsAdminOperations.addDatasourceProperty(poolName, "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
+            jmsAdminOperations.addDatasourceProperty(poolName, "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
+            jmsAdminOperations.addDatasourceProperty(poolName, "background-validation", "false"); //<background-validation>false</background-validation>
+//        jmsAdminOperations.addDatasourceProperty(poolName, "query-timeout", "true"); //<set-tx-query-timeout>true</set-tx-query-timeout>
+            jmsAdminOperations.addDatasourceProperty(poolName, "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
+            jmsAdminOperations.addDatasourceProperty(poolName, "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
+            jmsAdminOperations.addDatasourceProperty(poolName, "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
+            jmsAdminOperations.addDatasourceProperty(poolName, "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
+            jmsAdminOperations.addDatasourceProperty(poolName, "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
+        } else if (MYSQL55.equalsIgnoreCase(database)) {
             /** MYSQL DS XA DATASOURCE **/
             /**
              * <xa-datasource jndi-name="java:jboss/datasources/MySqlXADS" enabled="true" use-java-context="true" pool-name="MySqlXADS">
@@ -238,29 +256,86 @@ public class Lodh5TestCase extends HornetQTestCase {
              */
             File mysqlModuleDir = new File("src/test/resources/com/mysql");
             logger.info("source: " + mysqlModuleDir.getAbsolutePath());
-            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules"
+            File targetDir = new File(getJbossHome(containerName) + File.separator + "modules"
                     + File.separator + "system" + File.separator + "layers" + File.separator + "base" + File.separator
                     + "com" + File.separator + "mysql");
             logger.info("target: " + targetDir.getAbsolutePath());
             copyFolder(mysqlModuleDir, targetDir);
             jmsAdminOperations.createJDBCDriver("mysql", "com.mysql.jdbc", "com.mysql.jdbc.Driver", "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource");
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", "lodhDb", true, false, "mysql", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, "mysql", "TRANSACTION_READ_COMMITTED",
                     "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource", false, true);
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "ServerName", "db01.mw.lab.eng.bos.redhat.com");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "DatabaseName", "messaging");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "User", "messaging");
-            jmsAdminOperations.addXADatasourceProperty("lodhDb", "Password", "messaging");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", "db01.mw.lab.eng.bos.redhat.com");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "messaging");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "User", "messaging");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", "messaging");
             jmsAdminOperations.setNodeIdentifier(14);
+        } else if (POSTGRESQL92.equals(database)) {
+//            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+//            <xa-datasource-property name="ServerName">db14.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+//            <xa-datasource-property name="PortNumber">5432</xa-datasource-property>
+//            <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+//            <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
+//            <driver>postgresql92-jdbc-driver.jar</driver>
+//            <security>
+//            <user-name>crashrec</user-name>
+//            <password>crashrec</password>
+//            </security>
+//            </xa-datasource>
+            //recovery-password=crashrec, recovery-username=crashrec
+            // http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label=$DATABASE&expiry=800&requestee=jbm_$JOB_NAME"
+
+
+            String response = null;
+
+            // ALLOCATE DB
+            try {
+                response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
+                        + POSTGRESQL92 + "&expiry=60&requestee=eap6-hornetq-lodh5", 20, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.error("Error during allocating Database.", e);
+            }
+
+            logger.info("Response is: " + response);
+
+            Scanner lines = new Scanner(response);
+            String line;
+            Map<String, String> properties = new HashMap<String, String>();
+            while (lines.hasNextLine()) {
+                line = lines.nextLine();
+                logger.info("Pring line: " + line);
+                if (!line.startsWith("#")) {
+                    String[] property = line.split("=");
+                    properties.put((property[0]), property[1].replaceAll("\\\\", ""));
+                    logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
+                }
+            }
+
+//            String username = properties.get("db.username");   // db.username=dballo02
+//            String password = properties.get("db.password");   // db.password=dballo02
+            String databaseName = properties.get("db.name");   // db.name
+            String driverName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, postgreJdbDriver, "TRANSACTION_READ_COMMITTED",
+                    driverName, false, true);
+
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "User", username);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", password);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+
         }
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
         jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
         jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-        jmsAdminOperations.addLoggerCategory("oracle", "TRACE");
-//        jmsAdminOperations.setLoggingLevelForConsole("TRACE");
-
-        jmsAdminOperations.setNodeIdentifier(23);
 
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
@@ -421,5 +496,9 @@ public class Lodh5TestCase extends HornetQTestCase {
             out.close();
             System.out.println("File copied from " + src + " to " + dest);
         }
+    }
+
+    public static void main(String[] args) {
+
     }
 }
