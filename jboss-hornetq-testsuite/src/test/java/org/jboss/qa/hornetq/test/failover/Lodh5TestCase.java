@@ -87,6 +87,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.setCommitAfter(1000);
+        producer.setTimeout(0);
         producer.start();
         producer.join();
 
