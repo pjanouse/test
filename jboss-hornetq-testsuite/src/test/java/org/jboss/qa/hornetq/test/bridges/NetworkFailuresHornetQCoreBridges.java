@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -269,13 +271,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         Thread.sleep(5000);
 
         // A1 producer
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails):120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails):120000, 10, 10);
+        receiver1.setTimeout(0);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -293,27 +296,27 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         receiver1.setReceiveTimeOut(10000);
         receiver1.join();
 
-        log.info("Number of sent messages: " + producer1.getCounter());
-        log.info("Number of received messages: " + receiver1.getCount());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         if (staysDisconnected)  {
             Assert.assertTrue("There must be more sent messages then received.",
-                    producer1.getCounter() > receiver1.getCount());
+                    producer1.getListOfSentMessages().size() > receiver1.getCount());
             stopServer(CONTAINER1);
             controller.start(CONTAINER1);
-            SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
-                    producer1.getCounter(),
-                    receiver1.getCount() + receiver2.getCount());
+                    producer1.getListOfSentMessages().size(),
+                    receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
             Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(), receiver1.getCount());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
 
-        log.info("Number of sent messages: " + producer1.getCounter());
-        log.info("Number of received messages: " + receiver1.getCount());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
