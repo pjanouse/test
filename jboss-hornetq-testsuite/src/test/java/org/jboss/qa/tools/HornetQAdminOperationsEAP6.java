@@ -2885,6 +2885,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("max-retries").set(maxRetries);
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
+        model.get("module").set("org.hornetq");
 
         try {
             this.applyUpdate(model);
