@@ -205,7 +205,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER2, AT_MOST_ONCE);
 
-        testDeployBridgeLiveThenBackup(false);
+        testDeployBridgeLiveThenBackup(false, AT_MOST_ONCE);
 
     }
 
@@ -219,7 +219,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER2, DUPLICATES_OK);
 
-        testDeployBridgeLiveThenBackup(false);
+        testDeployBridgeLiveThenBackup(false, DUPLICATES_OK);
 
     }
 
@@ -247,7 +247,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER2, AT_MOST_ONCE);
 
-        testDeployBridgeLiveThenBackup(true);
+        testDeployBridgeLiveThenBackup(true, AT_MOST_ONCE);
 
     }
 
@@ -261,7 +261,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(CONTAINER2, DUPLICATES_OK);
 
-        testDeployBridgeLiveThenBackup(true);
+        testDeployBridgeLiveThenBackup(true, DUPLICATES_OK);
 
     }
 

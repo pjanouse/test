@@ -60,6 +60,10 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
 
     public void testDeployBridgeLiveThenBackup(boolean shutdown) throws Exception {
+        testDeployBridgeLiveThenBackup(shutdown, ONCE_AND_ONLY_ONCE);
+    }
+
+    public void testDeployBridgeLiveThenBackup(boolean shutdown, String qualityOfService) throws Exception {
 
         // start live-backup servers
         controller.start(CONTAINER1);
@@ -106,8 +110,18 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         messageVerifier.verifyMessages();
 
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        if (ONCE_AND_ONLY_ONCE.equals(qualityOfService)) {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        } else if (AT_MOST_ONCE.equals(qualityOfService)) {
+            Assert.assertTrue("There should be more send than received messages. Sent: " + producerToInQueue1.getListOfSentMessages().size()
+                    + " , received: " + receiver1.getListOfReceivedMessages().size(),
+                    producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
+        } else if (DUPLICATES_OK.equals(qualityOfService)) {
+            Assert.assertTrue("There should be more received than send messages. Sent: " + producerToInQueue1.getListOfSentMessages().size()
+                    + " , received: " + receiver1.getListOfReceivedMessages().size(),
+                    producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
+        }
 
         stopServer(CONTAINER3);
         stopServer(CONTAINER2);
@@ -181,8 +195,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     }
 
     /**
-     * @param failback whether to do failback
-     * @param shutdown shutdown server
+     * @param failback         whether to do failback
+     * @param shutdown         shutdown server
      * @param qualityOfService quality of service
      * @throws Exception
      */
@@ -224,8 +238,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
 
         // if failback then start container1 again
-            // wait for to start
-            // start consumer on container1
+        // wait for to start
+        // start consumer on container1
         // else start receiver on container2
         if (failback) {
             logger.warn("########################################");
@@ -265,7 +279,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         if (ONCE_AND_ONLY_ONCE.equals(qualityOfService)) {
             Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                    producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         } else if (AT_MOST_ONCE.equals(qualityOfService)) {
             Assert.assertTrue("There is more received messages then sent. That's bad for AT_MOST_ONCE.",
                     producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
@@ -531,7 +545,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
 
     @Before
-    public void prepareServers() throws Exception  {
+    public void prepareServers() throws Exception {
         prepareTopology();
     }
 
