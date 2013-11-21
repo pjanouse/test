@@ -33,9 +33,12 @@ import org.junit.runner.RunWith;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -1121,6 +1124,34 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         return isWritable;
 
+    }
+    /**
+     * Copies file from one place to another.
+     *
+     * @param sourceFile source file
+     * @param destFile   destination file - file will be rewritten
+     * @throws IOException
+     */
+    public void copyFile(File sourceFile, File destFile) throws IOException {
+        if (!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        } finally {
+            if (source != null) {
+                source.close();
+            }
+            if (destination != null) {
+                destination.close();
+            }
+        }
     }
 
 }

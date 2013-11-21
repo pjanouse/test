@@ -403,35 +403,6 @@ public class SoakTestCase extends HornetQTestCase {
     }
 
     /**
-     * Copies file from one place to another.
-     *
-     * @param sourceFile      source file
-     * @param destinationFile destination file - file will be rewritten
-     * @throws IOException
-     */
-    private void copyFile(File sourceFile, File destinationFile) throws IOException {
-        if (!destinationFile.exists()) {
-            if (!destinationFile.createNewFile()) {
-                throw new IOException("Cannot create new destination file");
-            }
-        }
-        FileChannel source = null;
-        FileChannel destination = null;
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destinationFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-        }
-    }
-
-    /**
      * Prepares and starts load subscribers with gap
      *
      * @param hostname            target host name

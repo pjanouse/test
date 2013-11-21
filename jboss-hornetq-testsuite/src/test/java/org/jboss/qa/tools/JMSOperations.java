@@ -1288,4 +1288,6 @@ public interface JMSOperations {
             String expireQueue, String deadLetterQueue, int maxDeliveryAttempts);
 
     void addMessageGrouping(String name, String type, String address, long timeout);
+
+    void setXADatasourceAtribute(String poolName, String attributeName, String value);
 }

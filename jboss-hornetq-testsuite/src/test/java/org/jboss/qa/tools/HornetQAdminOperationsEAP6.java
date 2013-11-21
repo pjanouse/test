@@ -1247,6 +1247,31 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Add XA datasource property.
+     *
+     * @param poolName pool name
+     * @param attributeName attribute name
+     * @param value value
+     */
+    @Override
+    public void setXADatasourceAtribute(String poolName, String attributeName, String value) {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+        model.get("name").set(attributeName);
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
      * Add driver.
      */
     @Override

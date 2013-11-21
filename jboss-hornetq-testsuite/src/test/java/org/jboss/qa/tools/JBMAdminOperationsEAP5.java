@@ -1735,4 +1735,9 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setXADatasourceAtribute(String poolName, String attributeName, String value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }

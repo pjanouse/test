@@ -132,14 +132,4 @@ public abstract class SecurityTestBase extends HornetQTestCase {
         ops.createRemoteAcceptor(acceptorName, SOCKET_BINDING_NAME, properties);
     }
 
-
-    private void copyFile(final File source, final File target) throws IOException {
-        if (!target.exists()) {
-            target.createNewFile();
-        }
-
-        AdministrationTestCase fileOps = new AdministrationTestCase();
-        fileOps.copyFile(source, target);
-    }
-
 }
