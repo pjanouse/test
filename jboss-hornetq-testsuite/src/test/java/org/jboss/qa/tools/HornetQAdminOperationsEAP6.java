@@ -1212,6 +1212,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("xa-datasource-class").set(xaDatasourceClass);
         model.get("no-tx-separate-pool").set(noTxSeparatePool);
         model.get("same-rm-override").set(isSameRmOverride);
+        model.get("enabled").set(true);
 
         try {
             this.applyUpdate(model);
