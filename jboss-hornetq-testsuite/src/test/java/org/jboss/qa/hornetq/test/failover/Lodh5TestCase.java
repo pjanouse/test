@@ -6,7 +6,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
@@ -19,7 +18,6 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
@@ -66,11 +64,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         mdbJar.addClass(MessageInfo.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdbtodb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdbtodb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -115,7 +113,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         long howLongToWait = 300000;
         long startTime = System.currentTimeMillis();
         long lastValue = 0;
-        long newValue = 0;
+        long newValue;
         // wait until:
         //          there is enough records
         //          messages are still consumed
@@ -180,7 +178,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
         if (!topologyCreated) {
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, POSTGRESQL92);
+            prepareJmsServer(CONTAINER1, POSTGRESQL92);
             topologyCreated = true;
         }
     }
@@ -189,9 +187,9 @@ public class Lodh5TestCase extends HornetQTestCase {
      * Prepares jms server for remote jca topology.
      *
      * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
+     *
      */
-    private void prepareJmsServer(String containerName, String bindingAddress, String database) throws IOException {
+    private void prepareJmsServer(String containerName, String database) throws IOException {
 
         String poolName = "lodhDb";
         String postgreJdbDriver = "edb-jdbc14.jar";
@@ -319,7 +317,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             // Clean up DB
             try {
-                response = HttpRequest.get("dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
+                HttpRequest.get("dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
                         properties.get("uuid"), 20, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 logger.error("Error during allocating Database.", e);
@@ -390,11 +388,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         dbUtilServlet.addClass(DbUtilServlet.class);
         logger.info(dbUtilServlet.toString(true));
 //      Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/DbUtilServlet.war");
-        if (target.exists()) {
-            target.delete();
-        }
-        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/DbUtilServlet.war");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
 
         return dbUtilServlet;
     }
@@ -513,7 +511,4 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
     }
 
-    public static void main(String[] args) {
-
-    }
 }
