@@ -317,7 +317,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             // Clean up DB
             try {
-                HttpRequest.get("dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
+                HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
                         properties.get("uuid"), 20, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 logger.error("Error during allocating Database.", e);
