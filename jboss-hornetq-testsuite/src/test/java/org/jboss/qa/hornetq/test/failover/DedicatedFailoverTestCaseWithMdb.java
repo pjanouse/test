@@ -144,7 +144,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(CONTAINER2_IP, 5445, 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 300000));
+                waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 600000));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
