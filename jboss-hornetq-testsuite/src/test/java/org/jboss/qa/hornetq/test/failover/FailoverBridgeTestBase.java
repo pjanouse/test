@@ -94,6 +94,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("Server shutdowned");
         } else {
             killServer(CONTAINER1);
+            controller.kill(CONTAINER1); // check whether server was really killed
             logger.warn("Server killed");
         }
         logger.warn("###################################");
@@ -262,9 +263,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         ReceiverClientAck receiver1;
         if (failback) {
-            receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 300000, 100, 10);
+            receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 30000, 100, 10);
         } else {
-            receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 300000, 100, 10);
+            receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 30000, 100, 10);
         }
 
         receiver1.setMessageVerifier(messageVerifier);
@@ -284,7 +285,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             Assert.assertTrue("There is more received messages then sent. That's bad for AT_MOST_ONCE.",
                     producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
         } else if (DUPLICATES_OK.equals(qualityOfService)) {
-            Assert.assertTrue("There is more send messages then sent. That's bad for DUPLICATES_OK.",
+            Assert.assertTrue("There is more send messages than received. That's bad for DUPLICATES_OK.",
                     producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
         }
 
