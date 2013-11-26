@@ -459,6 +459,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             if (!(checkThatServerIsReallyUp(getHostname(containerName), 9999)
                     && checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
+                controller.kill(containerName); // call controller.kill to arquillian that server is really dead
                 return;
             }
         } catch (Exception ex)  {

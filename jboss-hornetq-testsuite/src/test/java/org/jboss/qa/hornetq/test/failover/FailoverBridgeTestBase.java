@@ -17,10 +17,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -210,6 +207,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        messageBuilder.setAddDuplicatedHeader(false);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setMessageVerifier(messageVerifier);
@@ -239,7 +237,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
 
         // if failback then start container1 again
-        // wait for to start
+        // wait for container1 to start
         // start consumer on container1
         // else start receiver on container2
         if (failback) {
@@ -279,13 +277,16 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         messageVerifier.verifyMessages();
 
         if (ONCE_AND_ONLY_ONCE.equals(qualityOfService)) {
-            Assert.assertEquals("There is different number of sent and received messages.",
+            Assert.assertEquals("There is different number of sent and received. Sent messages: " + producerToInQueue1.getListOfSentMessages().size()
+                    + " received messages: " + receiver1.getListOfReceivedMessages().size(),
                     producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         } else if (AT_MOST_ONCE.equals(qualityOfService)) {
-            Assert.assertTrue("There is more received messages then sent. That's bad for AT_MOST_ONCE.",
+            Assert.assertTrue("There is more received messages then sent. That's bad for AT_MOST_ONCE. Sent messages: " + producerToInQueue1.getListOfSentMessages().size()
+                    + " received messages: " + receiver1.getListOfReceivedMessages().size(),
                     producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
         } else if (DUPLICATES_OK.equals(qualityOfService)) {
-            Assert.assertTrue("There is more send messages than received. That's bad for DUPLICATES_OK.",
+            Assert.assertTrue("There is more send messages than received. That's bad for DUPLICATES_OK. Sent messages: " + producerToInQueue1.getListOfSentMessages().size()
+                    + " received messages: " + receiver1.getListOfReceivedMessages().size(),
                     producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
         }
 
@@ -384,10 +385,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      * Prepares live server for dedicated topology.
      *
      * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(String containerName, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
@@ -452,7 +452,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(String containerName, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -571,9 +571,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      */
     public void prepareTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
 
-        prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2, JOURNAL_DIRECTORY_A);
 
         prepareServerWithBridge(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
 
