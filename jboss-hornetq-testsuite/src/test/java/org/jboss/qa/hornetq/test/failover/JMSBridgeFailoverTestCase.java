@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -199,6 +200,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testKillDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
 
         deployBridge(CONTAINER1, AT_MOST_ONCE);
@@ -213,6 +215,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testKillDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
 
         deployBridge(CONTAINER1, DUPLICATES_OK);
@@ -227,6 +230,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testKillDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
 
         deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);
@@ -241,6 +245,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testShutdownDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
 
         deployBridge(CONTAINER1, AT_MOST_ONCE);
@@ -255,6 +260,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testShutdownDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
 
         deployBridge(CONTAINER1, DUPLICATES_OK);
@@ -269,6 +275,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore // not valid test scenario
     public void testShutdownDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
 
         deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);

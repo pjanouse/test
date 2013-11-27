@@ -233,6 +233,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             controller.kill(CONTAINER1);
             logger.warn("Server killed");
         }
+
         logger.warn("###################################");
         waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
 
@@ -241,6 +242,13 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         // start consumer on container1
         // else start receiver on container2
         if (failback) {
+            if (ONCE_AND_ONLY_ONCE.equals(qualityOfService)) {
+
+                // there is a problem that can't statr live so quickly, because of periodic recovery or retry of ack => so this timeout
+                Thread.sleep(180000);
+            } else {
+                Thread.sleep(30000);
+            }
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
@@ -431,7 +439,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
-        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
@@ -501,6 +508,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
         jmsAdminOperations.setFailoverOnShutdown(true);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName,true);
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
@@ -511,7 +519,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
-        jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();
 
