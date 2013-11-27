@@ -2595,7 +2595,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
-        model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+        model.get(ClientConstants.OP_ADDR).add("data-source", poolName);
         model.get("name").set(propertyName);
         model.get("value").set(value);
 
