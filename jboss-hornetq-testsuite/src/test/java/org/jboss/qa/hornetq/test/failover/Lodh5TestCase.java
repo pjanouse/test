@@ -19,6 +19,7 @@ import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
@@ -27,6 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -40,16 +44,18 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 15000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
 
     private static final String ORACLE11GR2 = "oracle11gr2";
     private static final String MYSQL55 = "mysql55";
-    private static final String POSTGRESQLPLUS92 = "postgresplus92-xa";
+    private static final String POSTGRESQLPLUS92 = "postgresplus92";
     private static final String MDBTODB = "mdbToDb";
 
     // queue to send messages
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
+
+    Map<String, String> properties;
 
     /**
      * This mdb reads messages from remote InQueue
@@ -100,6 +106,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
+        if (POSTGRESQLPLUS92.equals(databaseName)) {
+            rollbackPreparedTransactions(properties.get("db.username"));
+        }
         deleteRecords();
         countRecords();
 
@@ -129,10 +138,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         long startTime = System.currentTimeMillis();
         long lastValue = 0;
         long newValue;
-        //     wait until:
-        //          there is enough records
-        //          messages are still consumed
-        //          timeout did expire
+
         while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue
                 || (System.currentTimeMillis() - startTime) < howLongToWait)) {
             lastValue = newValue;
@@ -152,6 +158,9 @@ public class Lodh5TestCase extends HornetQTestCase {
             logger.info("Lost Message: " + m);
         }
         Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
+        if (POSTGRESQLPLUS92.equals(databaseName)) {
+            rollbackPreparedTransactions(properties.get("db.username"));
+        }
         deployer.undeploy(MDBTODB);
         stopServer(CONTAINER1);
 
@@ -307,7 +316,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             Scanner lines = new Scanner(response);
             String line;
-            Map<String, String> properties = new HashMap<String, String>();
+            properties = new HashMap<String, String>();
             while (lines.hasNextLine()) {
                 line = lines.nextLine();
                 logger.info("Print line: " + line);
@@ -318,16 +327,6 @@ public class Lodh5TestCase extends HornetQTestCase {
                 }
             }
 
-            // Clean up DB
-            try {
-                HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
-                        properties.get("uuid"), 120, TimeUnit.SECONDS);
-            } catch (TimeoutException e) {
-                throw new Exception("Error during clean up of database using DBAllocator.", e);
-            }
-
-//            String username = properties.get("db.username");   // db.username=dballo02
-//            String password = properties.get("db.password");   // db.password=dballo02
             String databaseName = properties.get("db.name");   // db.name
             String driverName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
@@ -335,14 +334,20 @@ public class Lodh5TestCase extends HornetQTestCase {
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
 
+//            // Clean up DB
+//            try {
+//                HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
+//                        properties.get("uuid"), 120, TimeUnit.SECONDS);
+//            } catch (TimeoutException e) {
+//                throw new Exception("Error during clean up of database using DBAllocator.", e);
+//            }
+
             jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, postgreJdbDriver, "TRANSACTION_READ_COMMITTED",
                     driverName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
-//            jmsAdminOperations.addXADatasourceProperty(poolName, "User", username);
-//            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", password);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
 
@@ -350,8 +355,6 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
-//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
-//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
@@ -391,11 +394,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         dbUtilServlet.addClass(DbUtilServlet.class);
         logger.info(dbUtilServlet.toString(true));
 //      Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/DbUtilServlet.war");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
+        File target = new File("/tmp/DbUtilServlet.war");
+        if (target.exists()) {
+            target.delete();
+        }
+        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
 
         return dbUtilServlet;
     }
@@ -424,6 +427,20 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
 
         return messageIds;
+    }
+
+    public void rollbackPreparedTransactions(String owner) throws Exception {
+        try {
+            deployer.deploy("dbUtilServlet");
+
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner, 30, TimeUnit.SECONDS);
+            deployer.undeploy("dbUtilServlet");
+
+            logger.info("Response is: " + response);
+
+        } finally {
+            deployer.undeploy("dbUtilServlet");
+        }
     }
 
     public int countRecords() throws Exception {

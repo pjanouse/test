@@ -72,6 +72,8 @@ public class DbUtilServlet extends HttpServlet {
             if (op != null) {
                 if (op.equals("deleteRecords")) {
                     deleteAll(out);
+                } else if (op.equals("rollbackPreparedTransactions")) {
+                    rollbackPreparedTransactions(out, request.getParameter("owner"));
                 } else if (op.equals("countAll")) {
                     countAll(out);
                 } else if (op.equals("insertRecord")) {
@@ -172,6 +174,42 @@ public class DbUtilServlet extends HttpServlet {
 
         return dataSource.getConnection();
 
+    }
+
+    // this is for postgresql
+    public void rollbackPreparedTransactions(PrintWriter out, String owner)   {
+
+        out.println("Calling rollback for prepared transactions for owner " + owner + ":");
+
+        Connection connection = null;
+
+        try {
+
+            connection = getConnection();
+            String selectPreparedTransactions = "select gid from pg_prepared_xacts where owner = '" + owner + "'; ";
+            out.println("Select: " + selectPreparedTransactions);
+            PreparedStatement ps = connection.prepareStatement(selectPreparedTransactions);
+            ResultSet rs = ps.executeQuery();
+            PreparedStatement ps1;
+            while (rs.next()) {
+                out.println(rs.getString(1));
+                ps1 = connection.prepareStatement("ROLLBACK PREPARED '" + rs.getString(1) + "';"); // rollback transaction with gid xyz
+                ps1.execute();
+                ps1.close();
+            }
+            rs.close();
+            ps.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                }
+            }
+        }
     }
 
     public long countAll(PrintWriter out) {
