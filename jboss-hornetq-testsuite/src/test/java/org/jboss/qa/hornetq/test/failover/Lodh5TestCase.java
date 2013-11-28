@@ -1,3 +1,4 @@
+// use groovy to download jdbc drivers
 package org.jboss.qa.hornetq.test.failover;
 
 import junit.framework.Assert;
@@ -28,9 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -59,7 +57,8 @@ public class Lodh5TestCase extends HornetQTestCase {
     static String inQueueHornetQName = "InQueue";
     static String inQueueRelativeJndiName = "jms/queue/" + inQueueHornetQName;
 
-    Map<String, String> properties;
+    // this is filled by allocateDatabase() method
+    private Map<String, String> properties;
 
     /**
      * This mdb reads messages from remote InQueue
@@ -102,6 +101,17 @@ public class Lodh5TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testOracle() throws Exception {
         testFail(ORACLE11GR2);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMysql() throws Exception {
+        testFail(MYSQL55);
     }
 
     public void testFail(String databaseName) throws Exception {
@@ -210,11 +220,18 @@ public class Lodh5TestCase extends HornetQTestCase {
             /** ORACLE 11GR2 XA DATASOURCE **/
             jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
                     "org" + File.separator + "jboss" + File.separator + "hornetq" + File.separator + "configuration" + File.separator +
-                    "modules" + File.separator + "oracle" + File.separator + "db" + File.separator +  "main"
+                    "modules" + File.separator + "oracle" + File.separator + "db" + File.separator + "main"
                     + File.separator + oracleJdbcDriver);
+        } else if (MYSQL55.equals(database)) {
+            String mysqlJdbcDriver = "mysql-connector-java-5.1.21-bin.jar";
+            /** ORACLE 11GR2 XA DATASOURCE **/
+            // src/test/resources/com/mysql/jdbc/
+            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
+                    "com" + File.separator + "mysql" + File.separator + "jdbc" + File.separator + "main" + File.separator  + mysqlJdbcDriver);
         } else {
             throw new Exception("For database " + database + " is not prepared any configuration.");
         }
+
         File targetDirDeployments = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
                 + "deployments" + File.separator + database + ".jar");
         copyFile(jdbcDriverFile, targetDirDeployments);
@@ -306,57 +323,68 @@ public class Lodh5TestCase extends HornetQTestCase {
                 </xa-datasource>
             */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
-//            String databaseName = properties.get("db.name");   // db.name
-//            String driverName = properties.get("datasource.class.xa"); // datasource.class.xa
-//            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
-//            String portNumber = properties.get("db.port"); // db.port=5432
-//            String recoveryUsername = properties.get("db.username");
-//            String recoveryPassword = properties.get("db.password");
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+            String url = properties.get("db.jdbc_url");
 
-            String databaseName = "crashrec"; // db.name
-            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
-            String serverName = "vmg05.mw.lab.eng.bos.redhat.com"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
-            String portNumber = "1521"; // db.port=5432
-            String recoveryUsername = "crashrec";
-            String recoveryPassword = "crashrec";
+//            String databaseName = "crashrec"; // db.name
+//            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
+//            String serverName = "dev151.mw.lab.eng.bos.redhat.com:1521"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
+//            String portNumber = "1521"; // db.port=5432
+//            String recoveryUsername = "crashrec";
+//            String recoveryPassword = "crashrec";
+//            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
 
-
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database+".jar", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database + ".jar", "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@" + serverName + ":" + portNumber + ":qaora11");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
 
         } else if (MYSQL55.equalsIgnoreCase(database)) {
             /** MYSQL DS XA DATASOURCE **/
-            /**
-             * <xa-datasource jndi-name="java:jboss/datasources/MySqlXADS" enabled="true" use-java-context="true" pool-name="MySqlXADS">
-             <xa-datasource-property name="ServerName">localhost</xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">test</xa-datasource-property>
-             <xa-datasource-property name="User">root</xa-datasource-property>
-             <xa-datasource-property name="Password"></xa-datasource-property>
-             <driver>
-             mysql
-             </driver>
-             </xa-datasource>
-             */
-            File mysqlModuleDir = new File("src/test/resources/com/mysql");
-            logger.info("source: " + mysqlModuleDir.getAbsolutePath());
-            File targetDir = new File(getJbossHome(containerName) + File.separator + "modules"
-                    + File.separator + "system" + File.separator + "layers" + File.separator + "base" + File.separator
-                    + "com" + File.separator + "mysql");
-            logger.info("target: " + targetDir.getAbsolutePath());
-            copyFolder(mysqlModuleDir, targetDir);
-            jmsAdminOperations.createJDBCDriver("mysql", "com.mysql.jdbc", "com.mysql.jdbc.Driver", "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource");
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, "mysql", "TRANSACTION_READ_COMMITTED",
-                    "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource", false, true);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", "db01.mw.lab.eng.bos.redhat.com");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "messaging");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "User", "messaging");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", "messaging");
+            /*
+            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">
+                        db01.mw.lab.eng.bos.redhat.com
+                        </xa-datasource-property>
+                <xa-datasource-property name="PortNumber">
+                        3306
+                        </xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">
+                        crashrec
+                        </xa-datasource-property>
+                <xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
+                <driver>mysql55-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+            </xa-datasource>
+            */
+
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, MYSQL55+".jar" , "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "User", recoveryUsername);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", recoveryPassword);
+
         } else if (POSTGRESQLPLUS92.equals(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
 //            <xa-datasource-property name="ServerName">db14.mw.lab.eng.bos.redhat.com</xa-datasource-property>
@@ -372,8 +400,6 @@ public class Lodh5TestCase extends HornetQTestCase {
             //recovery-password=crashrec, recovery-username=crashrec
             // http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label=$DATABASE&expiry=800&requestee=jbm_$JOB_NAME"
 
-            String response = null;
-
             String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
@@ -381,7 +407,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database+".jar", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database + ".jar", "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
@@ -442,8 +468,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 20, TimeUnit.SECONDS);
-            deployer.undeploy("dbUtilServlet");
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
 
             StringTokenizer st = new StringTokenizer(response, ",");
             while (st.hasMoreTokens()) {
