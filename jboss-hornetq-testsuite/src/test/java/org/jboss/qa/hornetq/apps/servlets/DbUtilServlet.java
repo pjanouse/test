@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
+import org.jboss.qa.hornetq.test.failover.Lodh5TestCase;
+
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -73,7 +75,7 @@ public class DbUtilServlet extends HttpServlet {
                 if (op.equals("deleteRecords")) {
                     deleteAll(out);
                 } else if (op.equals("rollbackPreparedTransactions")) {
-                    rollbackPreparedTransactions(out, request.getParameter("owner"));
+                    rollbackPreparedTransactions(out,request.getParameter("database"), request.getParameter("owner"));
                 } else if (op.equals("countAll")) {
                     countAll(out);
                 } else if (op.equals("insertRecord")) {
@@ -97,7 +99,6 @@ public class DbUtilServlet extends HttpServlet {
         Connection connection = null;
 
         try {
-
             connection = getConnection();
 //            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
 //            String sql = "DROP TABLE MESSAGE_INFO2 PURGE";
@@ -176,40 +177,45 @@ public class DbUtilServlet extends HttpServlet {
 
     }
 
-    // this is for postgresql
-    public void rollbackPreparedTransactions(PrintWriter out, String owner)   {
+    public void rollbackPreparedTransactions(PrintWriter out, String database, String owner) {
 
-        out.println("Calling rollback for prepared transactions for owner " + owner + ":");
+        out.println("Calling rollback for prepared transactions for owner " + owner + " and database " + database + ":");
 
-        Connection connection = null;
+        int count = 0;
+        if (Lodh5TestCase.POSTGRESQLPLUS92.equals(database)) {
+            Connection connection = null;
+            try {
 
-        try {
+                connection = getConnection();
+                String selectPreparedTransactions = "select gid from pg_prepared_xacts where owner = '" + owner + "'; ";
+                out.println("Select: " + selectPreparedTransactions);
+                PreparedStatement ps = connection.prepareStatement(selectPreparedTransactions);
+                ResultSet rs = ps.executeQuery();
 
-            connection = getConnection();
-            String selectPreparedTransactions = "select gid from pg_prepared_xacts where owner = '" + owner + "'; ";
-            out.println("Select: " + selectPreparedTransactions);
-            PreparedStatement ps = connection.prepareStatement(selectPreparedTransactions);
-            ResultSet rs = ps.executeQuery();
-            PreparedStatement ps1;
-            while (rs.next()) {
-                out.println(rs.getString(1));
-                ps1 = connection.prepareStatement("ROLLBACK PREPARED '" + rs.getString(1) + "';"); // rollback transaction with gid xyz
-                ps1.execute();
-                ps1.close();
-            }
-            rs.close();
-            ps.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException ex) {
+                PreparedStatement ps1;
+                while (rs.next()) {
+                    out.println(rs.getString(1));
+                    ps1 = connection.prepareStatement("ROLLBACK PREPARED '" + rs.getString(1) + "';"); // rollback transaction with gid xyz
+                    ps1.execute();
+                    ps1.close();
+                    count++;
+                }
+                rs.close();
+                ps.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException ex) {
+                    }
                 }
             }
+        } else {
+            out.println("There are no SQL commands for rollbacking prepared transactions from DB " + database);
         }
+        out.println(Lodh5TestCase.NUMBER_OF_ROLLBACKED_TRANSACTIONS + count);
     }
 
     public long countAll(PrintWriter out) {

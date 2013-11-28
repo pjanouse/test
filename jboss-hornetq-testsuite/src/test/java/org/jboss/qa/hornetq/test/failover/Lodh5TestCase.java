@@ -44,11 +44,15 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
-    private static final String ORACLE11GR2 = "oracle11gr2";
-    private static final String MYSQL55 = "mysql55";
-    private static final String POSTGRESQLPLUS92 = "postgresplus92";
+    // MUST be the same names as in DBAllocator - http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=report
+    public static final String ORACLE11GR2 = "oracle11gR2";
+    public static final String MYSQL55 = "mysql55";
+    public static final String POSTGRESQLPLUS92 = "postgresplus92";
+
+    public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
+
     private static final String MDBTODB = "mdbToDb";
 
     // queue to send messages
@@ -106,9 +110,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        if (POSTGRESQLPLUS92.equals(databaseName)) {
-            rollbackPreparedTransactions(properties.get("db.username"));
-        }
+        rollbackPreparedTransactions(databaseName, properties.get("db.username"));  // if dbutilservlet can do it
         deleteRecords();
         countRecords();
 
@@ -128,25 +130,23 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             killServer(CONTAINER1);
             controller.kill(CONTAINER1);
-            PrintJournal.printJournal(CONTAINER1, "journal_content_after_kill1.txt");
+            PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_kill1.txt");
             controller.start(CONTAINER1);
-            PrintJournal.printJournal(CONTAINER1, "journal_content_after_restart2.txt");
+            PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_restart2.txt");
             Thread.sleep(10000);
+
         }
-        // 5 min
+
         long howLongToWait = 250000;
         long startTime = System.currentTimeMillis();
         long lastValue = 0;
         long newValue;
-
         while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue
                 || (System.currentTimeMillis() - startTime) < howLongToWait)) {
             lastValue = newValue;
-            PrintJournal.printJournal(CONTAINER1, "journal_content_during_final_receive_and_recovery" + newValue + ".txt");
             Thread.sleep(10000);
         }
-
-        PrintJournal.printJournal(CONTAINER1, "journal_content_after_recovery.txt");
+        PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_ecovery.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
@@ -158,14 +158,14 @@ public class Lodh5TestCase extends HornetQTestCase {
             logger.info("Lost Message: " + m);
         }
         Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
-        if (POSTGRESQLPLUS92.equals(databaseName)) {
-            rollbackPreparedTransactions(properties.get("db.username"));
-        }
+
+        // check that there are no prepared transactions under this user
+        int count = rollbackPreparedTransactions(databaseName, properties.get("db.username"));
+        Assert.assertEquals("After LODH 5 test there must be 0 transactions in prepared stated in DB. Current value is " + count,
+                0, count);
+
         deployer.undeploy(MDBTODB);
         stopServer(CONTAINER1);
-
-
-
     }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
@@ -196,70 +196,140 @@ public class Lodh5TestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
+    private void deployJdbcDriver(String containerName, String database) throws Exception {
+
+        File jdbcDriverFile;
+        //////////////// DEPLOY JDBC DRIVER //////////////////////////////////////////////////////////////
+        if (POSTGRESQLPLUS92.equals(database)) {
+            String postgreJdbDriver = "edb-jdbc14.jar";
+            // copy jdbc driver to deployements directory
+            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
+                    "com" + File.separator + "posgresql" + File.separator + "jdbc" + File.separator + postgreJdbDriver);
+        } else if (ORACLE11GR2.equals(database)) {
+            String oracleJdbcDriver = "oracle11gr2.jar";
+            /** ORACLE 11GR2 XA DATASOURCE **/
+            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
+                    "org" + File.separator + "jboss" + File.separator + "hornetq" + File.separator + "configuration" + File.separator +
+                    "modules" + File.separator + "oracle" + File.separator + "db" + File.separator +  "main"
+                    + File.separator + oracleJdbcDriver);
+        } else {
+            throw new Exception("For database " + database + " is not prepared any configuration.");
+        }
+        File targetDirDeployments = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+                + "deployments" + File.separator + database + ".jar");
+        copyFile(jdbcDriverFile, targetDirDeployments);
+
+    }
+
+    private void allocateDatabase(String database) throws Exception {
+
+        String response = "";
+        String url = "http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
+                + database + "&expiry=60&requestee=eap6-hornetq-lodh5";
+        logger.info("Allocate db: " + url);
+        try {
+            response = HttpRequest.get(url, 20, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            throw new IllegalStateException("Error during allocating Database.", e);
+        }
+        logger.info("Response is: " + response);
+        // parse response
+        Scanner lines = new Scanner(response);
+        String line;
+        properties = new HashMap<String, String>();
+        while (lines.hasNextLine()) {
+            line = lines.nextLine();
+            logger.info("Print line: " + line);
+            if (!line.startsWith("#")) {
+                String[] property = line.split("=");
+                properties.put((property[0]), property[1].replaceAll("\\\\", ""));
+                logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
+            }
+        }
+
+    }
+
+    /**
+     * Deallocate db from db allocator if there is anything to deallocate
+     *
+     * @throws Exception
+     */
+    @After
+    public void deallocateDatabase() throws Exception {
+        String response = "";
+        try {
+            response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
+                    20, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("Database could not be deallocated. Response: " + response, e);
+
+        }
+        logger.trace("Response from deallocating database is: " + response);
+    }
+
 
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
-     *
+     * @param containerName Name of the container - defined in arquillian.xml
      */
     private void prepareJmsServer(String containerName, String database) throws Exception {
 
         String poolName = "lodhDb";
-        String postgreJdbDriver = "edb-jdbc14.jar";
 
-        if (POSTGRESQLPLUS92.equals(database)) {
-            // copy jdbc driver to deployements directory
-            File postgresJdbcDriverFile = new File("src/test/resources/com/posgresql/jdbc/" + postgreJdbDriver);
-            File targetDirDeployments = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
-                    + "deployments" + File.separator + postgreJdbDriver);
-            copyFile(postgresJdbcDriverFile, targetDirDeployments);
-        }
+        deployJdbcDriver(containerName, database);
+        allocateDatabase(database);
 
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
         jmsAdminOperations.setClustered(true);
-
         jmsAdminOperations.setPersistenceEnabled(true);
-
         Random r = new Random();
         jmsAdminOperations.setNodeIdentifier(r.nextInt(9999));
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
+        jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
         if (ORACLE11GR2.equalsIgnoreCase(database)) {
+            /*
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
+            // UNCOMMENT WHEN DB ALLOCATOR IS READY
+//            String databaseName = properties.get("db.name");   // db.name
+//            String driverName = properties.get("datasource.class.xa"); // datasource.class.xa
+//            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+//            String portNumber = properties.get("db.port"); // db.port=5432
+//            String recoveryUsername = properties.get("db.username");
+//            String recoveryPassword = properties.get("db.password");
 
-            /** ORACLE 11GR2 XA DATASOURCE **/
-            File oracleModuleDir = new File("src/test/resources/org/jboss/hornetq/configuration/modules/oracle");
-            logger.info("source: " + oracleModuleDir.getAbsolutePath());
-            File targetDir = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "modules" + File.separator
-                    + "system" + File.separator + "layers" + File.separator + "base" + File.separator
-                    + "com" + File.separator + "oracle");
-            //jboss-eap-6.1/modules/system/layers/base
-            logger.info("target: " + targetDir.getAbsolutePath());
-            copyFolder(oracleModuleDir, targetDir);
+            String databaseName = "crashrec"; // db.name
+            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
+            String serverName = "vmg05.mw.lab.eng.bos.redhat.com"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = "1521"; // db.port=5432
+            String recoveryUsername = "crashrec";
+            String recoveryPassword = "crashrec";
 
-            jmsAdminOperations.createJDBCDriver("oracle", "com.oracle.db", "oracle.jdbc.driver.OracleDriver", "oracle.jdbc.xa.client.OracleXADataSource");
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, "oracle", "TRANSACTION_READ_COMMITTED",
-                    "oracle.jdbc.xa.client.OracleXADataSource", false, true);
-//        jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=on)(ADDRESS=(PROTOCOL=TCP)(HOST=vmg27-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=vmg28-vip.mw.lab.eng.bos.redhat.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=qarac.jboss)))");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@db04.mw.lab.eng.bos.redhat.com:1521:qaora11");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "User", "MESSAGING");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", "MESSAGING");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "min-pool-size", "10"); //<min-pool-size>10</min-pool-size>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "max-pool-size", "20"); // <max-pool-size>20</max-pool-size>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "pool-prefill", "true"); // <prefill>true</prefill>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "pool-use-strict-min", "false"); //<use-strict-min>false</use-strict-min>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "flush-strategy", "FailingConnectionOnly"); //<flush-strategy>FailingConnectionOnly</flush-strategy>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "valid-connection-checker-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"); //<valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"/>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "validate-on-match", "false"); //<validate-on-match>false</validate-on-match>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "background-validation", "false"); //<background-validation>false</background-validation>
-//        jmsAdminOperations.addDatasourceProperty(poolName, "query-timeout", "true"); //<set-tx-query-timeout>true</set-tx-query-timeout>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "blocking-timeout-wait-millis", "30000"); //<blocking-timeout-millis>30000</blocking-timeout-millis>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "idle-timeout-minutes", "30"); //<idle-timeout-minutes>30</idle-timeout-minutes>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "prepared-statements-cache-size", "32"); //<prepared-statement-cache-size>32</prepared-statement-cache-size>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "exception-sorter-class-name", "org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"); //<exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"/>
-            jmsAdminOperations.addXADatasourceProperty(poolName, "use-try-lock", "60"); //<use-try-lock>60</use-try-lock>
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database+".jar", "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:oracle:thin:@" + serverName + ":" + portNumber + ":qaora11");
+
         } else if (MYSQL55.equalsIgnoreCase(database)) {
             /** MYSQL DS XA DATASOURCE **/
             /**
@@ -304,46 +374,15 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             String response = null;
 
-            // ALLOCATE DB
-            try {
-                response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
-                        + POSTGRESQLPLUS92 + "&expiry=60&requestee=eap6-hornetq-lodh5", 20, TimeUnit.SECONDS);
-            } catch (TimeoutException e) {
-                logger.error("Error during allocating Database.", e);
-            }
-
-            logger.info("Response is: " + response);
-
-            Scanner lines = new Scanner(response);
-            String line;
-            properties = new HashMap<String, String>();
-            while (lines.hasNextLine()) {
-                line = lines.nextLine();
-                logger.info("Print line: " + line);
-                if (!line.startsWith("#")) {
-                    String[] property = line.split("=");
-                    properties.put((property[0]), property[1].replaceAll("\\\\", ""));
-                    logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
-                }
-            }
-
             String databaseName = properties.get("db.name");   // db.name
-            String driverName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
 
-//            // Clean up DB
-//            try {
-//                HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=erase&uuid=" +
-//                        properties.get("uuid"), 120, TimeUnit.SECONDS);
-//            } catch (TimeoutException e) {
-//                throw new Exception("Error during clean up of database using DBAllocator.", e);
-//            }
-
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, postgreJdbDriver, "TRANSACTION_READ_COMMITTED",
-                    driverName, false, true);
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database+".jar", "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
@@ -353,13 +392,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         }
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
-
-        jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
-
         jmsAdminOperations.close();
-
         controller.stop(containerName);
 
     }
@@ -412,10 +445,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 20, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
-//            logger.info("Print all messages: " + response);
-
             StringTokenizer st = new StringTokenizer(response, ",");
-
             while (st.hasMoreTokens()) {
                 messageIds.add(st.nextToken());
             }
@@ -429,18 +459,36 @@ public class Lodh5TestCase extends HornetQTestCase {
         return messageIds;
     }
 
-    public void rollbackPreparedTransactions(String owner) throws Exception {
+    public int rollbackPreparedTransactions(String database, String owner) throws Exception {
+        int count = 0;
+
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner, 30, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
+                    + "&database=" + database, 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
 
+            // get number of rollbacked transactions
+            Scanner lines = new Scanner(response);
+            String line;
+            while (lines.hasNextLine()) {
+                line = lines.nextLine();
+                logger.info("Print line: " + line);
+                if (line.contains(NUMBER_OF_ROLLBACKED_TRANSACTIONS)) {
+                    String[] numberOfRollbackedTransactions = line.split(":");
+                    logger.info(NUMBER_OF_ROLLBACKED_TRANSACTIONS + " is " + numberOfRollbackedTransactions[1]);
+                    count = Integer.valueOf(numberOfRollbackedTransactions[1]);
+                }
+            }
         } finally {
             deployer.undeploy("dbUtilServlet");
         }
+
+        return count;
+
     }
 
     public int countRecords() throws Exception {
@@ -464,19 +512,9 @@ public class Lodh5TestCase extends HornetQTestCase {
         } finally {
             deployer.undeploy("dbUtilServlet");
         }
-
         return numberOfRecords;
     }
 
-    //    public int insertRecords() throws Exception {
-//        deployer.deploy("dbUtilServlet");
-//        String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=insertRecord", 10, TimeUnit.SECONDS);
-//        deployer.undeploy("dbUtilServlet");
-//
-//        logger.info("Response is: " + response);
-//
-//        return 0;
-//    }
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
