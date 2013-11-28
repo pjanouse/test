@@ -7,6 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.tools.JMSOperations;
 import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -113,6 +114,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore
     public void testKillDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
 
         deployBridge(CONTAINER1, false);
@@ -126,6 +128,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore
     public void testShutdownDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
 
         deployBridge(CONTAINER1, false);
@@ -139,6 +142,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore
     public void testKillDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
         deployBridge(CONTAINER1, true);
 
@@ -151,6 +155,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore
     public void testShutdownDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
 
         deployBridge(CONTAINER1, true);
