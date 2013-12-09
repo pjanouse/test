@@ -58,10 +58,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @TargetsContainer(CONTAINER3)
     public static Archive getDeployment1() throws Exception {
 
-        File propertyFile = new File("mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
-        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
