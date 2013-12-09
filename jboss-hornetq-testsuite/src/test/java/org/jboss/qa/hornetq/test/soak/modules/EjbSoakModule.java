@@ -10,10 +10,8 @@ import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.test.soak.components.EjbCallingBean;
 import org.jboss.qa.hornetq.test.soak.components.MessagesToTopicBean;
-import org.jboss.qa.tools.ContainerInfo;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.shrinkwrap.api.asset.Asset;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 
 
 /**

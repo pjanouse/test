@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.test.soak.clients;
 
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -23,8 +22,8 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
-import org.jboss.qa.tools.ContainerInfo;
-import org.jboss.qa.tools.jms.ClientUtils;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 
 
 /**

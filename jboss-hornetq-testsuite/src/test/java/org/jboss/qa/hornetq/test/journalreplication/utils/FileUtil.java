@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.tools.arquillian.extension.RestoreConfig;
+import org.jboss.qa.hornetq.tools.arquillian.extension.RestoreConfig;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>

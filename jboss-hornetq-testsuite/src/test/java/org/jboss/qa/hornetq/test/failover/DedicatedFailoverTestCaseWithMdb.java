@@ -13,9 +13,9 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 

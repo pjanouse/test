@@ -93,20 +93,20 @@
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
             <version>${arquillian.version}</version>
-            <scope>test</scope>
+
         </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.protocol</groupId>
             <artifactId>arquillian-protocol-servlet</artifactId>
             <version>${arquillian.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
-            <scope>test</scope>
+
         </dependency>
 
         <dependency>
@@ -136,7 +136,7 @@
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
             <version>${xalan.version}</version>
-            <scope>test</scope>
+
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -148,7 +148,7 @@
             <!--<groupId>org.jboss.jbossts</groupId>-->
             <!--<artifactId>jbossjts</artifactId>-->
             <!--<version>4.16.4.Final</version>-->
-            <!--<scope>test</scope>-->
+            <!---->
             <!--<type>jar</type>-->
         <!--</dependency>-->
 
@@ -162,7 +162,7 @@
             <groupId>eap</groupId>
             <artifactId>eap-jboss-as-controller-client</artifactId>
             <version>${eap6.controller.client}</version>
-            <scope>test</scope>
+
             <type>jar</type>
             <exclusions>
                 <exclusion>
@@ -175,7 +175,7 @@
             <groupId>org.jdom</groupId>
             <artifactId>jdom</artifactId>
             <version>2.0.2</version>
-            <scope>test</scope>
+
         </dependency>
 
         <!-- json parser -->
@@ -215,7 +215,7 @@
             <artifactId>jbossqe-eap-tests-management</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
-            <scope>test</scope>
+
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -434,14 +434,14 @@
                     <artifactId>jboss-as-client</artifactId>
                     <version>${eap6.client}</version>
                     <type>jar</type>
-                    <scope>test</scope>
+
                 </dependency>
 
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
-                    <scope>test</scope>
+
                 </dependency>
 
             </dependencies>
@@ -467,7 +467,7 @@
                     <groupId>org.jboss.logging</groupId>
                     <artifactId>jboss-logging</artifactId>
                     <version>2.1.2.GA-compat</version>
-                    <scope>test</scope>
+
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
@@ -495,7 +495,7 @@
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
-                    <scope>test</scope>
+
                     <exclusions>
                         <exclusion>
                             <groupId>org.jboss.logging</groupId>
@@ -582,5 +582,24 @@
             </snapshots>
         </repository>
     </repositories>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>jboss-qa-snapshots</id>
+            <uniqueVersion>false</uniqueVersion>
+            <name>JBoss QA snapshot repository</name>
+            <url>http://repository.engineering.redhat.com/nexus/content/repositories/jboss-qa-snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>jboss-qa-releases</id>
+            <name>JBoss QA release repository</name>
+            <url>http://repository.engineering.redhat.com/nexus/content/repositories/jboss-qa-releases</url>
+        </repository>
+        <site>
+            <id>jboss-qa-sites</id>
+            <name>JBoss QA site repository</name>
+            <url>scp://dev01.mw.lab.eng.bos.redhat.com/qa/services/http/sites/</url>
+        </site>
+    </distributionManagement>
 
 </project>

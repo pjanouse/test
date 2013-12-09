@@ -14,15 +14,16 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
 import org.jboss.as.cli.scriptsupport.CLI;
+import org.jboss.qa.hornetq.ContextProvider;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.HttpRequest;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.management.cli.CliClient;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP5;
-import org.jboss.qa.tools.HornetQAdminOperationsEAP6;
-import org.jboss.qa.tools.JBMAdminOperationsEAP5;
-import org.jboss.qa.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -67,6 +68,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public final static String CONTAINER2_IP;
     public final static String CONTAINER3_IP;
     public final static String CONTAINER4_IP;
+
+    // composite info objects for easier passing to utility classes
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, HornetQTestCase.CONTAINER1_IP,
+            BYTEMAN_CONTAINER1_PORT);
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, HornetQTestCase.CONTAINER2_IP,
+            BYTEMAN_CONTAINER2_PORT);
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, HornetQTestCase.CONTAINER3_IP,
+            BYTEMAN_CONTAINER3_PORT);
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, HornetQTestCase.CONTAINER4_IP,
+            BYTEMAN_CONTAINER4_PORT);
 
     // Multi-cast address
     public static final String MCAST_ADDRESS;
@@ -233,21 +244,21 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
-     * @see org.jboss.qa.hornetq.test.ContextProvider#getContext()
+     * @see org.jboss.qa.hornetq.ContextProvider#getContext()
      */
     public Context getContext() throws NamingException {
         return getContext(CONTAINER1_IP, getJNDIPort());
     }
 
     /**
-     * @see org.jboss.qa.hornetq.test.ContextProvider#getContextContainer1()
+     * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer1()
      */
     public Context getContextContainer1() throws NamingException {
         return getContext(CONTAINER1_IP, getJNDIPort());
     }
 
     /**
-     * @see org.jboss.qa.hornetq.test.ContextProvider#getContextContainer2()
+     * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer2()
      */
     public Context getContextContainer2() throws NamingException {
         return getContext(CONTAINER2_IP, getJNDIPort());

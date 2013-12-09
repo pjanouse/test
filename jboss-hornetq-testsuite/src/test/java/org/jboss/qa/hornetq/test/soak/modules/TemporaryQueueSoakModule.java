@@ -10,8 +10,8 @@ import org.jboss.qa.hornetq.test.soak.components.TemporaryQueueBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.tools.ContainerInfo;
-import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 
 
 /**

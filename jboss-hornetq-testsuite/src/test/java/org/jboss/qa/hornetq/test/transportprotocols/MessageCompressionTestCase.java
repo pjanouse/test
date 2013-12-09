@@ -9,14 +9,14 @@ import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Testing compression of messages

@@ -2,11 +2,11 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.tools.byteman.annotation.BMRule;
-import org.jboss.qa.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.junit.Test;
 
 import javax.jms.Session;

@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.SimpleProxyServer;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 
 import java.io.File;
 import java.io.IOException;

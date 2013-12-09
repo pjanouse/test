@@ -16,9 +16,9 @@ import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
 import org.jboss.qa.hornetq.test.journalreplication.JournalReplicationAbstract;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
-import org.jboss.qa.tools.ControllableProxy;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.SimpleProxyServer;
+import org.jboss.qa.hornetq.tools.ControllableProxy;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>

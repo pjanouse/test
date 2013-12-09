@@ -20,7 +20,7 @@ import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemController;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
-import org.jboss.qa.tools.ControllableProxy;
+import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

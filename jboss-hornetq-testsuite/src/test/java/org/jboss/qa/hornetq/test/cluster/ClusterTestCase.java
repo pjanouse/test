@@ -16,9 +16,9 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
-import java.util.UUID;
 
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:

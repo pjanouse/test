@@ -4,8 +4,8 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.HighLoadProducerWithSemaphores;
-import org.jboss.qa.hornetq.test.ContextProvider;
-import org.jboss.qa.hornetq.test.JMSTools;
+import org.jboss.qa.hornetq.ContextProvider;
+import org.jboss.qa.hornetq.JMSTools;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;

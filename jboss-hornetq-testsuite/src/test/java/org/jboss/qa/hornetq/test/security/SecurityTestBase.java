@@ -3,8 +3,7 @@ package org.jboss.qa.hornetq.test.security;
 
 import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
-import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.io.File;
 import java.io.IOException;

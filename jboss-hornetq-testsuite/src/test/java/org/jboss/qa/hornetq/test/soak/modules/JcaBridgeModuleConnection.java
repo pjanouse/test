@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.test.soak.components.JcaBridgeConnectionBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
 
 
 /**

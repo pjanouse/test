@@ -1,4 +1,4 @@
-org.jboss.qa.tools.arquillian.extension.ServerExtension
-org.jboss.qa.tools.arquillian.extension.RestoreConfigRemoteExtension
-org.jboss.qa.tools.arquillian.extension.CleanUpAfterTestExtension
-org.jboss.qa.tools.arquillian.extension.ArquillianConfigurationExtension
+org.jboss.qa.hornetq.tools.arquillian.extension.ServerExtension
+org.jboss.qa.hornetq.tools.arquillian.extension.RestoreConfigRemoteExtension
+org.jboss.qa.hornetq.tools.arquillian.extension.CleanUpAfterTestExtension
+org.jboss.qa.hornetq.test.ArquillianConfigurationExtension

@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 
 /**
  *

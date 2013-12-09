@@ -4,17 +4,15 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Test administration console - cli

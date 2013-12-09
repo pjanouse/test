@@ -13,11 +13,11 @@ import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.hornetq.test.HttpRequest;
-import org.jboss.qa.tools.JMSOperations;
-import org.jboss.qa.tools.PrintJournal;
-import org.jboss.qa.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.HttpRequest;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.PrintJournal;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -43,11 +43,6 @@ public class Lodh5TestCase extends HornetQTestCase {
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
-
-    // MUST be the same names as in DBAllocator - http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=report
-    public static final String ORACLE11GR2 = "oracle11gR2";
-    public static final String MYSQL55 = "mysql55";
-    public static final String POSTGRESQLPLUS92 = "postgresplus92";
 
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 

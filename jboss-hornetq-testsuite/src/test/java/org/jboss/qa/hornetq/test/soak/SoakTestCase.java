@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.SoakMdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.test.HornetQTestCase;
-import org.jboss.qa.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -29,7 +29,6 @@ import javax.jms.Topic;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.Semaphore;
 
 /**
