@@ -1,0 +1,12 @@
+connection-ttl-override=-1
+failback-delay=5000
+journal-buffer-size=undefined
+journal-buffer-timeout=undefined
+journal-file-size=10240000
+memory-measure-interval=-1
+message-counter-sample-period=10000
+message-expiry-scan-period=30000
+security-invalidation-interval=10000
+server-dump-interval=-1
+transaction-timeout=300000
+transaction-timeout-scan-period=1000

@@ -1,0 +1,11 @@
+delivering-count=3
+durable-message-count=3
+durable-subscription-count=3
+entries=["java:jboss/exported/jms/topic/testTopic","java:jboss/exported/jms/topic/testTopic2"]
+message-count=3
+messages-added=3
+non-durable-message-count=3
+non-durable-subscription-count=3
+subscription-count=3
+temporary=false
+topic-address=jms.topic.testTopic
