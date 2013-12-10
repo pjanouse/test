@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;

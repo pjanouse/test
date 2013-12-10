@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jboss.logging.Logger;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 

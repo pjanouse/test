@@ -12,10 +12,10 @@ import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.test.PrintJournal;
+import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -129,7 +129,12 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         deployer.deploy(MDBTODB);
 
-        Thread.sleep(30000);
+        long howLongToWait = 360000;
+        long startTime = System.currentTimeMillis();
+
+        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER/2 && (System.currentTimeMillis() - startTime) < howLongToWait)  {
+            Thread.sleep(5000);
+        }
 
         for (int i = 0; i < 1; i++) {
 
@@ -142,8 +147,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         }
 
-        long howLongToWait = 250000;
-        long startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         long lastValue = 0;
         long newValue;
         while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue

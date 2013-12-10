@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.components.TemporaryQueueBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;

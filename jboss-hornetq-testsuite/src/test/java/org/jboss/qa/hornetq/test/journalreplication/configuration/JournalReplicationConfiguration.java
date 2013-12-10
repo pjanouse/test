@@ -13,7 +13,7 @@ import javax.naming.NamingException;
 
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.journalreplication.JournalReplicationAbstract;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
 import org.jboss.qa.hornetq.tools.ControllableProxy;

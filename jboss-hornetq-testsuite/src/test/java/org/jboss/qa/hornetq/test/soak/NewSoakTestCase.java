@@ -10,7 +10,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.clients.DurableSubscriptionClient;
 import org.jboss.qa.hornetq.test.soak.clients.FilterSoakClient;
 import org.jboss.qa.hornetq.test.soak.clients.TemporaryQueuesSoakClient;
