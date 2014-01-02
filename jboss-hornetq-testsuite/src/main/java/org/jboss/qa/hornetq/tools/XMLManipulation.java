@@ -45,7 +45,7 @@ public final class XMLManipulation {
      * @param outputFile name of the output file
      * @throws TransformerException if something goes wrong
      */
-    protected static void saveDOMModel(Document document, String outputFile) throws TransformerException {
+    public static void saveDOMModel(Document document, String outputFile) throws TransformerException {
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.transform(new DOMSource(document), new StreamResult(new File(outputFile)));
     }

@@ -1740,4 +1740,29 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addExtension(String extensionName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, int reconnectAttempts, String connectorClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts, String connectorClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }

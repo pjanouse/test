@@ -46,7 +46,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         boolean killed = false;
 
         String hostname = container.getContainerConfiguration().getContainerProperties().get("bindAddress");
-        int port = 8080;
+        int port = Integer.valueOf(container.getContainerConfiguration().getContainerProperties().get("rmiPort"));
         final int MAXIMAL_CHECKS = 120;
 
         do {
@@ -101,15 +101,21 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
     private void killEAP6(Container container) throws Exception {
 
-        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:9999 --connect quit";
-        final int MAXIMAL_CHECKS = 120;
-
-        log.info("Waiting. Server will be killed by an external process ...");
-
         hostname = container.getContainerConfiguration().getContainerProperties().get("managementAddress");
         if (hostname == null) {
             hostname = "127.0.0.1";
         }
+
+        String port = container.getContainerConfiguration().getContainerProperties().get("managementPort");
+        if (port == null) {
+            port = "9999";
+        }
+
+        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:[port] --connect quit";
+        final int MAXIMAL_CHECKS = 120;
+
+        log.info("Waiting. Server will be killed by an external process ...");
+
         String jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
         if (jbossHome == null) {
             jbossHome = System.getenv().get("JBOSS_HOME");
@@ -122,6 +128,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
         // Prepare kill sequence
         String killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+        killSequence = killSequence.replace("[port]", port);
         killSequence = killSequence.replace("[jbossHome]", jbossHome);
         killSequence = killSequence.replace("[suffix]", suffix);
         log.info(String.format("Kill sequence for server: '%s'", killSequence));

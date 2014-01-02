@@ -67,12 +67,12 @@ public class RestoreConfig {
                                     , configurationFile.getAbsolutePath()));
                         }
                         backupConfigurationEAP5(descriptor);
-                        return;
+                        continue;
                     }
                     configurationFileBackup = new File(pathToConfigDir.toString() + serverConfig + ".backup");
 
                     if (configurationFileBackup.exists()) {
-                        return;
+                        continue;
                     }
 
                     logger.info("Copying configuration file " + configurationFile.getAbsolutePath()
@@ -151,6 +151,7 @@ public class RestoreConfig {
         logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
+        restoreConfigurationEAP5(descriptor);
     }
 
     /**
@@ -168,6 +169,7 @@ public class RestoreConfig {
         logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
+        restoreConfigurationEAP5(descriptor);
     }
 
     /**
@@ -185,6 +187,7 @@ public class RestoreConfig {
         logger.info("Restoring configuration after test: " + event.getTestClass().getName());
 
         restoreConfiguration(descriptor);
+        restoreConfigurationEAP5(descriptor);
     }
 
 
@@ -214,16 +217,15 @@ public class RestoreConfig {
                 configurationFile = new File(pathToConfigurationDirectory.toString() + serverConfig);
 
                 if (!configurationFile.exists()) {
-                    logger.warn("Configuration file " + configurationFile.getAbsolutePath() + " does not exist. Probably EAP 5 is used. " +
-                            "Trying to restore EAP 5 profile.");
-                    restoreConfigurationEAP5(descriptor);
-                    return;
+                    logger.warn("Configuration file " + configurationFile.getAbsolutePath() + " does not exist. Probably EAP 5 is used.");
+                    continue;
                 }
 
                 configurationFileBackup = new File(pathToConfigurationDirectory.toString() + serverConfig + ".backup");
 
                 if (!configurationFileBackup.exists()) {
                     logger.error("Backup configuration file " + configurationFileBackup.getAbsolutePath() + " was not created. Configuration won't be restored.");
+                    continue;
                 }
 
                 logger.info("Restoring configuration file " + configurationFileBackup.getAbsolutePath()
@@ -262,11 +264,11 @@ public class RestoreConfig {
 
                 if (!originalProfileDirectory.exists()) {
                     logger.warn("Profile " + profileName + " does NOT exist. Path: " + originalProfileDirectory + " Profile cannot be restored.");
-                    return;
+                    continue;
                 }
                 if (!backupProfileDirectory.exists()) {
                     logger.error("Backup for profile " + profileName + " does not exist. Configuration won't be restored.");
-                    return;
+                    continue;
                 }
                 // TODO NEPREPISUJ LOGY
                 // TODO NEMAZ PROFILE PO TESTU ALE PRED TESTEM

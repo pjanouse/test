@@ -33,7 +33,7 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     /**
      * Creates client for the given container.
      *
-     * @param currentContainerForTest currentContainerForTest - can be "EAP 5, EAP 6"
+     * @param currentContainerForTest currentContainerForTest - see @HornetQTestCaseConstants
      */
     public Client(String currentContainerForTest) {
 
@@ -59,8 +59,10 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         Context context;
 
         if (currentContainer.equals(EAP5_CONTAINER) || currentContainer.equals(EAP5_WITH_JBM_CONTAINER)) {
+            logger.debug("Create EAP 5 InitialContext.");
             context = JMSTools.getEAP5Context(hostname, port);
         } else {
+            logger.debug("Create EAP 6 InitialContext.");
             context = JMSTools.getEAP6Context(hostname, port);
         }
 

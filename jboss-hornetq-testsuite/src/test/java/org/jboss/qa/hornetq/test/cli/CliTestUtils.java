@@ -1,5 +1,6 @@
-package org.jboss.qa.hornetq.cli;
+package org.jboss.qa.hornetq.test.cli;
 
+import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.*;
 import org.jboss.dmr.*;
 import org.jboss.qa.management.cli.*;
@@ -13,7 +14,11 @@ import static org.junit.Assert.*;
  */
 public class CliTestUtils {
 
+    // Logger
+    private static final Logger log = Logger.getLogger(CliTestUtils.class);
+
     public static final String FAILURE_DESCRIPTION = "failure-description";
+
 
     /**
      * Verify that command was executed successfully. Fail the test otherwise.

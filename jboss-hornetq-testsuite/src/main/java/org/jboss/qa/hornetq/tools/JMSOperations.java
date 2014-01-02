@@ -1290,4 +1290,16 @@ public interface JMSOperations {
     void addMessageGrouping(String name, String type, String address, long timeout);
 
     void setXADatasourceAtribute(String poolName, String attributeName, String value);
+
+    void addExtension(String extensionName);
+
+    void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha);
+
+    void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha,
+                                               int reconnectAttempts, String connectorClassName);
+
+    void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha,
+                                                        int reconnectAttempts, String connectorClassName);
+
+    void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName);
 }

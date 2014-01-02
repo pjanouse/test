@@ -1,9 +1,10 @@
 //TODO create test for setting discovery group and connectors
-package org.jboss.qa.hornetq.cli.attributes;
+package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -62,7 +63,7 @@ import java.util.Properties;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class RemoteConnectionFactoryTestCase extends HornetQTestCase {
+public class RemoteConnectionFactoryTestCase extends CliTestBase {
 
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);

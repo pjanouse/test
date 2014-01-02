@@ -31,9 +31,13 @@ public interface HornetQTestCaseConstants {
     public static int MANAGEMENT_PORT_EAP6 = 9999;
 
     // IDs for the active container definition
-    public static final String EAP5_CONTAINER = "EAP5";
-    public static final String EAP6_CONTAINER = "EAP6";
-    public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM";
+    public static final String EAP5_CONTAINER = "EAP5_CONTAINER";
+    public static final String EAP6_CONTAINER = "EAP6_CONTAINER";
+    public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM_CONTAINER";
+
+    public enum CONTAINER_TYPE {
+        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER
+    }
 
     // Timeout for CLI tests
     public static final int DEFAULT_TEST_TIMEOUT = 300000;
@@ -42,6 +46,15 @@ public interface HornetQTestCaseConstants {
     public static final String ORACLE11GR2 = "oracle11gR2";
     public static final String MYSQL55 = "mysql55";
     public static final String POSTGRESQLPLUS92 = "postgresplus92";
+
+    // type of messages
+    public static final String SMALL_MESSAGES = "small";
+    public static final String LARGE_MESSAGES = "large";
+    public static final String MIXED_MESSAGES = "mixed";
+
+    // type of destination
+    public static final String QUEUE_DESTINATION_TYPE = "queue";
+    public static final String TOPIC_DESTINATION_TYPE = "topic";
 
 
 }

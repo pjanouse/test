@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.cli.attributes;
+package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -39,7 +40,7 @@ import java.util.Properties;
 
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class JmsTopicAttributeTestCase extends HornetQTestCase {
+public class JmsTopicAttributeTestCase extends CliTestBase {
 
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);

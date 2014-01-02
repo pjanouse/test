@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.cli.operations;
+package org.jboss.qa.hornetq.test.cli.operations;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
@@ -12,7 +12,8 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JmsServerInfo;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.cli.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -91,7 +92,7 @@ import static org.junit.Assert.*;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class HornetQServerCliOperationsTestCase extends HornetQTestCase {
+public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);

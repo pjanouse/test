@@ -53,6 +53,7 @@ public class CleanUp {
             return;
 
         cleanUp(descriptor);
+        cleanUpEAP5(descriptor);
     }
 
     private void cleanUp(ArquillianDescriptor descriptor)  {
@@ -71,6 +72,9 @@ public class CleanUp {
                 pathToStandaloneDirectory = new StringBuilder(jbossHome)
                         .append(fileSeparator).append("standalone");
 
+                if (! new File(pathToStandaloneDirectory.toString()).exists()) {
+                    continue;
+                }
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "tmp"));
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "log"));
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data"));
@@ -82,6 +86,37 @@ public class CleanUp {
                 }
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data" + fileSeparator + (System.getProperty("JOURNAL_DIRECTORY_A") != null ? System.getProperty("JOURNAL_DIRECTORY_A") : "../../../../hornetq-journal-A")));
                 deleteFolder(new File(pathToStandaloneDirectory + fileSeparator + "data" + fileSeparator + (System.getProperty("JOURNAL_DIRECTORY_B") != null ? System.getProperty("JOURNAL_DIRECTORY_B") : "../../../../hornetq-journal-A")));
+            }
+        }
+    }
+
+    private void cleanUpEAP5(ArquillianDescriptor descriptor)  {
+        Map<String, String> containerProperties;
+        String jbossHome;
+
+        StringBuilder pathToConfigurationDirectory;
+        String fileSeparator = System.getProperty("file.separator");
+
+        String profileName = null;
+
+        for (GroupDef groupDef : descriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+
+                containerProperties = containerDef.getContainerProperties();
+                jbossHome = containerProperties.get("jbossHome");
+                profileName = containerProperties.get("profileName");
+
+                pathToConfigurationDirectory = new StringBuilder(jbossHome)
+                        .append(fileSeparator).append("server").append(fileSeparator).append(profileName);
+
+                if (! new File(pathToConfigurationDirectory.toString()).exists()) {
+                    continue;
+                }
+                deleteFolder(new File(pathToConfigurationDirectory + fileSeparator + "tmp"));
+                deleteFolder(new File(pathToConfigurationDirectory + fileSeparator + "log"));
+                deleteFolder(new File(pathToConfigurationDirectory + fileSeparator + "data"));
+                deleteFolder(new File(pathToConfigurationDirectory + fileSeparator + "work"));
+
             }
         }
     }

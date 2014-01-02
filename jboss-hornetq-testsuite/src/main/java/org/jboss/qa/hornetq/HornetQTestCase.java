@@ -1,3 +1,4 @@
+// TODO move jboss_home, container_ip, port_offset, container_name to pom.xml and read it from there
 package org.jboss.qa.hornetq;
 
 import junit.framework.Assert;
@@ -17,9 +18,7 @@ import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
-import org.jboss.qa.hornetq.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.*;
-import org.jboss.qa.management.cli.CliClient;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -65,15 +64,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public final static String CONTAINER3_IP;
     public final static String CONTAINER4_IP;
 
-    // composite info objects for easier passing to utility classes
-    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, HornetQTestCase.CONTAINER1_IP,
-            BYTEMAN_CONTAINER1_PORT);
-    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, HornetQTestCase.CONTAINER2_IP,
-            BYTEMAN_CONTAINER2_PORT);
-    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, HornetQTestCase.CONTAINER3_IP,
-            BYTEMAN_CONTAINER3_PORT);
-    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, HornetQTestCase.CONTAINER4_IP,
-            BYTEMAN_CONTAINER4_PORT);
+    // get port.offset.x properties from pom.xml
+    public final static int PORT_OFFSET_1;
+    public final static int PORT_OFFSET_2;
+    public final static int PORT_OFFSET_3;
+    public final static int PORT_OFFSET_4;
 
     // Multi-cast address
     public static final String MCAST_ADDRESS;
@@ -92,7 +87,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     protected static final String SERVLET_KILLER_4 = "killerServlet4";
 
     // Active server - EAP 5 or EAP 6?
-    private String currentContainerForTest;
+    protected String currentContainerForTest;
 
     @ArquillianResource
     protected ContainerController controller;
@@ -123,7 +118,22 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JBOSS_HOME_3 = verifyJbossHome(getEnvProperty("JBOSS_HOME_3"));
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
+        PORT_OFFSET_1 = Integer.valueOf(getEnvProperty("PORT_OFFSET_1") != null ? getEnvProperty("PORT_OFFSET_1") : "0");
+        PORT_OFFSET_2 = Integer.valueOf(getEnvProperty("PORT_OFFSET_2") != null ? getEnvProperty("PORT_OFFSET_2") : "0");
+        PORT_OFFSET_3 = Integer.valueOf(getEnvProperty("PORT_OFFSET_3") != null ? getEnvProperty("PORT_OFFSET_3") : "0");
+        PORT_OFFSET_4 = Integer.valueOf(getEnvProperty("PORT_OFFSET_4") != null ? getEnvProperty("PORT_OFFSET_4") : "0");
+
     }
+
+    // composite info objects for easier passing to utility classes
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, HornetQTestCase.CONTAINER1_IP,
+            BYTEMAN_CONTAINER1_PORT, PORT_OFFSET_1, JBOSS_HOME_1);
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, HornetQTestCase.CONTAINER2_IP,
+            BYTEMAN_CONTAINER2_PORT, PORT_OFFSET_2, JBOSS_HOME_2);
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, HornetQTestCase.CONTAINER3_IP,
+            BYTEMAN_CONTAINER3_PORT, PORT_OFFSET_3, JBOSS_HOME_3);
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, HornetQTestCase.CONTAINER4_IP,
+            BYTEMAN_CONTAINER4_PORT, PORT_OFFSET_4, JBOSS_HOME_4);
 
     /**
      * Stops all servers
@@ -240,6 +250,27 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Returns port for JNDI service
+     *
+     * @return returns default port for JNDI service
+     */
+    public static int getJNDIPort(String containerName) {
+
+        if (getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_CONTAINER
+                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER) {
+            return 1099 + getContainerInfo(containerName).getPortOffset();
+        } else {
+            return 9999 + getContainerInfo(containerName).getPortOffset();
+        }
+    }
+
+    public int getLegacyJNDIPort(String containerName) {
+
+        return 1099 + getContainerInfo(containerName).getPortOffset();
+
+    }
+
+    /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContext()
      */
     public Context getContext() throws NamingException {
@@ -286,26 +317,33 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public JMSOperations getJMSOperations(String container) {
         JMSOperations operations = null;
-        if (isEAP5()) {
-            HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
-            eap5AdmOps.setHostname(getHostname(container));
-            eap5AdmOps.setProfile(getProfile(container));
-            eap5AdmOps.setRmiPort(getJNDIPort());
-            eap5AdmOps.setJbossHome(getJbossHome(container));
-            operations = eap5AdmOps;
-        } else if (isEAP6()) {
-            HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-            eap6AdmOps.setHostname(getHostname(container));
-            eap6AdmOps.setPort(getPort(container));
-            eap6AdmOps.connect();
-            operations = eap6AdmOps;
-        } else if (isEAP5WithJBM()) {
-            JBMAdminOperationsEAP5 eap5AdmOps = new JBMAdminOperationsEAP5();
-            eap5AdmOps.setHostname(getHostname(container));
-            eap5AdmOps.setProfile(getProfile(container));
-            eap5AdmOps.setRmiPort(getJNDIPort());
-            eap5AdmOps.setJbossHome(getJbossHome(container));
-            operations = eap5AdmOps;
+
+        CONTAINER_TYPE container_type = getContainerInfo(container).getContainerType();
+
+        switch (container_type) {
+            case EAP5_CONTAINER:
+                HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
+                eap5AdmOps.setHostname(getHostname(container));
+                eap5AdmOps.setProfile(getProfile(container));
+                eap5AdmOps.setRmiPort(getJNDIPort());
+                eap5AdmOps.setJbossHome(getJbossHome(container));
+                operations = eap5AdmOps;
+                break;
+            case EAP5_WITH_JBM_CONTAINER:
+                JBMAdminOperationsEAP5 eap5JbmAdmOps = new JBMAdminOperationsEAP5();
+                eap5JbmAdmOps.setHostname(getHostname(container));
+                eap5JbmAdmOps.setProfile(getProfile(container));
+                eap5JbmAdmOps.setRmiPort(getJNDIPort());
+                eap5JbmAdmOps.setJbossHome(getJbossHome(container));
+                operations = eap5JbmAdmOps;
+                break;
+            default:
+                HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+                eap6AdmOps.setHostname(getHostname(container));
+                eap6AdmOps.setPort(getPort(container));
+                eap6AdmOps.connect();
+                operations = eap6AdmOps;
+                break;
         }
         return operations;
     }
@@ -445,11 +483,44 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.debug("Killer servlet was not deployed. Deployed it.");
         }
         deployer.deploy(killerServletName);
-        String callingURLForKill = "http://" + serverIP + ":8080/KillerServlet/KillerServlet?op=kill";
+        String callingURLForKill = "http://" + serverIP + ":" + getHttpPort(container) + "/KillerServlet/KillerServlet?op=kill";
         log.info("Calling url to kill server: " + callingURLForKill);
         HttpRequest.get(callingURLForKill, 4, TimeUnit.SECONDS);
         Thread.sleep(3000);
         controller.kill(container);
+    }
+
+    /**
+     * Returns 8080 + portOffset.
+     * <p/>
+     * Port offset is specified in pom.xml - PORT_OFFSET_X property.
+     *
+     * @param container
+     * @return 8080 + portOffset
+     */
+    public static int getHttpPort(String container) {
+        return 8080 + getContainerInfo(container).getPortOffset();
+    }
+
+    /**
+     * Returns container info for given container.
+     *
+     * @param containerName name of the container
+     * @return container info class
+     */
+    public static ContainerInfo getContainerInfo(String containerName) {
+        if (CONTAINER1.equals(containerName)) {
+            return CONTAINER1_INFO;
+        } else if (CONTAINER2.equals(containerName)) {
+            return CONTAINER2_INFO;
+        } else if (CONTAINER3.equals(containerName)) {
+            return CONTAINER3_INFO;
+        } else if (CONTAINER4.equals(containerName)) {
+            return CONTAINER4_INFO;
+        } else {
+            throw new RuntimeException(
+                    String.format("Name of the container %s is not known. It can't be used", containerName));
+        }
     }
 
     /**
@@ -464,12 +535,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
         try {
-            if (!(checkThatServerIsReallyUp(getHostname(containerName), 9999)
+            if (!(checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
                     && checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
                 controller.kill(containerName); // call controller.kill to arquillian that server is really dead
                 return;
             }
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.warn("Error during getting port of byteman agent.", ex);
         }
 
@@ -482,9 +553,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 long timeout = 120000;
                 long startTime = System.currentTimeMillis();
                 try {
-                    while (checkThatServerIsReallyUp(getHostname(containerName), 9999)
-                            || checkThatServerIsReallyUp(getHostname(containerName), 5445)
-                            || checkThatServerIsReallyUp(getHostname(containerName), 8080)
+                    while (checkThatServerIsReallyUp(getHostname(containerName), getPort(containerName))
+                            || checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
                             || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
@@ -517,7 +587,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         controller.stop(containerName);
         try {
             controller.kill(containerName);
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
                     "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
                     "controller.kill() will do that.", ex);
@@ -528,22 +598,18 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             // ignore
         }
 
-        log.info("Server " + containerName + " was stopped. There is no from tracking ports (9999, 5445, 8080, ..." +
+        log.info("Server " + containerName + " was stopped. There is no from tracking ports (f.e.: 9999, 5445, 8080, ..." +
                 ") running on its IP " + getHostname(containerName));
     }
 
     public int getBytemanPort(String containerName) throws Exception {
-        if (CONTAINER1.equals(containerName)) {
-            return BYTEMAN_CONTAINER1_PORT;
-        } else if (CONTAINER2.equals(containerName)) {
-            return BYTEMAN_CONTAINER2_PORT;
-        } else if (CONTAINER3.equals(containerName)) {
-            return BYTEMAN_CONTAINER3_PORT;
-        } else if (CONTAINER4.equals(containerName)) {
-            return BYTEMAN_CONTAINER4_PORT;
-        } else {
-            throw new Exception("There is no such container: " + containerName);
-        }
+
+        return getContainerInfo(containerName).getBytemanPort();
+
+    }
+
+    public int getHornetqPort(String containerName) {
+        return 5445 + getContainerInfo(containerName).getPortOffset();
     }
 
     /**
@@ -554,7 +620,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public long getProcessId(String containerName) {
 
-        if (!checkThatServerIsReallyUp(getHostname(containerName), 8080)) {
+        if (!checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))) {
             return -1;
         }
 
@@ -608,8 +674,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         String pid = "";
         try {
-            log.info("Calling get pid: http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId");
-            pid = HttpRequest.get("http://" + getHostname(containerName) + ":8080/KillerServlet/KillerServlet?op=getId", 10, TimeUnit.SECONDS);
+            log.info("Calling get pid: http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId");
+            pid = HttpRequest.get("http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId", 10, TimeUnit.SECONDS);
             log.info("Pid is :" + pid);
         } catch (IOException e) {
             log.error("Error when calling killer servlet for pid.", e);
@@ -774,7 +840,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
-     *
+     * <p/>
      * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
      *
      * @param receivers        receivers
@@ -822,6 +888,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    public static CONTAINER_TYPE getContainerType(String containerName)    {
+        return getContainerInfo(containerName).getContainerType();
+    }
+
     /**
      * Gets name of the profile. Related only to EAP 5.
      *
@@ -849,25 +919,17 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return JBOSS_HOME as specified in arquillian.xml or null
      */
     public static String getJbossHome(String containerName) {
-//        long startTime = System.currentTimeMillis();
-//        while(arquillianDescriptor == null && (System.currentTimeMillis() - startTime < 60000))    {
-//            log.error("Arquillian descriptor is NULL. Wait...");
-//            try {
-//                Thread.sleep(5000);
-//            } catch (InterruptedException e) {
-//                //ignore
+
+//        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+//            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+//                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+//                    if (containerDef.getContainerProperties().containsKey("jbossHome")) {
+//                        return containerDef.getContainerProperties().get("jbossHome");
+//                    }
+//                }
 //            }
 //        }
-        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
-                    if (containerDef.getContainerProperties().containsKey("jbossHome")) {
-                        return containerDef.getContainerProperties().get("jbossHome");
-                    }
-                }
-            }
-        }
-        return null;
+        return getContainerInfo(containerName).getJbossHome();
     }
 
     /**
@@ -877,25 +939,26 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return hostname of "localhost" when no specified
      */
     public static String getHostname(String containerName) {
-        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
-                    if (containerDef.getContainerProperties().containsKey("bindAddress")) {
-                        return containerDef.getContainerProperties().get("bindAddress");
-                    }
-                }
-            }
-        }
-        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
-                    if (containerDef.getContainerProperties().containsKey("managementAddress")) {
-                        return containerDef.getContainerProperties().get("managementAddress");
-                    }
-                }
-            }
-        }
-        return "localhost";
+//        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+//            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+//                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+//                    if (containerDef.getContainerProperties().containsKey("bindAddress")) {
+//                        return containerDef.getContainerProperties().get("bindAddress");
+//                    }
+//                }
+//            }
+//        }
+//        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
+//            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+//                if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+//                    if (containerDef.getContainerProperties().containsKey("managementAddress")) {
+//                        return containerDef.getContainerProperties().get("managementAddress");
+//                    }
+//                }
+//            }
+//        }
+
+        return getContainerInfo(containerName).getIpAddress();
     }
 
     /**
@@ -971,6 +1034,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param port      port
      */
     boolean checkThatServerIsReallyUp(String ipAddress, int port) {
+        log.debug("Check that port is open - IP address: " + ipAddress + " port: " + port);
         Socket socket = null;
         try {
             socket = new Socket();
@@ -1081,58 +1145,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // keep this empty - this is just for arquillian extension to print stop of the test
     }
 
-    public void writeReadAttributeTest(CliClient cliClient, String address, String attributeName, String value) throws Exception {
-
-        boolean isWritable = isWritable(address, attributeName);
-        log.info("Test attribute: " + attributeName + ", writable: " + isWritable);
-
-        if (isWritable) {
-            CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
-            if (cliClient.reloadRequired()) {
-                cliClient.reload();
-            }
-        } else {
-            cliClient.readAttribute(address, attributeName);
-        }
-    }
-
-    /**
-     * @param address   like messaging subsystem
-     * @param attribute name of the attribute
-     * @return true if attribute is writable, false if not
-     */
-    public boolean isWritable(String address, String attribute) {
-
-        boolean isWritable = false;
-
-        CLI cli = CLI.newInstance();
-        cli.connect(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1).toCharArray());
-        CLI.Result result = cli.cmd(address + ":read-resource-description()");
-
-        // grep it for attribute and access-typ
-        String resultAsString = result.getResponse().asString();
-        if (resultAsString.contains(attribute)) {
-            // get index where attribute starts
-            resultAsString = resultAsString.substring(resultAsString.indexOf(attribute));
-            // grep access type
-            // find first access-type behind it - "access-type" => "read-write",
-            String accessType = resultAsString.substring(resultAsString.indexOf("access-type"), resultAsString.indexOf("access-type") + "\"access-type\" => \"read-write\"".length());
-
-            if (accessType.contains("read-write")) {
-                isWritable = true;
-            } else if (accessType.contains("read-only")) {
-                isWritable = false;
-            }
-
-        } else {
-            throw new IllegalArgumentException("Attribute " + attribute + " is not in address " + address + ". Result: " + resultAsString);
-        }
-
-        cli.disconnect();
-
-        return isWritable;
-
-    }
     /**
      * Copies file from one place to another.
      *

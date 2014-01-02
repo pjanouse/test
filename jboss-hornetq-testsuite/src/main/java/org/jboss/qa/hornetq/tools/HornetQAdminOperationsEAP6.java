@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
+import org.jboss.as.controller.CompositeOperationHandler;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
@@ -14,6 +15,7 @@ import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,7 +66,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
             final ThreadGroup group = new ThreadGroup("management-client-thread");
             final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " + executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
-            ExecutorService executorService =  new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
+            ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
 
             this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port, null, null, timeout));
 
@@ -367,6 +369,72 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Adds extension.
+     *
+     * @param extensionName name of extesnion
+     */
+    @Override
+    public void addExtension(String extensionName) {
+        final ModelNode addExtension = new ModelNode();
+        addExtension.get(ClientConstants.OP).set("add");
+        addExtension.get(ClientConstants.OP_ADDR).add("extension", extensionName);
+
+        try {
+            this.applyUpdate(addExtension);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, int reconnectAttempts, String connectorClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
+
+        ModelNode composite = new ModelNode();
+        composite.get(ClientConstants.OP).set(CompositeOperationHandler.NAME);
+        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+
+        ModelNode undefineConnector = new ModelNode();
+        undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
+        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
+        undefineConnector.get("name").set("connector");
+
+        ModelNode setDiscoveryGroup = new ModelNode();
+        setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
+        setDiscoveryGroup.get("name").set("discovery-group-name");
+        setDiscoveryGroup.get("value").set(discoveryGroupName);
+        composite.get(ClientConstants.STEPS).add(undefineConnector);
+        composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
+
+        try {
+            this.applyUpdate(composite);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts, String connectorClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    /**
      * Sets permission privileges to a given role.
      *
      * @param address    address of the queue like '#' (for all queues)
@@ -383,7 +451,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Sets permission privileges to a given role.
      *
-     * @param  serverName server name
+     * @param serverName server name
      * @param address    address of the queue like '#' (for all queues)
      * @param role       role of the user like 'guest'
      * @param permission possible values
@@ -474,7 +542,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Creates connection factory.
      *
      * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
-     * @param jndiName jndi name of connection factory
+     * @param jndiName              jndi name of connection factory
      * @param connectorName         name of the connector like "remote-connector"
      */
     @Override
@@ -564,6 +632,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void addRoleToSecuritySettings(String address, String role) {
         addRoleToSecuritySettings("default", address, role);
     }
+
     public void addRoleToSecuritySettings(String serverName, String address, String role) {
 
         final ModelNode model = new ModelNode();
@@ -1249,9 +1318,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Add XA datasource property.
      *
-     * @param poolName pool name
+     * @param poolName      pool name
      * @param attributeName attribute name
-     * @param value value
+     * @param value         value
      */
     @Override
     public void setXADatasourceAtribute(String poolName, String attributeName, String value) {
@@ -1451,45 +1520,45 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * A broadcast group is the means by which a server broadcasts connectors
      * over the network. A connector defines a way in which a client (or other
      * server) can make connections to the server.
-     * 
-     * @param name                a unique name for the broadcast group - mandatory
-     * @param jgroupsStack        jgroups protocol stack
-     * @param jgroupsChannel      the name that jgroups channels connect to for broadcasting
-     * @param broadcastPeriod     period in miliseconds between consecutive broadcasts
-     * @param connectorName       a pair connector
-     */    
+     *
+     * @param name            a unique name for the broadcast group - mandatory
+     * @param jgroupsStack    jgroups protocol stack
+     * @param jgroupsChannel  the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod period in miliseconds between consecutive broadcasts
+     * @param connectorName   a pair connector
+     */
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
-    
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
-        
-        if(!isEmpty(jgroupsStack)) {
-    	    model.get("jgroups-stack").set(jgroupsStack);
+
+        if (!isEmpty(jgroupsStack)) {
+            model.get("jgroups-stack").set(jgroupsStack);
         }
-        
-        if(!isEmpty(jgroupsChannel)) {
-    	    model.get("jgroups-channel").set(jgroupsChannel);
+
+        if (!isEmpty(jgroupsChannel)) {
+            model.get("jgroups-channel").set(jgroupsChannel);
         }
-        
-        if(!isEmpty(broadcastPeriod)) {
-    	    model.get("broadcast-period").set(broadcastPeriod);
+
+        if (!isEmpty(broadcastPeriod)) {
+            model.get("broadcast-period").set(broadcastPeriod);
         }
-        
-    	model.get("connectors").add(connectorName);
-        
-        try{
-    	    this.applyUpdate(model);
-        } catch(Exception e) {
-    	    throw new RuntimeException(e);
+
+        model.get("connectors").add(connectorName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -1612,7 +1681,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
     }
-    
+
     /**
      * Discovery group defines how connector information is received from a
      * multicast address.
@@ -1625,31 +1694,31 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
      */
     @Override
-    public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel){
-    
+    public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
-        
-        if(!isEmpty(jgroupsStack)) {
-    	    model.get("jgroups-stack").set(jgroupsStack);
+
+        if (!isEmpty(jgroupsStack)) {
+            model.get("jgroups-stack").set(jgroupsStack);
         }
-        
-        if(!isEmpty(jgroupsChannel)) {
-    	    model.get("jgroups-channel").set(jgroupsChannel);
+
+        if (!isEmpty(jgroupsChannel)) {
+            model.get("jgroups-channel").set(jgroupsChannel);
         }
-        
+
         if (!isEmpty(refreshTimeout)) {
-    	    model.get("refresh-timeout").set(refreshTimeout);
+            model.get("refresh-timeout").set(refreshTimeout);
         }
-        
+
         try {
-    	    this.applyUpdate(model);
+            this.applyUpdate(model);
         } catch (Exception e) {
-    	    throw new RuntimeException(e);
-    	}
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -1677,7 +1746,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Removes protocol from JGroups stack
-     * @param nameOfStack name of stack udp,tcp
+     *
+     * @param nameOfStack  name of stack udp,tcp
      * @param protocolName protocol name PING,MERGE
      */
     public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName) {
@@ -1973,12 +2043,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-    
-	@Override
-	public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName)
-	{
-		//java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
-		
+
+    @Override
+    public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
+        //java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
+
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -1997,7 +2066,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-	}
+    }
 
     @Override
     public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
@@ -2402,8 +2471,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Removes address settings
      *
      * @param serverName name of the server
-     * @param address address specification
-     *
+     * @param address    address specification
      */
     @Override
     public void removeAddressSettings(String serverName, String address) {
@@ -2430,9 +2498,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
      * @param maxSizeBytes        The max bytes size
      * @param redeliveryDelay     Defines how long to wait before attempting
-*                            redelivery of a cancelled message
+     *                            redelivery of a cancelled message
      * @param redistributionDelay Defines how long to wait when the last
-*                            consumer is closed on a queue before redistributing any messages
+     *                            consumer is closed on a queue before redistributing any messages
      * @param pageSizeBytes       The paging size
      */
     @Override
@@ -2440,6 +2508,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                    long redistributionDelay, long pageSizeBytes) {
         addAddressSettings("default", address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
     }
+
     /**
      * Adds address settings
      *
@@ -2483,8 +2552,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param redistributionDelay Defines how long to wait when the last
      *                            consumer is closed on a queue before redistributing any messages
      * @param pageSizeBytes       The paging size
-     * @param expireQueue           Expire queue
-     * @param deadLetterQueue       dead letter queue jms.queue.DLQ
+     * @param expireQueue         Expire queue
+     * @param deadLetterQueue     dead letter queue jms.queue.DLQ
      */
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
@@ -2513,8 +2582,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
-            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue,
-            String deadLetterQueue, int maxDeliveryAttempts) {
+                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue,
+                                   String deadLetterQueue, int maxDeliveryAttempts) {
 
         ModelNode setAddressAttributes = new ModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
@@ -2540,8 +2609,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Adds grouping handler
      *
-     * @param name name
-     * @param type type - LOCAL, REMOTE
+     * @param name    name
+     * @param type    type - LOCAL, REMOTE
      * @param address cluster address
      * @param timeout timeout to have decision where the message will be routed
      */
@@ -2803,12 +2872,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setLoggingLevelForConsole(String level) {
+        // ./console-handler=CONSOLE:add(level=DEBUG,formatter="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n")
 
         ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("change-log-level");
+        model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("console-handler", "CONSOLE");
         model.get("level").set(level);
+        model.get("formatter").set("%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        //./root-logger=ROOT:write-attribute(name=handlers,value=["FILE", "CONSOLE"])
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("add-handler");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
+        model.get("name").set("CONSOLE");
 
         try {
             this.applyUpdate(model);
@@ -2869,7 +2954,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("ha").set(true);
 //        model.get("failover-on-server-shutdown").set(true);
         model.get("reconnect-attempts").set(reconnectAttempts);
-        for (String c : staticConnector)    {
+        for (String c : staticConnector) {
             model.get("static-connectors").add(c);
         }
         try {
@@ -3018,15 +3103,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                  String discoveryGroupName) {
         createCoreBridge("default", name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
     }
+
     /**
      * Creates new bridge
      *
-     * @param name              bridge name
-     * @param queueName         source queue
-     * @param forwardingAddress target address
-     * @param reconnectAttempts reconnect attempts for bridge
-     * @param ha ha
-     * @param discoveryGroupName  discovery group name
+     * @param name               bridge name
+     * @param queueName          source queue
+     * @param forwardingAddress  target address
+     * @param reconnectAttempts  reconnect attempts for bridge
+     * @param ha                 ha
+     * @param discoveryGroupName discovery group name
      */
     @Override
     public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
@@ -3065,6 +3151,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error(e);
         }
     }
+
     /**
      * Remove remote connector
      *
@@ -3246,12 +3333,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
 
-
     /**
      * Set multicast address for socket binding
      *
      * @param socketBindingName name of the socket binding
-     * @param port port of the socket binding
+     * @param port              port of the socket binding
      */
     @Override
     public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
@@ -3323,7 +3409,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param gossipRouterPort     port of gosship router
      */
     @Override
-    public void setTunnelForJGroups( String gossipRouterHostname, int gossipRouterPort) {
+    public void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -3350,11 +3436,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         createInVmConnector("default", name, serverId, params);
     }
 
-    private void removeInVmConnector(String name)   {
+    private void removeInVmConnector(String name) {
         removeInVmConnector("default", name);
     }
 
-    private void removeInVmConnector(String serverName, String name)   {
+    private void removeInVmConnector(String serverName, String name) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -3381,7 +3467,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         try {
             removeInVmConnector(serverName, name);
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             logger.warn("Removing old connector failed:", ex);
         }
         ModelNode model = new ModelNode();
@@ -3426,7 +3512,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
         try {
             removeRemoteAcceptor(serverName, name);
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             logger.warn("Removing remote acceptor failed: ", ex);
         }
         ModelNode model = new ModelNode();
@@ -3451,6 +3537,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void removeRemoteAcceptor(String name) {
         removeRemoteAcceptor("default", name);
     }
+
     /**
      * Remove remote acceptor
      *
@@ -3622,9 +3709,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     *
+     * <p/>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
      * TODO remove this when ^ is fixed
+     *
      * @param serverName name of the new hornetq server
      */
     @Override
@@ -3749,12 +3837,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
         HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-        eap6AdmOps.setHostname("localhost");
-        eap6AdmOps.setPort(9999);
-        eap6AdmOps.connect();
-        eap6AdmOps.addMessagingSubsystem("backup");
-        eap6AdmOps.close();
+        try {
+            eap6AdmOps.setHostname("localhost");
+            eap6AdmOps.setPort(9999);
+            eap6AdmOps.connect();
+            eap6AdmOps.setPooledConnectionFactoryToDiscovery("hornetq-ra", "dg-group2");
+            eap6AdmOps.close();
+        } finally {
+            eap6AdmOps.close();
+        }
     }
 }

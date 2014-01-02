@@ -455,7 +455,7 @@ public class PublisherTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        PublisherTransAck publisher = new PublisherTransAck("10.34.3.219", 4447, "jms/topic/testTopic0", 200, "supercoolclientId1");
+        PublisherTransAck publisher = new PublisherTransAck("10.34.3.187", 4447, "jms/topic/InTopic", 200, "supercoolclientId1");
 
         publisher.start();
 

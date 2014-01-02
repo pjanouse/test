@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.cli.operations;
+package org.jboss.qa.hornetq.test.cli.operations;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -9,7 +9,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.cli.CliTestUtils;
+import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -63,7 +64,7 @@ import java.util.List;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class JmsQueueOperationsTestCase extends HornetQTestCase {
+public class JmsQueueOperationsTestCase extends CliTestBase {
 
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);

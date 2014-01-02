@@ -296,7 +296,7 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck("127.0.0.1", 4447, "jms/queue/testQueue0", 2000);
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "10.34.3.187", 4447, "jms/topic/InTopic", 2000);
         producer.setMessageBuilder(new TextMessageBuilder(1024));
         producer.start();
         producer.join();
