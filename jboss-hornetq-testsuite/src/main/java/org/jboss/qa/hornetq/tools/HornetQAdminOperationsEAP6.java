@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
-import org.jboss.as.controller.CompositeOperationHandler;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
@@ -400,7 +399,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
 
         ModelNode composite = new ModelNode();
-        composite.get(ClientConstants.OP).set(CompositeOperationHandler.NAME);
+        composite.get(ClientConstants.OP).set("composite");
         composite.get(ClientConstants.OP_ADDR).setEmptyList();
         composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
 
