@@ -29,9 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "mySubscription"),
                 @ActivationConfigProperty(propertyName = "clientID", propertyValue = "myClientId"),
                 @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable"),
-                @ActivationConfigProperty(propertyName = "userName", propertyValue = "guest"),
-                @ActivationConfigProperty(propertyName = "user", propertyValue = "guest"),
-                @ActivationConfigProperty(propertyName = "password", propertyValue = "guest")
+                @ActivationConfigProperty(propertyName = "userName", propertyValue = "user"),
+                @ActivationConfigProperty(propertyName = "user", propertyValue = "user"),
+                @ActivationConfigProperty(propertyName = "password", propertyValue = "pass")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
@@ -81,7 +81,7 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
                 }
             }
 
-            con = cf.createConnection();
+            con = cf.createConnection("user", "pass");
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 

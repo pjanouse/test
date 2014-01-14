@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
+import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -490,6 +491,74 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         }
     }
 
+    /**
+     * @param name          name of the connector f.e.: "netty-remote"
+     * @param params        map of params
+     */
+    @Override
+    public void createConnector(String name, Map<String, String> params) {
+
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", name);
+            XMLManipulation.addNode("//connectors", "connector", "", doc, attributes);
+
+            XMLManipulation.addNode("//connector[@name='" + name + "']", "factory-class",
+                    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory", doc);
+
+            for (String key : params.keySet())  {
+                attributes = new Hashtable<String, String>();
+                attributes.put("key", key);
+                attributes.put("value", params.get(key));
+                XMLManipulation.addNode("//connector[@name='" + name + "']", "param", "", doc, attributes);
+            }
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param name          name of the connector f.e.: "netty-remote"
+     * @param params        map of params
+     */
+    @Override
+    public void createAcceptor(String name, Map<String, String> params) {
+
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+
+
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("name", name);
+            XMLManipulation.addNode("//acceptors", "acceptor", "", doc, attributes);
+
+            XMLManipulation.addNode("//acceptor[@name='" + name + "']", "factory-class",
+                    "org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory", doc);
+
+            for (String key : params.keySet())  {
+                attributes = new Hashtable<String, String>();
+                attributes.put("key", key);
+                attributes.put("value", params.get(key));
+                XMLManipulation.addNode("//acceptor[@name='" + name + "']", "param", "", doc, attributes);
+            }
+
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
     @Override
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
@@ -639,12 +708,26 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeRemoteAcceptor(String name) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//acceptor[@name='" + name + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void removeRemoteConnector(String name) {
-        logger.info("This operation is not supported: " + getMethodName());
+        String configurationFile = getHornetQConfigurationFile();
+        try {
+            Document doc = XMLManipulation.getDOMModel(configurationFile);
+            XMLManipulation.removeNode("//connector[@name='" + name + "']", doc);
+            XMLManipulation.saveDOMModel(doc, configurationFile);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -1437,6 +1520,10 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             XPath xpathInstance = XPathFactory.newInstance().newXPath();
             Node rootNode = (Node) xpathInstance.evaluate("//tx-connection-factory", doc, XPathConstants.NODE);
 
+            Node securityDomainAndApplicationAttribute = (Node) xpathInstance.evaluate("//security-domain-and-application", doc, XPathConstants.NODE);
+
+            rootNode.removeChild(securityDomainAndApplicationAttribute);
+
             Node haConfigProperty = createConfigPropertyForJmsDs(doc, "HA", "java.lang.Boolean", String.valueOf(ha));
             rootNode.appendChild(haConfigProperty);
 
@@ -1808,9 +1895,41 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         eap5AdmOps.setHostname("127.0.0.1");
         eap5AdmOps.setProfile("all");
         eap5AdmOps.setRmiPort(1099);
-        eap5AdmOps.setJbossHome("/home/mnovak/projects/eap-tests-interop/target/runtimes/eap5hq/jboss-as");
+        eap5AdmOps.setJbossHome("/home/mnovak/tmp/JBPAPP-10876/jboss-eap-5.2/jboss-as");
 
-        eap5AdmOps.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        eap5AdmOps.removeRemoteAcceptor("netty");
+        eap5AdmOps.removeRemoteConnector("netty");
+
+        Map<String, String> connectionParameters = new HashMap<String, String>();
+        connectionParameters.put("localhost", "5445");
+//        eap5AdmOps.setRA("org.hornetq.core.remoting.impl.netty.NettyConnectorFactory", connectionParameters, false);
+        eap5AdmOps.setPooledConnectionFactoryWithStaticConnectors("localhost", 5445, false, -1, "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
+
+//        String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
+//
+//        Map<String, String> props = new HashMap<String, String>();
+//        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+//        props.put(TransportConstants.HOST_PROP_NAME, "127.0.0.1");
+//        props.put(TransportConstants.PORT_PROP_NAME, "5446");
+//
+//        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.truststore"));
+//        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+//        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.keystore"));
+//        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+//        props.put("need-client-auth", "true");
+//        eap5AdmOps.createAcceptor("netty2", props);
+//
+//
+//        Map<String, String> props2 = new HashMap<String, String>();
+//        props2.put(TransportConstants.HOST_PROP_NAME, "127.0.0.1");
+//        props2.put(TransportConstants.PORT_PROP_NAME, "5446");
+//        props2.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+//        props2.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.truststore"));
+//        props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+//        props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.keystore"));
+//        props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+//
+//        eap5AdmOps.createConnector("netty2", props2);
         eap5AdmOps.close();
     }
 }

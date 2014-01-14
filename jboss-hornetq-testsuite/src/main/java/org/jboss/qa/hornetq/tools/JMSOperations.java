@@ -331,6 +331,10 @@ public interface JMSOperations {
      */
     void createRemoteConnector(String name, String socketBinding, Map<String, String> params);
 
+    void createConnector(String name, Map<String, String> params);
+
+    void createAcceptor(String name, Map<String, String> params);
+
     /**
      * Creates remote connector
      *

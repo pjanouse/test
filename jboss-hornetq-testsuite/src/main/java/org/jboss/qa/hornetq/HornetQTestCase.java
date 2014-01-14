@@ -260,7 +260,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER) {
             return 1099 + getContainerInfo(containerName).getPortOffset();
         } else {
-            return 9999 + getContainerInfo(containerName).getPortOffset();
+            return 4447 + getContainerInfo(containerName).getPortOffset();
         }
     }
 

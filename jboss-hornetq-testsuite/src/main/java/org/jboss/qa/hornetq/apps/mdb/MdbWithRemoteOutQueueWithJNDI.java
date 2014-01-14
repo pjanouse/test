@@ -27,7 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @MessageDriven(name = "MdbWithRemoteOutQueueWithJNDI",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
+                @ActivationConfigProperty(propertyName = "userName", propertyValue = "user"),
+                @ActivationConfigProperty(propertyName = "user", propertyValue = "user"),
+                @ActivationConfigProperty(propertyName = "password", propertyValue = "pass")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class MdbWithRemoteOutQueueWithJNDI implements MessageDrivenBean, MessageListener {
@@ -76,7 +79,7 @@ public class MdbWithRemoteOutQueueWithJNDI implements MessageDrivenBean, Message
                 }
             }
 
-            con = cf.createConnection();
+            con = cf.createConnection("user", "pass");
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
