@@ -1,8 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
-import org.hornetq.core.remoting.impl.netty.TransportConstants;
-import org.jboss.as.controller.CompositeOperationHandler;
+
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
@@ -402,7 +401,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
 
         ModelNode composite = new ModelNode();
-        composite.get(ClientConstants.OP).set(CompositeOperationHandler.NAME);
+        composite.get(ClientConstants.OP).set("composite");
         composite.get(ClientConstants.OP_ADDR).setEmptyList();
         composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
 
@@ -3860,24 +3859,24 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
             String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
 
-            Map<String, String> props = new HashMap<String, String>();
-            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.truststore"));
-            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
-            props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.keystore"));
-            props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
-            props.put("need-client-auth", "true");
-            eap6AdmOps.createRemoteAcceptor("netty2", "messaging2", props);
-
-
-            Map<String, String> props2 = new HashMap<String, String>();
-            props2.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-            props2.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.truststore"));
-            props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
-            props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.keystore"));
-            props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
-
-            eap6AdmOps.createRemoteConnector("netty2", "messaging2", props2);
+//            Map<String, String> props = new HashMap<String, String>();
+//            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+//            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.truststore"));
+//            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+//            props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.keystore"));
+//            props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+//            props.put("need-client-auth", "true");
+//            eap6AdmOps.createRemoteAcceptor("netty2", "messaging2", props);
+//
+//
+//            Map<String, String> props2 = new HashMap<String, String>();
+//            props2.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+//            props2.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.truststore"));
+//            props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+//            props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.keystore"));
+//            props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+//
+//            eap6AdmOps.createRemoteConnector("netty2", "messaging2", props2);
 
             eap6AdmOps.close();
         } finally {
