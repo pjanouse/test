@@ -1,4 +1,3 @@
-// use groovy to download jdbc drivers
 package org.jboss.qa.hornetq.test.failover;
 
 import junit.framework.Assert;
@@ -29,6 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.*;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,6 +49,8 @@ public class Lodh5TestCase extends HornetQTestCase {
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 
     private static final String MDBTODB = "mdbToDb";
+
+    private static final String URL_JDBC_DRIVERS = "http://www.qa.jboss.com/jdbc-drivers-products/EAP";
 
     // queue to send messages
     static String inQueueHornetQName = "InQueue";
@@ -94,8 +98,54 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testOracle() throws Exception {
+    public void testOracle11gr1() throws Exception {
+        testFail(ORACLE11GR1);
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle11gr2() throws Exception {
         testFail(ORACLE11GR2);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12c() throws Exception {
+        testFail(ORACLE12C);
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMssql2008r2() throws Exception {
+        testFail(MSSQL2012);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMssql2012() throws Exception {
+        testFail(MSSQL2012);
     }
 
     /**
@@ -132,7 +182,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         long howLongToWait = 360000;
         long startTime = System.currentTimeMillis();
 
-        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER/2 && (System.currentTimeMillis() - startTime) < howLongToWait)  {
+        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER / 2 && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
 
@@ -205,36 +255,19 @@ public class Lodh5TestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
-    private void deployJdbcDriver(String containerName, String database) throws Exception {
 
-        File jdbcDriverFile;
-        //////////////// DEPLOY JDBC DRIVER //////////////////////////////////////////////////////////////
-        if (POSTGRESQLPLUS92.equals(database)) {
-            String postgreJdbDriver = "edb-jdbc14.jar";
-            // copy jdbc driver to deployements directory
-            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
-                    "com" + File.separator + "posgresql" + File.separator + "jdbc" + File.separator + postgreJdbDriver);
-        } else if (ORACLE11GR2.equals(database)) {
-            String oracleJdbcDriver = "oracle11gr2.jar";
-            /** ORACLE 11GR2 XA DATASOURCE **/
-            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
-                    "org" + File.separator + "jboss" + File.separator + "hornetq" + File.separator + "configuration" + File.separator +
-                    "modules" + File.separator + "oracle" + File.separator + "db" + File.separator + "main"
-                    + File.separator + oracleJdbcDriver);
-        } else if (MYSQL55.equals(database)) {
-            String mysqlJdbcDriver = "mysql-connector-java-5.1.21-bin.jar";
-            /** ORACLE 11GR2 XA DATASOURCE **/
-            // src/test/resources/com/mysql/jdbc/
-            jdbcDriverFile = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator +
-                    "com" + File.separator + "mysql" + File.separator + "jdbc" + File.separator + "main" + File.separator  + mysqlJdbcDriver);
-        } else {
-            throw new Exception("For database " + database + " is not prepared any configuration.");
-        }
+    private String getEapVersion(String containerName) throws Exception {
 
-        File targetDirDeployments = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
-                + "deployments" + File.separator + database + ".jar");
-        copyFile(jdbcDriverFile, targetDirDeployments);
+        File versionFile = new File(getJbossHome(containerName) + File.separator + "version.txt");
 
+        Scanner scanner = new Scanner(new FileInputStream(versionFile));
+        String eapVersion = scanner.nextLine();
+        logger.info("Print conttent of version file: " + eapVersion);
+
+        String pattern = "(?i)(JBoss Enterprise Application Platform - Version)(.+?)(.GA)";
+        String justVersion = eapVersion.replaceAll(pattern, "$2");
+
+        return justVersion.trim();
     }
 
     private void allocateDatabase(String database) throws Exception {
@@ -293,7 +326,8 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         String poolName = "lodhDb";
 
-        deployJdbcDriver(containerName, database);
+        String eapVersion = getEapVersion(containerName);
+        String jdbcDriverFileName = donwloadJdbcDriver(eapVersion, database);
         allocateDatabase(database);
 
         controller.start(containerName);
@@ -338,7 +372,86 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            String recoveryPassword = "crashrec";
 //            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database + ".jar", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
+        } else if (ORACLE12C.equalsIgnoreCase(database)) {
+            /*
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
+            // UNCOMMENT WHEN DB ALLOCATOR IS READY
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+            String url = properties.get("db.jdbc_url");
+
+//            String databaseName = "crashrec"; // db.name
+//            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
+//            String serverName = "dev151.mw.lab.eng.bos.redhat.com:1521"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
+//            String portNumber = "1521"; // db.port=5432
+//            String recoveryUsername = "crashrec";
+//            String recoveryPassword = "crashrec";
+//            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
+
+        } else if (ORACLE11GR1.equalsIgnoreCase(database)) {
+            /*
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
+            // UNCOMMENT WHEN DB ALLOCATOR IS READY
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+            String url = properties.get("db.jdbc_url");
+
+//            String databaseName = "crashrec"; // db.name
+//            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
+//            String serverName = "dev151.mw.lab.eng.bos.redhat.com:1521"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
+//            String portNumber = "1521"; // db.port=5432
+//            String recoveryUsername = "crashrec";
+//            String recoveryPassword = "crashrec";
+//            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
@@ -376,7 +489,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, MYSQL55+".jar" , "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
@@ -406,7 +519,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, database + ".jar", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
@@ -415,7 +528,91 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
 
+        } else if (MSSQL2008R2.equals(database)) {
+//            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+//            <xa-datasource-property name="SelectMethod">
+//                    cursor
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="ServerName">
+//                    db06.mw.lab.eng.bos.redhat.com
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="PortNumber">
+//                    1433
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="DatabaseName">
+//                    crashrec
+//                    </xa-datasource-property>
+//            <xa-datasource-class>com.microsoft.sqlserver.jdbc.SQLServerXADataSource</xa-datasource-class>
+//            <driver>mssql2012-jdbc-driver.jar</driver>
+//            <xa-pool>
+//            <is-same-rm-override>false</is-same-rm-override>
+//            </xa-pool>
+//            <security>
+//            <user-name>crashrec</user-name>
+//            <password>crashrec</password>
+//            </security>
+//            </xa-datasource>
+
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+
+            jmsAdminOperations.addXADatasourceProperty(poolName, "SelectMethod", "cursor");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+
+        } else if (MSSQL2012.equals(database)) {
+//            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+//            <xa-datasource-property name="SelectMethod">
+//                    cursor
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="ServerName">
+//                    db06.mw.lab.eng.bos.redhat.com
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="PortNumber">
+//                    1433
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="DatabaseName">
+//                    crashrec
+//                    </xa-datasource-property>
+//            <xa-datasource-class>com.microsoft.sqlserver.jdbc.SQLServerXADataSource</xa-datasource-class>
+//            <driver>mssql2012-jdbc-driver.jar</driver>
+//            <xa-pool>
+//            <is-same-rm-override>false</is-same-rm-override>
+//            </xa-pool>
+//            <security>
+//            <user-name>crashrec</user-name>
+//            <password>crashrec</password>
+//            </security>
+//            </xa-datasource>
+
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+
+            jmsAdminOperations.addXADatasourceProperty(poolName, "SelectMethod", "cursor");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
         }
+
 
         jmsAdminOperations.close();
         controller.stop(containerName);
@@ -593,4 +790,44 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * Download jdbc driver from svn jdbc repository to deployments directory.
+     *
+     * @param eapVersion 6.2.0
+     * @param database   oracle12c,mssql2012
+     * @throws Exception if anything goes wrong
+     */
+    public static String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
+
+        URL metaInfUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4//meta-inf.txt"));
+
+        logger.info("Print mete-inf url: " + metaInfUrl);
+
+        ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
+        File targetDirDeployments = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+                + "deployments" + File.separator + "meta-inf.txt");
+
+        FileOutputStream fos = new FileOutputStream(targetDirDeployments);
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+
+
+        Scanner scanner = new Scanner(new FileInputStream(targetDirDeployments));
+        String jdbcFileName = scanner.nextLine();
+        logger.info("Print jdbc file name: " + jdbcFileName);
+
+        URL jdbcUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4/" + jdbcFileName));
+        ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
+        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+                + "deployments" + File.separator + jdbcFileName);
+        FileOutputStream fos2 = new FileOutputStream(targetDirDeploymentsForJdbc);
+        fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);
+
+        fos.close();
+        fos2.close();
+        rbc.close();
+        rbc2.close();
+
+        return jdbcFileName;
+
+    }
 }

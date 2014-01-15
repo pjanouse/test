@@ -44,8 +44,12 @@ public interface HornetQTestCaseConstants {
 
     // MUST be the same names as in DBAllocator - http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=report
     public static final String ORACLE11GR2 = "oracle11gR2";
+    public static final String ORACLE12C = "oracle12c";
+    public static final String ORACLE11GR1 = "oracle11gR1";
     public static final String MYSQL55 = "mysql55";
     public static final String POSTGRESQLPLUS92 = "postgresplus92";
+    public static final String MSSQL2012 = "mssql2012";
+    public static final String MSSQL2008R2 = "mssql2008R2";
 
     // type of messages
     public static final String SMALL_MESSAGES = "small";
