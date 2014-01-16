@@ -376,9 +376,9 @@ public class Lodh5TestCase extends HornetQTestCase {
                     datasourceClassName, false, true);
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
             jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
         } else if (ORACLE12C.equalsIgnoreCase(database)) {
             /*
@@ -455,9 +455,9 @@ public class Lodh5TestCase extends HornetQTestCase {
                     datasourceClassName, false, true);
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
             jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
 
         } else if (MYSQL55.equalsIgnoreCase(database)) {

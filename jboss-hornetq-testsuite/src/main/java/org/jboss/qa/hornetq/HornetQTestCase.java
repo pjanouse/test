@@ -264,7 +264,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
-    public int getLegacyJNDIPort(String containerName) {
+    public static int getLegacyJNDIPort(String containerName) {
 
         return 1099 + getContainerInfo(containerName).getPortOffset();
 

@@ -88,6 +88,11 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
             con.start();
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
+
+            if (queue == null)  {
+                makeLookups();
+            }
+
             MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
@@ -116,8 +121,12 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
         }
     }
 
-    @Override
-    public void setMessageDrivenContext(MessageDrivenContext ctx) throws EJBException {
+    /**
+     * Lookup out queue
+     *
+     * @throws EJBException
+     */
+    public void makeLookups() throws EJBException {
 
         Properties prop = new Properties();
 
@@ -125,7 +134,6 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
 
         try {
             // load mdb.properties - by this classloader
-
             Thread currentThred = Thread.currentThread();
             ClassLoader cl = currentThred.getContextClassLoader();
             InputStream in = cl.getResourceAsStream(MDB_PROPERTY_FILE);
@@ -145,6 +153,11 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
                 log.info("Property name:" + REMOTE_SERVER_PORT + " has value: " + port);
                 log.info("Property name:" + REMOTE_SERVER_TYPE + " has value: " + serverType);
                 log.info("Property name:" + OUTQUEUE_JNDI_NAME + " has value: " + outQueueJndiName);
+
+                System.out.println("Property name:" + REMOTE_SERVER_HOSTNAME + " has value: " + hostname);
+                System.out.println("Property name:" + REMOTE_SERVER_PORT + " has value: " + port);
+                System.out.println("Property name:" + REMOTE_SERVER_TYPE + " has value: " + serverType);
+                System.out.println("Property name:" + OUTQUEUE_JNDI_NAME + " has value: " + outQueueJndiName);
 
                 final Properties env = new Properties();
 
@@ -171,6 +184,10 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
                 }
             }
         }
+    }
+
+    @Override
+    public void setMessageDrivenContext(MessageDrivenContext ctx) throws EJBException {
     }
 
     @Override
