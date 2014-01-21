@@ -245,6 +245,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             XMLManipulation.addNode("//address-setting[@match='" + address + "']", "redelivery-delay", String.valueOf(redeliveryDelay), doc);
             XMLManipulation.addNode("//address-setting[@match='" + address + "']", "redistribution-delay", String.valueOf(redistributionDelay), doc);
             XMLManipulation.addNode("//address-setting[@match='" + address + "']", "page-size-bytes", String.valueOf(pageSizeBytes), doc);
+            XMLManipulation.addNode("//address-setting[@match='" + address + "']", "max-delivery-attempts", String.valueOf(200), doc);
             XMLManipulation.saveDOMModel(doc, configurationFile);
 
         } catch (Exception e) {
@@ -492,8 +493,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param name          name of the connector f.e.: "netty-remote"
-     * @param params        map of params
+     * @param name   name of the connector f.e.: "netty-remote"
+     * @param params map of params
      */
     @Override
     public void createConnector(String name, Map<String, String> params) {
@@ -511,7 +512,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             XMLManipulation.addNode("//connector[@name='" + name + "']", "factory-class",
                     "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory", doc);
 
-            for (String key : params.keySet())  {
+            for (String key : params.keySet()) {
                 attributes = new Hashtable<String, String>();
                 attributes.put("key", key);
                 attributes.put("value", params.get(key));
@@ -526,8 +527,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param name          name of the connector f.e.: "netty-remote"
-     * @param params        map of params
+     * @param name   name of the connector f.e.: "netty-remote"
+     * @param params map of params
      */
     @Override
     public void createAcceptor(String name, Map<String, String> params) {
@@ -545,7 +546,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             XMLManipulation.addNode("//acceptor[@name='" + name + "']", "factory-class",
                     "org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory", doc);
 
-            for (String key : params.keySet())  {
+            for (String key : params.keySet()) {
                 attributes = new Hashtable<String, String>();
                 attributes.put("key", key);
                 attributes.put("value", params.get(key));
@@ -732,6 +733,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeRemoteSocketBinding(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress, int multicastPort) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1359,6 +1365,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha) {
+        setRA(connectorClassName, connectionParameters, ha, null, null);
+    }
+
+    @Override
+    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username, String password) {
 
         String configurationFile = getRAConfigurationFile();
 
@@ -1389,6 +1400,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
                     st.toString()), insertBeforeNode);
             rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
                     String.valueOf(ha)), insertBeforeNode);
+            if (username != null && password != null)   {
+                rootNode.insertBefore(createConfigProperty(doc, "desc", "UserName", "java.lang.String",
+                        username), insertBeforeNode);
+                rootNode.insertBefore(createConfigProperty(doc, "desc", "Password", "java.lang.String",
+                        password), insertBeforeNode);
+            }
 
             XMLManipulation.saveDOMModel(doc, configurationFile);
 
@@ -1447,6 +1464,10 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
             XPath xpathInstance = XPathFactory.newInstance().newXPath();
             Node rootNode = (Node) xpathInstance.evaluate("//tx-connection-factory", doc, XPathConstants.NODE);
+
+            Node securityDomainAndApplicationAttribute = (Node) xpathInstance.evaluate("//security-domain-and-application", doc, XPathConstants.NODE);
+
+            rootNode.removeChild(securityDomainAndApplicationAttribute);
 
             Node discoveryAddressConfigProperty = createConfigPropertyForJmsDs(doc, "DiscoveryAddress", "java.lang.String", discoveryMulticastAddress);
             rootNode.appendChild(discoveryAddressConfigProperty);
@@ -1571,6 +1592,20 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      */
     @Override
     public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha) {
+        setRA(discoveryMulticastAddress, discoveryMulticastPort, ha, null, null);
+    }
+
+    /**
+     * Related only to EAP 5.
+     * <p/>
+     * Sets basic attributes in ra.xml.
+     *
+     * @param discoveryMulticastAddress discovery multicast address
+     * @param discoveryMulticastPort    multicast port
+     * @param ha                        if ha
+     */
+    @Override
+    public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, String username, String password) {
 
         String configurationFile = getRAConfigurationFile();
 
@@ -1628,6 +1663,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
                     String.valueOf(discoveryMulticastPort)), insertBeforeNode);
             rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
                     String.valueOf(ha)), insertBeforeNode);
+
+            if (username != null && password != null)   {
+                rootNode.insertBefore(createConfigProperty(doc, "desc", "UserName", "java.lang.String",
+                        username), insertBeforeNode);
+                rootNode.insertBefore(createConfigProperty(doc, "desc", "Password", "java.lang.String",
+                        password), insertBeforeNode);
+            }
 
             XMLManipulation.saveDOMModel(doc, configurationFile);
 

@@ -494,6 +494,9 @@ public interface JMSOperations {
      */
     void removeRemoteSocketBinding(String name);
 
+    void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress,
+                             int multicastPort);
+
     /**
      * Set multicast address for socket binding
      *
@@ -1175,6 +1178,8 @@ public interface JMSOperations {
      */
     void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha);
 
+    void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, String username, String password);
+
     /**
      * Set multicast address for socket binding
      *
@@ -1298,6 +1303,8 @@ public interface JMSOperations {
     void addExtension(String extensionName);
 
     void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha);
+
+    void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username, String password);
 
     void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha,
                                                int reconnectAttempts, String connectorClassName);

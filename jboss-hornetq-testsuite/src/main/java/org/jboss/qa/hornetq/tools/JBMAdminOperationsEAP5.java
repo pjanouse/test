@@ -691,6 +691,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress, int multicastPort) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeSocketBinding(String socketBindingName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1320,6 +1325,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 //        }
     }
 
+    @Override
+    public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, String username, String password) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Set multicast address for socket binding
      *
@@ -1757,6 +1767,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username, String password) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

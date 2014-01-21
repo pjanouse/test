@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
  */
 public class JmsServlet extends HttpServlet {
 
-    @Resource(mappedName = "java:/JmsXA")
+    @Resource(mappedName = "java:/ConnectionFactory")
     private ConnectionFactory cf;
 
     @Resource(mappedName = "jms/queue/InQueue")
@@ -90,7 +90,9 @@ public class JmsServlet extends HttpServlet {
                     receiveMessages(receiveTimeout);
                 } else if (op.equals("countMessages")) {
 
-                    countMessages();
+                    String countToExit =request.getParameter("countToExit");
+
+                    countMessages(countToExit);
 
                 } else {
                     out.println("Operation: " + op + " is not supoported.");
@@ -144,7 +146,7 @@ public class JmsServlet extends HttpServlet {
         }
     }
 
-    private void countMessages() throws Exception {
+    private void countMessages(String countToExit) throws Exception {
         Connection con = null;
         try {
             con = cf.createConnection();
@@ -163,8 +165,9 @@ public class JmsServlet extends HttpServlet {
 
                 counter++;
 
-                if (counter % 100 == 0) {
-                    session.commit();
+                // we want to just count messages and return quickly so if it's receiving too long then return
+                if (countToExit != null && counter > Long.valueOf(countToExit))    {
+                    break;
                 }
             }
 

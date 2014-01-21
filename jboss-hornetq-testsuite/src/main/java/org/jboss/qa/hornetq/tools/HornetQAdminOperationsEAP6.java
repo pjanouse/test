@@ -393,6 +393,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username, String password) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, int reconnectAttempts, String connectorClassName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1932,6 +1937,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, String username, String password) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Return name of the called method from the stack trace
      *
@@ -2535,6 +2545,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
         setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
         setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        setAddressAttributes.get("max-delivery-attempts").set(200);
+
         try {
             this.applyUpdate(setAddressAttributes);
         } catch (Exception e) {
@@ -3264,6 +3276,34 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Creates socket binding.
+     *
+     * @param socketBindingName
+     * @param port
+     * @param defaultInterface
+     * @param multicastAddress
+     * @param multicastPort
+     */
+    @Override
+    public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress,
+                                    int multicastPort) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("interface").set(defaultInterface);
+        model.get("multicast-address").set(multicastAddress);
+        model.get("multicast-port").set(multicastPort);
+        model.get("port").set(port);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Set multicast address for socket binding
      *
      * @param socketBindingName
@@ -3855,10 +3895,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             eap6AdmOps.setPort(9999);
             eap6AdmOps.connect();
 
-            eap6AdmOps.createSocketBinding("messaging2", 5445);
+//            eap6AdmOps.createSocketBinding("messaging2", 5445);
 
-            String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
-
+//            String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
+//
 //            Map<String, String> props = new HashMap<String, String>();
 //            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
 //            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.truststore"));
