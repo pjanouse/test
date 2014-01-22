@@ -134,7 +134,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testMssql2008r2() throws Exception {
-        testFail(MSSQL2012);
+        testFail(MSSQL2008R2);
     }
 
     /**
