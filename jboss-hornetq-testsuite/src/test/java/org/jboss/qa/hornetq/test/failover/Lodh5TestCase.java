@@ -264,10 +264,10 @@ public class Lodh5TestCase extends HornetQTestCase {
         String eapVersion = scanner.nextLine();
         logger.info("Print conttent of version file: " + eapVersion);
 
-        String pattern = "(?i)(JBoss Enterprise Application Platform - Version)(.+?)(.GA)";
+        String pattern = "(?i)(JBoss Enterprise Application Platform - Version)(.+?)(...GA)";
         String justVersion = eapVersion.replaceAll(pattern, "$2");
 
-        return justVersion.trim();
+        return justVersion.trim().concat(".0");
     }
 
     private void allocateDatabase(String database) throws Exception {
