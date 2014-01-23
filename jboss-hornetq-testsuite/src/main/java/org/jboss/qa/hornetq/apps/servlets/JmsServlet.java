@@ -10,9 +10,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.IllegalStateException;
+import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
 
@@ -27,11 +27,17 @@ public class JmsServlet extends HttpServlet {
     @Resource(mappedName = "jms/queue/InQueue")
     private Queue inQueue;
 
+    public static final String SEND_FILE_FOR_INQUEUE_NAME= "sent-messages-InQueue.txt";
+
     @Resource(mappedName = "jms/topic/InTopic")
     private Topic inTopic;
 
+    public static final String SEND_FILE_FOR_INTOPIC_NAME = "sent-messages-InTopic.txt";
+
     @Resource(mappedName = "jms/queue/OutQueue")
     private Queue outQueue;
+
+    public static final String RECEIVE_FILE_FOR_OUTQUEUE_NAME = "received-messages-OutQueue.txt";
 
     PrintWriter out;
 
@@ -122,9 +128,13 @@ public class JmsServlet extends HttpServlet {
 
             int counter = 0;
 
+            StringBuilder contentOfReceiveFile = new StringBuilder();
+
             while ((msg = consumer.receive(receiveTimeout)) != null) {
 
                 counter++;
+
+                contentOfReceiveFile.append(msg.getStringProperty("inMessageId") + "\n");
 
                 out.println("RECEIVED - " + counter + " - message:" + msg.toString());
                 log.info("RECEIVED - " + counter + " +message: " + msg.toString());
@@ -135,6 +145,16 @@ public class JmsServlet extends HttpServlet {
             }
 
             session.commit();
+
+            File receiveMessageFile = new File(RECEIVE_FILE_FOR_OUTQUEUE_NAME);
+
+            if (receiveMessageFile.exists())    {
+                receiveMessageFile.delete();
+            }
+
+            BufferedWriter output = new BufferedWriter(new FileWriter(receiveMessageFile));
+            output.write(contentOfReceiveFile.toString());
+            output.close();
 
             out.println("Number of received messages: " + counter);
             log.info("Number of received messages: " + counter);
@@ -174,6 +194,7 @@ public class JmsServlet extends HttpServlet {
             session.rollback();
 
             out.print(counter);
+
             log.info("Count messages: " + counter);
 
         } finally {
@@ -192,15 +213,25 @@ public class JmsServlet extends HttpServlet {
 
             Session session = con.createSession(true, Session.SESSION_TRANSACTED);
 
+            File outPutFile;
+
             MessageProducer producer;
             if (HornetQTestCaseConstants.TOPIC_DESTINATION_TYPE.equals(typeOfDestination))  {
 
                 producer = session.createProducer(inTopic);
 
+                outPutFile = new File(SEND_FILE_FOR_INTOPIC_NAME);
+
             }   else {
 
                 producer = session.createProducer(inQueue);
 
+                outPutFile = new File(SEND_FILE_FOR_INQUEUE_NAME);
+
+            }
+
+            if (outPutFile.exists())    {
+                outPutFile.delete();
             }
 
             Message msg;
@@ -209,6 +240,8 @@ public class JmsServlet extends HttpServlet {
 
             MessageBuilder messageBuilder = getMessageBuilder(typeOfMessages);
 
+            StringBuilder contentOfSendFile = new StringBuilder();
+
             while (counter < numberOfMessagesToSend) {
 
                 msg = messageBuilder.createMessage(session);
@@ -216,6 +249,9 @@ public class JmsServlet extends HttpServlet {
                 msg.setIntProperty("count", counter);
 
                 producer.send(msg);
+
+                // put id to string builder
+                contentOfSendFile.append(msg.getJMSMessageID() + "\n");
 
                 counter++;
 
@@ -230,6 +266,10 @@ public class JmsServlet extends HttpServlet {
             }
 
             session.commit();
+
+            BufferedWriter output = new BufferedWriter(new FileWriter(outPutFile));
+            output.write(contentOfSendFile.toString());
+            output.close();
 
         } finally {
             if (con != null) {

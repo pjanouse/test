@@ -58,7 +58,7 @@ public class MdbWithEJBToSendMessageToOutQueueWithJNDI implements MessageDrivenB
 
             log.debug("Processing message :" + messageInfo);
 
-            senderEJB.sendMessage(message.getStringProperty("inMessageId"), message.getStringProperty("_HQ_DUPL_ID"));
+            senderEJB.sendMessage(message.getJMSMessageID(), message.getStringProperty("_HQ_DUPL_ID"));
 
             if (count % 100 == 0)
                 log.info(messageInfo);

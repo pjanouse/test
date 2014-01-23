@@ -96,7 +96,7 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
             MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
-            newMessage.setStringProperty("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
+//            newMessage.setStringProperty("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
             sender.send(newMessage);
 
             messageInfo = messageInfo + ". Sending new message with inMessageId: " + newMessage.getStringProperty("inMessageId")
