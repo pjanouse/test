@@ -264,10 +264,20 @@ public class Lodh5TestCase extends HornetQTestCase {
         String eapVersion = scanner.nextLine();
         logger.info("Print conttent of version file: " + eapVersion);
 
-        String pattern = "(?i)(JBoss Enterprise Application Platform - Version)(.+?)(...GA)";
-        String justVersion = eapVersion.replaceAll(pattern, "$2");
+        String pattern = "(?i)(JBoss Enterprise Application Platform - Version)(.+?)(.GA)";
+        String justVersion = eapVersion.replaceAll(pattern, "$2").trim();
 
-        return justVersion.trim().concat(".0");
+        StringTokenizer str = new StringTokenizer(justVersion, ".");
+        String majorVersion = str.nextToken();
+        String minorVersion;
+        String microVersion;
+        if (Integer.valueOf(minorVersion = str.nextToken()) > 1)   {
+            microVersion = "0";
+        } else {
+            microVersion = str.nextToken();
+        }
+
+        return majorVersion + "." + minorVersion + "." + microVersion;
     }
 
     private void allocateDatabase(String database) throws Exception {
