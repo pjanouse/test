@@ -1,5 +1,4 @@
 backup-group-name=backupGroupName
-
 cluster-user=test.cluster.user
 jmx-domain=org.qa.hornetq
 journal-type=ASYNCIO

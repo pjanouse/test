@@ -5,7 +5,6 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
@@ -115,7 +114,7 @@ public class CoreAttributeTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void stringWriteReadAttributeTest() throws Exception {
-        writeReadAttributeTest("stringCliAttributes.txt");
+        writeReadAttributeTest("/stringCliAttributes.txt");
     }
 
     @Test
@@ -123,7 +122,7 @@ public class CoreAttributeTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void longWriteReadAttributeTest() throws Exception {
-        writeReadAttributeTest("longCliAttributes.txt");
+        writeReadAttributeTest("/longCliAttributes.txt");
     }
 
     @Test
@@ -131,7 +130,7 @@ public class CoreAttributeTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void intWriteReadAttributeTest() throws Exception {
-        writeReadAttributeTest("intCliAttributes.txt");
+        writeReadAttributeTest("/intCliAttributes.txt");
     }
 
     @Test
@@ -139,7 +138,7 @@ public class CoreAttributeTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void booleanWriteReadAttributeTest() throws Exception {
-        writeReadAttributeTest("booleanCliAttributes.txt");
+        writeReadAttributeTest("/booleanCliAttributes.txt");
     }
 
     public void writeReadAttributeTest(String attributeFileName) throws Exception {

@@ -41,6 +41,8 @@ public class JmsServlet extends HttpServlet {
 
     PrintWriter out;
 
+    String basePath = System.getProperty("jboss.home.dir") + File.separator + "bin";
+
     // Logger
     private static final Logger log = Logger.getLogger(JmsServlet.class.getName());
 
@@ -146,7 +148,7 @@ public class JmsServlet extends HttpServlet {
 
             session.commit();
 
-            File receiveMessageFile = new File(RECEIVE_FILE_FOR_OUTQUEUE_NAME);
+            File receiveMessageFile = new File(basePath, RECEIVE_FILE_FOR_OUTQUEUE_NAME);
 
             if (receiveMessageFile.exists())    {
                 receiveMessageFile.delete();
@@ -155,6 +157,8 @@ public class JmsServlet extends HttpServlet {
             BufferedWriter output = new BufferedWriter(new FileWriter(receiveMessageFile));
             output.write(contentOfReceiveFile.toString());
             output.close();
+
+            log.info("Print received IDs to file: " + receiveMessageFile.getAbsolutePath());
 
             out.println("Number of received messages: " + counter);
             log.info("Number of received messages: " + counter);
@@ -220,13 +224,13 @@ public class JmsServlet extends HttpServlet {
 
                 producer = session.createProducer(inTopic);
 
-                outPutFile = new File(SEND_FILE_FOR_INTOPIC_NAME);
+                outPutFile = new File(basePath, SEND_FILE_FOR_INTOPIC_NAME);
 
             }   else {
 
                 producer = session.createProducer(inQueue);
 
-                outPutFile = new File(SEND_FILE_FOR_INQUEUE_NAME);
+                outPutFile = new File(basePath, SEND_FILE_FOR_INQUEUE_NAME);
 
             }
 
@@ -271,12 +275,13 @@ public class JmsServlet extends HttpServlet {
             output.write(contentOfSendFile.toString());
             output.close();
 
+            log.info("Print sent IDs to file: " + outPutFile.getAbsolutePath());
+
         } finally {
             if (con != null) {
                 con.close();
             }
         }
-
     }
 
 

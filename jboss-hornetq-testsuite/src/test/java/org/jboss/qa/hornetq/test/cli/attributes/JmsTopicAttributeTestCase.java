@@ -6,7 +6,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
@@ -89,7 +88,7 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void writeReadAttributeTest() throws Exception {
-        writeReadAttributeTest("topicCliAttributes.txt");
+        writeReadAttributeTest("/topicCliAttributes.txt");
     }
 
     public void writeReadAttributeTest(String attributeFileName) throws Exception {
