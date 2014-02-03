@@ -161,7 +161,7 @@ public class JmsServlet extends HttpServlet {
             log.info("Print received IDs to file: " + receiveMessageFile.getAbsolutePath());
 
             out.println("Number of received messages: " + counter);
-            log.info("Number of received messages: " + counter);
+//            log.info("Number of received messages: " + counter);
 
         } finally {
             if (con != null) {
@@ -260,7 +260,7 @@ public class JmsServlet extends HttpServlet {
                 counter++;
 
                 out.println("SENT - " + counter + " - message:" + msg.toString());
-                log.info("SENT - " + counter + " - message: " + msg.toString());
+//                log.info("SENT - " + counter + " - message: " + msg.toString());
 
                 if (counter % 100 == 0) {
 
