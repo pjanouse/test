@@ -586,6 +586,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setDefaultResourceAdapter(String resourceAdapterName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride, boolean noTxSeparatePool) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1400,7 +1405,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
                     st.toString()), insertBeforeNode);
             rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
                     String.valueOf(ha)), insertBeforeNode);
-            if (username != null && password != null)   {
+            if (username != null && password != null) {
                 rootNode.insertBefore(createConfigProperty(doc, "desc", "UserName", "java.lang.String",
                         username), insertBeforeNode);
                 rootNode.insertBefore(createConfigProperty(doc, "desc", "Password", "java.lang.String",
@@ -1570,6 +1575,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     private Node createConfigPropertyForJmsDs(Document doc, String nameOfProperty, String typeOfProperty, String value) {
 
         Element e = doc.createElement("config-property");
@@ -1664,7 +1674,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             rootNode.insertBefore(createConfigProperty(doc, "desc", "HA", "java.lang.Boolean",
                     String.valueOf(ha)), insertBeforeNode);
 
-            if (username != null && password != null)   {
+            if (username != null && password != null) {
                 rootNode.insertBefore(createConfigProperty(doc, "desc", "UserName", "java.lang.String",
                         username), insertBeforeNode);
                 rootNode.insertBefore(createConfigProperty(doc, "desc", "Password", "java.lang.String",

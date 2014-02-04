@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
+
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;

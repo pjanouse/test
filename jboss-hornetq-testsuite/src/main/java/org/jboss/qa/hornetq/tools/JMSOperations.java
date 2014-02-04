@@ -380,6 +380,8 @@ public interface JMSOperations {
      */
     void createTopic(String serverName, String topicName, String jndiName);
 
+    void setDefaultResourceAdapter(String resourceAdapterName);
+
     /**
      * XA datasource.
      *
@@ -1313,4 +1315,6 @@ public interface JMSOperations {
                                                         int reconnectAttempts, String connectorClassName);
 
     void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName);
+
+    void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName);
 }

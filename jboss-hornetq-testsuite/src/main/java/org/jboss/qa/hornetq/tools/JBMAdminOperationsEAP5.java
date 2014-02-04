@@ -554,6 +554,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setDefaultResourceAdapter(String resourceAdapterName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride, boolean noTxSeparatePool) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1787,6 +1792,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

@@ -111,7 +111,6 @@
             <groupId>org.jboss.arquillian.protocol</groupId>
             <artifactId>arquillian-protocol-servlet</artifactId>
             <version>${arquillian.version}</version>
-
         </dependency>
 
         <dependency>

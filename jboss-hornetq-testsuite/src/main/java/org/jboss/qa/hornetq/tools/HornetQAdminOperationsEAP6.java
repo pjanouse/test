@@ -13,10 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.security.AccessController;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -429,6 +426,25 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         try {
             this.applyUpdate(composite);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName) {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
+        model.get("entries").clear();
+        model.get("name").set("entries");
+        model.get("value").add(jndiName);
+
+        try {
+            this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1257,6 +1273,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * Sets default resource adapter in EJB3 subsystem.
+     *
+     * @param resourceAdapterName name of pooled cf from messaging subsystem
+     */
+    @Override
+    public void setDefaultResourceAdapter(String resourceAdapterName)   {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        model.get("name").set("default-resource-adapter-name");
+        model.get("value").set(resourceAdapterName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -3889,12 +3925,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     public static void main(String[] args) {
-        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+        HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-            eap6AdmOps.setHostname("localhost");
-            eap6AdmOps.setPort(9999);
-            eap6AdmOps.connect();
+            jmsAdminOperations.setHostname("192.168.40.2");
+            jmsAdminOperations.setPort(9999);
+            jmsAdminOperations.connect();
 
+            String jmsServerBindingAddress = "192.168.40.1";
+            String inVmConnectorName = "in-vm";
+            String remoteConnectorName = "netty-remote";
+            String messagingGroupSocketBindingName = "messaging-group";
+            String inVmHornetRaName = "local-hornetq-ra";
+
+            // now reconfigure hornetq-ra which is used for inbound to connect to remote server
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+//            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
+//            jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
+//            jmsAdminOperations.reload();
+//
+//            // create new in-vm pooled connection factory and configure it as default for inbound communication
+//            jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/JmsXA", inVmConnectorName);
 //            eap6AdmOps.createSocketBinding("messaging2", 5445);
 
 //            String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
@@ -3918,9 +3970,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //
 //            eap6AdmOps.createRemoteConnector("netty2", "messaging2", props2);
 
-            eap6AdmOps.close();
+            jmsAdminOperations.close();
         } finally {
-            eap6AdmOps.close();
+            jmsAdminOperations.close();
         }
     }
 }
