@@ -1,0 +1,20 @@
+add-messageID-in-header = true
+client-id = undefined
+failure-retry-interval = 1000
+max-batch-size = 10
+max-batch-time = 100
+max-retries = -1
+module = org.hornetq
+quality-of-service = ONCE_AND_ONLY_ONCE
+selector = undefined
+source-connection-factory = java:/ConnectionFactory
+source-context = undefined
+source-destination = jms/queue/InQueue
+source-password = undefined
+source-user = undefined
+subscription-name = undefined
+target-connection-factory = java:/jms/RemoteConnectionFactory
+target-context = {"java.naming.factory.initial" => "org.jboss.naming.remote.client.InitialContextFactory","java.naming.provider.url" => "remote://192.168.40.2:4447"}
+target-destination = jms/queue/OutQueue
+target-password = undefined
+target-user = undefined
