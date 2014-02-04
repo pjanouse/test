@@ -301,6 +301,7 @@ public class JmsServlet extends HttpServlet {
                 ", " + HornetQTestCaseConstants.MIXED_MESSAGES);
         }
 
+        messageBuilder.setAddDuplicatedHeader(false);
         return messageBuilder;
     }
 }
