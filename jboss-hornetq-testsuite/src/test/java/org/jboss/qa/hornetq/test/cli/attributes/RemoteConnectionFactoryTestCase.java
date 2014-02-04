@@ -1,6 +1,7 @@
 //TODO create test for setting discovery group and connectors
 package org.jboss.qa.hornetq.test.cli.attributes;
 
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
@@ -64,10 +65,10 @@ import java.util.Properties;
 @RestoreConfigBeforeTest
 public class RemoteConnectionFactoryTestCase extends CliTestBase {
 
+    private static final Logger logger = Logger.getLogger(RemoteConnectionFactoryTestCase.class);
+
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
-
-    private final String address = "/subsystem=messaging/hornetq-server=default/connection-factory=RemoteConnectionFactory";
 
     private Properties attributes;
 
@@ -84,34 +85,31 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
         stopServer(CONTAINER1);
     }
 
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest
-//    @RestoreConfigBeforeTest
-//    public void connectorWriteReadAttributeTest() throws Exception {
-//        CliClient cliClient = new CliClient(cliConf);
-//
-//        writeReadAttributeTest(cliClient, address, "connector", "{\"netty\" => undefined}");
-//    }
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest
-//    @RestoreConfigBeforeTest
-//    public void discoveryGroupWriteReadAttributeTest() throws Exception {
-//        CliClient cliClient = new CliClient(cliConf);
-//
-//        writeReadAttributeTest(cliClient, address, "discovery-group-name", "dg-group1");
-//    }
+
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void writeReadAttributeTest() throws Exception {
-        writeReadAttributeTest("/connectionFactoryAttributes.txt");
+    public void writeReadAttributePooledConnectionFactoryTest() throws Exception {
+
+        String address = "/subsystem=messaging/hornetq-server=default/pooled-connection-factory=hornetq-ra";
+
+        writeReadAttributeTest(address, "/pooledConnectionFactotryAttributes.txt");
     }
 
-    public void writeReadAttributeTest(String attributeFileName) throws Exception {
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void writeReadAttributeJmsConnectionFactoryTest() throws Exception {
+        String address = "/subsystem=messaging/hornetq-server=default/connection-factory=RemoteConnectionFactory";
+
+        writeReadAttributeTest(address,"/connectionFactoryAttributes.txt");
+    }
+
+
+    public void writeReadAttributeTest(String address, String attributeFileName) throws Exception {
 
         attributes = new Properties();
         attributes.load(this.getClass().getResourceAsStream(attributeFileName));
@@ -122,6 +120,8 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
         for (String attributeName : attributes.stringPropertyNames()) {
 
             value = attributes.getProperty(attributeName);
+
+            logger.info("Test attribute: " + attributeName + " with value: " + value);
 
             writeReadAttributeTest(cliClient, address, attributeName, value);
 
