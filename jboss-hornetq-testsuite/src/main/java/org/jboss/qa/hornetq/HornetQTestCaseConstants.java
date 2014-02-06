@@ -16,6 +16,7 @@ public interface HornetQTestCaseConstants {
     // Name of the connection factory in JNDI
     public static String CONNECTION_FACTORY_JNDI_EAP5 = "ConnectionFactory";
     public static String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
+    public static String CONNECTION_FACTORY_JNDI_EAP6_FULL_NAME = "java:/jboss/exported/jms/RemoteConnectionFactory";
 
     // Port for remote JNDI
     public static int PORT_JNDI_EAP5 = 1099;
@@ -33,10 +34,11 @@ public interface HornetQTestCaseConstants {
     // IDs for the active container definition
     public static final String EAP5_CONTAINER = "EAP5_CONTAINER";
     public static final String EAP6_CONTAINER = "EAP6_CONTAINER";
+    public static final String EAP6_LEGACY_CONTAINER = "EAP6_LEGACY_CONTAINER";
     public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM_CONTAINER";
 
     public enum CONTAINER_TYPE {
-        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER
+        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER
     }
 
     // Timeout for CLI tests

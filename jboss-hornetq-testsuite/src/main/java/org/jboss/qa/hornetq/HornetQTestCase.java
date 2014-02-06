@@ -836,6 +836,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 if (arqConfigurationFile.toLowerCase().contains("jbm")) {
                     containerId = EAP5_WITH_JBM_CONTAINER;
                 }
+            } else if (arqConfigurationFile.toLowerCase().contains("legacy")) {
+                containerId = EAP6_LEGACY_CONTAINER;
             }
         }
         return containerId;
