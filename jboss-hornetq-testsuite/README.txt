@@ -13,4 +13,7 @@ Run test suite
 Run one test
  - mvn clean install  -Darquillian.xml=arquillian-4-nodes.xml -Peap6x -Dtest=JmsBridgeAttributesTestCase
 
+ Important!!!
+ Add new test to "eap6x-common" profile if it should be there!
+
 
