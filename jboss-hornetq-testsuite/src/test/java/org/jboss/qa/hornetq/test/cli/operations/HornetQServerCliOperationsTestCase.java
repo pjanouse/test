@@ -330,8 +330,10 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         producer.start();
-        receiver.start();
         publisher.start();
+        producer.join();
+        publisher.join();
+        receiver.start();
         subscriberClientAck.start();
 
         List<Client> receivers = new ArrayList<Client>();
