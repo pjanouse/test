@@ -548,10 +548,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
         // we kill server when it takes too long
         final long pid = getProcessId(containerName);
+        // timeout to wait for shutdown of server, after timeout expires the server will be killed
+        final long timeout = 120000;
 
         Thread shutdownHook = new Thread() {
             public void run() {
-                long timeout = 120000;
+
                 long startTime = System.currentTimeMillis();
                 try {
                     while (checkThatServerIsReallyUp(getHostname(containerName), getPort(containerName))
