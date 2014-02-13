@@ -331,8 +331,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         producer.start();
         publisher.start();
-        producer.join();
-        publisher.join();
+//        producer.join();
+//        publisher.join();
         receiver.start();
         subscriberClientAck.start();
 
@@ -477,13 +477,15 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingAddressSettings() {
+
+
         Result response = this.runOperation("get-address-settings-as-json", "address-match=#");
         assertTrue("Operation should not fail", response.isSuccess());
 
         String expected = "{\"maxSizeBytes\":10485760,"
                 + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
                 + "\"redeliveryMultiplier\":1,"
-                + "\"addressFullMessagePolicy\":\"BLOCK\","
+                + "\"addressFullMessagePolicy\":\"PAGE\","
                 + "\"pageSizeBytes\":2097152,"
                 + "\"expiryDelay\":-1,"
                 + "\"DLA\":\"jms.queue.DLQ\","
