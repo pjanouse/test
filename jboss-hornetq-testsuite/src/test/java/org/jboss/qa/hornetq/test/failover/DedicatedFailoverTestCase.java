@@ -447,13 +447,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
-
-            messageBuilder.setAddDuplicatedHeader(true);
-            clients.setMessageBuilder(messageBuilder);
-            clients.setProducedMessagesCommitAfter(3);
-            clients.setReceivedMessagesAckCommitAfter(5);
-
         }
+
+        messageBuilder.setAddDuplicatedHeader(true);
+        clients.setMessageBuilder(messageBuilder);
+        clients.setProducedMessagesCommitAfter(3);
+        clients.setReceivedMessagesAckCommitAfter(5);
 
         return clients;
     }
