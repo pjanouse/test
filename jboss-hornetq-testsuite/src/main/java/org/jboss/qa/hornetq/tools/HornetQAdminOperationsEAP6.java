@@ -3924,18 +3924,43 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    /**
+     * Set whether environment property replacement is avaible or not.
+     *
+     * @param propertyName "annotation-property-replacement", "ear-subdeployments-isolated",
+     *                     "jboss-descriptor-property-replacement",  "spec-descriptor-property-replacement"
+     * @param isEnabled   whether to enable it or not
+     */
+    @Override
+    public void setPropertyReplacement(String propertyName, boolean isEnabled)  {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ee");
+        model.get("name").set(propertyName);
+        model.get("value").set(isEnabled);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            //throw new RuntimeException(e);
+            logger.error("Set property replacement could not be set.", e);
+        }
+
+    }
+
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-            jmsAdminOperations.setHostname("192.168.40.2");
+            jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
+            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
-            String jmsServerBindingAddress = "192.168.40.1";
-            String inVmConnectorName = "in-vm";
-            String remoteConnectorName = "netty-remote";
-            String messagingGroupSocketBindingName = "messaging-group";
-            String inVmHornetRaName = "local-hornetq-ra";
+//            String jmsServerBindingAddress = "192.168.40.1";
+//            String inVmConnectorName = "in-vm";
+//            String remoteConnectorName = "netty-remote";
+//            String messagingGroupSocketBindingName = "messaging-group";
+//            String inVmHornetRaName = "local-hornetq-ra";
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
 //            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);

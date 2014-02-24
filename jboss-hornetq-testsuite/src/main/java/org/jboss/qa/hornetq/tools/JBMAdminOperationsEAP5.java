@@ -1800,4 +1800,9 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setPropertyReplacement(String propertyName, boolean isEnabled) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }

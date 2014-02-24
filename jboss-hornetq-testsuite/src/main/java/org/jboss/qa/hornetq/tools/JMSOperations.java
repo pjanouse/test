@@ -1317,4 +1317,13 @@ public interface JMSOperations {
     void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName);
 
     void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName);
+
+    /**
+     * Set whether environment property replacement is avaible or not.
+     *
+     * @param propertyName "annotation-property-replacement", "ear-subdeployments-isolated",
+     *                     "jboss-descriptor-property-replacement",  "spec-descriptor-property-replacement"
+     * @param isEnabled   whether to enable it or not
+     */
+    void setPropertyReplacement(String propertyName, boolean isEnabled);
 }

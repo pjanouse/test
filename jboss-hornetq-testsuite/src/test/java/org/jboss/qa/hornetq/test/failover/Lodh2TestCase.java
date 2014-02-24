@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.test.failover;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.config.descriptor.api.ContainerDef;
+import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -18,6 +20,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +52,8 @@ public class Lodh2TestCase extends HornetQTestCase {
     public static final String MDB_ON_QUEUE_WITH_FILTER_1 = "mdb1WithFilter";
     public static final String MDB_ON_QUEUE_WITH_FILTER_2 = "mdb2WithFilter";
     public static final String MDB_ON_NON_DURABLE_TOPIC = "nonDurableMdbOnTopic";
-
+    public static final String MDB_WITH_PROPERTIES_MAPPED_NAME = "mdbWithPropertiesMappedName";
+    public static final String MDB_WITH_PROPERTIES_NAME = "mdbWithPropertiesName";
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -77,6 +81,44 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_MAPPED_NAME)
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeploymentMdbWithProperties() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_MAPPED_NAME + ".jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+
+        //          Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdbWithPropertyReplacements.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_NAME)
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeploymentMdbWithPropertiesName() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_NAME + ".jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+
+        //          Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/" + MDB_WITH_PROPERTIES_NAME + ".jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -542,6 +584,91 @@ public class Lodh2TestCase extends HornetQTestCase {
         stopServer(CONTAINER3);
     }
 
+    /**
+     * @throws Exception
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testPropertyReplacementWithName() throws Exception {
+        testPropertyBasedMdb(MDB_WITH_PROPERTIES_NAME);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testPropertyReplacementWithMappedName() throws Exception {
+        testPropertyBasedMdb(MDB_WITH_PROPERTIES_MAPPED_NAME);
+    }
+
+    public void testPropertyBasedMdb(String mdbDeployemnt) throws Exception {
+        String inServer = CONTAINER1;
+        String outServer = CONTAINER1;
+
+        prepareRemoteJcaTopology(inServer,outServer);
+        // cluster A
+
+        controller.start(CONTAINER1);
+
+        String s = null;
+        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(CONTAINER2)) {
+                    if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
+                        s = containerDef.getContainerProperties().get("javaVmArguments");
+                        s = s.concat(" -Djms.queue.InQueue=" + inQueueJndiName);
+                        s = s.concat(" -Dpooled.connection.factory.name=java:/JmsXA");
+                        containerDef.getContainerProperties().put("javaVmArguments", s);
+                    }
+                }
+            }
+        }
+        Map<String,String> properties = new HashMap<String, String>();
+        properties.put("javaVmArguments", s);
+        controller.start(CONTAINER2, properties);
+
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER/10);
+
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
+        builder.setAddDuplicatedHeader(true);
+        producer1.setMessageBuilder(builder);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(1000);
+        producer1.start();
+        producer1.join();
+
+        deployer.deploy(mdbDeployemnt);
+
+        // set longer timeouts so xarecovery is done at least once
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setCommitAfter(1000);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + (producer1.getListOfSentMessages().size()
+                + ", Producer to jms1 server sent: " + producer1.getListOfSentMessages().size() + " messages"));
+        logger.info("Number of received messages: " + (receiver1.getListOfReceivedMessages().size()
+                + ", Consumer from jms1 server received: " + receiver1.getListOfReceivedMessages().size() + " messages"));
+
+        Assert.assertTrue("Test failed: ", messageVerifier.verifyMessages());
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("Receivers did not get any messages.",
+                receiver1.getCount() > 0);
+
+        deployer.undeploy(mdbDeployemnt);
+
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+    }
+
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
         // TODO optimize or use some libraries
         //get lost messages
@@ -799,7 +926,9 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
-
+            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
+            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {
