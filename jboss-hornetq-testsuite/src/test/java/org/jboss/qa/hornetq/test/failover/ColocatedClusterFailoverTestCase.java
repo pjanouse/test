@@ -369,7 +369,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         printQueueStatus(CONTAINER2, inQueueName);
 
         receiver1.start();
-        List<Client> listOfReceiverClientAckList = new ArrayList<Client>();
         receiver1.join();
 
         logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
