@@ -44,10 +44,14 @@ public final class ContainerInfo {
         eap5hqPath.append(File.separator).append("client").append(File.separator).append("hornetq-core-client.jar");
         StringBuilder eap5jbmPath = new StringBuilder(jbossHome);
         eap5jbmPath.append(File.separator).append("client").append(File.separator).append("jboss-messaging-client.jar");
+        String arqConfigurationFile = System.getProperty("arquillian.xml");
         if (new File(eap5hqPath.toString()).exists())   {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_CONTAINER;
         } else if (new File(eap5jbmPath.toString()).exists())   {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER;
+        } else if (arqConfigurationFile != null && !arqConfigurationFile.trim().isEmpty()
+                && arqConfigurationFile.toLowerCase().contains("eap6-legacy")) {
+            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER;
         } else {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
         }

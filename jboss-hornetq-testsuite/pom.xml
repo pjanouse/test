@@ -351,7 +351,7 @@
                 <activeByDefault>false</activeByDefault>
                 <property>
                     <name>eap</name>
-                    <value>5x</value>
+                    <value>6x</value>
                 </property>
             </activation>
             <dependencies>
@@ -371,20 +371,9 @@
                     <version>${netty.version}</version>
                 </dependency>
                 <dependency>
-                    <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-jbossas-managed-5.1</artifactId>
-                    <version>${arquillian.eap5x.container.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.jboss.logging</groupId>
-                            <artifactId>jboss-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.jbossas</groupId>
-                    <artifactId>jboss-server-manager</artifactId>
-                    <version>1.0.4.Final</version>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>eap</groupId>
@@ -406,24 +395,6 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-
-                <!-- those are extra dependencies for arquillian to start EAP 5 server -->
-                <dependency>
-                    <groupId>org.jboss.aspects</groupId>
-                    <artifactId>jboss-security-aspects</artifactId>
-                    <version>1.0.0.GA</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.man</groupId>
-                    <artifactId>jboss-managed</artifactId>
-                    <version>2.1.1.SP2</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.threads</groupId>
-                    <artifactId>jboss-threads</artifactId>
-                    <version>2.1.0.Final</version>
-                </dependency>
-
             </dependencies>
         </profile>
         <profile>
