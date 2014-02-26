@@ -296,10 +296,13 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "10.34.3.187", 4447, "jms/topic/InTopic", 2000);
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "192.168.40.1", 4447, "jms/queue/testQueue0", 200000);
         producer.setMessageBuilder(new TextMessageBuilder(1024));
+        producer.setTimeout(0);
+        producer.setCommitAfter(10);
         producer.start();
         producer.join();
+        System.out.println("Number of sent messages: " + producer.getListOfSentMessages().size());
 
 
     }
