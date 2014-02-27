@@ -492,12 +492,13 @@ public class Lodh5TestCase extends HornetQTestCase {
             </xa-datasource>
             */
 
-//            String databaseName = properties.get("db.name");   // db.name
-//            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
-//            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
-//            String portNumber = properties.get("db.port"); // db.port=5432
-//            String recoveryUsername = properties.get("db.username");
-//            String recoveryPassword = properties.get("db.password");
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+            String url = properties.get("db.jdbc_url");
 //
 //            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
 //                    datasourceClassName, false, true);
