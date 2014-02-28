@@ -514,7 +514,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
-            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:mysql://" + serverName + ":" + portNumber + "/crashrec");
 
         } else if (POSTGRESQLPLUS92.equals(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
