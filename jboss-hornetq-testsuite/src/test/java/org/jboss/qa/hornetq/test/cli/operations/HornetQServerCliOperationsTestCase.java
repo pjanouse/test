@@ -323,7 +323,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         receiver.setTimeout(1000);
 
         // start clients
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, "testSubscriberClientId", "testSubscriber");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
         PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, 4447, topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");

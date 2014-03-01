@@ -86,7 +86,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         // setup server
         prepareServer(CONTAINER1);
 
-        String clientId = "testSubscriberClientId";
+        String clientId = "testSubscriberClientId-jmsTopicOperations";
         String subscriberName = "testSubscriber";
 
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
