@@ -86,7 +86,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         // setup server
         prepareServer(CONTAINER1);
 
-        String clientId = "testSubscriberClientId-jmsTopicOperations";
+        String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
 
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
@@ -129,7 +129,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         Result r33 = runOperation("list-all-subscriptions", null);
         logger.info("Result list-all-subscriptions : " + r33.getResponse().asString());
         CliTestUtils.assertSuccess(r33);
-        Assert.assertEquals("Bad client id on subscriber.", "testSubscriberClientId", r33.getResponse().get("result").asList().get(0).get("clientID").asString());
+        Assert.assertEquals("Bad client id on subscriber.", clientId, r33.getResponse().get("result").asList().get(0).get("clientID").asString());
 
         Result r5 = runOperation("list-durable-subscriptions", null);
         logger.info("Result list-durable-subscriptions: " + r5.getResponse().asString());

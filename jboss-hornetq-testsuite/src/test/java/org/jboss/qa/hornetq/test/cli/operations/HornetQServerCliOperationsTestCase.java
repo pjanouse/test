@@ -614,9 +614,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -673,10 +670,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
