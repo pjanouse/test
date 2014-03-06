@@ -417,6 +417,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.createRemoteConnector(acceptorConnectorName, messagingGroupSocketBindingName, connectorProps);
 
         ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", acceptorConnectorName);
+        ops.setSecurityEnabled(true);
 
         ops.close();
 
