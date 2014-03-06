@@ -1281,7 +1281,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param resourceAdapterName name of pooled cf from messaging subsystem
      */
     @Override
-    public void setDefaultResourceAdapter(String resourceAdapterName)   {
+    public void setDefaultResourceAdapter(String resourceAdapterName) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
@@ -1500,15 +1500,14 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * over the network. A connector defines a way in which a client (or other
      * server) can make connections to the server.
      *
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName
-     *                            name of the socket binding to use
-     *                            for broadcasting connectors
-     * @param broadCastPeriod     period in milliseconds between consecutive
-     *                            broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be
-     *                            broadcasted.
+     * @param name                            a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     *                                        for broadcasting connectors
+     * @param broadCastPeriod                 period in milliseconds between consecutive
+     *                                        broadcasts.
+     * @param connectorName                   A pair connector.
+     * @param backupConnectorName             optional backup connector that will be
+     *                                        broadcasted.
      */
     @Override
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
@@ -1521,16 +1520,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * over the network. A connector defines a way in which a client (or other
      * server) can make connections to the server.
      *
-     * @param serverName          set name of hornetq server
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName
-     *                            name of the socket binding to use
-     *                            for broadcasting connectors
-     * @param broadCastPeriod     period in milliseconds between consecutive
-     *                            broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be
-     *                            broadcasted.
+     * @param serverName                      set name of hornetq server
+     * @param name                            a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     *                                        for broadcasting connectors
+     * @param broadCastPeriod                 period in milliseconds between consecutive
+     *                                        broadcasts.
+     * @param connectorName                   A pair connector.
+     * @param backupConnectorName             optional backup connector that will be
+     *                                        broadcasted.
      */
     @Override
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
@@ -1675,13 +1673,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Discovery group defines how connector information is received from a
      * multicast address.
      *
-     * @param name           A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName
-     *                       name of the socket binding to use
-     *                       for accepting connectors from other servers
-     * @param refreshTimeout Period the discovery group waits after receiving
-     *                       the last broadcast from a particular server before removing that servers
-     *                       connector pair entry from its list.
+     * @param name                            A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     *                                        for accepting connectors from other servers
+     * @param refreshTimeout                  Period the discovery group waits after receiving
+     *                                        the last broadcast from a particular server before removing that servers
+     *                                        connector pair entry from its list.
      */
     @Override
     public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
@@ -1692,14 +1689,13 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Discovery group defines how connector information is received from a
      * multicast address.
      *
-     * @param serverName     Set name of hornetq server
-     * @param name           A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName
-     *                       name of the socket binding to use
-     *                       for accepting connectors from other servers
-     * @param refreshTimeout Period the discovery group waits after receiving
-     *                       the last broadcast from a particular server before removing that servers
-     *                       connector pair entry from its list.
+     * @param serverName                      Set name of hornetq server
+     * @param name                            A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use
+     *                                        for accepting connectors from other servers
+     * @param refreshTimeout                  Period the discovery group waits after receiving
+     *                                        the last broadcast from a particular server before removing that servers
+     *                                        connector pair entry from its list.
      */
     @Override
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
@@ -3929,10 +3925,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      *
      * @param propertyName "annotation-property-replacement", "ear-subdeployments-isolated",
      *                     "jboss-descriptor-property-replacement",  "spec-descriptor-property-replacement"
-     * @param isEnabled   whether to enable it or not
+     * @param isEnabled    whether to enable it or not
      */
     @Override
-    public void setPropertyReplacement(String propertyName, boolean isEnabled)  {
+    public void setPropertyReplacement(String propertyName, boolean isEnabled) {
 
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -3946,6 +3942,38 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error("Set property replacement could not be set.", e);
         }
 
+    }
+
+    @Override
+    public void addSubsystem(String subsystemName) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", subsystemName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "security-providers");
+        model.get(ClientConstants.OP_ADDR).add(providerName, providerType);
+        // attributes=[(\"nssLibraryDirectory\"=>\"/usr/lib\"),(\"nssSecmodDirectory\"=>\"${WORKSPACE}/fipsdb\"),(\"nssModule\"=>\"fips\")]
+        for (String key : attributes.keySet()) {
+            model.get("attributes").add(key, attributes.get(key));
+        }
+
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void main(String[] args) {

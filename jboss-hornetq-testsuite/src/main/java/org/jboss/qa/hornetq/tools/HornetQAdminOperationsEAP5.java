@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
-import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1582,6 +1581,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setPropertyReplacement(String propertyName, boolean isEnabled) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSubsystem(String subsystemName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

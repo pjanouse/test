@@ -25,7 +25,7 @@ public abstract class SecurityTestBase extends HornetQTestCase {
 
     private static final String SOCKET_BINDING_NAME = "messaging";
 
-    private static final String TEST_KEYSTORES_DIRECTORY =
+    public static final String TEST_KEYSTORES_DIRECTORY =
             "src/test/resources/org/jboss/qa/hornetq/test/transportprotocols";
 
     private static final String SERVER_KEYSTORE_DIR = JBOSS_HOME_1 + File.separator + "standalone" + File.separator

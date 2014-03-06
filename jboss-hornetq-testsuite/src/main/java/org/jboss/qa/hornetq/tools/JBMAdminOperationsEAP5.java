@@ -1805,4 +1805,14 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addSubsystem(String subsystemName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }

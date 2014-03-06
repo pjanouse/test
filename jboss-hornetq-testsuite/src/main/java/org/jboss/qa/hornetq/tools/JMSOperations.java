@@ -1326,4 +1326,8 @@ public interface JMSOperations {
      * @param isEnabled   whether to enable it or not
      */
     void setPropertyReplacement(String propertyName, boolean isEnabled);
+
+    void addSubsystem(String subsystemName);
+
+    void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes);
 }
