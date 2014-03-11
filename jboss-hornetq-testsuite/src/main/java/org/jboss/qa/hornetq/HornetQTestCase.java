@@ -33,8 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.*;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
@@ -107,10 +106,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
 
         // IP addresses for the servers
-        CONTAINER1_IP = getEnvProperty("MYTESTIP_1");
-        CONTAINER2_IP = getEnvProperty("MYTESTIP_2");
-        CONTAINER3_IP = getEnvProperty("MYTESTIP_3");
-        CONTAINER4_IP = getEnvProperty("MYTESTIP_4");
+        CONTAINER1_IP = checkIPv6Address(getEnvProperty("MYTESTIP_1"));
+        CONTAINER2_IP = checkIPv6Address(getEnvProperty("MYTESTIP_2"));
+        CONTAINER3_IP = checkIPv6Address(getEnvProperty("MYTESTIP_3"));
+        CONTAINER4_IP = checkIPv6Address(getEnvProperty("MYTESTIP_4"));
         String tmpMultiCastAddress = System.getProperty("MCAST_ADDR");
         MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress : "233.3.3.3";
 
@@ -162,6 +161,25 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             jbossHomeDir = new File(jbossHomeDir.getAbsolutePath().replace("jboss-eap-6.0", "jboss-eap-6.1"));
         }
         return jbossHomeDir.getAbsolutePath();
+    }
+
+    /**
+     * If it's IPv6 address then add [xxx::xxx] so port can be added.
+     */
+    private static String checkIPv6Address(String ipAddress) {
+
+        if (ipAddress != null) {
+            InetAddress ia = null;
+            try {
+                ia = InetAddress.getByName(ipAddress);
+            } catch (UnknownHostException e) {
+                log.error("Address: " + ipAddress + " cannot be found. Double check your MYTESTIP_{1..4} properties whether they're correct.", e);
+            }
+            if (ia instanceof Inet6Address && !ipAddress.contains("[")) {
+                    return "[" + ipAddress + "]";
+            }
+        }
+        return ipAddress;
     }
 
     /**
@@ -893,7 +911,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
-    public static CONTAINER_TYPE getContainerType(String containerName)    {
+    public static CONTAINER_TYPE getContainerType(String containerName) {
         return getContainerInfo(containerName).getContainerType();
     }
 
@@ -902,7 +920,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return Name of the profile as specified in arquillian.xml for
-     *         profileName or "default" if not set.
+     * profileName or "default" if not set.
      */
     public static String getProfile(String containerName) {
         for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
