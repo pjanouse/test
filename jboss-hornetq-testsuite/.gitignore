@@ -1,1 +1,2 @@
 .idea/
+src/test/resources/org/jboss/qa/hornetq/test/transportprotocols/pkcs11-modified.cfg

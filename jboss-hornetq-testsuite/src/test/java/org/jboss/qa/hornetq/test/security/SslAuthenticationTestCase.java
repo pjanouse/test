@@ -36,7 +36,28 @@ import static org.junit.Assert.*;
 
 
 /**
+ * PKCS11 tests info - how to generate certificates:
+ * # vytvorit file s novym heslem
+ echo "pass123+" > ${WORKSPACE}/newpass.txt
+
+ modutil -force -create -dbdir ${WORKSPACE}/fipsdb
+ modutil -force -fips true -dbdir ${WORKSPACE}/fipsdb
+ modutil -force -changepw "NSS FIPS 140-2 Certificate DB" -newpwfile ${WORKSPACE}/newpass.txt -dbdir ${WORKSPACE}/fipsdb
+
+ # vytvorit noise.txt
+ echo "dsadasdasdasdadasdasdasdasdsadfwerwerjfdksdjfksdlfhjsdk" > ${WORKSPACE}/noise.txt
+
+ certutil -S -k rsa -n jbossweb  -t "u,u,u" -x -s "CN=localhost, OU=MYOU, O=MYORG, L=MYCITY, ST=MYSTATE, C=MY" -d ${WORKSPACE}/fipsdb -f ${WORKSPACE}/newpass.txt -z ${WORKSPACE}/noise.txt
+ certutil -L -d ${WORKSPACE}/fipsdb -n jbossweb -a > ${WORKSPACE}/cacert.asc
+
+ * IMPORTANT:
+ * SunPKCS11 is not supported on 64-bit Windows platforms. [1]
+
+ [1] http://docs.oracle.com/javase/7/docs/technotes/guides/security/p11guide.html#Requirements
+ *
+ *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 public class SslAuthenticationTestCase extends SecurityTestBase {
