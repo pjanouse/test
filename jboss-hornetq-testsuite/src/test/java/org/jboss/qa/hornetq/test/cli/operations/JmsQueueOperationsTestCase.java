@@ -233,7 +233,6 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeQueue(coreQueueName);
         jmsAdminOperations.createQueue(coreQueueName, queueJndiName);
         jmsAdminOperations.removeQueue(dlqCoreQueueName);
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);

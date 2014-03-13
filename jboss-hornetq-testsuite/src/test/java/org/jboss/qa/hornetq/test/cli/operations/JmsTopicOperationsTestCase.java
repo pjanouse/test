@@ -172,7 +172,6 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeTopic(coreTopicName);
         jmsAdminOperations.createTopic(coreTopicName, topicJndiName);
         jmsAdminOperations.removeQueue(dlqCoreQueueName);
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
