@@ -172,8 +172,11 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeTopic(coreTopicName);
         jmsAdminOperations.createTopic(coreTopicName, topicJndiName);
+        jmsAdminOperations.removeQueue(dlqCoreQueueName);
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
+        jmsAdminOperations.removeQueue(expireCoreQueueName);
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);
