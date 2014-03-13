@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.test.remote.jca;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.config.descriptor.api.ContainerDef;
+import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -86,7 +88,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER2)
     public static Archive getDeploymentMdbWithConnectorParameters() throws Exception {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithConnectorParameters.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB1_WITH_CONNECTOR_PARAMETERS + ".jar");
         mdbJar.addClasses(MdbWithConnectionParameters.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         mdbJar.addAsManifestResource(new StringAsset(createHornetqJmsXml()), "hornetq-jms.xml");
@@ -270,7 +272,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void testRAConfiguredByMdbInRemoteJcaTopology() throws Exception {
 
         prepareJmsServer(CONTAINER1); // jms server
-        prepareJmsServer(CONTAINER2); // jms server
+        prepareMdbServer(CONTAINER2, CONTAINER1); // mdb server
         prepareJmsServer(CONTAINER3); // jms server with mdb with cluster with container 1 and 2
 
         // cluster A
@@ -279,7 +281,22 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.start(CONTAINER3);
         deployDestinations(CONTAINER3);
         // cluster B with mdbs
-        controller.start(CONTAINER2);
+        String s = null;
+        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(CONTAINER2)) {
+                    if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
+                        s = containerDef.getContainerProperties().get("javaVmArguments");
+                        s = s.concat(" -Dconnection.parameters=port=" + getHornetqPort(CONTAINER1) + ";host=" + getHostname(CONTAINER1));
+                        containerDef.getContainerProperties().put("javaVmArguments", s);
+                    }
+                }
+            }
+        }
+        Map<String,String> properties = new HashMap<String, String>();
+        properties.put("javaVmArguments", s);
+        controller.start(CONTAINER2, properties);
+
 
         deployer.deploy(MDB1_WITH_CONNECTOR_PARAMETERS);
 
@@ -407,14 +424,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String remoteSeverName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
         String remoteConnectorName = "netty-remote";
-        String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);
 
@@ -434,10 +449,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
 //        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
+        jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+        jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
+        jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(remoteSeverName), getHornetqPort(remoteSeverName));
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
         jmsAdminOperations.close();
