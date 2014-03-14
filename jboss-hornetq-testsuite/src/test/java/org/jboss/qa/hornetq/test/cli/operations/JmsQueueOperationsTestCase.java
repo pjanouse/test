@@ -30,37 +30,37 @@ import java.util.List;
 
 /**
  * OK
- *
+ * <p/>
  * Tested operations:
-
- add-jndi - create queue with dlq in address settings     - done
-
- Needs some messages:
-
- change-message-priority                                  - done
- change-messages-priority                                 - done
- count-messages                                           - done
- expire-message                                           - done
- expire-messages                                          - done
- list-message-counter-as-html                             - done
- list-message-counter-as-json                             - done
- list-message-counter-history-as-html                     - done
- list-message-counter-history-as-json                     - done
- list-messages                                            - done
- list-messages-as-json                                    - done
- move-message                                             - done
- move-messages                                            - done
- remove-message                                           - done
- remove-messages                                          - done
- reset-message-counter                                    - done
- send-message-to-dead-letter-address                      - done
- send-messages-to-dead-letter-address                     - done
-
- Needs clients sending/receiving messages:
-
- pause                                                    - done
- resume                                                   - done
-
+ * <p/>
+ * add-jndi - create queue with dlq in address settings     - done
+ * <p/>
+ * Needs some messages:
+ * <p/>
+ * change-message-priority                                  - done
+ * change-messages-priority                                 - done
+ * count-messages                                           - done
+ * expire-message                                           - done
+ * expire-messages                                          - done
+ * list-message-counter-as-html                             - done
+ * list-message-counter-as-json                             - done
+ * list-message-counter-history-as-html                     - done
+ * list-message-counter-history-as-json                     - done
+ * list-messages                                            - done
+ * list-messages-as-json                                    - done
+ * move-message                                             - done
+ * move-messages                                            - done
+ * remove-message                                           - done
+ * remove-messages                                          - done
+ * reset-message-counter                                    - done
+ * send-message-to-dead-letter-address                      - done
+ * send-messages-to-dead-letter-address                     - done
+ * <p/>
+ * Needs clients sending/receiving messages:
+ * <p/>
+ * pause                                                    - done
+ * resume                                                   - done
+ *
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -233,10 +233,20 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
+        try {
+            jmsAdminOperations.removeQueue(coreQueueName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createQueue(coreQueueName, queueJndiName);
-        jmsAdminOperations.removeQueue(dlqCoreQueueName);
+        try {
+            jmsAdminOperations.removeQueue(dlqCoreQueueName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
-        jmsAdminOperations.removeQueue(expireCoreQueueName);
+        try {
+            jmsAdminOperations.removeQueue(expireCoreQueueName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);

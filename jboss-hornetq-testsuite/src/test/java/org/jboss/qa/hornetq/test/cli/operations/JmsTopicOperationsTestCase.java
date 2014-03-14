@@ -24,24 +24,24 @@ import java.util.List;
 
 
 /**
-* Tested operations:
- All done:
-    add-jndi
-    count-messages-for-subscription
-    drop-all-subscriptions
-    drop-durable-subscription
-    list-all-subscriptions
-    list-all-subscriptions-as-json
-    list-durable-subscriptions
-    list-durable-subscriptions-as-json
-    list-messages-for-subscription
-    list-messages-for-subscription-as-json
-    list-non-durable-subscriptions
-    list-non-durable-subscriptions-as-json
-    remove-messages
-
-* @author Miroslav Novak mnovak@redhat.com
-*/
+ * Tested operations:
+ * All done:
+ * add-jndi
+ * count-messages-for-subscription
+ * drop-all-subscriptions
+ * drop-durable-subscription
+ * list-all-subscriptions
+ * list-all-subscriptions-as-json
+ * list-durable-subscriptions
+ * list-durable-subscriptions-as-json
+ * list-messages-for-subscription
+ * list-messages-for-subscription-as-json
+ * list-non-durable-subscriptions
+ * list-non-durable-subscriptions-as-json
+ * remove-messages
+ *
+ * @author Miroslav Novak mnovak@redhat.com
+ */
 @RunWith(Arquillian.class)
 public class JmsTopicOperationsTestCase extends CliTestBase {
 
@@ -172,10 +172,20 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
         jmsAdminOperations.disableSecurity();
+        try {
+            jmsAdminOperations.removeTopic(coreTopicName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createTopic(coreTopicName, topicJndiName);
-        jmsAdminOperations.removeQueue(dlqCoreQueueName);
+        try {
+            jmsAdminOperations.removeQueue(dlqCoreQueueName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createQueue(dlqCoreQueueName, dlqCQueueJndiName);
-        jmsAdminOperations.removeQueue(expireCoreQueueName);
+        try {
+            jmsAdminOperations.removeQueue(expireCoreQueueName);
+        } catch (Exception ex) { // ignore
+        }
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);
