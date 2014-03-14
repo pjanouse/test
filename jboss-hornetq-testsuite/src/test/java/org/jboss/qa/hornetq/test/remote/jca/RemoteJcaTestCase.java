@@ -360,10 +360,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
 
             prepareJmsServer(CONTAINER1);
-            prepareMdbServer(CONTAINER2, CONTAINER1_IP);
+            prepareMdbServer(CONTAINER2, CONTAINER1);
 
             prepareJmsServer(CONTAINER3);
-            prepareMdbServer(CONTAINER4, CONTAINER3_IP);
+            prepareMdbServer(CONTAINER4, CONTAINER3);
 
             controller.start(CONTAINER1);
             deployDestinations(CONTAINER1);
