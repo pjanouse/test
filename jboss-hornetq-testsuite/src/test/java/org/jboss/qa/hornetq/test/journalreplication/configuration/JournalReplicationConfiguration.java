@@ -12,7 +12,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 
 import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.journalreplication.JournalReplicationAbstract;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
@@ -36,13 +36,18 @@ public class JournalReplicationConfiguration
 	private static final String NAME_QUEUE = "Queue1";
 	
 	private static final String SERVER_IP_LIVE = HornetQTestCase.CONTAINER1_IP;
+    private static final String SERVER_IP_BACKUP = HornetQTestCase.CONTAINER2_IP;
 
 	private static final String JNDI_QUEUE = "queue/InQueue";
 	private static final String NAME_CONNECTION_FACTORY = "RemoteConnectionFactory";
 	private static final String JNDI_CONNECTION_FACTORY = "jms/" + NAME_CONNECTION_FACTORY;
+
+    private static final String BACKUP_GROUP_NAME = "backup-group1";
 	
 	private static final int MESSAGING_TO_LIVE_REAL_PORT = 5445;
+    private static final int MESSAGING_TO_BACKUP_REAL_PORT = 5445;
 	private static final int MESSAGING_TO_LIVE_PROXY_PORT = 51111;
+    private static final int MESSAGING_TO_BACKUP_PROXY_PORT = 51112;
 	
 	private static final boolean NON_TRANSACTED = false;
 	
@@ -62,6 +67,7 @@ public class JournalReplicationConfiguration
 	Map<String, String> params = null;
 	String proxySocketBindingName = "messaging-via-proxy";
 	int port = -1;
+    String host = "localhost";
 
 	private ContainerController controller;
 	
@@ -73,30 +79,10 @@ public class JournalReplicationConfiguration
 
 	public void prepareLive(JournalReplicationAbstract journalReplicationAbstractTestCase)
 	{
-		resetConfiguration(SERVER_DIR_LIVE);
-
-		controller.stop(SERVER_LIVE);
-		FileUtil.deleteFolder(new File(SERVER_DIR_LIVE + "/standalone/data"));
-		
-		 File standaloneModified = new File(
-		    	"src" + File.separator +
-				"test" + File.separator +
-				"java" + File.separator + 
-				"org" + File.separator + 
-				"jboss" + File.separator + 
-				"qa" + File.separator + 
-				"hornetq" + File.separator +
-				"test" + File.separator +
-				"journalreplication" + File.separator +
-				"configuration" + File.separator +
-				"standalone-full-ha.xml");
-		File standaloneOriginal = new File(
-				SERVER_DIR_LIVE + File.separator + 
-				"standalone" + File.separator + 
-				"configuration" + File.separator + 
-				"standalone-full-ha.xml");
-		
-		copyFile(standaloneModified, standaloneOriginal);
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
 
 		controller.start(SERVER_LIVE);
 
@@ -114,23 +100,24 @@ public class JournalReplicationConfiguration
 				10485760, 
 				1048570);
 
-		/*
 		adminLive.setSecurityEnabled(true);
 		adminLive.setCheckForLiveServer(true);
 		adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
 		adminLive.setSharedStore(false);
 		adminLive.setPersistenceEnabled(true);
+        adminLive.setBackupGroupName(BACKUP_GROUP_NAME);
 
 		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
 
 		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
 
-		adminLive.addSocketBinding(
-				proxySocketBindingName = "messaging-via-proxy", 
-				port = MESSAGING_TO_LIVE_PROXY_PORT);
+		adminLive.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_LIVE_PROXY_PORT);
 
 		adminLive.createRemoteConnector(
-				proxyConnectorName = "netty-proxy", 
+				proxyConnectorName = "netty-proxy",
 				socketBinding = proxySocketBindingName,
 				params = null);
 
@@ -138,19 +125,25 @@ public class JournalReplicationConfiguration
 		adminLive.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
 		adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
 		adminLive.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
-		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
+		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
 		//adminLive.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, proxyConnectorName);
-		
-		adminLive.removeClusteringGroup("my-cluster");
+
+        adminLive.removeClusteringGroup(clusterGroupName);
 		adminLive.setClusterConnections(
-				clusterName = "my-cluster", 
+				clusterName = clusterGroupName,
 				address = "jms", 
-				discoveryGroup = "dg-group1",
+				discoveryGroup = discoveryGroupName,
 				forwardWhenNoConsumers = false, 
 				maxHops = 1, 
 				retryInterval = 1000, 
 				useDuplicateDetection = true,
-				connectorName = proxyConnectorName);
+//				connectorName = proxyConnectorName);
+                connectorName = "netty");
+        adminLive.removeBroadcastGroup(broadCastGroupName);
+        adminLive.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+
+        adminLive.removeDiscoveryGroup(discoveryGroupName);
+        adminLive.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
@@ -159,7 +152,7 @@ public class JournalReplicationConfiguration
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
 		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
-*/
+
 		adminLive.close();
 
 		controller.stop(SERVER_LIVE);
@@ -205,16 +198,19 @@ public class JournalReplicationConfiguration
 	
 	public void prepareBackup()
 	{
-		resetConfiguration(SERVER_DIR_BACKUP);
-		controller.stop(SERVER_BACKUP);
-		FileUtil.deleteFolder(new File(SERVER_DIR_BACKUP + "/standalone/data"));
+
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
+
 		controller.start(SERVER_BACKUP);
 
 		JMSOperations adminBackup = getJMSOperations(SERVER_BACKUP);
 
 		adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
 		adminBackup.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
-		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, 3);
+		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
 
 		adminBackup.setBackup(true);
 		adminBackup.setSecurityEnabled(true);
@@ -222,9 +218,38 @@ public class JournalReplicationConfiguration
 		adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
 		adminBackup.setSharedStore(false);
 		adminBackup.setPersistenceEnabled(true);
+        adminBackup.setBackupGroupName(BACKUP_GROUP_NAME);
 
 		adminBackup.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
 		adminBackup.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
+
+        adminBackup.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_BACKUP_PROXY_PORT);
+
+        adminBackup.createRemoteConnector(
+                proxyConnectorName = "netty-proxy",
+                socketBinding = proxySocketBindingName,
+                params = null);
+
+        adminBackup.removeClusteringGroup(clusterGroupName);
+        adminBackup.setClusterConnections(
+                clusterName = clusterGroupName,
+                address = "jms",
+                discoveryGroup = discoveryGroupName,
+                forwardWhenNoConsumers = false,
+                maxHops = 1,
+                retryInterval = 1000,
+                useDuplicateDetection = true,
+//                connectorName = proxyConnectorName);
+                connectorName = "netty");
+
+        adminBackup.removeBroadcastGroup(broadCastGroupName);
+        adminBackup.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+
+        adminBackup.removeDiscoveryGroup(discoveryGroupName);
+        adminBackup.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
 		adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
 
@@ -279,36 +304,6 @@ public class JournalReplicationConfiguration
 	    copyFile(applicationRolesModified, applicationRolesOriginal);
 
 	}
-	
-	/**
-	 * Restores working configuration from 'backup' file.
-	 * 
-	 * @param serverDirectory
-	 *            JBossHome for specific server instance.
-	 */
-	private void resetConfiguration(String serverDirectory)
-	{
-		if (serverDirectory == null || serverDirectory.trim().isEmpty())
-		{
-			throw new IllegalArgumentException("Invalid server home:[" + serverDirectory + "]");
-		}
-
-		File serverHome = new File(serverDirectory);
-		if (!serverHome.exists() || !serverHome.isDirectory())
-		{
-			throw new IllegalArgumentException("Directory does not exist:[" + serverDirectory + "]");
-		}
-
-		File confDirectory = new File(serverHome, "standalone" + File.separator + "configuration");
-
-		File defaultConfiguration = new File(confDirectory, "standalone-full-ha.xml.backup");
-
-		File actualConfiguration = new File(confDirectory, "standalone-full-ha.xml");
-
-		actualConfiguration.delete();
-
-		copyFile(defaultConfiguration, actualConfiguration);
-	}
 
 	private void copyFile(File original, File destination)
 	{
@@ -360,14 +355,19 @@ public class JournalReplicationConfiguration
 		}
 	}
 	
-	public SoakProducerClientAck createSenderToLive(int MESSAGES_NUM)
+	public ProducerTransAck createSenderToLive(int MESSAGES_NUM)
 	{
-		return new SoakProducerClientAck(
-				getLiveServerID(),
-				SERVER_IP_LIVE,
-				getJNDIPort(),
-				JNDI_QUEUE,
-				MESSAGES_NUM);
+//		return new SoakProducerClientAck(
+//				getLiveServerID(),
+//				SERVER_IP_LIVE,
+//				getJNDIPort(),
+//				JNDI_QUEUE,
+//				MESSAGES_NUM);
+        return new ProducerTransAck(
+                SERVER_IP_LIVE,
+                getJNDIPort(),
+                JNDI_QUEUE,
+                MESSAGES_NUM);
 	}
 
 	
@@ -378,6 +378,13 @@ public class JournalReplicationConfiguration
 				MESSAGING_TO_LIVE_REAL_PORT,
 				MESSAGING_TO_LIVE_PROXY_PORT);
 	}
+    public ControllableProxy createProxyToBackup()
+    {
+        return new SimpleProxyServer(
+                SERVER_IP_BACKUP,
+                MESSAGING_TO_BACKUP_REAL_PORT,
+                MESSAGING_TO_BACKUP_PROXY_PORT);
+    }
 	
 	private JMSOperations getJMSOperations(String container)
 	{

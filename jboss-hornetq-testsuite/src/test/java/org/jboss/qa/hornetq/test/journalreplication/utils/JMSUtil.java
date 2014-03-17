@@ -43,7 +43,7 @@ public class JMSUtil
 		{
 			try
 			{
-				message = receiver.receive(1000);
+				message = receiver.receive(10000);
 
 				break;
 			} catch (JMSException receivingException)

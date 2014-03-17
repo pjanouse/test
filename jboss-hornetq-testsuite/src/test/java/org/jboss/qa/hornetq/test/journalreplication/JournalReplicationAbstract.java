@@ -11,8 +11,11 @@ import javax.jms.MessageConsumer;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalReplicationConfiguration;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
@@ -21,6 +24,8 @@ import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemControll
 import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,6 +64,8 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 	@RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
 	public void journalReplicationWithoutNetworkProblemTest() throws Exception
 	{
 		testCore(NetworkFailurePoint.NONE);
@@ -67,6 +74,8 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 	@RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
 	public void networkProblemsWhileInitialReplicationTest() throws Exception
 	{
 		testCore(NetworkFailurePoint.INITIAL_REPLICATION);
@@ -74,15 +83,20 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 	@RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
 	public void networkProblemsAfterInitialReplicationTest() throws Exception
 	{
 		testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
 	}
-	
+
 	public void testCore(NetworkFailurePoint testPoint) throws RemoteException
 	{
 		ControllableProxy proxyToLive = preparator.createProxyToLive();
 		proxyToLive.start();
+
+        ControllableProxy proxyToBackup = preparator.createProxyToBackup();
+        proxyToBackup.start();
 
 		startLiveServer();
 
@@ -93,6 +107,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 			// random 4-6
 			int initialDelay = new Random().nextInt(2) + 4;
 			new NetworkProblemController(proxyToLive,initialDelay).start();
+            new NetworkProblemController(proxyToBackup,initialDelay).start();
 		}
 		
 		startBackupServer();
@@ -100,7 +115,6 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 		/*
 		 * replication start point and network failures
 		 */
-		
 		log.info("Waiting additional " + 60 + " s");
 		sleepSeconds(60);
 
@@ -111,6 +125,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 			// random 1-3
 			int initialDelay = new Random().nextInt(2) + 1;
 			new NetworkProblemController(proxyToLive,initialDelay).start();
+            new NetworkProblemController(proxyToBackup,initialDelay).start();
 		}
 		
 		boolean isKillTrigered = false;
@@ -136,8 +151,9 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 				if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered)
 				{
 					proxyToLive.stop();
+                    proxyToBackup.stop();
 
-					killLiveServer();
+                    killServer(CONTAINER1);
 
 					isKillTrigered = true;
 
@@ -158,7 +174,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
 
 	}
-	
+
 	private void startLiveServer()
 	{
 		ServerUtil.startServer(controller, preparator.getLiveServerID());
@@ -182,9 +198,13 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	
 	private void sendMessagesToLive()
 	{
-		SoakProducerClientAck producerToLive = preparator.createSenderToLive(MESSAGES_NUM);
+//		SoakProducerClientAck producerToLive = preparator.createSenderToLive(MESSAGES_NUM);
+//
+//		producerToLive.run();
 
-		producerToLive.run();
+        ProducerTransAck p = preparator.createSenderToLive(MESSAGES_NUM);
+        p.setMessageBuilder(new TextMessageBuilder(300 * 1024));
+        p.start();
 	}
 	
 	private Message receiveMessage(MessageConsumer receiver, int maxRetryNum, int retrySleepSeconds)
