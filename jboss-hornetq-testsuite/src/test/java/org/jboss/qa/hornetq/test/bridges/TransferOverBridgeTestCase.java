@@ -558,6 +558,13 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             log.error(e.getMessage(), e);
         }
 
+        // wait a while for bridge to process all messages
+        long startTime = System.currentTimeMillis();
+        while (jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT) < messages
+                && DEFAULT_TEST_TIMEOUT > (System.currentTimeMillis() - startTime)) {
+            Thread.sleep(1000);
+        }
+
         // Receive messages from the output node
         SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
         assertEquals(messages, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
