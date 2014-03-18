@@ -478,24 +478,35 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @CleanUpBeforeTest
     public void testGettingAddressSettings() {
 
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        jmsOperations.removeAddressSettings("#");
+        jmsOperations.addAddressSettings("#", "PAGE", 10485760, 0, 1000, 2097152);
+
+        stopServer(CONTAINER1);
+        controller.start(CONTAINER1);
 
         Result response = this.runOperation("get-address-settings-as-json", "address-match=#");
         assertTrue("Operation should not fail", response.isSuccess());
+        String expected = "{\"expiryDelay\":-1,\"maxRedeliveryDelay\":0,\"maxSizeBytes\":10485760," +
+                "\"pageCacheMaxSize\":5,\"lastValueQueue\":false,\"redeliveryMultiplier\":1," +
+                "\"addressFullMessagePolicy\":\"PAGE\",\"redistributionDelay\":1000," +
+                "\"redeliveryDelay\":0,\"pageSizeBytes\":2097152,\"sendToDLAOnNoRoute\":false," +
+                "\"maxDeliveryAttempts\":200}";
 
-        String expected = "{\"maxSizeBytes\":10485760,"
-                + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
-                + "\"redeliveryMultiplier\":1,"
-                + "\"addressFullMessagePolicy\":\"PAGE\","
-                + "\"pageSizeBytes\":2097152,"
-                + "\"expiryDelay\":-1,"
-                + "\"DLA\":\"jms.queue.DLQ\","
-                + "\"maxRedeliveryDelay\":0,"
-                + "\"pageCacheMaxSize\":5,"
-                + "\"lastValueQueue\":false,"
-                + "\"redeliveryDelay\":0,"
-                + "\"redistributionDelay\":1000,"
-                + "\"sendToDLAOnNoRoute\":false,"
-                + "\"maxDeliveryAttempts\":10}";
+//        String expected = "{\"maxSizeBytes\":10485760,"
+//                + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
+//                + "\"redeliveryMultiplier\":1,"
+//                + "\"addressFullMessagePolicy\":\"PAGE\","
+//                + "\"pageSizeBytes\":2097152,"
+//                + "\"expiryDelay\":-1,"
+//                + "\"DLA\":\"jms.queue.DLQ\","
+//                + "\"maxRedeliveryDelay\":0,"
+//                + "\"pageCacheMaxSize\":5,"
+//                + "\"lastValueQueue\":false,"
+//                + "\"redeliveryDelay\":0,"
+//                + "\"redistributionDelay\":1000,"
+//                + "\"sendToDLAOnNoRoute\":false,"
+//                + "\"maxDeliveryAttempts\":10}";
         assertEquals("Incorrect address settings info", expected, response.getResponse().get("result").asString());
     }
 
