@@ -80,6 +80,10 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     private static final String PKCS11_CONFIG_FILE_MODIFIED = "pkcs11-modified.cfg";
 
+    private static final String TRUSTSTORE_PROVIDER_PROP_NAME = "trust-store-provider";
+
+    private static final String KEYSTORE_PROVIDER_PROP_NAME = "key-store-provider";
+
 
     @Before
     public void stopServerBeforeReconfiguration() {
@@ -338,8 +342,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
         props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        props.put(TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
-        props.put(TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        props.put(TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        props.put(KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
         props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
         props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
@@ -422,8 +426,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         acceptorProps.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
         acceptorProps.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
         acceptorProps.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        acceptorProps.put(TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
-        acceptorProps.put(TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        acceptorProps.put(TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        acceptorProps.put(KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
         acceptorProps.put("need-client-auth", "true");
         ops.createRemoteAcceptor(acceptorConnectorName, messagingGroupSocketBindingName, acceptorProps);
 
@@ -433,8 +437,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         connectorProps.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
         connectorProps.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
         connectorProps.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        connectorProps.put(TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
-        connectorProps.put(TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        connectorProps.put(TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        connectorProps.put(KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
         ops.createRemoteConnector(acceptorConnectorName, messagingGroupSocketBindingName, connectorProps);
 
         ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", acceptorConnectorName);
