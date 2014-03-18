@@ -1,8 +1,19 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -43,13 +54,87 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testShutdowonInClusterMixMessages() throws Exception {
+        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
+    }
+
+    /**
+     * In case of replication we don't want to start second server again. We expect that colocated backup
+     * will have all load-balanced messages.
+     *
+     * @param shutdown
+     * @param messageBuilder
+     * @throws Exception
+     */
+    public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
+
+        prepareColocatedTopologyInCluster();
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // give some time for servers to find each other
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+
+        int numberOfMessages = 6000;
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueue, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(1000);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        logger.info("########################################");
+        logger.info("kill - second server");
+        logger.info("########################################");
+
+        if (shutdown)   {
+            controller.stop(CONTAINER2);
+        } else {
+            killServer(CONTAINER2);
+            controller.kill(CONTAINER2);
+        }
+
+//        logger.info("########################################");
+//        logger.info("Start again - second server");
+//        logger.info("########################################");
+//        controller.start(CONTAINER2);
+//        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000);
+//        logger.info("########################################");
+//        logger.info("Second server started");
+//        logger.info("########################################");
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, inQueue, 30000, 1000, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setAckAfter(1000);
+
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
 
     /**
      * Prepares live server for dedicated topology.
      *
      * @param containerName    Name of the container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(String containerName, String backupGroupName, String journalDirectoryPath) {
+    public void prepareLiveServer(String containerName, String backupGroupName, String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -178,7 +263,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      * @param containerName        Name of the arquilian container.
      * @param backupServerName     Name of the new HornetQ backup server.
      */
-    protected void prepareColocatedBackupServer(String containerName, String backupServerName, String backupGroupName
+    public void prepareColocatedBackupServer(String containerName, String backupServerName, String backupGroupName
                 , String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group-backup";

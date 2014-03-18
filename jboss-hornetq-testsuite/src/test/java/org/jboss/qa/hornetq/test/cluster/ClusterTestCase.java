@@ -7,10 +7,13 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
@@ -109,6 +112,77 @@ public class ClusterTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER1);
 
+        stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithKillOfServerInCluster() throws Exception {
+
+        prepareServers();
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+// give some time for servers to find each other
+        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+
+        int numberOfMessages = 6000;
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(128));
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(1000);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+
+        log.info("########################################");
+        log.info("kill - second server");
+        log.info("########################################");
+
+//        if (shutdown)   {
+//            controller.stop(CONTAINER2);
+//        } else {
+            killServer(CONTAINER2);
+            controller.kill(CONTAINER2);
+//        }
+
+        log.info("########################################");
+        log.info("Start again - second server");
+        log.info("########################################");
+        controller.start(CONTAINER2);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000);
+        log.info("########################################");
+        log.info("Second server started");
+        log.info("########################################");
+
+        Thread.sleep(10000);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, inQueueJndiNameForMdb, 30000, 1000, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setAckAfter(1000);
+//        printQueueStatus(CONTAINER1, inQueueName);
+//        printQueueStatus(CONTAINER2, inQueueName);
+
+        receiver1.start();
+        receiver1.join();
+
+        log.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
         stopServer(CONTAINER2);
 
     }
