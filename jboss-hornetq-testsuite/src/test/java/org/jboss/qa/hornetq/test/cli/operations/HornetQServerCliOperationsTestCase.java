@@ -487,11 +487,22 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         Result response = this.runOperation("get-address-settings-as-json", "address-match=#");
         assertTrue("Operation should not fail", response.isSuccess());
-        String expected = "{\"expiryDelay\":-1,\"maxRedeliveryDelay\":0,\"maxSizeBytes\":10485760," +
-                "\"pageCacheMaxSize\":5,\"lastValueQueue\":false,\"redeliveryMultiplier\":1," +
-                "\"addressFullMessagePolicy\":\"PAGE\",\"redistributionDelay\":1000," +
-                "\"redeliveryDelay\":0,\"pageSizeBytes\":2097152,\"sendToDLAOnNoRoute\":false," +
-                "\"maxDeliveryAttempts\":200}";
+
+        String output = response.getResponse().get("result").asString();
+        assertTrue(output.contains("\"expiryDelay\":-1"));
+        assertTrue(output.contains("\"maxRedeliveryDelay\":0"));
+        assertTrue(output.contains("\"maxSizeBytes\":10485760"));
+        assertTrue(output.contains("\"pageCacheMaxSize\":5"));
+        assertTrue(output.contains("\"addressFullMessagePolicy\":\"PAGE\""));
+        assertTrue(output.contains("\"pageSizeBytes\":2097152"));
+        assertTrue(output.contains("\"maxDeliveryAttempts\":200"));
+        assertTrue(output.contains("\"redistributionDelay\":1000"));
+
+//        String expected = "{\"expiryDelay\":-1,\"maxRedeliveryDelay\":0,\"maxSizeBytes\":10485760," +
+//                "\"pageCacheMaxSize\":5,\"lastValueQueue\":false,\"redeliveryMultiplier\":1," +
+//                "\"addressFullMessagePolicy\":\"PAGE\",\"redistributionDelay\":1000," +
+//                "\"redeliveryDelay\":0,\"pageSizeBytes\":2097152,\"sendToDLAOnNoRoute\":false," +
+//                "\"maxDeliveryAttempts\":200}";
 
 //        String expected = "{\"maxSizeBytes\":10485760,"
 //                + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
@@ -507,7 +518,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //                + "\"redistributionDelay\":1000,"
 //                + "\"sendToDLAOnNoRoute\":false,"
 //                + "\"maxDeliveryAttempts\":10}";
-        assertEquals("Incorrect address settings info", expected, response.getResponse().get("result").asString());
+//        assertEquals("Incorrect address settings info", expected, response.getResponse().get("result").asString());
     }
 
 
