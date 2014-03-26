@@ -391,6 +391,10 @@ public class SubscriberTransAck extends Client {
 
                 msg = consumer.receive(receiveTimeOut);
                 if (msg != null) {
+                    logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
+                            + ". Received message - counter: "
+                            + counter + ", messageId:" + msg.getJMSMessageID()
+                            + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
                     msg = cleanMessage(msg);
                 }
                 return msg;
