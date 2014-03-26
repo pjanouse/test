@@ -115,7 +115,8 @@ public class SubscriberTransAck extends Client {
 
                 logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                         + ". Received message - counter: "
-                        + counter + ", messageId:" + message.getJMSMessageID());
+                        + counter + ", messageId:" + message.getJMSMessageID()
+                        + ", dupId: " + message.getStringProperty("_HQ_DUPL_ID"));
 
                 if (counter % commitAfter == 0) { // try to ack message
                     commitSession(session);
