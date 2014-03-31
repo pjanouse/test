@@ -431,6 +431,8 @@ public interface JMSOperations {
      */
     void removeAddressSettings(String address);
 
+    void seRootLoggingLevel(String level);
+
     /**
      * Removes defined bridge, method just logs exception it does not throws
      * exception

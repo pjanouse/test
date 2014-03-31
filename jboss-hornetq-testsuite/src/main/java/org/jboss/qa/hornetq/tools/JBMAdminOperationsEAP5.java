@@ -629,6 +629,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void seRootLoggingLevel(String level) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeBridge(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }

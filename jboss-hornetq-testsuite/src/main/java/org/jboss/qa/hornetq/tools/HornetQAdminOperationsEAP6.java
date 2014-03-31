@@ -2948,6 +2948,31 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Sets logging level for root level log
+     *
+     * @param level like "ALL",
+     *              "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+     */
+    @Override
+    public void seRootLoggingLevel(String level) {
+
+        // /subsystem=logging/root-logger=ROOT:write-attribute(name=level, value=ERROR)
+        ModelNode model = new ModelNode();
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
+        model.get("name").set("level");
+        model.get("value").set(level);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Removes defined bridge, method just logs exception it does not throws
      * exception
      *
