@@ -383,6 +383,15 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         if (messageVerifier != null) {
             client2.setMessageVerifier(messageVerifier);
         }
+        long startTime = System.currentTimeMillis();
+        while (jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT) != messages
+                && System.currentTimeMillis() - startTime < DEFAULT_TEST_TIMEOUT/2) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
         assertEquals(messages, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         client2.receiveMessages(TEST_QUEUE_OUT_JNDI);
         assertEquals(messages, client2.getReceivedMessages());
