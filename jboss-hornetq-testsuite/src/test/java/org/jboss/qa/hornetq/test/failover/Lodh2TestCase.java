@@ -927,8 +927,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
             jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
-            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
-            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+//            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
+//            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {
