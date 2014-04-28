@@ -196,7 +196,6 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             };
             shutdownHook.start();
             shutdownHook.join(60000);
-            p.destroy();
 
             // check standard output - false returned then server is stopped
             if (!checkOutput(p.getInputStream())) {
@@ -212,6 +211,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                 log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
                         + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
             }
+            p.destroy();
             return stillRunning;
         }
 
