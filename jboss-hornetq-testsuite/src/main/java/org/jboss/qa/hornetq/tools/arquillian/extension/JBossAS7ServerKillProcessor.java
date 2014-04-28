@@ -184,18 +184,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
             p = Runtime.getRuntime().exec(killSequence);
 
-            Thread shutdownHook = new Thread() {
-                public void run() {
-
-                    try {
-                        p.waitFor();
-                    } catch (InterruptedException e) {
-                        log.error("Executing process " + p + " was interrupted.", e);
-                    }
-                }
-            };
-            shutdownHook.start();
-            shutdownHook.join(60000);
+            p.waitFor();
 
             // check standard output - false returned then server is stopped
             if (!checkOutput(p.getInputStream())) {
@@ -211,7 +200,6 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
                 log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
                         + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
             }
-            p.destroy();
             return stillRunning;
         }
 

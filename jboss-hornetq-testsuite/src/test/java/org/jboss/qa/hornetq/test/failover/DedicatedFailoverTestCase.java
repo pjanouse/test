@@ -262,6 +262,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_PORT_1);
 
+        waitForServerToBeKilled(CONTAINER1, 60000);
+
         controller.kill(CONTAINER1);
 
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
@@ -293,6 +295,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
+    }
+
+    private boolean waitForServerToBeKilled(String container, long timeout) throws Exception {
+
+        boolean isRunning = false;
+
+        long startTime = System.currentTimeMillis();
+
+        while (isRunning && System.currentTimeMillis() - startTime < timeout)    {
+            isRunning = checkThatServerIsReallyUp(getHostname(container), getHttpPort(container));
+            logger.info("Container " + container + " is still running. Waiting for it to be killed.");
+            Thread.sleep(1000);
+        }
+
+        return isRunning;
     }
 
 
