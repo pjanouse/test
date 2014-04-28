@@ -297,14 +297,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-    private boolean waitForServerToBeKilled(String container, long timeout) throws Exception {
+    public boolean waitForServerToBeKilled(String container, long timeout) throws Exception {
 
         boolean isRunning = false;
 
         long startTime = System.currentTimeMillis();
 
         while (isRunning && System.currentTimeMillis() - startTime < timeout)    {
-            isRunning = checkThatServerIsReallyUp(getHostname(container), getHttpPort(container));
+            isRunning = checkThatServerIsReallyUp(CONTAINER1_IP, getHttpPort(container));
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);
         }
