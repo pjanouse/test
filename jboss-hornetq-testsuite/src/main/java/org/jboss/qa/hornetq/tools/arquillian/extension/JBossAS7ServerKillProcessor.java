@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.tools.arquillian.extension;
 
 
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
 import org.jboss.qa.hornetq.HttpRequest;
@@ -11,8 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * Implementation of the @see {@link ServerKillProcessor} for AS7 and HornetQ tests
@@ -20,7 +21,7 @@ import java.util.logging.Logger;
 public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
     // Logger
-    private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class.getName());
+    private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class);
 
     String hostname = null;
 
@@ -163,7 +164,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
      */
     private boolean checkJBossAlive(String killSequence) throws Exception {
 
-        Process p;
+        final Process p;
         String os = System.getProperty("os.name").toLowerCase();
 
         if (os.contains("windows")) {
@@ -171,7 +172,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             String response;
             try {
                 response = HttpRequest.get("http://" + hostname + ":8080", 20, TimeUnit.SECONDS);
-            } catch (Exception ex ) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 return false;
             }
@@ -182,7 +183,20 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             boolean stillRunning = true;
 
             p = Runtime.getRuntime().exec(killSequence);
-            p.waitFor();
+
+            Thread shutdownHook = new Thread() {
+                public void run() {
+
+                    try {
+                        p.waitFor();
+                    } catch (InterruptedException e) {
+                        log.error("Executing process " + p + " was interrupted.", e);
+                    }
+                }
+            };
+            shutdownHook.start();
+            shutdownHook.join(60000);
+            p.destroy();
 
             // check standard output - false returned then server is stopped
             if (!checkOutput(p.getInputStream())) {
@@ -195,7 +209,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             }
 
             if (p.exitValue() != 0) {
-                log.log(Level.SEVERE, "Return code from kill sequence is different from zero. It's expected when server is no longer"
+                log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
                         + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
             }
             return stillRunning;
