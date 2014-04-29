@@ -1056,7 +1056,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param ipAddress ipAddress
      * @param port      port
      */
-    boolean checkThatServerIsReallyUp(String ipAddress, int port) {
+    protected boolean checkThatServerIsReallyUp(String ipAddress, int port) {
         log.debug("Check that port is open - IP address: " + ipAddress + " port: " + port);
         Socket socket = null;
         try {
