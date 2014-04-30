@@ -158,6 +158,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
             waitHornetQToAlive(CONTAINER1_IP, 5445, 600000);
+            // check that backup is really down
+            waitHornetQBackupToBecomePassive(CONTAINER2, 5445, 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
             logger.warn("########################################");
@@ -180,6 +182,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
         stopServer(CONTAINER2);
+
+    }
+
+    private void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
+        long startTime = System.currentTimeMillis();
+
+        while (checkThatServerIsReallyUp(getHostname(container), port))    {
+              Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime < timeout)   {
+                Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
+            }
+        }
 
     }
 

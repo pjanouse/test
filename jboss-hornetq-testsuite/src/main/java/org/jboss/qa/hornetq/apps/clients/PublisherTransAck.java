@@ -36,6 +36,8 @@ public class PublisherTransAck extends Client {
     private String clientId;
     private boolean stop = false;
 
+    MessageProducer publisher;
+
     /**
      * @param hostname       hostname
      * @param port           port
@@ -89,28 +91,62 @@ public class PublisherTransAck extends Client {
 
             session = con.createSession(true, Session.SESSION_TRANSACTED);
 
-            MessageProducer publisher = session.createProducer(topic);
+            publisher = session.createProducer(topic);
 
-            Message msg;
+            Message msg = null;
 
             while (counter < messages && !stop) {
 
                 msg = messageBuilder.createMessage(session);
+                msg.setIntProperty("count", counter);
 
-                // send message in while cycle
-                sendMessage(publisher, msg);
+                sendMessage(msg);
+
+                listOfMessagesToBeCommited.add(msg);
+
+                Thread.sleep(getTimeout());
 
                 if (counter % commitAfter == 0) {
 
-                    commitSession(session, publisher);
+                    commitSession(session);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (Message m : listOfMessagesToBeCommited) {
+                        stringBuilder.append(m.getJMSMessageID());
+                    }
+                    logger.debug("Adding messages: " + stringBuilder.toString());
+                    for (Message m : listOfMessagesToBeCommited)    {
+                        m = cleanMessage(m);
+                        addMessage(listOfSentMessages,m);
+                    }
+
+                    logger.info("COMMIT - session was commited. Last message with property counter: " + counter
+                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    listOfMessagesToBeCommited.clear();
 
                 }
-
             }
 
-            commitSession(session, publisher);
+            commitSession(session);
 
-            publisher.close();
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Message m : listOfMessagesToBeCommited) {
+                stringBuilder.append(m.getJMSMessageID());
+            }
+            logger.debug("Adding messages: " + stringBuilder.toString());
+            for (Message m : listOfMessagesToBeCommited)    {
+                m = cleanMessage(m);
+                addMessage(listOfSentMessages,m);
+            }
+//                    StringBuilder stringBuilder2 = new StringBuilder();
+//                    for (Map<String,String> m : listOfSentMessages) {
+//                        stringBuilder2.append("messageId: " + m.get("messageId") + "dupId: " + m.get("_HQ_DUPL_ID") + "##");
+//                    }
+//                    logger.debug("List of sent messages: " + stringBuilder2.toString());
+//                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
+            logger.info("COMMIT - session was commited. Last message with property counter: " + counter
+                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+            listOfMessagesToBeCommited.clear();
+
 
             if (messageVerifiers != null) {
                 for (FinalTestMessageVerifier verifier : messageVerifiers) {
@@ -145,54 +181,80 @@ public class PublisherTransAck extends Client {
         }
     }
 
-    /**
-     * Send message to server. Try send message and if succeed than return. If
-     * send fails and exception is thrown it tries send again until max retry is
-     * reached. Then throws new Exception.
-     *
-     * @param publisher publisher
-     * @param msg message
-     */
-    private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
-
+    private void sendMessage(Message msg) {
         int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-
-            try {
-
-                publisher.send(msg);
-
-                counter++;
-
-                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID()
-                        + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
-
-                listOfMessagesToBeCommited.add(msg);
-
-                numberOfRetries = 0;
-
-                return;
-
-            } catch (JMSException ex) {
-
+        try {
+            if (numberOfRetries > maxRetries) {
                 try {
-                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException ignored) {
-                } // ignore
-
-                numberOfRetries++;
+                    throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
+
+            if (numberOfRetries > 0) {
+                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+            }
+            numberOfRetries++;
+            publisher.send(msg);
+            logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
+                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+            counter++;
+        } catch (JMSException ex) {
+            logger.error("Failed to send message - counter: " + counter, ex);
+            sendMessage(msg);
         }
-
-        // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
-                + ". Sent message with property count: " + counter
-                + ", messageId:" + msg.getJMSMessageID());
-
     }
+
+
+//    /**
+//     * Send message to server. Try send message and if succeed than return. If
+//     * send fails and exception is thrown it tries send again until max retry is
+//     * reached. Then throws new Exception.
+//     *
+//     * @param publisher publisher
+//     * @param msg message
+//     */
+//    private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
+//
+//        int numberOfRetries = 0;
+//
+//        while (numberOfRetries < maxRetries) {
+//
+//            try {
+//
+//                publisher.send(msg);
+//
+//                counter++;
+//
+//                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID()
+//                        + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+//
+//                listOfMessagesToBeCommited.add(msg);
+//
+//                numberOfRetries = 0;
+//
+//                return;
+//
+//            } catch (JMSException ex) {
+//
+//                try {
+//                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
+//                            + ". Sent message with property count: " + counter
+//                            + ", messageId:" + msg.getJMSMessageID());
+//                } catch (JMSException ignored) {
+//                } // ignore
+//
+//                numberOfRetries++;
+//            }
+//        }
+//
+//        // this is an error - here we should never be because max retrie expired
+//        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
+//                + ". Sent message with property count: " + counter
+//                + ", messageId:" + msg.getJMSMessageID());
+//
+//    }
 
     /**
      * Stop producer
@@ -295,126 +357,174 @@ public class PublisherTransAck extends Client {
         this.commitAfter = commitAfter;
     }
 
-    /**
-     * Commits current session - commits messages which were sent.
-     *
-     * @param session   session
-     * @param publisher publisher
-     * @throws Exception
-     */
-    private void commitSession(Session session, MessageProducer publisher) throws Exception {
+//    /**
+//     * Commits current session - commits messages which were sent.
+//     *
+//     * @param session   session
+//     * @param publisher publisher
+//     * @throws Exception
+//     */
+//    private void commitSession(Session session, MessageProducer publisher) throws Exception {
+//
+//        int numberOfRetries = 0;
+//
+//        while (numberOfRetries < maxRetries) {
+//
+//            // try commit
+//            try {
+//
+//                session.commit();
+//
+//                logger.info("COMMIT - Publisher for node: " + getHostname()
+//                        + ". Sent message with property count: " + counter);
+//
+//                StringBuilder stringBuilder = new StringBuilder();
+//                for (Message m : listOfMessagesToBeCommited) {
+//                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(", dupId: ").append(m.getStringProperty("_HQ_DUPL_ID"));
+//                }
+//
+//                logger.debug("Adding messages: " + stringBuilder.toString());
+//
+//                for (Message m : listOfMessagesToBeCommited)    {
+//
+//                    m = cleanMessage(m);
+//
+//                    addMessage(listOfSentMessages, m);
+//                }
+//
+//                listOfMessagesToBeCommited.clear();
+//
+//                return;
+//
+//            } catch (TransactionRolledBackException ex) {
+//                logger.error("COMMIT Failed - Publisher for node: " + getHostname()
+//                        + ". Sent message with property count: " + counter + " doing RollBack and retrying send", ex);
+//
+//                counter = counter - listOfMessagesToBeCommited.size();
+//                numberOfRetries++;
+//
+//                resendMessages(publisher);
+//            } catch (JMSException ex) {
+//                if (numberOfRetries > 3)    {
+//                    // this is actually JMSException called because we sent duplicates
+//                    logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
+//                            + ". Sent message with property count: " + counter, ex);
+//                    return;
+//                } else {
+//                    logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
+//                        + "is not able to determine whether commit was successful. Commit will be retried and messages WILL BE resent. " +
+//                        "Server will throw away all duplicates. Publisher for node: " + getHostname()
+//                        + ". Sent message with property count: " + counter, ex);
+//                    numberOfRetries++;
+//                    resendMessages(publisher);
+//                }
+//            }
+//        }
+//        // maxretry reached then throw exception above
+//        throw new Exception("FAILURE in COMMIT - MaxRetry reached for publisher for node: " + getHostname()
+//                + ". Sent message with property count: " + counter);
+//
+//    }
 
+    private void commitSession(Session session) throws Exception {
         int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-
-            // try commit
+        while (true) {
             try {
 
+                // try commit
                 session.commit();
 
-                logger.info("COMMIT - Publisher for node: " + getHostname()
-                        + ". Sent message with property count: " + counter);
-
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Message m : listOfMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(", dupId: ").append(m.getStringProperty("_HQ_DUPL_ID"));
-                }
-
-                logger.debug("Adding messages: " + stringBuilder.toString());
-
-                for (Message m : listOfMessagesToBeCommited)    {
-
-                    m = cleanMessage(m);
-
-                    addMessage(listOfSentMessages, m);
-                }
-
-                listOfMessagesToBeCommited.clear();
-
+                // if successful -> return
                 return;
 
             } catch (TransactionRolledBackException ex) {
-                logger.error("COMMIT Failed - Publisher for node: " + getHostname()
-                        + ". Sent message with property count: " + counter + " doing RollBack and retrying send", ex);
+                // if transaction rollback exception -> send messages again and commit
+                ex.printStackTrace();
 
-                counter = counter - listOfMessagesToBeCommited.size();
-                numberOfRetries++;
-
-                resendMessages(publisher);
-            } catch (JMSException ex) {
-                if (numberOfRetries > 3)    {
-                    // this is actually JMSException called because we sent duplicates
-                    logger.error("COMMIT failed because duplicates were sent - server will throw away all duplicates. Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter, ex);
-                    return;
-                } else {
-                    logger.error("COMMIT failed but transaction rollback exception was NOT thrown - this means that publisher "
-                        + "is not able to determine whether commit was successful. Commit will be retried and messages WILL BE resent. " +
-                        "Server will throw away all duplicates. Publisher for node: " + getHostname()
-                        + ". Sent message with property count: " + counter, ex);
-                    numberOfRetries++;
-                    resendMessages(publisher);
+                // don't repeat this more than once, this can't happen
+                if (numberOfRetries > 0) {
+                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
+                            + " Client will terminate.", ex);
                 }
-            }
-        }
-        // maxretry reached then throw exception above
-        throw new Exception("FAILURE in COMMIT - MaxRetry reached for publisher for node: " + getHostname()
-                + ". Sent message with property count: " + counter);
 
-    }
+                counter -= listOfMessagesToBeCommited.size();
 
-    /**
-     * Resends messages when transaction rollback exception was thrown.
-     *
-     * @param publisher publisher
-     */
-    private void resendMessages(MessageProducer publisher) throws Exception {
+                for (Message m : listOfMessagesToBeCommited) {
+                    sendMessage(m);
+                }
 
-        // there can be problem during resending messages so we need to know which messages were resend
-        for (Message msg : listOfMessagesToBeCommited) {
-
-            resendMessage(publisher, msg);
-
-        }
-    }
-
-    private void resendMessage(MessageProducer publisher, Message msg) throws Exception {
-
-        int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-
-            try {
-
-                publisher.send(msg);
-
-                counter++;
-
-                logger.info("Publisher resent message for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
-
-                numberOfRetries = 0;
-
-                return;
+                numberOfRetries++;
 
             } catch (JMSException ex) {
+                // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
+                ex.printStackTrace();
 
-                try {
-                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
-                            + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException ignored) {
-                } // ignore
+                // don't repeat this more than once - it's exception because of duplicates
+                if (numberOfRetries > 0) {
+                    return;
+                }
 
+                counter -= listOfMessagesToBeCommited.size();
+
+                for (Message m : listOfMessagesToBeCommited) {
+                    sendMessage(m);
+                }
                 numberOfRetries++;
             }
         }
-
-        // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
-                + ". During SEND (not commit) of message with property count: " + counter
-                + ", messageId:" + msg.getJMSMessageID());
     }
+
+//    /**
+//     * Resends messages when transaction rollback exception was thrown.
+//     *
+//     * @param publisher publisher
+//     */
+//    private void resendMessages(MessageProducer publisher) throws Exception {
+//
+//        // there can be problem during resending messages so we need to know which messages were resend
+//        for (Message msg : listOfMessagesToBeCommited) {
+//
+//            resendMessage(publisher, msg);
+//
+//        }
+//    }
+//
+//    private void resendMessage(MessageProducer publisher, Message msg) throws Exception {
+//
+//        int numberOfRetries = 0;
+//
+//        while (numberOfRetries < maxRetries) {
+//
+//            try {
+//
+//                publisher.send(msg);
+//
+//                counter++;
+//
+//                logger.info("Publisher resent message for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID());
+//
+//                numberOfRetries = 0;
+//
+//                return;
+//
+//            } catch (JMSException ex) {
+//
+//                try {
+//                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
+//                            + ". Sent message with property count: " + counter
+//                            + ", messageId:" + msg.getJMSMessageID());
+//                } catch (JMSException ignored) {
+//                } // ignore
+//
+//                numberOfRetries++;
+//            }
+//        }
+//
+//        // this is an error - here we should never be because max retrie expired
+//        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
+//                + ". During SEND (not commit) of message with property count: " + counter
+//                + ", messageId:" + msg.getJMSMessageID());
+//    }
 
     /**
      * @return the topicNameJndi
