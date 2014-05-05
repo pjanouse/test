@@ -611,6 +611,8 @@ public class ClusterTestCase extends HornetQTestCase {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
         }
+        clients.setProducedMessagesCommitAfter(100);
+        clients.setReceivedMessagesAckCommitAfter(100);
 
         return clients;
     }
