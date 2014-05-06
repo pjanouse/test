@@ -264,8 +264,8 @@ public class Lodh5TestCase extends HornetQTestCase {
         String eapVersion = scanner.nextLine();
         logger.info("Print content of version file: " + eapVersion);
 
-        String pattern = "(?i)(Red Hat JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
-        String justVersion = eapVersion.replaceAll(pattern, "$2").trim();
+        String pattern = "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
+        String justVersion = eapVersion.replaceAll(pattern, "$3").trim();
 
         StringTokenizer str = new StringTokenizer(justVersion, ".");
         String majorVersion = str.nextToken();
