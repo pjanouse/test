@@ -248,6 +248,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         ops.setPersistenceEnabled(true);
         ops.setSharedStore(true);
         ops.disableSecurity();
+        ops.addLoggerCategory("com.arjuna", "ERROR");
 
         ops.removeBroadcastGroup("bg-group1");
         ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, "netty", "");
@@ -272,6 +273,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         ops.setPersistenceEnabled(true);
         ops.setSharedStore(true);
         ops.disableSecurity();
+        ops.addLoggerCategory("com.arjuna", "ERROR");
 
         ops.removeBroadcastGroup("bg-group1");
         ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, "netty", "");
