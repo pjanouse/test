@@ -721,7 +721,7 @@
         </repository>
         <repository>
             <id>brew-eap5-current</id>
-            <url>>http://download.lab.bos.redhat.com/brewroot/repos/jb-eap-5-rhel-6-candidate/latest/maven/</url>
+            <url>http://download.lab.bos.redhat.com/brewroot/repos/jb-eap-5-rhel-6-candidate/latest/maven/</url>
             <layout>default</layout>
         </repository>
     </repositories>
