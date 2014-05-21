@@ -817,8 +817,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             Map<String, String> attributes = new HashMap<String, String>();
             attributes.put("name", broadcastGroupName);
             XMLManipulation.addNode("//broadcast-groups", "broadcast-group", "", doc, attributes);
-            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-address", localBindAddress, doc);
-            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-port", String.valueOf(localBindPort), doc);
+            // TODO There is issue https://issues.jboss.org/browse/JBPAPP-11148 - until resolved keep next 2 lines commented
+//            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-address", localBindAddress, doc);
+//            XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "local-bind-port", String.valueOf(localBindPort), doc);
             XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "group-address", groupAddress, doc);
             XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "group-port", String.valueOf(groupPort), doc);
             XMLManipulation.addNode("//broadcast-group[@name='" + broadcastGroupName + "']", "broadcast-period", String.valueOf(broadCastPeriod), doc);
