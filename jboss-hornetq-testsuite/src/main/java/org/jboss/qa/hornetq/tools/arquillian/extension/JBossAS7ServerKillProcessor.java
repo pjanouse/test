@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
 import org.jboss.qa.hornetq.HttpRequest;
+import org.jboss.qa.hornetq.JMSTools;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -127,8 +128,13 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         String os = System.getProperty("os.name").toLowerCase();
         String suffix = (os.contains("windows")) ? "bat" : "sh";
 
+        String killSequence;
         // Prepare kill sequence
-        String killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+        if (JMSTools.isIpv6Address(hostname))   {
+            killSequence = KILL_SEQUENCE.replace("[hostname]", "[" + hostname + "]");
+        } else {
+            killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+        }
         killSequence = killSequence.replace("[port]", port);
         killSequence = killSequence.replace("[jbossHome]", jbossHome);
         killSequence = killSequence.replace("[suffix]", suffix);
