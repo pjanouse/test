@@ -16,7 +16,7 @@ public class GroupMessageBuilder implements MessageBuilder {
 
     String groupMessageId = "DefaultGroupMessageId";
 
-    boolean addDuplicatedHeader = false;
+    boolean addDuplicatedHeader = true;
 
     public GroupMessageBuilder(String groupMessageId) {
         this.groupMessageId = groupMessageId;

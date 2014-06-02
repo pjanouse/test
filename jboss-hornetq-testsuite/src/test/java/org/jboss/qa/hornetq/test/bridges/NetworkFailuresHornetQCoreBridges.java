@@ -9,6 +9,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.MulticastProxy;
@@ -45,7 +47,7 @@ import java.util.Random;
  * 3. Broadcasted connectors from server A points to proxy to server A so each server in cluster connects to server A by connecting
  * it proxy resending messages to server A
  * <p/>
- * STEPS 1. AND 2. ARE THE SAME FOR ALL NODES IN ONE CLUSTER. THERE IS ONE MULTICAST PROXY PER CLUSTER.
+ * STEPS 1. AND 2. ARE THE SAME FOR ALL NODES IN ONE CLUSTER. THERE are 2^(n-1) MULTICAST PROXIES PER per n nodes.
  * STEP 3 IS SPECIFIC FOR EACH NODE IN CLUSTER. THERE IS ONE TCP/UDP PROXY PER NODE.
  *
  * @author mnovak@redhat.com
@@ -321,6 +323,230 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     }
 
+
+     ///////////////////// NETWORF FAILURE WITH MESSAGE GROUP TESTS //////////////////////
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMessageGroupNetworkFailoverSmallMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
+        //testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
+
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupMixMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMessageGroupSmallMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupLargeMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupMixMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupSmallMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupLargeMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupMixMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupSmallMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupLargeMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testMessageGroupFailoverMixMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverSmallMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverLargeMessages() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), -1, 2, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverMixMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverSmallMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverLargeMessages1recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverMixMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverSmallMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 5, 2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testShortMessageGroupFailoverLargeMessages5recAttempts() throws Exception {
+        testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 5, 2);
+    }
+
+    public void testNetworkFailureWithMessageGrouping(long timeBetweenFails, MixMessageGroupMessageBuilder messageBuilder, int reconnectAttempts,
+                                                      int numberOfFails) throws Exception {
+        testNetworkFailureWithMessageGrouping(timeBetweenFails, messageBuilder, reconnectAttempts, numberOfFails, true);
+    }
+
+    /**
+     * Implementation of the basic test scenario: 1. Start cluster - nodes A and B 2.
+     * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
+     * it's random 5. Stop producers 6. Evaluate results
+     */
+    public void testNetworkFailureWithMessageGrouping(long timeBetweenFails, MixMessageGroupMessageBuilder messageBuilder, int reconnectAttempts,
+                                                      int numberOfFails, boolean staysDisconnected) throws Exception {
+
+        prepareServersWihtMessageGrouping(reconnectAttempts);
+
+        startProxies();
+
+        controller.start(CONTAINER1); // A1
+        controller.start(CONTAINER2); // B1
+
+        Thread.sleep(5000);
+
+        GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
+
+        // A1 producer
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        if (messageBuilder != null) {
+            messageBuilder.setAddDuplicatedHeader(true);
+            producer1.setMessageBuilder(messageBuilder);
+        }
+        producer1.setMessageVerifier(groupMessageVerifier);
+
+        // B1 consumer
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), CONTAINER2_IP, getJNDIPort(), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails):120000, 10, 10);
+        receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(groupMessageVerifier);
+
+        log.info("Start producer and receiver.");
+        producer1.start();
+        receiver1.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(15 * 1000);
+
+        executeNetworkFails(timeBetweenFails, numberOfFails);
+
+        Thread.sleep(5 * 1000);
+
+        producer1.stopSending();
+        producer1.join();
+        receiver1.setReceiveTimeOut(10000);
+        receiver1.join();
+
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        if (staysDisconnected)  {
+            Assert.assertTrue("There must be more sent messages then received.",
+                    producer1.getListOfSentMessages().size() > receiver1.getCount());
+            stopServer(CONTAINER1);
+            controller.start(CONTAINER1);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
+            receiver2.start();
+            receiver2.join();
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(),
+                    receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+        } else {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        }
+
+
+        // check send and received messages
+        groupMessageVerifier.verifyMessages();
+
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
     /**
      * Executes network failures.
      * <p/>
@@ -434,9 +660,23 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     public void prepareServers(int reconnectAttempts) {
 
         prepareClusterServer(CONTAINER1, CONTAINER1_IP, proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA, false);
         prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
-                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
+                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB, false);
+    }
+
+    /**
+     * Prepares servers.
+     * <p/>
+     * Container1,3 - source servers in cluster A. Container2,4 - source servers
+     * in cluster B.
+     */
+    public void prepareServersWihtMessageGrouping(int reconnectAttempts) {
+
+        prepareClusterServer(CONTAINER1, CONTAINER1_IP, proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA, true);
+        prepareClusterServer(CONTAINER2, CONTAINER2_IP, proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB, true);
     }
 
     /**
@@ -451,7 +691,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      */
     protected void prepareClusterServer(String containerName, String bindingAddress,
                                       int proxyPortIn, int reconnectAttempts, String broadcastGroupAddress,
-                                      int broadcastGroupPort, String discoveryGroupAddress, int discoveryGroupPort) {
+                                      int broadcastGroupPort, String discoveryGroupAddress, int discoveryGroupPort, boolean isMessageWithGrouping) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -508,6 +748,18 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         jmsAdminOperations.createQueue(hornetqInQueueName, relativeJndiInQueueName, true);
 
 //        jmsAdminOperations.setConnectionTtlOverride("default", 8000);
+
+        String name = "my-grouping-handler";
+        String address = "jms";
+        long timeout = 5000;
+
+        if (isMessageWithGrouping)  {
+            if (CONTAINER1.equals(containerName)) {
+                jmsAdminOperations.addMessageGrouping(name, "LOCAL", address, timeout);
+            } else if (CONTAINER2.equals(containerName))    {
+                jmsAdminOperations.addMessageGrouping(name, "REMOTE", address, timeout);
+            }
+        }
 
         jmsAdminOperations.close();
 
