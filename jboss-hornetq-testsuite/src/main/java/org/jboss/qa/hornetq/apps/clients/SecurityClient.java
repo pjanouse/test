@@ -110,6 +110,31 @@ public class SecurityClient extends Client {
 
     }
 
+    public void consumeAndRollback(int numberOfMessagesToConsumeAndRollback) throws JMSException {
+
+        Session transSession = con.createSession(true, Session.SESSION_TRANSACTED);
+        MessageConsumer consumer = transSession.createConsumer(queue);
+
+        int numberOfConsumerMessageCounter = 0;
+
+        Message msg;
+
+        while (numberOfConsumerMessageCounter < numberOfMessagesToConsumeAndRollback) {
+
+            msg = consumer.receive(1000);
+
+            numberOfConsumerMessageCounter++;
+
+            if (msg != null) {
+                logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() +
+                        " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
+            }
+
+        }
+
+        transSession.rollback();
+    }
+
     /**
      * Send and receive messages to/from server. This should be started -
      */

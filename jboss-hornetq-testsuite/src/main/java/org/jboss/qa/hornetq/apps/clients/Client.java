@@ -86,10 +86,14 @@ public class Client extends Thread implements HornetQTestCaseConstants {
 
         String dupId = m.getStringProperty("_HQ_DUPL_ID");
         String inMessageId = m.getStringProperty("inMessageId");
+        String JMSXGroupID = m.getStringProperty("JMSXGroupID");
         m.clearBody();
         m.clearProperties();
         m.setStringProperty("_HQ_DUPL_ID", dupId);
         m.setStringProperty("inMessageId", inMessageId);
+        if (JMSXGroupID != null) {
+            m.setStringProperty("JMSXGroupID", JMSXGroupID);
+        }
         return m;
     }
 
@@ -102,6 +106,9 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         // this is for MDB test versification (MDB creates new message with inMessageId property)
         if (message.getStringProperty("inMessageId") != null)   {
             mapOfPropertiesOfTheMessage.put("inMessageId", message.getStringProperty("inMessageId"));
+        }
+        if (message.getStringProperty("JMSXGroupID") != null)   {
+            mapOfPropertiesOfTheMessage.put("JMSXGroupID", message.getStringProperty("JMSXGroupID"));
         }
         listOfReceivedMessages.add(mapOfPropertiesOfTheMessage);
     }
