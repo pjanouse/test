@@ -113,7 +113,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             port = "9999";
         }
 
-        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:[port] --connect quit";
+        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:[port] --password=minono532/20 --user=admin --connect quit";
         final int MAXIMAL_CHECKS = 120;
 
         log.info("Waiting. Server will be killed by an external process ...");
