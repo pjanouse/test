@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq;
 
+import sun.net.util.IPAddressUtil;
+
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Session;
@@ -15,18 +17,6 @@ import java.util.regex.PatternSyntaxException;
  * Utilities for JMS clients
  */
 public final class JMSTools {
-
-
-    private static Pattern VALID_IPV6_PATTERN = null;
-    private static final String ipv6Pattern = "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
-
-    static {
-        try {
-            VALID_IPV6_PATTERN = Pattern.compile(ipv6Pattern, Pattern.CASE_INSENSITIVE);
-        } catch (PatternSyntaxException e) {
-            //logger.severe("Unable to compile pattern", e);
-        }
-    }
 
     /**
      * Cleanups resources
@@ -93,8 +83,7 @@ public final class JMSTools {
 
 
     /**
-     * Determine if the given string is a valid IPv4 or IPv6 address.  This method
-     * uses pattern matching to see if the given string could be a valid IP address.
+     * Determine if the given string is a valid IPv4 or IPv6 address.
      *
      * @param ipAddress A string that is to be examined to verify whether or not
      *  it could be a valid IP address.
@@ -103,8 +92,18 @@ public final class JMSTools {
      */
     public static boolean isIpv6Address(String ipAddress) {
 
-        Matcher m2 = JMSTools.VALID_IPV6_PATTERN.matcher(ipAddress);
-        return m2.matches();
+        return IPAddressUtil.isIPv6LiteralAddress(ipAddress);
+    }
+
+    public static void main(String[] args)  {
+        String isIpv6Address1 = "2620:52:0:105f::ffff:26";
+        String isIpv6Address2 = "::1";
+        String isIpv6Address3 = "2620:52:0:105f:0023:dfff:26:2434";
+        String isIpv6Address4 = "10.33.22.11";
+        System.out.println("isIpv6Address: " + isIpv6Address1 + ":" + isIpv6Address(isIpv6Address1));
+        System.out.println("isIpv6Address: " + isIpv6Address2 + ":" + isIpv6Address(isIpv6Address2));
+        System.out.println("isIpv6Address: " + isIpv6Address3 + ":" + isIpv6Address(isIpv6Address3));
+        System.out.println("isIpv6Address: " + isIpv6Address4 + ":" + isIpv6Address(isIpv6Address4));
     }
 
 }
