@@ -23,8 +23,8 @@
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
         <eap6.client>6.1.0.GA</eap6.client>
-        <eap6.controller.client>6.1.0.GA</eap6.controller.client>
-        <eap6.cli.client>6.1.0.GA</eap6.cli.client>
+        <eap6.controller.client>6.1.0.ER7</eap6.controller.client>
+        <eap6.cli.client>6.1.1.GA</eap6.cli.client>
 
         <arquillian.version>1.1.1.Final</arquillian.version>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
