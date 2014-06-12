@@ -22,7 +22,7 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.client>6.1.1.GA</eap6.client>
+        <eap6.client>6.1.1.BZ1096948</eap6.client>
         <eap6.controller.client>6.1.1.GA</eap6.controller.client>
         <eap6.cli.client>6.1.1.GA</eap6.cli.client>
 
