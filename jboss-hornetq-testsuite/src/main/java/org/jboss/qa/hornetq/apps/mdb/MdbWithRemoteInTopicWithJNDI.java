@@ -131,6 +131,7 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
         Properties prop = new Properties();
 
         Context ctxRemote = null;
+        String outQueueJndiName = null;
 
         try {
             // load mdb.properties - by this classloader
@@ -147,17 +148,17 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
                 String hostname = prop.getProperty(REMOTE_SERVER_HOSTNAME);
                 String port = prop.getProperty(REMOTE_SERVER_PORT);
                 String serverType = prop.getProperty(REMOTE_SERVER_TYPE); // EAP 5, 6, ...
-                String outQueueJndiName = prop.getProperty(OUTQUEUE_JNDI_NAME);
+                 outQueueJndiName = prop.getProperty(OUTQUEUE_JNDI_NAME);
 
                 log.info("Property name:" + REMOTE_SERVER_HOSTNAME + " has value: " + hostname);
                 log.info("Property name:" + REMOTE_SERVER_PORT + " has value: " + port);
                 log.info("Property name:" + REMOTE_SERVER_TYPE + " has value: " + serverType);
                 log.info("Property name:" + OUTQUEUE_JNDI_NAME + " has value: " + outQueueJndiName);
 
-                System.out.println("Property name:" + REMOTE_SERVER_HOSTNAME + " has value: " + hostname);
-                System.out.println("Property name:" + REMOTE_SERVER_PORT + " has value: " + port);
-                System.out.println("Property name:" + REMOTE_SERVER_TYPE + " has value: " + serverType);
-                System.out.println("Property name:" + OUTQUEUE_JNDI_NAME + " has value: " + outQueueJndiName);
+//                System.out.println("Property name:" + REMOTE_SERVER_HOSTNAME + " has value: " + hostname);
+//                System.out.println("Property name:" + REMOTE_SERVER_PORT + " has value: " + port);
+//                System.out.println("Property name:" + REMOTE_SERVER_TYPE + " has value: " + serverType);
+//                System.out.println("Property name:" + OUTQUEUE_JNDI_NAME + " has value: " + outQueueJndiName);
 
                 final Properties env = new Properties();
 
@@ -174,7 +175,7 @@ public class MdbWithRemoteInTopicWithJNDI implements MessageDrivenBean, MessageL
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error during lookup of destination:" +  outQueueJndiName, e);
         } finally {
             if (ctxRemote != null) {
                 try {
