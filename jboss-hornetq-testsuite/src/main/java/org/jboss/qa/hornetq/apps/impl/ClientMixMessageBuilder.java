@@ -66,8 +66,8 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     /**
      * Setting size of messages in KiB. For large messages there should be defined number greater than 100 (KiB).
      *
-     * @param sizeNormal size normal sized messages which will be used for sending
-     * @param sizeLarge  size of large message which will be used for sending
+     * @param sizeNormal size normal sized messages which will be used for sending (in Kb)
+     * @param sizeLarge  size of large message which will be used for sending (in Kb)
      */
     public ClientMixMessageBuilder(int sizeNormal, int sizeLarge) {
         this.sizeNormalMsg = sizeNormal;
