@@ -33,6 +33,9 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
     @Override
     public boolean verifyMessages() throws JMSException {
 
+        logger.info("###############################################################");
+        logger.info("TextMessageVerifier verifies messages:");
+
         boolean isOk = true;
 
         if (sentMessages.size() != receivedMessages.size()) {
@@ -51,6 +54,8 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
             logger.error("Duplicated message detected: " + getDuplicatedMessages());
             isOk = false;
         }
+
+        logger.info("###############################################################");
 
         return isOk;
     }
