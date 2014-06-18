@@ -59,6 +59,7 @@ public class SecurityClient extends Client {
     public SecurityClient(String hostname, int port, String queueNameJndi, int messages, String username, String password) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages, username, password);
     }
+
     /**
      * @param hostname      hostname
      * @param port          port
@@ -112,27 +113,42 @@ public class SecurityClient extends Client {
 
     public void consumeAndRollback(int numberOfMessagesToConsumeAndRollback) throws JMSException {
 
-        Session transSession = con.createSession(true, Session.SESSION_TRANSACTED);
-        MessageConsumer consumer = transSession.createConsumer(queue);
+        try {
 
-        int numberOfConsumerMessageCounter = 0;
+            Session transSession = con.createSession(true, Session.SESSION_TRANSACTED);
+            MessageConsumer consumer = transSession.createConsumer(queue);
 
-        Message msg;
+            int numberOfConsumerMessageCounter = 0;
 
-        while (numberOfConsumerMessageCounter < numberOfMessagesToConsumeAndRollback) {
+            Message msg;
 
-            msg = consumer.receive(1000);
+            while (numberOfConsumerMessageCounter < numberOfMessagesToConsumeAndRollback) {
 
-            numberOfConsumerMessageCounter++;
+                msg = consumer.receive(1000);
 
-            if (msg != null) {
-                logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() +
-                        " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
+                numberOfConsumerMessageCounter++;
+
+                if (msg != null) {
+                    logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() +
+                            " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
+                }
+
             }
 
-        }
+            transSession.rollback();
 
-        transSession.rollback();
+        } finally {
+            if (con != null) {
+                con.close();
+            }
+            if (context != null) {
+                try {
+                    context.close();
+                } catch (NamingException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     /**
