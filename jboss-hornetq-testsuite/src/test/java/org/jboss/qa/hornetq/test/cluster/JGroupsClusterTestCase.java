@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
  * export MYTESTIP_1=$MYTESTIPV6_1
  * export MYTESTIP_2=$MYTESTIPV6_2
  * export MCAST_ADDR=$MCAST_ADDRIPV6
- *
+ * <p/>
  * This test also serves
  *
  * @author nziakova@redhat.com
@@ -22,8 +22,10 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
     public void prepareServers() {
 
-            prepareServer(CONTAINER1);
-            prepareServer(CONTAINER2);
+        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER2);
+        prepareServer(CONTAINER3);
+        prepareServer(CONTAINER4);
     }
 
     /**
