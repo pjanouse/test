@@ -269,12 +269,34 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         StringTokenizer str = new StringTokenizer(justVersion, ".");
         String majorVersion = str.nextToken();
-        String minorVersion;
+        String minorVersion = str.nextToken();
         String microVersion;
-        if (Integer.valueOf(minorVersion = str.nextToken()) > 1)   {
-            microVersion = "0";
-        } else {
-            microVersion = str.nextToken();
+
+        switch (Integer.valueOf(majorVersion)) {
+            case 5:
+                microVersion = str.nextToken();
+                break;
+            case 6:
+                switch (Integer.valueOf(minorVersion)) {
+                    case 0:
+                        microVersion = str.nextToken();
+                        break;
+                    case 1:
+                        microVersion = str.nextToken();
+                        if (Integer.valueOf(microVersion) > 1) {
+                            // for 6.1.2+, use driver for version 6.1.1
+                            microVersion = "1";
+                        }
+                        break;
+                    default:
+                        // for version 6.2.0+ always use driver for '0' micro version
+                        microVersion = "0";
+                        break;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Given container is not EAP5 or EAP6! It says its major version is " + majorVersion);
         }
 
         return majorVersion + "." + minorVersion + "." + microVersion;
