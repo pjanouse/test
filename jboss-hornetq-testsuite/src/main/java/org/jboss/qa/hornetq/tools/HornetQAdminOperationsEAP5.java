@@ -933,6 +933,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout) {
+
+        setDiscoveryGroup(name, null, groupAddress, groupPort, refreshTimeout);
+    }
+
+    @Override
     public void setDiscoveryGroup(String name, String localBindAddress, String groupAddress, int groupPort, long refreshTimeout) {
         String configurationFile = getHornetQConfigurationFile();
         try {
@@ -940,7 +946,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             Map<String, String> attributes = new HashMap<String, String>();
             attributes.put("name", name);
             XMLManipulation.addNode("//discovery-groups", "discovery-group", "", doc, attributes);
-            XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "local-bind-address", localBindAddress, doc);
+            if (localBindAddress != null & !"".equals(localBindAddress)) {
+                XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "local-bind-address", localBindAddress, doc);
+            }
             XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "group-address", groupAddress, doc);
             XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "group-port", String.valueOf(groupPort), doc);
             XMLManipulation.addNode("//discovery-group[@name='" + name + "']", "refresh-timeout", String.valueOf(refreshTimeout), doc);
@@ -1598,6 +1606,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public int getNumberOfNodesInCluster() {
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
     }
 
     private Node createConfigPropertyForJmsDs(Document doc, String nameOfProperty, String typeOfProperty, String value) {

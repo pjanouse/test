@@ -887,6 +887,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setDiscoveryGroup(String name, String localBindAddress, String groupAddress, int groupPort, long refreshTimeout) {
         String configurationFile = getMysqlConfigurationFile();
         try {
@@ -1818,6 +1823,12 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public int getNumberOfNodesInCluster() {
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
     }
 
 }

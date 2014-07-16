@@ -644,6 +644,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout) {
+        setDiscoveryGroup(name, null, groupAddress, groupPort, refreshTimeout);
+    }
+
     /**
      * Adds role to security settings.
      *
@@ -4001,13 +4006,43 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    public int getNumberOfNodesInCluster() {
+        return getNumberOfNodesInCluster("my-cluster");
+    }
+
+    /**
+     * Return number of nodes which this node sees in cluster.
+     *
+     * @return number of nodes in cluster
+     */
+    public int getNumberOfNodesInCluster(String clusterName) {
+        ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("get-nodes");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterName);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return result.get("result").asList().size();
+
+    }
+
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-            jmsAdminOperations.setHostname("127.0.0.1");
+            jmsAdminOperations.setHostname("192.168.40.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+            System.out.println(jmsAdminOperations.getNumberOfNodesInCluster());
+//            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";
 //            String inVmConnectorName = "in-vm";

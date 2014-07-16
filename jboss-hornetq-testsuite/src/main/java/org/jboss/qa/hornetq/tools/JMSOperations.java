@@ -754,6 +754,8 @@ public interface JMSOperations {
      */
     void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames);
 
+    void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout);
+
     /**
      * Discovery group defines how connector information is received from a
      * multicast address.
@@ -1332,4 +1334,6 @@ public interface JMSOperations {
     void addSubsystem(String subsystemName);
 
     void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes);
+
+    int getNumberOfNodesInCluster();
 }

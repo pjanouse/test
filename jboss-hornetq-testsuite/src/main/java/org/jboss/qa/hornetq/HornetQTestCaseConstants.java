@@ -55,7 +55,9 @@ public interface HornetQTestCaseConstants {
 
     // type of messages
     public static final String SMALL_MESSAGES = "small";
+    public static final String SMALL_MESSAGES_WITH_DUP_ID = "smallWithDupId";
     public static final String LARGE_MESSAGES = "large";
+    public static final String LARGE_MESSAGES_WITH_DUP_ID = "largeWithDupId";
     public static final String MIXED_MESSAGES = "mixed";
 
     // type of destination

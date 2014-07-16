@@ -179,6 +179,21 @@ public class JmsServlet extends HttpServlet {
 
             Session session = con.createSession(true, Session.SESSION_TRANSACTED);
 
+//            QueueBrowser browser = session.createBrowser(outQueue);
+//
+//            Enumeration<Message> messages = browser.getEnumeration();
+//
+//            int counter = 0;
+//
+//            while (messages.nextElement() != null)  {
+//                counter++;
+//                if (countToExit != null && counter > Long.valueOf(countToExit))    {
+//                    break;
+//                }
+//            }
+//
+//            browser.close();
+
             MessageConsumer consumer = session.createConsumer(outQueue);
 
             Message msg;
@@ -295,6 +310,12 @@ public class JmsServlet extends HttpServlet {
             messageBuilder = new ClientMixMessageBuilder(100, 100);
         } else if (HornetQTestCaseConstants.MIXED_MESSAGES.equals(typeOfMessages)) {
             messageBuilder = new ClientMixMessageBuilder(10, 100);
+        } else if (HornetQTestCaseConstants.SMALL_MESSAGES_WITH_DUP_ID.equals(typeOfMessages)) {
+            messageBuilder = new ClientMixMessageBuilder(10, 10);
+            messageBuilder.setAddDuplicatedHeader(true);
+        } else if (HornetQTestCaseConstants.LARGE_MESSAGES.equals(typeOfMessages)) {
+            messageBuilder = new ClientMixMessageBuilder(100, 100);
+            messageBuilder.setAddDuplicatedHeader(true);
         } else {
             throw new IllegalStateException("Invalid type of messages. Current: " + typeOfMessages + " Valid options are: " +
                 HornetQTestCaseConstants.SMALL_MESSAGES + " , " + HornetQTestCaseConstants.LARGE_MESSAGES +
