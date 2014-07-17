@@ -129,13 +129,13 @@ public class Lodh5TestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testMssql2008r2() throws Exception {
-        testFail(MSSQL2008R2);
-    }
+//    @RunAsClient
+//    @Test
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void testMssql2008r2() throws Exception {
+//        testFail(MSSQL2008R2);
+//    }
 
     /**
      * @throws Exception
