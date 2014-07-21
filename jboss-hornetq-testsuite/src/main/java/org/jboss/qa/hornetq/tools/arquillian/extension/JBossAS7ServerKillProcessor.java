@@ -171,9 +171,9 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     private boolean checkJBossAlive(String killSequence) throws Exception {
 
         final Process p;
-        String os = System.getProperty("os.name").toLowerCase();
-
-        if (os.contains("windows")) {
+//        String os = System.getProperty("os.name").toLowerCase();
+//
+//        if (os.contains("windows")) {
 
             String response;
             try {
@@ -185,29 +185,29 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
             return !(response == null || "".equals(response) || response.contains("Unable to connect"));
 
-        } else {
-            boolean stillRunning = true;
-
-            p = Runtime.getRuntime().exec(killSequence);
-
-            p.waitFor();
-
-            // check standard output - false returned then server is stopped
-            if (!checkOutput(p.getInputStream())) {
-                stillRunning = false;
-            }
-
-            // check error output - false returned then server is stopped
-            if (!checkOutput(p.getErrorStream())) {
-                stillRunning = false;
-            }
-
-            if (p.exitValue() != 0) {
-                log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
-                        + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
-            }
-            return stillRunning;
-        }
+//        } else {
+//            boolean stillRunning = true;
+//
+//            p = Runtime.getRuntime().exec(killSequence);
+//
+//            p.waitFor();
+//
+//            // check standard output - false returned then server is stopped
+//            if (!checkOutput(p.getInputStream())) {
+//                stillRunning = false;
+//            }
+//
+//            // check error output - false returned then server is stopped
+//            if (!checkOutput(p.getErrorStream())) {
+//                stillRunning = false;
+//            }
+//
+//            if (p.exitValue() != 0) {
+//                log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
+//                        + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
+//            }
+//            return stillRunning;
+//        }
 
 
     }
