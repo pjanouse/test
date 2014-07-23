@@ -257,6 +257,9 @@ public class Lodh1TestCase extends HornetQTestCase {
         messageVerifier.verifyMessages();
 
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+        Assert.assertEquals("There is different number of sent and received messages. Received: " + receiver1.getListOfReceivedMessages().size()
+                + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()  + ".", producerToInQueue1.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy("mdb1");
         stopServer(CONTAINER1);
