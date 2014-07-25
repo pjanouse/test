@@ -37,6 +37,7 @@ import java.net.*;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -59,6 +60,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public final static String JBOSS_HOME_4;
 
     // IP address for containers
+    public final static String DEFAULT_CONTAINER_IP = "127.0.0.1";
     public final static String CONTAINER1_IP;
     public final static String CONTAINER2_IP;
     public final static String CONTAINER3_IP;
@@ -106,12 +108,15 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
 
         // IP addresses for the servers
-        CONTAINER1_IP = checkIPv6Address(getEnvProperty("MYTESTIP_1"));
-        CONTAINER2_IP = checkIPv6Address(getEnvProperty("MYTESTIP_2"));
-        CONTAINER3_IP = checkIPv6Address(getEnvProperty("MYTESTIP_3"));
-        CONTAINER4_IP = checkIPv6Address(getEnvProperty("MYTESTIP_4"));
+        CONTAINER1_IP = checkIPv6Address(getEnvProperty("MYTESTIP_1") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_1"));
+        CONTAINER2_IP = checkIPv6Address(getEnvProperty("MYTESTIP_2") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_2"));
+        CONTAINER3_IP = checkIPv6Address(getEnvProperty("MYTESTIP_3") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_3"));
+        CONTAINER4_IP = checkIPv6Address(getEnvProperty("MYTESTIP_4") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_4"));
+        // if MCAST_ADDR is null then generate multicast address
         String tmpMultiCastAddress = System.getProperty("MCAST_ADDR");
-        MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress : "233.3.3.3";
+        MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
+                    new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
+                        .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
 
         JBOSS_HOME_1 = verifyJbossHome(getEnvProperty("JBOSS_HOME_1"));
         JBOSS_HOME_2 = verifyJbossHome(getEnvProperty("JBOSS_HOME_2"));
@@ -144,6 +149,28 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         stopServer(CONTAINER2);
         stopServer(CONTAINER3);
         stopServer(CONTAINER4);
+    }
+
+    /**
+     * Returns a psuedo-random number between min and max, inclusive.
+     * The difference between min and max can be at most
+     * <code>Integer.MAX_VALUE - 1</code>.
+     *
+     * @param min Minimim value
+     * @param max Maximim value.  Must be greater than min.
+     * @return Integer between min and max, inclusive.
+     * @see java.util.Random#nextInt(int)
+     */
+    public static int randInt(int min, int max) {
+
+        // Usually this can be a field rather than a method variable
+        Random rand = new Random();
+
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+
+        return randomNum;
     }
 
     /**
