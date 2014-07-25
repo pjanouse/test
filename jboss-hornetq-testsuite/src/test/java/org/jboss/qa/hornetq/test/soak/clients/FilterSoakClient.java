@@ -18,6 +18,7 @@ import javax.jms.Session;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -55,7 +56,7 @@ public class FilterSoakClient extends Client {
 
 
     public FilterSoakClient(final ContainerInfo container, final int numberOfMessages) {
-        this(container, 4447, numberOfMessages);
+        this(container, HornetQTestCase.getJNDIPort(container.getName()), numberOfMessages);
     }
 
 

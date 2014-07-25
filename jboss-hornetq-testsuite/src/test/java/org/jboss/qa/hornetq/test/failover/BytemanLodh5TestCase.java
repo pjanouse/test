@@ -225,7 +225,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
             countRecords();
 
             logger.info("!!!!! sending messages !!!!!");
-            ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, IN_QUEUE,
+            ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE,
                     NUMBER_OF_MESSAGES_PER_PRODUCER);
 
             producer.setMessageBuilder(new InfoMessageBuilder());
@@ -234,7 +234,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
 
             logger.info("!!!!! installing byteman rules !!!!!");
             //HornetQCallsTracking.installTrackingRules(CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
-            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
 
             logger.info("!!!!! deploying MDB !!!!!");
             try {
@@ -323,7 +323,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
 
         if (!topologyCreated) {
             //prepareJmsServer(CONTAINER1, CONTAINER1_IP, "oracle11gr2");
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, "mysql55");
+            prepareJmsServer(CONTAINER1, getHostname(CONTAINER1), "mysql55");
             topologyCreated = true;
         }
     }
@@ -457,7 +457,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1)
                     + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 20, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
@@ -484,7 +484,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + CONTAINER1_IP
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1)
                     + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
@@ -518,7 +518,7 @@ public class BytemanLodh5TestCase extends HornetQTestCase {
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1)
                     + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 20, TimeUnit.SECONDS);
 
             logger.info("Response is: " + response);

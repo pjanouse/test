@@ -78,11 +78,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         controller.start(CONTAINER2);
 
         // give some time for servers to find each other
-        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
-        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER1_IP, getJNDIPort(), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -111,7 +111,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        logger.info("Second server started");
 //        logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, inQueue, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 

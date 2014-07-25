@@ -135,8 +135,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
         try {
             Map<String, Object> params = new HashMap<String, Object>();
-            params.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-            params.put(TransportConstants.PORT_PROP_NAME, 5445);
+            params.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
+            params.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
             TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getName(), params);
 
             locator = HornetQClient.createServerLocatorWithoutHA(config);

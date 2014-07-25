@@ -67,7 +67,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER3);
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -95,9 +95,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("Server killed");
         }
         logger.warn("###################################");
-        waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 120000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER3_IP, 4447, outQueueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -137,7 +137,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         // Without starting live first the backup server will not start
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        waitHornetQToAlive(CONTAINER1_IP, 5445, 60000);
+        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
         Thread.sleep(10000);
         controller.stop(CONTAINER1);
 
@@ -156,16 +156,16 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         logger.info("#############################");
 
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         // give it some time for backup to alive
-        waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 120000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -205,7 +205,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER3);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         messageBuilder.setAddDuplicatedHeader(false);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -235,7 +235,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         }
 
         logger.warn("###################################");
-        waitHornetQToAlive(CONTAINER2_IP, 5445, 120000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 120000);
 
         // if failback then start container1 again
         // wait for container1 to start
@@ -253,7 +253,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             controller.start(CONTAINER1);
-            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(CONTAINER1_IP, 5445, 300000));
+            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
@@ -269,9 +269,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         ReceiverClientAck receiver1;
         if (failback) {
-            receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueueJndiName, 30000, 100, 10);
+            receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 30000, 100, 10);
         } else {
-            receiver1 = new ReceiverClientAck(CONTAINER2_IP, 4447, outQueueJndiName, 30000, 100, 10);
+            receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 30000, 100, 10);
         }
 
         receiver1.setMessageVerifier(messageVerifier);
@@ -310,7 +310,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareServerWithBridge(String containerName, String jmsLiveServerBindingAddress, String jmsBackupServerBindingAddress) {
+    protected void prepareServerWithBridge(String containerName, String jmsLiveServerName, String jmsBackupServerName) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -351,8 +351,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         jmsAdminOperations.setClusterUserPassword("heslo");
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsLiveServerBindingAddress, 5445);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", jmsBackupServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsLiveServerName), getHornetqPort(jmsLiveServerName));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", getHostname(jmsBackupServerName), getHornetqPort(jmsBackupServerName));
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
@@ -379,9 +379,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER1_IP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1), getHornetqPort(CONTAINER1));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge-backup", CONTAINER2_IP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge-backup", getHostname(CONTAINER2), getHornetqPort(CONTAINER2));
         jmsAdminOperations.createRemoteConnector("bridge-connector-backup", "messaging-bridge-backup", null);
         jmsAdminOperations.close();
 
@@ -440,7 +440,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER3), getHornetqPort(CONTAINER3));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.disableSecurity();
@@ -510,7 +510,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName,true);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER3_IP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER3), getHornetqPort(CONTAINER3));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.disableSecurity();
@@ -582,7 +582,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         prepareBackupServer(CONTAINER2, JOURNAL_DIRECTORY_A);
 
-        prepareServerWithBridge(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
+        prepareServerWithBridge(CONTAINER3, CONTAINER1, CONTAINER2);
 
         copyApplicationPropertiesFiles();
 

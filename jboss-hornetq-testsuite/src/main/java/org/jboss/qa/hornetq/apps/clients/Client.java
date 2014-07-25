@@ -141,4 +141,8 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         this.timeout = timeout;
     }
 
+    protected static int getJNDIPort() {
+        return 4447;
+    }
+
 }

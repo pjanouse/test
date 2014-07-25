@@ -75,7 +75,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     public static Archive getDeployment1() throws Exception {
         File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
+        writer.println("remote-jms-server=" + getHostname(CONTAINER1));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
@@ -129,7 +129,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER3_IP);
+        writer.println("remote-jms-server=" + getHostname(CONTAINER3));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
@@ -447,7 +447,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             Thread.sleep(5000);
         }
 
-        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
+        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -465,7 +465,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), outQueueJndiName, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 300000, 10, 10);
 
         receiver1.start();
 
@@ -527,7 +527,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
@@ -553,7 +553,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(), outQueueJndiName, 300000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 300000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
@@ -632,7 +632,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         properties.put("javaVmArguments", s);
         controller.start(CONTAINER2, properties);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER/10);
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER/10);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
@@ -646,7 +646,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         deployer.deploy(mdbDeployemnt);
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
@@ -742,10 +742,10 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology(String inServer, String outServer) throws Exception {
 
         prepareJmsServer(CONTAINER1);
-        prepareMdbServer(CONTAINER2, CONTAINER1_IP, inServer, outServer);
+        prepareMdbServer(CONTAINER2, CONTAINER1, inServer, outServer);
 
         prepareJmsServer(CONTAINER3);
-        prepareMdbServer(CONTAINER4, CONTAINER3_IP, inServer, outServer);
+        prepareMdbServer(CONTAINER4, CONTAINER3, inServer, outServer);
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -850,7 +850,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress, String inServer, String outServer) {
+    private void prepareMdbServer(String containerName, String jmsServerName, String inServer, String outServer) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -867,7 +867,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
             Map<String, String> connectionParameters = new HashMap<String, String>();
-            connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
+            connectionParameters.put(getHostname(jmsServerName), String.valueOf(getHornetqPort(jmsServerName)));
             boolean ha = false;
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
@@ -932,14 +932,14 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {
-                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
                 jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
                 jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
                 jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             }
             // local InServer and remote OutServer
             if (!isServerRemote(inServer) && isServerRemote(outServer)) {
-                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
                 jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
                 jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
                 jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
@@ -953,7 +953,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             if (isServerRemote(inServer) && !isServerRemote(outServer)) {
 
                 // now reconfigure hornetq-ra which is used for inbound to connect to remote server
-                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+                jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
                 jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
                 jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
                 jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);

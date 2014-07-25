@@ -58,7 +58,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", 10, null, null);
+            guest = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 10, null, null);
             guest.initializeClient();
 
             try {
@@ -122,7 +122,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "1", 10, "user", "useruser");
             user.initializeClient();
 
             try {
@@ -186,7 +186,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         try {
             // try user admin
-            admin = new SecurityClient(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
             admin.initializeClient();
 
             try {

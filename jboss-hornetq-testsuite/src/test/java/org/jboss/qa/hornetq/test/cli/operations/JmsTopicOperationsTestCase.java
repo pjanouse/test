@@ -50,7 +50,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -89,10 +89,10 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
 
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, 4447, topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
@@ -122,7 +122,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         logger.info("Result drop-all-subscriptions: " + r22.getResponse().asString());
         CliTestUtils.assertSuccess(r22);
 
-        subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, clientId, subscriberName);
+        subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 

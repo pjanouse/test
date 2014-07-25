@@ -50,9 +50,9 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
         // Send messages into input node and read from output node
-        SoakProducerClientAck producer = new SoakProducerClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer = new SoakProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
-        SoakReceiverClientAck receiver = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), queueJndiName, 10000, 10, 10);
+        SoakReceiverClientAck receiver = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 10000, 10, 10);
 
         logger.info("Start producer and consumer.");
         producer.start();

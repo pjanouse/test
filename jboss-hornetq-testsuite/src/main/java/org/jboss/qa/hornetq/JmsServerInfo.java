@@ -32,7 +32,7 @@ public class JmsServerInfo {
 
 
     public JmsServerInfo() {
-        this(HornetQTestCase.CONTAINER1_IP, HornetQTestCase.MANAGEMENT_PORT_EAP6, "default");
+        this(HornetQTestCase.getHostname(HornetQTestCase.CONTAINER1), HornetQTestCase.MANAGEMENT_PORT_EAP6, "default");
     }
 
 

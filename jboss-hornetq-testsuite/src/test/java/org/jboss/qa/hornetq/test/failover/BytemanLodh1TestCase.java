@@ -310,7 +310,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.sendMessages(msgBuilder);
 
         logger.info("Deploying MDB " + deploymentName);
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
         try {
             this.deployer.deploy(deploymentName);
         } catch (Exception e) {
@@ -347,7 +347,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private List<String> sendMessages(final MessageBuilder builder) throws Exception {
-        SoakProducerClientAck producer = new SoakProducerClientAck(CONTAINER1_IP, 4447, IN_QUEUE,
+        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);
         producer.setMessageBuilder(builder);
@@ -365,7 +365,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new SoakReceiverClientAck(CONTAINER1_IP, 4447, OUT_QUEUE, 300000, 10, 10);
+            receiver = new SoakReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 300000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();

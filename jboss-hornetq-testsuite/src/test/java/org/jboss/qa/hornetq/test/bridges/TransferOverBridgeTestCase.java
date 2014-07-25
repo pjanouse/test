@@ -216,7 +216,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, null);
+        testLogicForTestWithByteman(10, CONTAINER1, getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT, null);
     }
 
     /**
@@ -246,7 +246,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, null);
+        testLogicForTestWithByteman(10, CONTAINER2, getHostname(CONTAINER2), BYTEMAN_CONTAINER2_PORT, null);
     }
 
 
@@ -278,7 +278,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER1, CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, CONTAINER1, getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -309,7 +309,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER2, CONTAINER2_IP, BYTEMAN_CONTAINER2_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, CONTAINER2, getHostname(CONTAINER2), BYTEMAN_CONTAINER2_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     //============================================================================================================
@@ -354,7 +354,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER2), getHornetqPort(CONTAINER2));
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
 
@@ -365,7 +365,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client1 = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), messages, Session.AUTO_ACKNOWLEDGE, false);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(false);
             client1.setMessageBuilder(messageBuilder);
@@ -379,7 +379,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client2 = new SimpleJMSClient(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), messages, Session.AUTO_ACKNOWLEDGE, false);
         if (messageVerifier != null) {
             client2.setMessageVerifier(messageVerifier);
         }
@@ -415,7 +415,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final String TEST_QUEUE_OUT = "dummyQueueOut0";
         final String TEST_QUEUE_OUT_JNDI_PREFIX = "jms/queue/dummyQueueOut";
         final String TEST_QUEUE_OUT_JNDI = TEST_QUEUE_OUT_JNDI_PREFIX + "0";
-        final String proxyAddress = CONTAINER2_IP;
+        final String proxyAddress = getHostname(CONTAINER2);
         final int proxyPort = 56831;
 
         // Start servers
@@ -441,7 +441,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
 
         // initialize the proxy to listen on proxyAddress:proxyPort and set output to CONTAINER2_IP:5445
-        ControllableProxy controllableProxy = new SimpleProxyServer(proxyAddress, 5445, proxyPort);
+        ControllableProxy controllableProxy = new SimpleProxyServer(proxyAddress, getHornetqPort(CONTAINER2), proxyPort);
         controllableProxy.start();
         jmsAdminContainer1.close();
 
@@ -461,10 +461,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
 
         // Send messages into input node and read from output node
-        QueueClientsClientAck clients = new QueueClientsClientAck(CONTAINER1_IP, getJNDIPort(), TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
-        clients.setHostnameForProducers(CONTAINER1_IP);
+        QueueClientsClientAck clients = new QueueClientsClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), TEST_QUEUE_IN_JNDI_PREFIX, 1, 1, 1, 1000000);
+        clients.setHostnameForProducers(getHostname(CONTAINER1));
         clients.setQueueJndiNamePrefixProducers(TEST_QUEUE_IN_JNDI_PREFIX);
-        clients.setHostnameForConsumers(CONTAINER2_IP);
+        clients.setHostnameForConsumers(getHostname(CONTAINER2));
         clients.setQueueJndiNamePrefixConsumers(TEST_QUEUE_OUT_JNDI_PREFIX);
         clients.setMessageBuilder(messageBuilder);
         clients.startClients();
@@ -522,7 +522,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
 
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER2), getHornetqPort(CONTAINER2));
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
 
@@ -539,7 +539,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
         }
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
+        SimpleJMSClient client1 = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
         assertEquals(messages, jmsAdminContainer1.getCountOfMessagesOnQueue(TEST_QUEUE));
@@ -575,7 +575,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client2 = new SimpleJMSClient(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), messages, Session.AUTO_ACKNOWLEDGE, false);
         assertEquals(messages, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         client2.receiveMessages(TEST_QUEUE_OUT_JNDI);
         assertEquals(messages, client2.getReceivedMessages());
@@ -614,7 +614,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createQueue(sourceQueue, sourceQueueJndiName);
         jmsAdminContainer2.createQueue(targetQueue, targetQueueJndiName);
 
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER2), getHornetqPort(CONTAINER2));
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         // Send messages into input node
@@ -622,7 +622,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
             messageBuilder.setAddDuplicatedHeader(false);
         }
 
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
+        SimpleJMSClient client1 = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(sourceQueueJndiName);
         jmsAdminContainer1.close();
 
@@ -638,7 +638,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client2 = new SimpleJMSClient(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), messages, Session.AUTO_ACKNOWLEDGE, false);
         client2.receiveMessages(targetQueueJndiName);
         assertEquals(messages, client2.getReceivedMessages());
 
@@ -671,7 +671,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
 
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", CONTAINER2_IP, 5445);
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER2), getHornetqPort(CONTAINER2));
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
@@ -682,7 +682,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         // Send messages into input node
-        SimpleJMSClient client1 = new SimpleJMSClient(CONTAINER1_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
+        SimpleJMSClient client1 = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
         jmsAdminContainer1 = this.getJMSOperations(CONTAINER1);
@@ -702,7 +702,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         // Receive messages from the output node
-        SimpleJMSClient client2 = new SimpleJMSClient(CONTAINER2_IP, 4447, messages, Session.AUTO_ACKNOWLEDGE, false);
+        SimpleJMSClient client2 = new SimpleJMSClient(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), messages, Session.AUTO_ACKNOWLEDGE, false);
         client2.receiveMessages(TEST_QUEUE_JNDI);
         assertEquals(messages, client2.getReceivedMessages());
 

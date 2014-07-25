@@ -116,7 +116,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER1_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -135,12 +135,12 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             // ignore
         }
         deployer.deploy("mdb2");
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), CONTAINER3_IP, getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
-        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), CONTAINER3_IP, getJNDIPort(), outQueueJndiName, 10000, 10, 5);
+        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
@@ -180,9 +180,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         if (!topologyCreated) {
 
             prepareJmsServer(CONTAINER1);
-            prepareMdbServer(CONTAINER2, CONTAINER1_IP);
+            prepareMdbServer(CONTAINER2, getHostname(CONTAINER1));
             prepareJmsServer(CONTAINER3);
-            prepareMdbServer(CONTAINER4, CONTAINER3_IP);
+            prepareMdbServer(CONTAINER4, getHostname(CONTAINER3));
             topologyCreated = true;
         }
     }
@@ -300,7 +300,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
             String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
             Map<String, String> connectionParameters = new HashMap<String, String>();
-            connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
+            connectionParameters.put(getHostname(containerName), String.valueOf(getHornetqPort(containerName)));
             boolean ha = false;
 
             controller.start(containerName);
@@ -355,7 +355,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerName), getHornetqPort(containerName));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.close();

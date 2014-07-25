@@ -64,7 +64,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
         // bridge from inqueue to remotequeue
         JMSOperations ops = this.getJMSOperations(this.queueContainer.getName());
-        ops.addRemoteSocketBinding("messaging-bridge", this.remoteContainer.getIpAddress(), 5445);
+        ops.addRemoteSocketBinding("messaging-bridge", this.remoteContainer.getIpAddress(), 5445 + remoteContainer.getPortOffset());
         ops.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         switch (this.outboundBridgeType) {
             case JMS:
@@ -90,7 +90,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
         // bridge from remotequeue to outqueue
         JMSOperations remoteOps = this.getJMSOperations(this.remoteContainer.getName());
-        remoteOps.addRemoteSocketBinding("messaging-bridge", this.queueContainer.getIpAddress(), 5445);
+        remoteOps.addRemoteSocketBinding("messaging-bridge", this.queueContainer.getIpAddress(), queueContainer.getPortOffset() + 5445);
         remoteOps.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         switch (this.inboundBridgeType) {
             case CORE:

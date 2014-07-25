@@ -34,18 +34,18 @@ public class JournalReplicationConfiguration
 
 	private static final String CLUSTER_PASSWORD = "password";
 	private static final String NAME_QUEUE = "Queue1";
-	
-	private static final String SERVER_IP_LIVE = HornetQTestCase.CONTAINER1_IP;
-    private static final String SERVER_IP_BACKUP = HornetQTestCase.CONTAINER2_IP;
+
+    private static final String SERVER_IP_LIVE = HornetQTestCase.getHostname(HornetQTestCase.CONTAINER1);
+    private static final String SERVER_IP_BACKUP = HornetQTestCase.getHostname(HornetQTestCase.CONTAINER2);
 
 	private static final String JNDI_QUEUE = "queue/InQueue";
 	private static final String NAME_CONNECTION_FACTORY = "RemoteConnectionFactory";
 	private static final String JNDI_CONNECTION_FACTORY = "jms/" + NAME_CONNECTION_FACTORY;
 
     private static final String BACKUP_GROUP_NAME = "backup-group1";
-	
-	private static final int MESSAGING_TO_LIVE_REAL_PORT = 5445;
-    private static final int MESSAGING_TO_BACKUP_REAL_PORT = 5445;
+
+    private static final int MESSAGING_TO_LIVE_REAL_PORT = HornetQTestCase.getHornetqPort(HornetQTestCase.CONTAINER1);
+    private static final int MESSAGING_TO_BACKUP_REAL_PORT = HornetQTestCase.getHornetqPort(HornetQTestCase.CONTAINER2);
 	private static final int MESSAGING_TO_LIVE_PROXY_PORT = 51111;
     private static final int MESSAGING_TO_BACKUP_PROXY_PORT = 51112;
 	

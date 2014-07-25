@@ -18,6 +18,7 @@ import javax.jms.TemporaryQueue;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -52,7 +53,7 @@ public class TemporaryQueuesSoakClient extends Client {
 
 
     public TemporaryQueuesSoakClient(final ContainerInfo container, final long numberOfMessages) {
-        this(container, 4447, numberOfMessages, 10);
+        this(container, HornetQTestCase.getJNDIPort(container.getName()), numberOfMessages, 10);
     }
 
 

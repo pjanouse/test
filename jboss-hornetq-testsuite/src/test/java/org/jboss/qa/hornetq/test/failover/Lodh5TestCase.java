@@ -169,7 +169,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         deleteRecords();
         countRecords();
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER1_IP, 4447, inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.setCommitAfter(1000);
@@ -705,7 +705,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
 
             StringTokenizer st = new StringTokenizer(response, ",");
             while (st.hasMoreTokens()) {
@@ -727,7 +727,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
                     + "&database=" + database, 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
@@ -758,7 +758,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 30, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
@@ -780,7 +780,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + CONTAINER1_IP + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
 
             logger.info("Response from delete records is: " + response);
         } finally {

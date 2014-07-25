@@ -95,11 +95,11 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
+            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), proxy12port);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(CONTAINER1_IP, 5445, proxy21port);
+            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), proxy21port);
             proxy2.start();
         }
 

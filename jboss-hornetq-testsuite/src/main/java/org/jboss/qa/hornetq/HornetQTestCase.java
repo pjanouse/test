@@ -131,13 +131,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     // composite info objects for easier passing to utility classes
-    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, HornetQTestCase.CONTAINER1_IP,
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, CONTAINER1_IP,
             BYTEMAN_CONTAINER1_PORT, PORT_OFFSET_1, JBOSS_HOME_1);
-    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, HornetQTestCase.CONTAINER2_IP,
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, CONTAINER2_IP,
             BYTEMAN_CONTAINER2_PORT, PORT_OFFSET_2, JBOSS_HOME_2);
-    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, HornetQTestCase.CONTAINER3_IP,
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, CONTAINER3_IP,
             BYTEMAN_CONTAINER3_PORT, PORT_OFFSET_3, JBOSS_HOME_3);
-    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, HornetQTestCase.CONTAINER4_IP,
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, CONTAINER4_IP,
             BYTEMAN_CONTAINER4_PORT, PORT_OFFSET_4, JBOSS_HOME_4);
 
     /**
@@ -232,8 +232,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return envProperty;
     }
 
-    protected Context getContext(String hostName) throws NamingException {
-        return getContext(hostName, 4447);
+    protected Context getContext(String containerName) throws NamingException {
+        return getContext(getHostname(containerName), getJNDIPort(containerName));
     }
 
     /**
@@ -320,21 +320,21 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @see org.jboss.qa.hornetq.ContextProvider#getContext()
      */
     public Context getContext() throws NamingException {
-        return getContext(CONTAINER1_IP, getJNDIPort());
+        return getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
     }
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer1()
      */
     public Context getContextContainer1() throws NamingException {
-        return getContext(CONTAINER1_IP, getJNDIPort());
+        return getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
     }
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer2()
      */
     public Context getContextContainer2() throws NamingException {
-        return getContext(CONTAINER2_IP, getJNDIPort());
+        return getContext(getHostname(CONTAINER2), getJNDIPort(CONTAINER2));
     }
 
     /**
@@ -371,7 +371,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
                 eap5AdmOps.setHostname(getHostname(container));
                 eap5AdmOps.setProfile(getProfile(container));
-                eap5AdmOps.setRmiPort(getJNDIPort());
+                eap5AdmOps.setRmiPort(getJNDIPort(container));
                 eap5AdmOps.setJbossHome(getJbossHome(container));
                 operations = eap5AdmOps;
                 break;
@@ -379,7 +379,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 JBMAdminOperationsEAP5 eap5JbmAdmOps = new JBMAdminOperationsEAP5();
                 eap5JbmAdmOps.setHostname(getHostname(container));
                 eap5JbmAdmOps.setProfile(getProfile(container));
-                eap5JbmAdmOps.setRmiPort(getJNDIPort());
+                eap5JbmAdmOps.setRmiPort(getJNDIPort(container));
                 eap5JbmAdmOps.setJbossHome(getJbossHome(container));
                 operations = eap5JbmAdmOps;
                 break;
@@ -495,13 +495,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         log.info("Killing server: " + ContainerName);
         try {
             if (CONTAINER1.equals(ContainerName)) {
-                killServer(CONTAINER1, SERVLET_KILLER_1, CONTAINER1_IP);
+                killServer(CONTAINER1, SERVLET_KILLER_1, getHostname(CONTAINER1));
             } else if (CONTAINER2.equals(ContainerName)) {
                 killServer(CONTAINER2, SERVLET_KILLER_2, CONTAINER2_IP);
             } else if (CONTAINER3.equals(ContainerName)) {
-                killServer(CONTAINER3, SERVLET_KILLER_3, CONTAINER3_IP);
+                killServer(CONTAINER3, SERVLET_KILLER_3, getHostname(CONTAINER3));
             } else if (CONTAINER4.equals(ContainerName)) {
-                killServer(CONTAINER4, SERVLET_KILLER_4, CONTAINER4_IP);
+                killServer(CONTAINER4, SERVLET_KILLER_4, getHostname(CONTAINER4));
             } else {
                 throw new RuntimeException(
                         String.format("Name of the container %s for is not known. It can't be used", ContainerName));
@@ -656,7 +656,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     }
 
-    public int getHornetqPort(String containerName) {
+    public static int getHornetqPort(String containerName) {
         return 5445 + getContainerInfo(containerName).getPortOffset();
     }
 

@@ -57,7 +57,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(120000);
@@ -110,8 +110,8 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     @RunAsClient
     public void testOnlySimpleInVMJcaInCluster() throws Exception {
 
-        prepareMdbServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
-        prepareJmsServer(CONTAINER2, CONTAINER2_IP);
+        prepareMdbServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
+        prepareJmsServer(CONTAINER2, getHostname(CONTAINER2));
 
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
@@ -119,7 +119,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(200000);
@@ -197,10 +197,10 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     public void testRemoteJcaInCluster() throws Exception {
         // jms server are 2 and 3
         // mdb server is 1 = > 2
-        prepareMdbServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
+        prepareMdbServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
 
-        prepareJmsServer(CONTAINER2, CONTAINER2_IP);
-        prepareJmsServer(CONTAINER3, CONTAINER3_IP);
+        prepareJmsServer(CONTAINER2, getHostname(CONTAINER2));
+        prepareJmsServer(CONTAINER3, getHostname(CONTAINER3));
 
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
@@ -209,7 +209,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(300000);
@@ -247,9 +247,9 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms servers are not present then fail the test
-        if (!xaResources1.replaceAll("-", ".").contains(CONTAINER2_IP) || !xaResources1.replaceAll("-", ".").contains(CONTAINER3_IP)) {
+        if (!xaResources1.replaceAll("-", ".").contains(getHostname(CONTAINER2)) || !xaResources1.replaceAll("-", ".").contains(getHostname(CONTAINER3))) {
 
-            Assert.fail(CONTAINER2_IP + " or " + CONTAINER3_IP + " not found but are expected in: " + xaResources1);
+            Assert.fail(getHostname(CONTAINER2) + " or " + getHostname(CONTAINER3) + " not found but are expected in: " + xaResources1);
 
         }
 
@@ -293,16 +293,16 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms 2 server is not present then fail the test
-        if (!xaResources2.replaceAll("-", ".").contains(CONTAINER2_IP)) {
+        if (!xaResources2.replaceAll("-", ".").contains(getHostname(CONTAINER2))) {
 
-            Assert.fail(CONTAINER2_IP + " not found but is expected in: " + xaResources2);
+            Assert.fail(getHostname(CONTAINER2) + " not found but is expected in: " + xaResources2);
 
         }
 
         // if ip of jms 3 server is present then fail the test
-        if (xaResources2.replaceAll("-", ".").contains(CONTAINER3_IP)) {
+        if (xaResources2.replaceAll("-", ".").contains(getHostname(CONTAINER3))) {
 
-            Assert.fail(CONTAINER3_IP + " found but is not expected in: " + xaResources2);
+            Assert.fail(getHostname(CONTAINER3) + " found but is not expected in: " + xaResources2);
 
         }
 
@@ -352,7 +352,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerName) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -365,7 +365,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
         String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
         Map<String, String> connectionParameters = new HashMap<String, String>();
-        connectionParameters.put(jmsServerBindingAddress, String.valueOf(5445));
+        connectionParameters.put(getHostname(jmsServerName), String.valueOf(getHornetqPort(jmsServerName)));
         boolean ha = false;
 
 //        controller.start(containerName);

@@ -456,7 +456,7 @@ public class SubscriberClientAck extends Client {
     public static void main(String[] args) throws InterruptedException, Exception {
 
         SubscriberClientAck client =
-                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", 4447, "jms/topic/testTopic", "mnovakClientId",
+                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", getJNDIPort(), "jms/topic/testTopic", "mnovakClientId",
                         "mnovakSubscriberName");
 //        SubscriberClientAck client =
 //                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.2", 4447, "jms/topic/InTopic", "mnovakClientId",

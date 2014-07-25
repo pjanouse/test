@@ -170,7 +170,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = this.getContext(this.container.getIpAddress(), 4447);
+            ctx = this.getContext(this.container.getIpAddress(), getJNDIPort(container.getName()));
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(CONNECTION_FACTORY_JNDI_EAP6);
             connection = cf.createConnection();
             connection.start();

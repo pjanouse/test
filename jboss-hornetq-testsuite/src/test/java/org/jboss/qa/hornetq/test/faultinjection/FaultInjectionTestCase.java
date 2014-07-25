@@ -84,11 +84,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
 
         SimpleJMSClient client = new SimpleJMSClient(
-        		CONTAINER1_IP, 
-        		4447, 
-        		MESSAGES, 
-        		Session.AUTO_ACKNOWLEDGE, 
-        		false);
+                getHostname(CONTAINER1),
+                getJNDIPort(CONTAINER1),
+                MESSAGES,
+                Session.AUTO_ACKNOWLEDGE,
+                false);
         
         client.sendMessages(TEST_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringSend());
@@ -907,12 +907,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
 
-        SimpleJMSClient client = new SimpleJMSClient(CONTAINER1_IP, 4447, 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
             client.sendMessages(TEST_QUEUE_JNDI);
 
             controller.kill(CONTAINER1);
@@ -930,7 +930,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(TEST_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass(), CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
             
             client.receiveMessages(TEST_QUEUE_JNDI);
             

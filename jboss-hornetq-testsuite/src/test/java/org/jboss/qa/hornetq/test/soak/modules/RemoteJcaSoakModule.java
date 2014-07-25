@@ -63,7 +63,7 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
     public void setUpServers(final ContainerController controller) {
 
         JMSOperations ops = this.getJMSOperations(this.mdbContainer.getName());
-        ops.addRemoteSocketBinding("messaging-remote", this.queuesContainer.getIpAddress(), 5445);
+        ops.addRemoteSocketBinding("messaging-remote", this.queuesContainer.getIpAddress(), 5445 + queuesContainer.getPortOffset());
         ops.createRemoteConnector("netty-remote", "messaging-remote", null);
         ops.setConnectorOnPooledConnectionFactory("hornetq-ra", "netty-remote");
         ops.close();

@@ -550,7 +550,7 @@ public class SubscriberTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        SubscriberTransAck subscriber = new SubscriberTransAck("192.168.1.1", 4447, "jms/topic/testTopic0", 10000, 100, 10,
+        SubscriberTransAck subscriber = new SubscriberTransAck("192.168.1.1", getJNDIPort(), "jms/topic/testTopic0", 10000, 100, 10,
                 "testClientId", "testSubscriber");
 
         subscriber.start();

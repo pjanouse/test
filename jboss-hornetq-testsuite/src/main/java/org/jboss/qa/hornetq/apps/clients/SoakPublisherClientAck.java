@@ -20,7 +20,7 @@ public class SoakPublisherClientAck extends Client {
     private static final Logger logger = Logger.getLogger(SoakPublisherClientAck.class);
     private int maxRetries = 30;
     private String hostname = "localhost";
-    private int port = 4447;
+    private int port = getJNDIPort();
     private String topicNameJndi;
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);

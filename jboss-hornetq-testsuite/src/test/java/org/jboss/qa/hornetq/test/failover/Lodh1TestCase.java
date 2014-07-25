@@ -172,7 +172,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start producer.");
 
-        ProducerTransAck producer1 = new ProducerTransAck(CONTAINER1_IP, 4447, inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         TextMessageBuilder builder = new TextMessageBuilder(1);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -181,7 +181,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producer1.start();
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(CONTAINER1_IP, 4447, outQueue, 6000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 6000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -227,7 +227,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -247,7 +247,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -278,7 +278,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), CONTAINER1_IP, getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -290,7 +290,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(CONTAINER1_IP, 4447, outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();

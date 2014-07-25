@@ -104,7 +104,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges
         String targetDestination = relativeJndiInQueueName;
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + CONTAINER2_IP + ":4447");
+        targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER2) + ":4447");
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
@@ -124,7 +124,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges
 
         log.info("Start proxy...");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(CONTAINER2_IP, 5445, proxy12port);
+            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), proxy12port);
             proxy1.start();
         }
         log.info("Proxy started.");

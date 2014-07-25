@@ -78,7 +78,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
-            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe
@@ -154,7 +154,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Send messages via STOMP protocol
-            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
             connection = stomp.connectBlocking();
             for (int i = 0; i < MESSAGES; i++) {
                 // Send message
@@ -168,7 +168,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
 
             // Receive messages via JMS API
-            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
+            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), QUEUE_JNDI);
             receiverAutoAck.run();
             assertEquals(MESSAGES, receiverAutoAck.getCount());
         } catch (Exception e) {
@@ -206,7 +206,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Receives messages via STOMP protocol
-            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe
@@ -216,7 +216,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             assertNotNull(response);
 
             // Send messages via JMS API
-            ProducerAutoAck producerAutoAck = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI, MESSAGES);
+            ProducerAutoAck producerAutoAck = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), QUEUE_JNDI, MESSAGES);
             producerAutoAck.setMessageBuilder(new ByteMessageBuilder(512));
             producerAutoAck.run();
 
@@ -269,7 +269,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(QUEUE_NAME));
         try {
-            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
 
             HighLoadStompProducerWithSemaphores[] producers = new HighLoadStompProducerWithSemaphores[CLIENTS];
             for (int i = 0; i < CLIENTS; i++) {
@@ -281,7 +281,7 @@ public class BasicStompTestCase extends HornetQTestCase {
                 producers[i].join();
             }
 
-            ReceiverClientAck receiverClientAck = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), QUEUE_JNDI);
+            ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), QUEUE_JNDI);
             receiverClientAck.start();
             receiverClientAck.join();
             assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverClientAck.getCount());
@@ -320,7 +320,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
-            Stomp stomp = new Stomp(CONTAINER1_IP, STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe

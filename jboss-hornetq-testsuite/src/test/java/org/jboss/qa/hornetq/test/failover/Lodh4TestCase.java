@@ -200,8 +200,8 @@ public class Lodh4TestCase extends HornetQTestCase {
         Thread.sleep(3000);
 
         QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
-                CONTAINER1_IP,
-                getJNDIPort(),
+                getHostname(CONTAINER1),
+                getJNDIPort(CONTAINER1),
                 relativeJndiInQueueName,
                 NUMBER_OF_DESTINATIONS_BRIDGES,
                 1,
@@ -210,7 +210,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(CONTAINER4_IP);
+        clientsA1.setHostnameForConsumers(getHostname(CONTAINER4));
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 
@@ -255,9 +255,9 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(CONTAINER1_IP, 4447, relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(CONTAINER4_IP, 4447, relativeJndiOutQueueName + 0, 10000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getHostname(CONTAINER4), getJNDIPort(CONTAINER4), relativeJndiOutQueueName + 0, 10000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -325,10 +325,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     public void prepareServers() {
 
-        prepareSourceServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
-        prepareSourceServer(CONTAINER3, CONTAINER3_IP, CONTAINER4_IP);
-        prepareTargetServer(CONTAINER2, CONTAINER2_IP);
-        prepareTargetServer(CONTAINER4, CONTAINER4_IP);
+        prepareSourceServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
+        prepareSourceServer(CONTAINER3, getHostname(CONTAINER3), CONTAINER4);
+        prepareTargetServer(CONTAINER2, getHostname(CONTAINER2));
+        prepareTargetServer(CONTAINER4, getHostname(CONTAINER4));
 
     }
 
@@ -337,10 +337,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      *
      * @param containerName         Name of the container - defined in arquillian.xml
      * @param bindingAddress        says on which ip container will be binded
-     * @param targetServerIpAddress ip address of target server for bridge
+     * @param targetServerName name of the target server
      */
     private void prepareSourceServer(String containerName, String bindingAddress,
-                                     String targetServerIpAddress) {
+                                     String targetServerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -391,7 +391,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         controller.start(containerName);
 
         jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServerIpAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(targetServerName), getHornetqPort(targetServerName));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);

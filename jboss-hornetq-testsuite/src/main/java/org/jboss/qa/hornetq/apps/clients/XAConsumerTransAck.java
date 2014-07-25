@@ -31,7 +31,7 @@ public class XAConsumerTransAck extends Client {
 
     private int maxRetries = 30;
     private String hostname = "localhost";
-    private int port = 4447;
+    private int port = getJNDIPort();
     private String queueNameJndi = "jms/queue/testQueue0";
     private int commitAfter = 10;
     private FinalTestMessageVerifier messageVerifier;
@@ -325,7 +325,7 @@ public class XAConsumerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        XAConsumerTransAck consumer = new XAConsumerTransAck("192.168.40.1", 4447, "jms/queue/testQueue0");
+        XAConsumerTransAck consumer = new XAConsumerTransAck("192.168.40.1", getJNDIPort(), "jms/queue/testQueue0");
         consumer.setCommitAfter(1);
         consumer.start();
 

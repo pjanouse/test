@@ -93,7 +93,7 @@ public class SoakTestCase extends HornetQTestCase {
     public static Archive getDeployment1() throws Exception {
         File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER1_IP);
+        writer.println("remote-jms-server=" + getHostname(CONTAINER1));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
@@ -114,7 +114,7 @@ public class SoakTestCase extends HornetQTestCase {
     public static Archive getDeployment2() throws Exception {
         File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + CONTAINER3_IP);
+        writer.println("remote-jms-server=" + getHostname(CONTAINER3));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner2.class);
@@ -144,13 +144,13 @@ public class SoakTestCase extends HornetQTestCase {
         deployer.deploy("mdb2");
 
         // start subscribers with gap
-        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(CONTAINER2_IP, 50, NUMBER_OF_SUBSCRIBERS, 10000);
+        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(getHostname(CONTAINER2), 50, NUMBER_OF_SUBSCRIBERS, 10000);
         for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; i++) {
             consumers[i].start();
         }
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(CONTAINER3_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(104));
         producerToInQueue2.setMessageBuilder(new TextMessageBuilder(104));
 
@@ -240,11 +240,11 @@ public class SoakTestCase extends HornetQTestCase {
             deployDestinations(CONTAINER3);
             stopServer(CONTAINER3);
 
-            prepareJmsServer(CONTAINER1, CONTAINER1_IP, CONTAINER2_IP);
-            prepareMdbServer(CONTAINER2, CONTAINER2_IP, CONTAINER1_IP);
+            prepareJmsServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
+            prepareMdbServer(CONTAINER2, getHostname(CONTAINER2), CONTAINER1);
 
-            prepareJmsServer(CONTAINER3, CONTAINER3_IP, CONTAINER4_IP);
-            prepareMdbServer(CONTAINER4, CONTAINER4_IP, CONTAINER3_IP);
+            prepareJmsServer(CONTAINER3, getHostname(CONTAINER3), CONTAINER4);
+            prepareMdbServer(CONTAINER4, getHostname(CONTAINER4), CONTAINER3);
 
             copyApplicationPropertiesFiles();
 
@@ -259,7 +259,7 @@ public class SoakTestCase extends HornetQTestCase {
      * @param containerName  Name of the container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be bind
      */
-    private void prepareJmsServer(String containerName, String bindingAddress, String targetServerForBridgeIP) {
+    private void prepareJmsServer(String containerName, String bindingAddress, String targetServerName) {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -289,7 +289,7 @@ public class SoakTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 500 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         // deploy bridge from OutQueue(jms server) -> bridgeOutQueue(mdb server)
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServerForBridgeIP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(targetServerName), getHornetqPort(targetServerName));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + OUT_QUEUE_NAME, "jms.topic." + BRIDGE_OUT_TOPIC, -1, "bridge-connector");
 
@@ -303,7 +303,7 @@ public class SoakTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -334,7 +334,7 @@ public class SoakTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 500 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
 

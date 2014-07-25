@@ -106,8 +106,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ServerLocator locator = null;
         try {
             Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-            props.put(TransportConstants.PORT_PROP_NAME, 5445);
+            props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
+            props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
             props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
             props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
             props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -159,8 +159,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.start(CONTAINER1);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -206,8 +206,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.start(CONTAINER1);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -256,8 +256,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         this.controller.start(CONTAINER1);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, CONTAINER1_IP);
-        props.put(TransportConstants.PORT_PROP_NAME, 5445);
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);

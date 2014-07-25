@@ -53,13 +53,13 @@ public class ClientNetworkDisconnection extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ReceiverClientAck r = new ReceiverClientAck(CONTAINER1_IP, PORT_JNDI_EAP6, queueJndiNamePrefix, 300000, 10, 0);
+        ReceiverClientAck r = new ReceiverClientAck(getHostname(CONTAINER1), PORT_JNDI_EAP6, queueJndiNamePrefix, 300000, 10, 0);
         r.start();
         int j = 0;
         while (j < 100) {
             List<ProducerAutoAck> producers = new ArrayList<ProducerAutoAck>();
             for (int i = 0; i < 5; i++) {
-                ProducerAutoAck p = new ProducerAutoAck(CONTAINER1_IP, PORT_JNDI_EAP6, queueJndiNamePrefix, 500000);
+                ProducerAutoAck p = new ProducerAutoAck(getHostname(CONTAINER1), PORT_JNDI_EAP6, queueJndiNamePrefix, 500000);
                 producers.add(p);
                 log.info("Start producer: " + i);
                 p.start();

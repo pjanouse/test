@@ -29,7 +29,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
 
         prepareBackupServer(CONTAINER2);
 
-        prepareMdbServer(CONTAINER3, CONTAINER1_IP, CONTAINER2_IP);
+        prepareMdbServer(CONTAINER3, getHostname(CONTAINER1), getHostname(CONTAINER2));
 
         copyApplicationPropertiesFiles();
 

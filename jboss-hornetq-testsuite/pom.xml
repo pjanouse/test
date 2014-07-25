@@ -79,20 +79,24 @@
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
                         <JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>
                         <JBOSS_HOME_4>${env.JBOSS_HOME_4}</JBOSS_HOME_4>
-                        <MYTESTIP_1>${env.MYTESTIP_1}</MYTESTIP_1>
-                        <MYTESTIP_2>${env.MYTESTIP_2}</MYTESTIP_2>
-                        <MYTESTIP_3>${env.MYTESTIP_3}</MYTESTIP_3>
-                        <MYTESTIP_4>${env.MYTESTIP_4}</MYTESTIP_4>
+                        <MYTESTIP_1>127.0.0.1</MYTESTIP_1>
+                        <MYTESTIP_2>127.0.0.1</MYTESTIP_2>
+                        <MYTESTIP_3>127.0.0.1</MYTESTIP_3>
+                        <MYTESTIP_4>127.0.0.1</MYTESTIP_4>
                         <MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>
                         <JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
                         <JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
-                        <!-- when you redefine these - DON'T FORGET TO CHANGE "rmiPort" and "managementPort" in arquillian-4-nodes.xml -->
+                        <!-- when you redefine these - DON'T FORGET TO CHANGE "rmiPort" and "MANAGEMENT_PORT" in arquillian-4-nodes.xml -->
                         <!-- 1 and 2 are for EAP 5 server - when redefine these then change "EAP5_VMARGS" and "EAP5_VMARGS_2" in hornetq-interop profile  -->
                         <PORT_OFFSET_1>0</PORT_OFFSET_1>
                         <PORT_OFFSET_2>2000</PORT_OFFSET_2>
                         <!-- 3 and 4 are for EAP 6 server -->
                         <PORT_OFFSET_3>3000</PORT_OFFSET_3>
                         <PORT_OFFSET_4>4000</PORT_OFFSET_4>
+                        <MANAGEMENT_PORT_1>9999</MANAGEMENT_PORT_1>
+                        <MANAGEMENT_PORT_2>11999</MANAGEMENT_PORT_2>
+                        <MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>
+                        <MANAGEMENT_PORT_4>139999</MANAGEMENT_PORT_4>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -286,6 +290,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>qa-hornetq-testsuite</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

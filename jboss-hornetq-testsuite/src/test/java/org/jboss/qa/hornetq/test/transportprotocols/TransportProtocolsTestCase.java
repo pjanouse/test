@@ -107,8 +107,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         log.info("Start producer and consumer.");
-        ProducerAutoAck producer = new ProducerAutoAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverAutoAck receiver = new ReceiverAutoAck(CONTAINER1_IP, getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
+        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverAutoAck receiver = new ReceiverAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();

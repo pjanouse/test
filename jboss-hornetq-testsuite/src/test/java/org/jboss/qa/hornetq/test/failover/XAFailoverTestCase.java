@@ -60,7 +60,7 @@ public class XAFailoverTestCase extends DedicatedFailoverTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(CONTAINER2_IP, 5445, 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
 
         Thread.sleep(10000);
         p.stopSending();

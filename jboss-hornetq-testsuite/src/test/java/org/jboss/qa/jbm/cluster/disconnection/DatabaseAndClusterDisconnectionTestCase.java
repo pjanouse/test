@@ -44,7 +44,7 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 200;
 
-    private String gosshipAddress = CONTAINER1_IP;
+    private String gosshipAddress = getHostname(CONTAINER1);
     private int gosshipPort = 12001;
     // where tcp proxy to database listen
     int proxyPort = 3307;
@@ -98,8 +98,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
             deployer.deploy("mdbOnTopic1");
             deployer.deploy("mdbOnTopic2");
 
-            PublisherClientAck publisher1 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER1_IP, getJNDIPort(), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
-            PublisherClientAck publisher2 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER2_IP, getJNDIPort(), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
+            PublisherClientAck publisher1 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
+            PublisherClientAck publisher2 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
             publisher1.setMessageBuilder(new ClientMixMessageBuilder(10, 10));
             publisher2.setMessageBuilder(new ClientMixMessageBuilder(10, 10));
 
@@ -107,7 +107,7 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
             publisher2.start();
             publisher1.join();
             publisher2.join();
-            ReceiverClientAck receiver2 = new ReceiverClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER2_IP, getJNDIPort(), outQueueJndiNameForMdb, networkFailure + 60000, 10, 10);
+            ReceiverClientAck receiver2 = new ReceiverClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, networkFailure + 60000, 10, 10);
             receiver2.start();
             while (receiver2.getListOfReceivedMessages().size() < NUMBER_OF_MESSAGES_PER_PRODUCER/4) {
                 Thread.sleep(1000);
@@ -118,7 +118,7 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
             log.info("Gosship router stopped.");
 
             Thread.sleep(30000);
-            PublisherClientAck publisher3 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER2_IP, getJNDIPort(), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
+            PublisherClientAck publisher3 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
             publisher3.setMessageBuilder(new ClientMixMessageBuilder(10, 10));
             publisher3.start();
 
@@ -129,10 +129,10 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
 
             Thread.sleep(30000);
 
-            PublisherClientAck publisher4 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER2_IP, getJNDIPort(), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
+            PublisherClientAck publisher4 = new PublisherClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER, "topicId");
             publisher4.setMessageBuilder(new ClientMixMessageBuilder(10, 10));
             publisher4.start();
-            ReceiverClientAck receiver1 = new ReceiverClientAck(EAP5_WITH_JBM_CONTAINER, CONTAINER1_IP, getJNDIPort(), outQueueJndiNameForMdb, 30000, 10, 10);
+            ReceiverClientAck receiver1 = new ReceiverClientAck(EAP5_WITH_JBM_CONTAINER, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 30000, 10, 10);
             receiver1.start();
             receiver1.join();
             receiver2.join();
@@ -223,8 +223,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
         deployer.deploy("mdbOnQueue2");
 
         // Send messages into input node and read from output node
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER2_IP, getJNDIPort(), outQueueJndiNameForMdb, 10000, 10, 10);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
         log.info("Start producer and consumer.");
         producer.start();

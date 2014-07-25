@@ -146,7 +146,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 500);
 
         producer.setMessageBuilder(messageBuilder);
 
@@ -154,7 +154,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         producer.join();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
 
         receiver.start();
 
@@ -220,7 +220,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
 
         producer.setMessageBuilder(messageBuilder);
 
@@ -250,7 +250,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             log.info("############# Server 1 started.");
         }
 
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, getJNDIPort(), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
 
         receiver.start();
 
@@ -271,8 +271,8 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     @Before
     public void prepareServers() {
         if (!topologyCreated) {
-            prepareServer(CONTAINER1, CONTAINER1_IP);
-            prepareServer(CONTAINER2, CONTAINER2_IP);
+            prepareServer(CONTAINER1, getHostname(CONTAINER1));
+            prepareServer(CONTAINER2, getHostname(CONTAINER2));
 
             // deploy destinations 
             controller.start(CONTAINER1);

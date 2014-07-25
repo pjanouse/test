@@ -12,6 +12,7 @@ import javax.jms.TopicSubscriber;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
@@ -37,7 +38,7 @@ public class DurableSubscriptionClient extends Client {
 
 
     public DurableSubscriptionClient(final ContainerInfo container) {
-        this(container, 4447);
+        this(container, HornetQTestCase.getJNDIPort(container.getName()));
     }
 
 

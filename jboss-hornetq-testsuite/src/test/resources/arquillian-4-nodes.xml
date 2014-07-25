@@ -17,11 +17,13 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_1}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
-                    -Djava.net.preferIPv4Stack=false
+                    -Djava.net.preferIPv4Stack=false  -Djboss.modules.policy-permissions=true
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_1}
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
+                <property name="managementPort">${MANAGEMENT_PORT_1}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -39,12 +41,14 @@
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
-                    -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
-                    -Djava.net.preferIPv4Stack=false
+                    -Djboss.default.multicast.address=${MCAST_ADDR}
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_2}
+                    -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=n
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
+                <property name="managementPort">${MANAGEMENT_PORT_2}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -62,12 +66,15 @@
                     -Djboss.bind.address.management=${MYTESTIP_3}
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
-                    -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
+                    -Djboss.default.multicast.address=${MCAST_ADDR}
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_3}
+                    -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
+                <property name="managementPort">${MANAGEMENT_PORT_3}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -85,12 +92,14 @@
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_4}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
+                <property name="managementPort">${MANAGEMENT_PORT_4}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>

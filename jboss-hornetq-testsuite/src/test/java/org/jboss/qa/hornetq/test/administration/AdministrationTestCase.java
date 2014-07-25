@@ -43,7 +43,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
-        configure(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
+        configure(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
     }
 
     /**
@@ -105,7 +105,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", CONTAINER1_IP, 5445);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1), getHornetqPort(CONTAINER1));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);

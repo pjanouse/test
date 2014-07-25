@@ -119,13 +119,13 @@ public class NewSoakTestCase extends HornetQTestCase {
         LOG.info(String.format("Setting soak test duration to %dms", testDuration));
 
         // create in/out clients
-        SoakProducerClientAck producer = new SoakProducerClientAck(CONTAINER1_IP, this.getJNDIPort(),
+        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1), this.getJNDIPort(CONTAINER1),
                 RemoteJcaSoakModule.JCA_IN_QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new TextMessageBuilder(104));
 
         SoakReceiverClientAck[] consumers = new SoakReceiverClientAck[NUMBER_OF_CLIENTS];
         for (int i = 0; i < consumers.length; i++) {
-            consumers[i] = new SoakReceiverClientAck(CONTAINER1_IP, this.getJNDIPort(),
+            consumers[i] = new SoakReceiverClientAck(getHostname(CONTAINER1), this.getJNDIPort(CONTAINER1),
                     DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI);
         }
         DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(CONTAINER1_INFO);

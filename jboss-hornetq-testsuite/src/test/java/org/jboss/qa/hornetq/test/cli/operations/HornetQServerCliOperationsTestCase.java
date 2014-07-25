@@ -102,7 +102,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     private static final String MODULE = "/subsystem=messaging/hornetq-server=default";
 
-    private final CliClient cli = new CliClient(new CliConfiguration(CONTAINER1_IP, MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -148,7 +148,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         try {
 
-            context = getContext(CONTAINER1_IP);
+            context = getContext(CONTAINER1);
 
             queue = (Queue) context.lookup(queueJndiName);
 
@@ -303,7 +303,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //        CliTestUtils.assertSuccess(r1);
 
         // check that backup started
-        waitHornetQToAlive(CONTAINER2_IP, 5445, 60000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
 
     }
 
@@ -317,16 +317,16 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         prepareServer(CONTAINER1);
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(CONTAINER1_IP, 4447, queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        ReceiverClientAck receiver = new ReceiverClientAck(CONTAINER1_IP, 4447, queueJndiName);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName);
         receiver.setTimeout(1000);
 
         // start clients
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(CONTAINER1_IP, 4447, topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(CONTAINER1_IP, 4447, topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         producer.start();
@@ -742,8 +742,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1, CONTAINER1_IP, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2, CONTAINER2_IP, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
 
     }
 
