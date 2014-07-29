@@ -94,6 +94,7 @@ public class SoakTestCase extends HornetQTestCase {
         File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + getHostname(CONTAINER1));
+        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER1));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
@@ -115,6 +116,7 @@ public class SoakTestCase extends HornetQTestCase {
         File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + getHostname(CONTAINER3));
+        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER3));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner2.class);

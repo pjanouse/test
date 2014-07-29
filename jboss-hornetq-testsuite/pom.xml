@@ -96,7 +96,7 @@
                         <MANAGEMENT_PORT_1>9999</MANAGEMENT_PORT_1>
                         <MANAGEMENT_PORT_2>11999</MANAGEMENT_PORT_2>
                         <MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>
-                        <MANAGEMENT_PORT_4>139999</MANAGEMENT_PORT_4>
+                        <MANAGEMENT_PORT_4>13999</MANAGEMENT_PORT_4>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

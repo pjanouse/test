@@ -3,30 +3,17 @@ package org.jboss.qa.hornetq.test.soak.components;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.ejb3.annotation.ResourceAdapter;
+import org.jboss.qa.hornetq.test.soak.modules.RemoteJcaSoakModule;
+
+import javax.annotation.PreDestroy;
+import javax.ejb.*;
+import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.PreDestroy;
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.ejb.MessageDrivenContext;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import org.jboss.ejb3.annotation.ResourceAdapter;
-import org.jboss.qa.hornetq.test.soak.modules.RemoteJcaSoakModule;
 
 
 /**
@@ -57,6 +44,7 @@ public class RemoteJcaResendingBean implements MessageListener {
     private MessageDrivenContext context = null;
 
     private static String hostname = null;
+    private static int port = 0;
 
     private static InitialContext ctx = null;
 
@@ -75,11 +63,12 @@ public class RemoteJcaResendingBean implements MessageListener {
             prop.load(RemoteJcaResendingBean.class.getResourceAsStream("/remote-jca-resending-bean.properties"));
 
             hostname = prop.getProperty("remote-jms-server");
-            LOG.info("Hostname of remote jms server is: " + hostname);
+            port = Integer.valueOf(prop.getProperty("remote-jms-jndi-port"));
+            LOG.info("Hostname of remote jms server is: " + hostname + ", port: " + port);
 
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
+            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
 
             ctxRemote = new InitialContext(env);
             queue = (Queue) ctxRemote.lookup(RemoteJcaSoakModule.JCA_OUT_QUEUE_JNDI);

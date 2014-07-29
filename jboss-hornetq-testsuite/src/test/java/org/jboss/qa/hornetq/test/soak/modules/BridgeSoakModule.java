@@ -1,10 +1,6 @@
 package org.jboss.qa.hornetq.test.soak.modules;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
@@ -12,6 +8,11 @@ import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -72,7 +73,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + this.remoteContainer.getIpAddress() + ":4447");
+                        "remote://" + this.remoteContainer.getIpAddress() + ":" + getJNDIPort(remoteContainer.getName()));
 
                 ops.createJMSBridge("soak-outbound-bridge", "java:/ConnectionFactory",
                         "java:/" + BRIDGE_IN_QUEUE_JNDI, null,
@@ -107,7 +108,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + this.queueContainer.getIpAddress() + ":4447");
+                        "remote://" + this.queueContainer.getIpAddress() + ":" + getJNDIPort(queueContainer.getName()));
 
                 remoteOps.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
                 remoteOps.createJMSBridge("soak-inbound-bridge", "java:/ConnectionFactory",

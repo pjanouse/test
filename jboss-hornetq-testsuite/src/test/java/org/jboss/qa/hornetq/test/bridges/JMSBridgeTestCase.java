@@ -181,7 +181,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         String targetDestination = outQueueJndiName;
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + getHostname(outServer) + ":4447");
+        targetContext.put("java.naming.provider.url", "remote://" + getHostname(outServer) + ":" + getJNDIPort(outServer));
 
         if (qualityOfService == null || "".equals(qualityOfService))
         {

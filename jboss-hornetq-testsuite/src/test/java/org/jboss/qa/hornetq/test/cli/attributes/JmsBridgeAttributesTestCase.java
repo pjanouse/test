@@ -44,7 +44,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), getPort(CONTAINER1), getUsername(CONTAINER1), getPassword(CONTAINER1));
 
     private void prepareServerWithHornetQCoreBridge(String containerName, String targeServerName) {
 
@@ -56,7 +56,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + getHostname(targeServerName) + ":4447");
+        targetContext.put("java.naming.provider.url", "remote://" + getHostname(targeServerName) + ":" + getJNDIPort(targeServerName));
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;

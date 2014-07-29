@@ -34,6 +34,7 @@ public class SoakMdbWithRemoteOutQueueToContaniner2 implements MessageDrivenBean
     private static final Logger log = Logger.getLogger(SoakMdbWithRemoteOutQueueToContaniner2.class.getName());
     private MessageDrivenContext context = null;
     private static String hostname;
+    private static int port;
     private static InitialContext ctx = null;
     private static InitialContext ctxRemote = null;
     private static Queue queue = null;
@@ -48,10 +49,11 @@ public class SoakMdbWithRemoteOutQueueToContaniner2 implements MessageDrivenBean
             log.info("Location of property file (mdb2) is: " + propFile.getAbsolutePath());
             prop.load(new FileInputStream(propFile));
             hostname = prop.getProperty("remote-jms-server");
+            port = Integer.valueOf(prop.getProperty("remote-jms-jndi-port"));
             log.info("Hostname of remote jms server is: " + hostname);
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":4447");
+            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
             ctxRemote = new InitialContext(env);
             queue = (Queue) ctxRemote.lookup("jms/queue/OutQueue");
             ctx = new InitialContext();

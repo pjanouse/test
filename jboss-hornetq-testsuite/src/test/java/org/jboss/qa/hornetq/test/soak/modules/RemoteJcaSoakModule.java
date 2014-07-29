@@ -1,18 +1,19 @@
 package org.jboss.qa.hornetq.test.soak.modules;
 
 
-import java.util.ArrayList;
-import java.util.List;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.soak.components.RemoteJcaResendingBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
+import org.jboss.qa.hornetq.test.soak.components.RemoteJcaResendingBean;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -93,7 +94,10 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
 
         // ip in property file on n-th mdb container points to n-th queue container
         Asset contents = new StringAsset("remote-jms-server=" + this.queuesContainer.getIpAddress() + "\n");
+        Asset contents2 = new StringAsset("remote-jms-jndi-server=" + getJNDIPort(queuesContainer.getName()) + "\n");
         assets.add(new FileDeploymentDefinition(contents, "remote-jca-resending-bean.properties",
+                this.mdbContainer.getName()));
+        assets.add(new FileDeploymentDefinition(contents2, "remote-jca-resending-bean.properties",
                 this.mdbContainer.getName()));
         return assets;
     }

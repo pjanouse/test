@@ -423,9 +423,9 @@ public class SimpleProxyServer implements ControllableProxy {
     }
 
     public static void main(String args[]) {
-        SimpleProxyServer proxy = new SimpleProxyServer("127.0.0.1", 5445, 43821);
+        SimpleProxyServer proxy = new SimpleProxyServer("192.168.40.2", 7445, 56831);
         proxy.start();
-        SimpleProxyServer proxy1 = new SimpleProxyServer("10.34.3.115", 5445, 43812);
-        proxy1.start();
+//        SimpleProxyServer proxy1 = new SimpleProxyServer("10.34.3.115", 5445, 43812);
+//        proxy1.start();
     }
 }

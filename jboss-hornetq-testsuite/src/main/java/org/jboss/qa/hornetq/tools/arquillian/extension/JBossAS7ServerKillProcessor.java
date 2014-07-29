@@ -1,19 +1,16 @@
 package org.jboss.qa.hornetq.tools.arquillian.extension;
 
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
-import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.JMSTools;
 
-import java.io.*;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.*;
 
 
 /**
@@ -25,6 +22,7 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
     private static final Logger log = Logger.getLogger(JBossAS7ServerKillProcessor.class);
 
     String hostname = null;
+    int managementPort = 0;
 
     /**
      * @see {@link ServerKillProcessor#kill(org.jboss.arquillian.container.spi.Container)}
@@ -108,42 +106,47 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
             hostname = "127.0.0.1";
         }
 
-        String port = container.getContainerConfiguration().getContainerProperties().get("managementPort");
-        if (port == null) {
-            port = "9999";
-        }
+        managementPort = Integer.valueOf(container.getContainerConfiguration().getContainerProperties().get("managementPort"));
 
-        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:[port] --password=minono532/20 --user=admin --connect quit";
+//        String port = container.getContainerConfiguration().getContainerProperties().get("managementPort");
+//        if (port == null) {
+//            port = "9999";
+//        }
+//
+//        final String KILL_SEQUENCE = "[jbossHome]/bin/jboss-cli.[suffix] --controller=[hostname]:[port] --password=minono532/20 --user=admin --connect quit";
         final int MAXIMAL_CHECKS = 120;
 
         log.info("Waiting. Server will be killed by an external process ...");
 
-        String jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
-        if (jbossHome == null) {
-            jbossHome = System.getenv().get("JBOSS_HOME");
-            if (jbossHome == null) {
-                throw new RuntimeException("Cannot get JBoss home folder");
-            }
-        }
-        String os = System.getProperty("os.name").toLowerCase();
-        String suffix = (os.contains("windows")) ? "bat" : "sh";
+//        String jbossHome = container.getContainerConfiguration().getContainerProperties().get("jbossHome");
+//        if (jbossHome == null) {
+//            jbossHome = System.getenv().get("JBOSS_HOME");
+//            if (jbossHome == null) {
+//                throw new RuntimeException("Cannot get JBoss home folder");
+//            }
+//        }
+//        String os = System.getProperty("os.name").toLowerCase();
+//        String suffix = (os.contains("windows")) ? "bat" : "sh";
+//
+//        String killSequence;
+//        // Prepare kill sequence
+//        if (JMSTools.isIpv6Address(hostname))   {
+//            killSequence = KILL_SEQUENCE.replace("[hostname]", "[" + hostname + "]");
+//        } else {
+//            killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+//        }
+//        killSequence = killSequence.replace("[port]", port);
+//        killSequence = killSequence.replace("[jbossHome]", jbossHome);
+//        killSequence = killSequence.replace("[suffix]", suffix);
+//        log.info(String.format("Kill sequence for server: '%s'", killSequence));
 
-        String killSequence;
-        // Prepare kill sequence
         if (JMSTools.isIpv6Address(hostname))   {
-            killSequence = KILL_SEQUENCE.replace("[hostname]", "[" + hostname + "]");
-        } else {
-            killSequence = KILL_SEQUENCE.replace("[hostname]", hostname);
+            hostname = hostname.replace(hostname, "[" + hostname + "]");
         }
-        killSequence = killSequence.replace("[port]", port);
-        killSequence = killSequence.replace("[jbossHome]", jbossHome);
-        killSequence = killSequence.replace("[suffix]", suffix);
-        log.info(String.format("Kill sequence for server: '%s'", killSequence));
-
         int checkCount = 0;
         boolean killed = false;
         do {
-            if (checkJBossAlive(killSequence)) {
+            if (checkJBossAlive()) {
                 int checkDurableTime = 10;
                 Thread.sleep(checkDurableTime * 50);
                 log.info("JBossAS is still alive ..." + hostname);
@@ -161,55 +164,79 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
         }
     }
 
-    /**
-     * Checks if AS is alive
-     *
-     * @param killSequence External command used for checking if server is alive or not
-     * @return true if as is alive
-     * @throws Exception if something goes wrong
-     */
-    private boolean checkJBossAlive(String killSequence) throws Exception {
-
-        final Process p;
-//        String os = System.getProperty("os.name").toLowerCase();
+//    /**
+//     * Checks if AS is alive
+//     *
+//     * @return true if as is alive
+//     * @throws Exception if something goes wrong
+//     */
+//    private boolean checkJBossAlive() throws Exception {
 //
-//        if (os.contains("windows")) {
-
-            String response;
-            try {
-                response = HttpRequest.get("http://" + hostname + ":8080", 20, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return false;
-            }
-
-            return !(response == null || "".equals(response) || response.contains("Unable to connect"));
-
-//        } else {
-//            boolean stillRunning = true;
+//        final Process p;
+////        String os = System.getProperty("os.name").toLowerCase();
+////
+////        if (os.contains("windows")) {
 //
-//            p = Runtime.getRuntime().exec(killSequence);
-//
-//            p.waitFor();
-//
-//            // check standard output - false returned then server is stopped
-//            if (!checkOutput(p.getInputStream())) {
-//                stillRunning = false;
-//            }
-//
-//            // check error output - false returned then server is stopped
-//            if (!checkOutput(p.getErrorStream())) {
-//                stillRunning = false;
-//            }
-//
-//            if (p.exitValue() != 0) {
-//                log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
-//                        + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
-//            }
-//            return stillRunning;
+//        String response;
+//        String url = "http://" + hostname + ":" + managementPort;
+//        log.info("Calling url: " + url + " to check that server is dead.");
+//        try {
+//            response = HttpRequest.get(url, 20, TimeUnit.SECONDS);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            return false;
 //        }
+//
+//        return !(response == null || "".equals(response) || response.contains("Unable to connect"));
+//
+////        } else {
+////            boolean stillRunning = true;
+////
+////            p = Runtime.getRuntime().exec(killSequence);
+////
+////            p.waitFor();
+////
+////            // check standard output - false returned then server is stopped
+////            if (!checkOutput(p.getInputStream())) {
+////                stillRunning = false;
+////            }
+////
+////            // check error output - false returned then server is stopped
+////            if (!checkOutput(p.getErrorStream())) {
+////                stillRunning = false;
+////            }
+////
+////            if (p.exitValue() != 0) {
+////                log.error("Return code from kill sequence is different from zero. It's expected when server is no longer"
+////                        + " started but it can also mean that kill sequence does not work. Kill sequence: " + killSequence);
+////            }
+////            return stillRunning;
+////        }
+//
+//
+//    }
 
-
+    /**
+     * Returns true if something is listening on server
+     *
+     */
+    protected boolean checkJBossAlive() {
+        log.debug("Check that port is open - IP address: " + hostname + " port: " + managementPort);
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(hostname, managementPort), 100);
+            return true;
+        } catch (Exception ex) {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        }
     }
 
     /**
@@ -238,9 +265,12 @@ public class JBossAS7ServerKillProcessor implements ServerKillProcessor {
 
     public static void main(String[] args) throws Exception {
         JBossAS7ServerKillProcessor p = new JBossAS7ServerKillProcessor();
-        while (p.checkJBossAlive("dasf")) {
+        p.hostname = "127.0.0.1";
+        p.managementPort = 9999;
+        while (p.checkJBossAlive()) {
             System.out.println("mnovak: jboss is alive");
+            Thread.sleep(200);
         }
-        System.out.println("mnovak: jboss is dead");
+//        System.out.println("mnovak: jboss is dead");
     }
 }

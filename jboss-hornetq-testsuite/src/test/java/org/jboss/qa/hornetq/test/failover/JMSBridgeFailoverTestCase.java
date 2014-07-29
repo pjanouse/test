@@ -308,11 +308,12 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         if (CONTAINER1.equalsIgnoreCase(containerName)) { // if deployed to container 1 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3) + ":4447");
+            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3) + ":" + getJNDIPort(CONTAINER3));
         } else if (CONTAINER2.equalsIgnoreCase(containerName)) { // if deployed to container 2 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3) + ":4447");
+            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3) + ":" + getJNDIPort(CONTAINER3));
         } else if (CONTAINER3.equalsIgnoreCase(containerName)) { // if deployed to container 3 then target is container 1 and 2
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER1) + ":4447,remote://" + getHostname(CONTAINER2) + ":4447");
+            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER1) + ":" + getJNDIPort(CONTAINER1) +
+                    ",remote://" + getHostname(CONTAINER2) + ":" + getJNDIPort(CONTAINER2));
 //            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_IP + ":4447");
         }
 
