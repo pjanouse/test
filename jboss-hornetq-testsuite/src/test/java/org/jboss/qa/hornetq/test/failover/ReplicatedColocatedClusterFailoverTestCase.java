@@ -273,7 +273,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
-        int socketBindingPort = 5446;
+        int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT;
         String messagingGroupSocketBindingName = "messaging-group";
 
         controller.start(containerName);

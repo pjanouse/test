@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq;
 
-import org.jboss.qa.hornetq.tools.ContainerInfo;
-
 /**
  * Class containing constants used in tests and tools.
  */
@@ -21,6 +19,10 @@ public interface HornetQTestCaseConstants {
     // Port for remote JNDI
     public static int PORT_JNDI_EAP5 = 1099;
     public static int PORT_JNDI_EAP6 = 4447;
+
+    // Port for HornetQ
+    public static int PORT_HORNETQ_DEFAULT = 5445;
+    public static int PORT_HORNETQ_BACKUP_DEFAULT = 5446;
 
     // Ports for Byteman
     public static final int BYTEMAN_CONTAINER1_PORT = 9091;

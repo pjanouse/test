@@ -145,7 +145,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         waitForReceiversUntil(clients.getConsumers(), 500, 300000);
-        Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), 5446, 300000));
+        Assert.assertTrue("Backup on second server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqBackupPort(CONTAINER2), 300000));
 
         if (failback) {
             logger.info("########################################");
@@ -252,7 +252,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.kill(CONTAINER2);
         }
 
-        Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1), 5446, 300000));
+        Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqBackupPort(CONTAINER1), 300000));
         Thread.sleep(10000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
@@ -684,8 +684,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-//        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.setSecurityEnabled(true);
+        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.setClusterUserPassword(CLUSTER_PASSWORD);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
@@ -733,7 +733,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
-        int socketBindingPort = 5446;
+        int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT;
         String messagingGroupSocketBindingName = "messaging-group";
 
 
@@ -743,8 +743,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
-//        jmsAdminOperations.disableSecurity(backupServerName);
-        jmsAdminOperations.setSecurityEnabled(true);
+        jmsAdminOperations.disableSecurity(backupServerName);
+//        jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, true);
         jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);

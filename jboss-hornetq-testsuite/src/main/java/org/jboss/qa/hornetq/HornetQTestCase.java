@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq;
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
-
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -15,7 +14,6 @@ import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
-import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
@@ -657,8 +655,19 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     public static int getHornetqPort(String containerName) {
-        return 5445 + getContainerInfo(containerName).getPortOffset();
+        return PORT_HORNETQ_DEFAULT + getContainerInfo(containerName).getPortOffset();
     }
+
+    /**
+     * This port for collocated backup.
+     *
+     * @param containerName name of the container
+     * @return port of collocated backup
+     */
+    public static int getHornetqBackupPort(String containerName) {
+        return PORT_HORNETQ_BACKUP_DEFAULT + getContainerInfo(containerName).getPortOffset();
+    }
+
 
     /**
      * Returns -1 when server is not up. Port 8080 is not up.

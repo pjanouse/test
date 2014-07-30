@@ -24,6 +24,8 @@ public class QueueClientsClientAck implements Clients {
 
     private String hostnameForConsumers;
 
+    private int portForConsumers;
+
     private int jndiPort;
 
     private String queueJndiNamePrefix;
@@ -69,6 +71,7 @@ public class QueueClientsClientAck implements Clients {
         this.hostnameForConsumers = hostname;
         this.hostnameForProducers = hostname;
         this.jndiPort = jndiPort;
+        this.portForConsumers = jndiPort;
         this.queueJndiNamePrefix = queueJndiNamePrefix;
         this.queueJndiNamePrefixProducers = queueJndiNamePrefix;
         this.queueJndiNamePrefixConsumers = queueJndiNamePrefix;
@@ -111,7 +114,7 @@ public class QueueClientsClientAck implements Clients {
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
-                r = new ReceiverClientAck(container, getHostnameForConsumers(), getJndiPort(), queueJndiNamePrefixConsumers + destinationNumber);
+                r = new ReceiverClientAck(container, getHostnameForConsumers(), getPortForConsumers(), queueJndiNamePrefixConsumers + destinationNumber);
 
                 r.setMessageVerifier(queueTextMessageVerifier);
 
@@ -428,5 +431,13 @@ public class QueueClientsClientAck implements Clients {
             list.add(c);
         }
         return list;
+    }
+
+    public int getPortForConsumers() {
+        return portForConsumers;
+    }
+
+    public void setPortForConsumers(int portForConsumers) {
+        this.portForConsumers = portForConsumers;
     }
 }

@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.HornetQException;
 import org.hornetq.api.core.TransportConfiguration;
@@ -9,7 +8,6 @@ import org.hornetq.api.core.client.ClientSessionFactory;
 import org.hornetq.api.core.client.HornetQClient;
 import org.hornetq.api.core.client.ServerLocator;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
@@ -100,7 +98,7 @@ public class SecurityClient extends Client {
 
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("host", hostname);
-        map.put("port", 5445);
+        map.put("port", PORT_HORNETQ_DEFAULT);
 
         TransportConfiguration transportConfiguration = new TransportConfiguration(NettyConnectorFactory.class.getName(), map);
 

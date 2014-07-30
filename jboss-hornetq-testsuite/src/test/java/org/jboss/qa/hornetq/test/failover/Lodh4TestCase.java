@@ -211,6 +211,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
         clientsA1.setHostnameForConsumers(getHostname(CONTAINER4));
+        clientsA1.setPortForConsumers(getJNDIPort(CONTAINER4));
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 

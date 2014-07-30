@@ -281,7 +281,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
             prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
 
-            prepareMdbServer(CONTAINER3, getHostname(CONTAINER1), getHostname(CONTAINER2));
+            prepareMdbServer(CONTAINER3, CONTAINER1, CONTAINER2);
 
             copyApplicationPropertiesFiles();
 
@@ -292,7 +292,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareMdbServer(String containerName, String jmsServerBindingAddress, String jmsBackupServerBindingAddress) {
+    protected void prepareMdbServer(String containerName, String containerLive, String containerBackup) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -328,9 +328,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.setClusterUserPassword("heslo");
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerName), getHornetqPort(containerName));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerLive), getHornetqPort(containerLive));
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", getHostname(containerName), getHornetqPort(containerName));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", getHostname(containerBackup), getHornetqPort(containerBackup));
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
         List<String> connectorList = new ArrayList<String>();
