@@ -6,14 +6,15 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpAfterTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -106,7 +107,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @CleanUpAfterTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testRemoteJca() throws Exception {
 
         prepareRemoteJcaTopology();
@@ -180,9 +182,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         if (!topologyCreated) {
 
             prepareJmsServer(CONTAINER1);
-            prepareMdbServer(CONTAINER2, getHostname(CONTAINER1));
+            prepareMdbServer(CONTAINER2, CONTAINER1);
             prepareJmsServer(CONTAINER3);
-            prepareMdbServer(CONTAINER4, getHostname(CONTAINER3));
+            prepareMdbServer(CONTAINER4, CONTAINER3);
             topologyCreated = true;
         }
     }
@@ -283,7 +285,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String jmsServerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -355,7 +357,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerName), getHornetqPort(containerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.close();
