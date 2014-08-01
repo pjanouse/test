@@ -54,6 +54,21 @@ public class PrepareServers {
             eapZipUrlOld = buildEapZipUrlFromEapVersion(eapVersionOld)
         }
 
+        printProperties()
+
+    }
+
+    public void printProperties()   {
+        println "eapZipUrl = " +  eap.zip.url
+        println "patchVersion = " + patch.version
+        println "eapVersion = " +  eap.version
+        println "nativesUrl = " +  natives.url
+        println "configurationDirUrl = " + configuration.dir.url
+
+        println "eapZipUrlOld  = " +  eap.zip.url.old
+        println "eapVersionOld = " +  eap.version.old
+        println "nativesUrlOld = " +  natives.url.old
+        println "configurationDirUrlOld = " + configuration.dir.url.old
     }
 
     /**
