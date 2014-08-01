@@ -59,16 +59,16 @@ public class PrepareServers {
     }
 
     public void printProperties()   {
-        println "eapZipUrl = " +  eap.zip.url
-        println "patchVersion = " + patch.version
-        println "eapVersion = " +  eap.version
-        println "nativesUrl = " +  natives.url
-        println "configurationDirUrl = " + configuration.dir.url
+        println "eapZipUrl = " +  eapZipUrl
+        println "patchVersion = " + patchVersion
+        println "eapVersion = " +  eapVersion
+        println "nativesUrl = " +  nativesUrl
+        println "configurationDirUrl = " + configurationDirUrl
 
-        println "eapZipUrlOld  = " +  eap.zip.url.old
-        println "eapVersionOld = " +  eap.version.old
-        println "nativesUrlOld = " +  natives.url.old
-        println "configurationDirUrlOld = " + configuration.dir.url.old
+        println "eapZipUrlOld  = " +  eapZipUrlOld
+        println "eapVersionOld = " +  eapVersionOld
+        println "nativesUrlOld = " +  nativesUrlOld
+        println "configurationDirUrlOld = " + configurationDirUrlOld
     }
 
     /**
