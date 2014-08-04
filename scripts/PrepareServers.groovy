@@ -98,7 +98,7 @@ public class PrepareServers {
     public static boolean validateThatUrlExists(String urlString) {
         println "Validating Url " + urlString
 
-        if (urlString.startsWith("file:") && new File(urlString).exists()) {
+        if (urlString.startsWith("file:") && new File(urlString.replaceAll("file://", "")).exists()) {
 
             return true;
 
@@ -390,7 +390,7 @@ public class PrepareServers {
 //        eapVersion = "6.0.0"
 //        eapVersionOld = "6.2.0"
         //def eapZipUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/jboss-eap-6.3.0.ER10.zip'
-        //def eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
+        eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
         //def nativesUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/natives/jboss-eap-native-6.3.0.ER10-RHEL6-x86_64.zip'
         PrepareServers p = new PrepareServers()
         p.prepareServer(eapZipUrl, nativesUrl, configurationDirUrl)
