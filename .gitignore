@@ -15,3 +15,8 @@ test-suite.log*
 **/ObjectStore*
 **/PutObjectStoreDirHere*
 /jboss-hornetq-testsuite/.idea/
+**/tmp.txt
+**/server*
+**/log
+**/jboss-eap*
+**/.gitignore~
