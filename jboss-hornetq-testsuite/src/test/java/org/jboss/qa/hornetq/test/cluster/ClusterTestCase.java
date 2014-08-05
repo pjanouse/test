@@ -16,11 +16,13 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,28 +60,31 @@ public class ClusterTestCase extends HornetQTestCase {
     private static final String MDB_ON_QUEUE1 = "mdbOnQueue1";
     private static final String MDB_ON_QUEUE2 = "mdbOnQueue2";
 
+    private static final String MDB_ON_TEMPQUEUE1 = "mdbOnTempQueue1";
+    private static final String MDB_ON_TEMPQUEUE2 = "mdbOnTempQueue2";
+
     private static final String MDB_ON_TOPIC1 = "mdbOnTopic1";
     private static final String MDB_ON_TOPIC2 = "mdbOnTopic2";
 
     private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
 
 
-    String queueNamePrefix = "testQueue";
-    String topicNamePrefix = "testTopic";
-    String queueJndiNamePrefix = "jms/queue/testQueue";
-    String topicJndiNamePrefix = "jms/topic/testTopic";
+    static String queueNamePrefix = "testQueue";
+    static String topicNamePrefix = "testTopic";
+    static String queueJndiNamePrefix = "jms/queue/testQueue";
+    static String topicJndiNamePrefix = "jms/topic/testTopic";
 
     // InQueue and OutQueue for mdb
-    String inQueueNameForMdb = "InQueue";
-    String inQueueJndiNameForMdb = "jms/queue/" + inQueueNameForMdb;
-    String outQueueNameForMdb = "OutQueue";
-    String outQueueJndiNameForMdb = "jms/queue/" + outQueueNameForMdb;
+    static String inQueueNameForMdb = "InQueue";
+    static String inQueueJndiNameForMdb = "jms/queue/" + inQueueNameForMdb;
+    static String outQueueNameForMdb = "OutQueue";
+    static String outQueueJndiNameForMdb = "jms/queue/" + outQueueNameForMdb;
 
     // InTopic and OutTopic for mdb
-    String inTopicNameForMdb = "InTopic";
-    String inTopicJndiNameForMdb = "jms/topic/" + inTopicNameForMdb;
-    String outTopicNameForMdb = "OutTopic";
-    String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
+    static String inTopicNameForMdb = "InTopic";
+    static String inTopicJndiNameForMdb = "jms/topic/" + inTopicNameForMdb;
+    static String outTopicNameForMdb = "OutTopic";
+    static String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
 
     /**
      * This test will start two servers A and B in cluster.
@@ -345,6 +351,55 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.undeploy(MDB_ON_QUEUE1);
 
         deployer.undeploy(MDB_ON_QUEUE2);
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     *
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbOnQueueDeployAndUndeploy() throws Exception {
+        log.info("PREPARING SERVERS");
+        prepareServers(false);
+
+        controller.start(CONTAINER2);
+
+        controller.start(CONTAINER1);
+
+        deployer.deploy(MDB_ON_TEMPQUEUE1);
+
+        deployer.deploy(MDB_ON_TEMPQUEUE2);
+
+        // Send messages into input node and read from output node
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER2);
+
+        log.info("Start producer and consumer.");
+        producer.start();
+        producer.join();
+        log.info("Removing MDB ond secnod server and adding it back ");
+        deployer.undeploy(MDB_ON_TEMPQUEUE2);
+        deployer.deploy(MDB_ON_TEMPQUEUE2);
+        log.info("Trying to read from newly deployed OutQueue");
+        receiver.start();
+        producer.join();
+
+        Assert.assertEquals("Number of messages in OutQueue was not zero", receiver.getListOfReceivedMessages().size(),0);
+        deployer.undeploy(MDB_ON_TEMPQUEUE1);
+        deployer.undeploy(MDB_ON_TEMPQUEUE2);
+
 
         stopServer(CONTAINER1);
 
@@ -853,7 +908,7 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         int numberOfReceivedMessages = 0;
-        for (ReceiverTransAck r : receivers)    {
+        for (ReceiverTransAck r : receivers) {
             r.join();
             numberOfReceivedMessages = numberOfReceivedMessages + r.getListOfReceivedMessages().size();
         }
@@ -965,20 +1020,42 @@ public class ClusterTestCase extends HornetQTestCase {
         return clients;
     }
 
-    public void prepareServers() {
-        prepareServer(CONTAINER1);
-        prepareServer(CONTAINER2);
-        prepareServer(CONTAINER3);
-        prepareServer(CONTAINER4);
+    /**
+     *Prepares several servers for topology. Destinations will be created.
+     *
+     */
+    public void prepareServers(){
+        prepareServers(true);
     }
 
+    /**
+     *Prepares several servers for topology.
+     *
+     * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
+     */
+    public void prepareServers(boolean createDestinations) {
+        prepareServer(CONTAINER1,createDestinations);
+        prepareServer(CONTAINER2,createDestinations);
+        prepareServer(CONTAINER3,createDestinations);
+        prepareServer(CONTAINER4,createDestinations);
+    }
+
+    /**
+     * Prepares server for topology. Destination queues and topics will be created.
+     *
+     * @param containerName Name of the container - defined in arquillian.xml
+     */
+    private void prepareServer(String containerName) {
+        prepareServer(containerName, true);
+    }
 
     /**
      * Prepares server for topology.
      *
      * @param containerName Name of the container - defined in arquillian.xml
+     * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
-    private void prepareServer(String containerName) {
+    private void prepareServer(String containerName, boolean createDestinations) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1016,18 +1093,20 @@ public class ClusterTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
+        if (createDestinations) {
+            for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+                jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+            }
 
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
+            for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+                jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+            }
 
-        jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
-        jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
-        jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
-        jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
+            jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
+            jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
+            jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
+            jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
+        }
 
         jmsAdminOperations.close();
         controller.stop(containerName);
@@ -1067,6 +1146,29 @@ public class ClusterTestCase extends HornetQTestCase {
 
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     * Queues are part of deployment
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPQUEUE1)
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnTempQueue1() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue1.jar");
+        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithQueues()), "hornetq-jms.xml");
+        log.info(mdbJar.toString(true));
+        File target = new File("/tmp/mdbOnQueue1.jar");
+       if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+
+
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
      * @return mdb
      */
@@ -1076,6 +1178,27 @@ public class ClusterTestCase extends HornetQTestCase {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+//        File target = new File("/tmp/mdbOnQueue2.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPQUEUE2)
+    @TargetsContainer(CONTAINER2)
+    public static JavaArchive createDeploymentMdbOnTempQueue2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue2.jar");
+        mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithQueues()), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
 //        File target = new File("/tmp/mdbOnQueue2.jar");
 //        if (target.exists()) {
@@ -1136,6 +1259,40 @@ public class ClusterTestCase extends HornetQTestCase {
 //        mdbJar.as(ZipExporter.class).exportTo(target, true);
 
         return mdbJar;
+    }
+
+    //jms/queue/InQueue
+    public static String getHornetqJmsXmlWithQueues() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
+        sb.append("<hornetq-server>\n");
+        sb.append("<jms-destinations>\n");
+        sb.append("<jms-queue name=\"");
+        sb.append(inQueueNameForMdb);
+        sb.append("\">\n");
+        sb.append("<entry name=\"java:jboss/exported/");
+        sb.append(inQueueJndiNameForMdb);
+        sb.append("\"/>\n");
+        sb.append("<entry name=\"");
+        sb.append(inQueueJndiNameForMdb);
+        sb.append("\"/>\n");
+        sb.append("</jms-queue>\n");
+        sb.append("<jms-queue name=\"");
+        sb.append(outQueueNameForMdb);
+        sb.append("\">\n");
+        sb.append("<entry name=\"java:jboss/exported/");
+        sb.append(outQueueJndiNameForMdb);
+        sb.append("\"/>\n");
+        sb.append("<entry name=\"");
+        sb.append(outQueueJndiNameForMdb);
+        sb.append("\"/>\n");
+        sb.append("</jms-queue>\n");
+        sb.append("</jms-destinations>\n");
+        sb.append("</hornetq-server>\n");
+        sb.append("</messaging-deployment>\n");
+        log.info(sb.toString());
+        return sb.toString();
     }
 
 }

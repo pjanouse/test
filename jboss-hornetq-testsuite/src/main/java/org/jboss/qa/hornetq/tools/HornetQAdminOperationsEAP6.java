@@ -228,7 +228,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("Queue: " + queueName + " contains: " + modelNode.get(ClientConstants.RESULT).asString() + " messages.");
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
-
+    
     /**
      * Remove messages from queue
      *
