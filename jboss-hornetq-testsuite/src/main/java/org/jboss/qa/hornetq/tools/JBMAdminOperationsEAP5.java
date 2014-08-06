@@ -1831,4 +1831,10 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return -1;
     }
 
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
+    }
+
 }

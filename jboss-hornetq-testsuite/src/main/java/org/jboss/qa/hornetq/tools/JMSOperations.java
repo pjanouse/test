@@ -1336,4 +1336,12 @@ public interface JMSOperations {
     void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes);
 
     int getNumberOfNodesInCluster();
+
+    /**
+     * Returns count of durable Subscriptions on Server
+     * @param clusterName
+     * @param clientId
+     * @return
+     */
+    int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId);
 }

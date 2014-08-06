@@ -1975,6 +1975,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

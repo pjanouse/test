@@ -4035,6 +4035,33 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId) {
+        ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
+        int counter=0;
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        List <ModelNode> results=result.get("result").get("runtime-queue").asList();
+
+        for(ModelNode node : results){
+            if(node.toString().contains(clientId)){
+                counter++;
+            }
+        }
+
+        return counter;
+    }
+
+
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
