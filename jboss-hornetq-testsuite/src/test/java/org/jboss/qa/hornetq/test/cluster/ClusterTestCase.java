@@ -67,6 +67,7 @@ public class ClusterTestCase extends HornetQTestCase {
     private static final String MDB_ON_TOPIC2 = "mdbOnTopic2";
 
     private static final String MDB_ON_TEMPTOPIC1 = "mdbOnTempTopic1";
+    private static final String MDB_ON_TEMPTOPIC2 = "mdbOnTempTopic2";
 
     private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
 
@@ -306,6 +307,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+
     /**
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
@@ -410,6 +412,60 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
+     * This test will start one server A.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbOnTopicDeployAleradyExistingTopic() throws Exception {
+        log.info("PREPARING SERVERS");
+        boolean passed=false;
+        prepareServers(true);
+        controller.start(CONTAINER1);
+        try {
+            deployer.deploy(MDB_ON_TEMPTOPIC1);
+            passed=true;
+
+        }catch(Exception e){
+            //this is correct behavior
+        }
+        Assert.assertFalse("Deployment of already existing topic didn't failed",passed);
+
+
+        stopServer(CONTAINER1);
+    }
+
+    /**
+     * This test will start one server A.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly() throws Exception {
+        log.info("PREPARING SERVERS");
+        prepareServers(false);
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_TEMPTOPIC1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER1, getHostname(CONTAINER1), 4447, inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        subscriber.start();
+        subscriber.join();
+        deployer.undeploy(MDB_ON_TEMPTOPIC1);
+        jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1");
+        deployer.deploy(MDB_ON_TEMPTOPIC1);
+
+        Assert.assertEquals("Number of subscriptions is not 0",0,jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"mySubscription"));
+
+       stopServer(CONTAINER1);
+    }
+
+    /**
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
      * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
@@ -418,22 +474,62 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWithMdbOnTopicDeployAndUndeploy() throws Exception {
+    public void clusterTestWithMdbOnTopicDeployAndUndeployTwoServers() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
         controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
         deployer.deploy(MDB_ON_TEMPTOPIC1);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
-        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER1, "localhost", 4447, inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        JMSOperations jmsAdminOperations1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations2 = this.getJMSOperations(CONTAINER2);
+        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
         subscriber.start();
         subscriber.join();
-        deployer.undeploy(MDB_ON_TEMPTOPIC1);
-        deployer.deploy(MDB_ON_TEMPTOPIC1);
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        deployer.undeploy(MDB_ON_TEMPTOPIC2);
+        deployer.deploy(MDB_ON_TEMPTOPIC2);
 
-        Assert.assertEquals("Number of subscriptions is not 0",0,jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
-
-       stopServer(CONTAINER1);
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic(CONTAINER2,"subscriber1"));
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
+
+    /**
+     * This test will start two servers A and B in cluster.
+     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbOnTopicCombinedDeployAndUndeployTwoServers() throws Exception {
+        log.info("PREPARING SERVERS");
+        prepareServer(CONTAINER1, true);
+        prepareServer(CONTAINER2, false);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        JMSOperations jmsAdminOperations1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations2 = this.getJMSOperations(CONTAINER2);
+        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        subscriber.start();
+        subscriber.join();
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        deployer.undeploy(MDB_ON_TEMPTOPIC2);
+        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic(CONTAINER2,"subscriber1"));
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+    }
+
+
+
+
+
 
 
     /**
@@ -1260,6 +1356,21 @@ public class ClusterTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createDeploymentMdbOnTempTopic1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic1.jar");
+        mdbJar.addClass(LocalMdbFromTopic.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithTopic()), "hornetq-jms.xml");
+        log.info(mdbJar.toString(true));
+        return mdbJar;
+    }
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPTOPIC2)
+    @TargetsContainer(CONTAINER2)
+    public static JavaArchive createDeploymentMdbOnTempTopic2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic2.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithTopic()), "hornetq-jms.xml");

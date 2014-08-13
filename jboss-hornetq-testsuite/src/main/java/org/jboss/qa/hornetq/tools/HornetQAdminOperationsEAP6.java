@@ -4051,7 +4051,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
         List <ModelNode> results=result.get("result").get("runtime-queue").asList();
-
+        logger.info(results.toString());
         for(ModelNode node : results){
             if(node.toString().contains(clientId)){
                 counter++;
