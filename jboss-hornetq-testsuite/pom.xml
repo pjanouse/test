@@ -552,6 +552,10 @@
                                 <include>**/JmsTopicOperationsTestCase.java</include>
                                 <include>**/HornetQCoreBridgeAttributesTestCase.java</include>
                                 <include>**/JmsBridgeAttributesTestCase.java</include>
+                                <include>**/JmsMessagesTestCase.java</include>
+                                <include>**/LargeMessagesCompressionTestCase.java</include>
+                                <include>**/JmsMessagesTestCase.java</include>
+                                <include>**/JmsMessagesTestCase.java</include>
                             </includes>
                             <systemProperties>
                                 <property>
