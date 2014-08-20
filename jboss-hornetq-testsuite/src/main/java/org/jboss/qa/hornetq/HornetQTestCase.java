@@ -1205,6 +1205,34 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
+     *
+     * @param containerName name of the container
+     * @param queueCoreName queue name
+     * @param expectedNumberOfMessages number of messages
+     * @param timeout timeout
+     * @return Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
+     * @throws Exception
+     */
+    public boolean waitForNumberOfMessagesInQueue(String containerName, String queueCoreName, int expectedNumberOfMessages, long timeout) throws Exception {
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        long startTime = System.currentTimeMillis();
+        while (jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName) > expectedNumberOfMessages &&
+                System.currentTimeMillis() - startTime < timeout)   {
+            Thread.sleep(500);
+        }
+        jmsAdminOperations.close();
+
+        if (System.currentTimeMillis() - startTime > timeout) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Copies file from one place to another.
      *
      * @param sourceFile source file
