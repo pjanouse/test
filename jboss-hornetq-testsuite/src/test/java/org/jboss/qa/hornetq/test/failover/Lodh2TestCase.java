@@ -43,9 +43,8 @@ import java.util.*;
 public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
-    private static final int NUMBER_OF_DESTINATIONS = 2;
-    // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
+
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
     public static final String MDB_ON_QUEUE_1 = "mdb1";
     public static final String MDB_ON_QUEUE_2 = "mdb2";
@@ -528,7 +527,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER4);
 
         ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -547,13 +545,14 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_2);
         }
 
-        executeFailureSequence(failureSequence, 30000, isShutdown);
+        waitForNumberOfMessagesInQueue(inServer, inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000);
 
-        // Wait to send and receive some messages
-        Thread.sleep(60 * 1000);
+        executeFailureSequence(failureSequence, 5000, isShutdown);
+
+        waitForNumberOfMessagesInQueue(inServer, inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000);
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 300000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 3000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
@@ -693,7 +692,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * Executes kill sequence.
      *
-     * @param failureSequence  map Contanier -> ContainerIP
+     * @param failureSequence  list of container names
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
     private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {

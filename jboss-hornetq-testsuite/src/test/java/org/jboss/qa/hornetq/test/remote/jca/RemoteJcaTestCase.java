@@ -8,10 +8,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithConnectionParameters;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
@@ -140,20 +137,20 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         deployer.deploy(MDB1);
         deployer.deploy(MDB2);
 
-        ProducerClientAck producer1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerClientAck producer2 = new ProducerClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
         producer2.start();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 10);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 3000, 10, 10);
 
         receiver1.start();
         receiver2.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(3 * 60 * 1000);
+        Thread.sleep(30 * 1000);
 
         producer1.stopSending();
         producer2.stopSending();
@@ -193,16 +190,16 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.deploy(MDB1);
 
-        ProducerClientAck producer1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 10);
 
         receiver1.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(60 * 1000);
+        Thread.sleep(30 * 1000);
 
         producer1.stopSending();
         producer1.join();
@@ -226,6 +223,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testUndeployStopStartDeployMdb() throws Exception {
 
+        int numberOfMessages = 500;
+
         prepareRemoteJcaTopology();
 
         controller.start(CONTAINER1);//jms server
@@ -233,12 +232,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1);
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, 1000);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy(MDB1);
-        Thread.sleep(20000);
+
+        waitForNumberOfMessagesInQueue(CONTAINER1, inQueueName, numberOfMessages/10, 120000);
+
         deployer.undeploy(MDB1);
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
@@ -248,16 +249,16 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
 
         deployer.deploy(MDB1);
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, 1000);
+        ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, numberOfMessages);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
-        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 5);
+        ReceiverTransAck receiverClientAck = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
-        Assert.assertEquals("Number of sent and received messages should be equal.", 2 * 1000, receiverClientAck.getCount());
+        Assert.assertEquals("Number of sent and received messages should be equal.", 2 * numberOfMessages, receiverClientAck.getCount());
 
         deployer.undeploy(MDB1);
 
@@ -300,22 +301,22 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.deploy(MDB1_WITH_CONNECTOR_PARAMETERS);
 
-        ProducerClientAck producer1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerClientAck producer2 = new ProducerClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
         producer2.start();
 
         //        Thread.sleep(10 * 60 * 1000); // min
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 10);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 10);
 
         receiver1.start();
         receiver2.start();
 
         // Wait to send and receive some messages
-        Thread.sleep(60 * 1000);
+        Thread.sleep(30 * 1000);
 
         producer1.stopSending();
         producer2.stopSending();
