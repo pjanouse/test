@@ -225,7 +225,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         String envProperty = null;
         if (System.getProperty(name) != null) {
             envProperty = System.getProperty(name);
-            log.info(String.format("Setting %s='%s'", name, envProperty));
+            log.info(String.format("export %s='%s'", name, envProperty));
         }
         return envProperty;
     }
