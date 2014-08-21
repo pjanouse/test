@@ -513,32 +513,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, isShutdown, isFiltered, CONTAINER1, CONTAINER3);
     }
 
-    public void waitForMessages(String queueName, long numberOfMessages, long timeout, String... containerNames) throws Exception {
-
-        long startTime = System.currentTimeMillis();
-
-        long count = 0;
-        while ((count = countMessages(outQueueName, containerNames)) < numberOfMessages) {
-            logger.info("Number of messages in queue: " + queueName + " is " + count);
-            Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime > timeout) {
-                break;
-            }
-        }
-    }
-
-    public long countMessages(String queueName, String... containerNames)   {
-        long sum = 0;
-        for (String containerName : containerNames) {
-            JMSOperations jmsOperations = getJMSOperations(containerName);
-            long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
-            logger.info("Number of messages on node : " + containerName + " is: " + count);
-            sum += count;
-            jmsOperations.close();
-        }
-        return sum;
-    }
-
 
     /**
      * @throws Exception

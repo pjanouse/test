@@ -1234,6 +1234,47 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Waits until all containers in the given queue contains the given number of messages
+     * @param queueName queue name
+     * @param numberOfMessages number of messages
+     * @param timeout time out
+     * @param containerNames  container name
+     * @throws Exception
+     */
+    public void waitForMessages(String queueName, long numberOfMessages, long timeout, String... containerNames) throws Exception {
+
+        long startTime = System.currentTimeMillis();
+
+        long count = 0;
+        while ((count = countMessages(queueName, containerNames)) < numberOfMessages) {
+            log.info("Total number of messages in queue: " + queueName + " on nodes " + containerNames + " is " + count);
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * Returns total number of messages in queue on given nodes
+     *
+     * @param queueName    queue name
+     * @param containerNames container name
+     * @return total number of messages in queue on given nodes
+     */
+    public long countMessages(String queueName, String... containerNames)   {
+        long sum = 0;
+        for (String containerName : containerNames) {
+            JMSOperations jmsOperations = getJMSOperations(containerName);
+            long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
+            log.info("Number of messages on node : " + containerName + " is: " + count);
+            sum += count;
+            jmsOperations.close();
+        }
+        return sum;
+    }
+
+    /**
      * Copies file from one place to another.
      *
      * @param sourceFile source file
