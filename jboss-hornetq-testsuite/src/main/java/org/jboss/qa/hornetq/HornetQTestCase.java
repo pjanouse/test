@@ -1219,7 +1219,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
         long startTime = System.currentTimeMillis();
-        while (jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName) > expectedNumberOfMessages &&
+
+        while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) < expectedNumberOfMessages &&
                 System.currentTimeMillis() - startTime < timeout)   {
             Thread.sleep(500);
         }
