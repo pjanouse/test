@@ -40,7 +40,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -124,8 +124,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        // start mdb server
         deployer.deploy("mdb1");
 
-        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessages(...) timeouted.",
-                waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
+                waitForMessagesOnOneNode(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             logger.info("Stopping container 1.");
@@ -139,9 +139,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 600000));
+                waitForMessagesOnOneNode(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 300000, 100, 10);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER2);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 3000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -187,8 +189,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         deployer.deploy("mdb1");
         logger.info("MDB was deployed to mdb server - container 3");
 
-        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessages(...) timeouted.",
-                waitForMessages(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
+                waitForMessagesOnOneNode(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             stopServer(CONTAINER1);
@@ -201,7 +203,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessages(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 600000));
+                waitForMessagesOnOneNode(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         controller.start(CONTAINER1);
@@ -212,7 +214,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         stopServer(CONTAINER2);
         logger.info("Container 2 stopped");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 300000, 100, 10);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
@@ -243,7 +247,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @return returns true if numberOfMessages is in queue in the given timeout. Otherwise false.
      * @throws Exception
      */
-    private boolean waitForMessages(String containerName, String queueName, int numberOfMessages, long timeout) throws Exception{
+    private boolean waitForMessagesOnOneNode(String containerName, String queueName, int numberOfMessages, long timeout) throws Exception{
         long startTime = System.currentTimeMillis();
         JMSOperations jmsOperations = getJMSOperations(containerName);
         while (numberOfMessages > (jmsOperations.getCountOfMessagesOnQueue(queueName)))   {

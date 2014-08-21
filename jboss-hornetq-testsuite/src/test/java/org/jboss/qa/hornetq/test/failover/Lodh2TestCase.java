@@ -513,6 +513,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, isShutdown, isFiltered, CONTAINER1, CONTAINER3);
     }
 
+
     /**
      * @throws Exception
      */
@@ -545,13 +546,13 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_2);
         }
 
-        waitForNumberOfMessagesInQueue(inServer, inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000, CONTAINER1, CONTAINER2, CONTAINER3, CONTAINER4);
 
         executeFailureSequence(failureSequence, 5000, isShutdown);
 
-        waitForNumberOfMessagesInQueue(inServer, inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1, CONTAINER2, CONTAINER3, CONTAINER4);
 
-        // set longer timeouts so xarecovery is done at least once
+        // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 3000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
@@ -920,7 +921,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 //            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
             jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
             jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);

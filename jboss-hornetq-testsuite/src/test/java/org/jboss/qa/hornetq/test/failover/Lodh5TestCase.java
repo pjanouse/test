@@ -44,7 +44,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 
@@ -182,7 +182,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         long howLongToWait = 360000;
         long startTime = System.currentTimeMillis();
 
-        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER / 2 && (System.currentTimeMillis() - startTime) < howLongToWait) {
+        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER / 10 && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
 
@@ -203,9 +203,9 @@ public class Lodh5TestCase extends HornetQTestCase {
         while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue
                 || (System.currentTimeMillis() - startTime) < howLongToWait)) {
             lastValue = newValue;
-            Thread.sleep(10000);
+            Thread.sleep(5000);
         }
-        PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_ecovery.txt");
+        PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_recovery.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();

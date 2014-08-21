@@ -6,7 +6,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -196,95 +195,95 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     //////////////////////////////// Test Redeploy live -> backup ////////////////////////////
 
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testKillDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
-
-        deployBridge(CONTAINER1, AT_MOST_ONCE);
-
-        deployBridge(CONTAINER2, AT_MOST_ONCE);
-
-        testDeployBridgeLiveThenBackup(false, AT_MOST_ONCE);
-
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testKillDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
-
-        deployBridge(CONTAINER1, DUPLICATES_OK);
-
-        deployBridge(CONTAINER2, DUPLICATES_OK);
-
-        testDeployBridgeLiveThenBackup(false, DUPLICATES_OK);
-
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testKillDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
-
-        deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);
-
-        deployBridge(CONTAINER2, ONCE_AND_ONLY_ONCE);
-
-        testDeployBridgeLiveThenBackup(false);
-
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testShutdownDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
-
-        deployBridge(CONTAINER1, AT_MOST_ONCE);
-
-        deployBridge(CONTAINER2, AT_MOST_ONCE);
-
-        testDeployBridgeLiveThenBackup(true, AT_MOST_ONCE);
-
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testShutdownDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
-
-        deployBridge(CONTAINER1, DUPLICATES_OK);
-
-        deployBridge(CONTAINER2, DUPLICATES_OK);
-
-        testDeployBridgeLiveThenBackup(true, DUPLICATES_OK);
-
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore // not valid test scenario
-    public void testShutdownDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
-
-        deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);
-
-        deployBridge(CONTAINER2, ONCE_AND_ONLY_ONCE);
-
-        testDeployBridgeLiveThenBackup(true);
-
-    }
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testKillDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
+//
+//        deployBridge(CONTAINER1, AT_MOST_ONCE);
+//
+//        deployBridge(CONTAINER2, AT_MOST_ONCE);
+//
+//        testDeployBridgeLiveThenBackup(false, AT_MOST_ONCE);
+//
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testKillDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
+//
+//        deployBridge(CONTAINER1, DUPLICATES_OK);
+//
+//        deployBridge(CONTAINER2, DUPLICATES_OK);
+//
+//        testDeployBridgeLiveThenBackup(false, DUPLICATES_OK);
+//
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testKillDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
+//
+//        deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);
+//
+//        deployBridge(CONTAINER2, ONCE_AND_ONLY_ONCE);
+//
+//        testDeployBridgeLiveThenBackup(false);
+//
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testShutdownDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
+//
+//        deployBridge(CONTAINER1, AT_MOST_ONCE);
+//
+//        deployBridge(CONTAINER2, AT_MOST_ONCE);
+//
+//        testDeployBridgeLiveThenBackup(true, AT_MOST_ONCE);
+//
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testShutdownDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
+//
+//        deployBridge(CONTAINER1, DUPLICATES_OK);
+//
+//        deployBridge(CONTAINER2, DUPLICATES_OK);
+//
+//        testDeployBridgeLiveThenBackup(true, DUPLICATES_OK);
+//
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore // not valid test scenario
+//    public void testShutdownDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
+//
+//        deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE);
+//
+//        deployBridge(CONTAINER2, ONCE_AND_ONLY_ONCE);
+//
+//        testDeployBridgeLiveThenBackup(true);
+//
+//    }
 
     //////////////////////////////////////////////////////////////////////////////////
 
