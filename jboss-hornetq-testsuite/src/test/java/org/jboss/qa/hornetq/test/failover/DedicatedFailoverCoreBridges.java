@@ -7,7 +7,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -110,60 +109,60 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
         testFailoverWithBridge(true, true);
     }
 
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore
-    public void testKillDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
-
-        deployBridge(CONTAINER1, false);
-
-        deployBridge(CONTAINER2, false);
-
-        testDeployBridgeLiveThenBackup(false);
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore
-    public void testShutdownDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
-
-        deployBridge(CONTAINER1, false);
-
-        deployBridge(CONTAINER2, false);
-
-        testDeployBridgeLiveThenBackup(true);
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore
-    public void testKillDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
-        deployBridge(CONTAINER1, true);
-
-        deployBridge(CONTAINER2, true);
-
-        testDeployBridgeLiveThenBackup(false);
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    @Ignore
-    public void testShutdownDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
-
-        deployBridge(CONTAINER1, true);
-
-        deployBridge(CONTAINER2, true);
-
-        testDeployBridgeLiveThenBackup(true);
-    }
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore
+//    public void testKillDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
+//
+//        deployBridge(CONTAINER1, false);
+//
+//        deployBridge(CONTAINER2, false);
+//
+//        testDeployBridgeLiveThenBackup(false);
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore
+//    public void testShutdownDeployBridgeLiveThenBackupWithStaticConnectors() throws Exception {
+//
+//        deployBridge(CONTAINER1, false);
+//
+//        deployBridge(CONTAINER2, false);
+//
+//        testDeployBridgeLiveThenBackup(true);
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore
+//    public void testKillDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
+//        deployBridge(CONTAINER1, true);
+//
+//        deployBridge(CONTAINER2, true);
+//
+//        testDeployBridgeLiveThenBackup(false);
+//    }
+//
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    @Ignore
+//    public void testShutdownDeployBridgeLiveThenBackupWithDiscovery() throws Exception {
+//
+//        deployBridge(CONTAINER1, true);
+//
+//        deployBridge(CONTAINER2, true);
+//
+//        testDeployBridgeLiveThenBackup(true);
+//    }
 
     @Test
     @RunAsClient
