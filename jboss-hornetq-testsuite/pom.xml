@@ -537,6 +537,7 @@
                                 <include>**/DurableSubscriptionsTestCase.java</include>
                                 <include>**/TransferOverBridgeTestCase.java</include>
                                 <include>**/ClusterTestCase.java</include>
+                                <include>**/TempQueuesClusterTestCase.java</include>
                                 <include>**/TransportProtocolsTestCase.java</include>
                                 <include>**/AdministrationTestCase.java</include>
                                 <include>**/PermissionSecurityTestCase.java</include>

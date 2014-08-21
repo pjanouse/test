@@ -22,7 +22,7 @@
     @MessageDriven(name = "mdb",
             activationConfig = {
                     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
-                    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InTopic"),
+                    @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/topic/InTopic"),
                     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "mySubscription"),
                     @ActivationConfigProperty(propertyName = "clientID", propertyValue = "myClientId"),
                     @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable")
