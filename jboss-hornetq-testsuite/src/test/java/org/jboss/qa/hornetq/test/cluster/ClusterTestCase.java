@@ -50,7 +50,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     protected static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
 
@@ -105,7 +105,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        Clients queueClients = createClients(Session.CLIENT_ACKNOWLEDGE, false);
+        Clients queueClients = createClients(Session.SESSION_TRANSACTED, false);
         Clients topicClients = createClients(Session.SESSION_TRANSACTED, true);
 
         queueClients.startClients();
@@ -211,12 +211,16 @@ public class ClusterTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageBuilder(new ClientMixMessageBuilder(10, 100));
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
+        messageBuilder.setAddDuplicatedHeader(true);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
         producer1.start();
         producer1.join();
 
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 2000, 10, 10);
+        receiver1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
         receiver1.start();
         receiver1.join();
 
@@ -235,7 +239,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWitoutDuplicateIdWithInterruption() throws Exception {
+    public void clusterTestWithoutDuplicateIdWithInterruption() throws Exception {
 
         prepareServers();
 
@@ -244,7 +248,7 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         // send messages without dup id -> load-balance to node 2
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
