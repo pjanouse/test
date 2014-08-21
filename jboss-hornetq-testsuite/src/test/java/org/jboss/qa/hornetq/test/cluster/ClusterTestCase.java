@@ -514,16 +514,16 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = this.getJMSOperations(CONTAINER1);
         JMSOperations jmsAdminOperations2 = this.getJMSOperations(CONTAINER2);
-
         SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        PublisherAutoAck publisher= new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiNameForMdb , 10, "publisher1");
         subscriber.start();
+        publisher.start();
+        publisher.join();
         subscriber.join();
 
-        Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getCount());
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getListOfReceivedMessages().size());
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
