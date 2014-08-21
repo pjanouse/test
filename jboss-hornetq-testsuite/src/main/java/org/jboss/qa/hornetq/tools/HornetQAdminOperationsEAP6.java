@@ -156,6 +156,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         removeJmsDestination(DESTINATION_TYPE_QUEUE, queueName);
     }
 
+
     /**
      * Removes topic
      *
@@ -4036,7 +4037,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId) {
+    public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
         ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
         int counter=0;
         ModelNode model = new ModelNode();
@@ -4059,6 +4060,47 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
         return counter;
+    }
+
+    @Override
+    public int getNumberOfTempQueues(){
+        int counter=0;
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        List <ModelNode> results=result.get("result").get("runtime-queue").asList();
+        logger.info(results.toString());
+        for(ModelNode node : results){
+            if(node.toString().contains("tempqueue")){
+                counter++;
+            }
+        }
+
+        return counter;
+
+    }
+
+    public String getPagingDirectoryPath(){
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("resolve-path");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asString();
     }
 
 

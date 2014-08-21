@@ -511,7 +511,7 @@ public interface JMSOperations {
     /**
      * Removes topic
      *
-     * @param topicName queue name
+     * @param topicName topic name
      */
     void removeTopic(String topicName);
 
@@ -1339,9 +1339,14 @@ public interface JMSOperations {
 
     /**
      * Returns count of durable Subscriptions on Server
-     * @param clusterName
      * @param clientId
      * @return
      */
-    int getNumberOfDurableSubscriptionsOnTopic(String clusterName, String clientId);
+    int getNumberOfDurableSubscriptionsOnTopic(String clientId);
+
+    int getNumberOfTempQueues();
+
+    String getPagingDirectoryPath();
+
+
 }

@@ -374,7 +374,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbOnQueueDeployAndUndeploy() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
-
+        int numberOfMessages=30;
         controller.start(CONTAINER2);
 
         controller.start(CONTAINER1);
@@ -384,22 +384,22 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.deploy(MDB_ON_TEMPQUEUE2);
 
         // Send messages into input node and read from output node
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, numberOfMessages);
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER2);
 
-        log.info("Start producer and consumer.");
+
         producer.start();
         producer.join();
         log.info("Removing MDB ond secnod server and adding it back ");
         deployer.undeploy(MDB_ON_TEMPQUEUE2);
         deployer.deploy(MDB_ON_TEMPQUEUE2);
         log.info("Trying to read from newly deployed OutQueue");
-        receiver.start();
-        producer.join();
 
-        Assert.assertEquals("Number of messages in OutQueue was not zero", receiver.getListOfReceivedMessages().size(),0);
+        receiver.start();
+        receiver.join();
+
+        Assert.assertEquals("Number of messages in OutQueue does not match", numberOfMessages,receiver.getListOfReceivedMessages().size());
         deployer.undeploy(MDB_ON_TEMPQUEUE1);
         deployer.undeploy(MDB_ON_TEMPQUEUE2);
 
@@ -456,10 +456,9 @@ public class ClusterTestCase extends HornetQTestCase {
         subscriber.start();
         subscriber.join();
         deployer.undeploy(MDB_ON_TEMPTOPIC1);
-        jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1");
         deployer.deploy(MDB_ON_TEMPTOPIC1);
 
-        Assert.assertEquals("Number of subscriptions is not 0",0,jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"mySubscription"));
+        Assert.assertEquals("Number of subscriptions is not 0",0,jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
 
        stopServer(CONTAINER1);
     }
@@ -485,12 +484,12 @@ public class ClusterTestCase extends HornetQTestCase {
         SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
         subscriber.start();
         subscriber.join();
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
 
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic(CONTAINER2,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
@@ -516,11 +515,11 @@ public class ClusterTestCase extends HornetQTestCase {
         SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
         subscriber.start();
         subscriber.join();
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic(CONTAINER1,"subscriber1"));
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic(CONTAINER2,"subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
