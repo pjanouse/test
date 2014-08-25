@@ -215,9 +215,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 
-        Thread.sleep(10000);
-
-        executeNodeFailSequence(killSequence, 20000, shutdown);
+        executeNodeFailSequence(killSequence, 10000, shutdown);
 
         clientsA1.stopClients();
 
