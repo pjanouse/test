@@ -231,6 +231,7 @@ public class ClusterTestCase extends HornetQTestCase {
 //
 //    }
 
+
     /**
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
@@ -370,7 +371,6 @@ public class ClusterTestCase extends HornetQTestCase {
      * This test will start two servers A and B in cluster.
      * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
      * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
-     *
      */
     @Test
     @RunAsClient
@@ -379,7 +379,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbOnQueueDeployAndUndeploy() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
-        int numberOfMessages=30;
+        int numberOfMessages = 30;
         controller.start(CONTAINER2);
 
         controller.start(CONTAINER1);
@@ -393,7 +393,6 @@ public class ClusterTestCase extends HornetQTestCase {
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
 
-
         producer.start();
         producer.join();
         log.info("Removing MDB ond secnod server and adding it back ");
@@ -404,7 +403,7 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver.start();
         receiver.join();
 
-        Assert.assertEquals("Number of messages in OutQueue does not match", numberOfMessages,receiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Number of messages in OutQueue does not match", numberOfMessages, receiver.getListOfReceivedMessages().size());
         deployer.undeploy(MDB_ON_TEMPQUEUE1);
         deployer.undeploy(MDB_ON_TEMPQUEUE2);
 
@@ -426,17 +425,17 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnTopicDeployAleradyExistingTopic() throws Exception {
         log.info("PREPARING SERVERS");
-        boolean passed=false;
+        boolean passed = false;
         prepareServers(true);
         controller.start(CONTAINER1);
         try {
             deployer.deploy(MDB_ON_TEMPTOPIC1);
-            passed=true;
+            passed = true;
 
-        }catch(Exception e){
+        } catch (Exception e) {
             //this is correct behavior
         }
-        Assert.assertFalse("Deployment of already existing topic didn't failed",passed);
+        Assert.assertFalse("Deployment of already existing topic didn't failed", passed);
 
 
         stopServer(CONTAINER1);
@@ -457,15 +456,15 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_TEMPTOPIC1);
         JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
-        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER1, getHostname(CONTAINER1), 4447, inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(CONTAINER1, getHostname(CONTAINER1), 4447, inTopicJndiNameForMdb, "subscriber1", "subscription1");
         subscriber.start();
         subscriber.join();
         deployer.undeploy(MDB_ON_TEMPTOPIC1);
         deployer.deploy(MDB_ON_TEMPTOPIC1);
 
-        Assert.assertEquals("Number of subscriptions is not 0",0,jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
+        Assert.assertEquals("Number of subscriptions is not 0", 0, jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
 
-       stopServer(CONTAINER1);
+        stopServer(CONTAINER1);
     }
 
     /**
@@ -479,16 +478,16 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnTopicDeployAndUndeployTwoServers() throws Exception {
         log.info("PREPARING SERVERS");
-        prepareServer(CONTAINER1,false);
-        prepareServer(CONTAINER2,false);
+        prepareServer(CONTAINER1, false);
+        prepareServer(CONTAINER2, false);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
         deployer.deploy(MDB_ON_TEMPTOPIC1);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = this.getJMSOperations(CONTAINER1);
         JMSOperations jmsAdminOperations2 = this.getJMSOperations(CONTAINER2);
-        SubscriberAutoAck subscriber= new SubscriberAutoAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outTopicJndiNameForMdb , "subscriber1", "subscription1");
-        PublisherAutoAck publisher= new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiNameForMdb , 10, "publisher1");
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outTopicJndiNameForMdb, "subscriber1", "subscription1");
+        PublisherAutoAck publisher = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiNameForMdb, 10, "publisher1");
         subscriber.start();
         publisher.start();
         publisher.join();
@@ -496,7 +495,7 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getListOfReceivedMessages().size());
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
@@ -519,17 +518,17 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = this.getJMSOperations(CONTAINER1);
         JMSOperations jmsAdminOperations2 = this.getJMSOperations(CONTAINER2);
-
-        SubscriberAutoAck subscriber= new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb , "subscriber1", "subscription1");
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inTopicJndiNameForMdb, "subscriber1", "subscription1");
+        PublisherAutoAck publisher = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiNameForMdb, 10, "publisher1");
         subscriber.start();
+        publisher.start();
+        publisher.join();
         subscriber.join();
 
-        Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getCount());
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getListOfReceivedMessages().size());
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER1",0,jmsAdminOperations1.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
-        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2",0,jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+        Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
@@ -539,85 +538,62 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void tempQueuesClusterTestTempQueueonOtherNodes() {
+    public void clusterTestTempQueueonOtherNodes() throws Exception {
         prepareServers(true);
         controller.start(CONTAINER2);
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
-        try {
-            int cont1Count = 0, cont2Count = 0;
-            ProducerResp responsiveProducer = new ProducerResp(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-            JMSOperations jmsAdminOperationsContainer1 = getJMSOperations(CONTAINER1);
-            JMSOperations jmsAdminOperationsContainer2 = getJMSOperations(CONTAINER2);
-            responsiveProducer.start();
-            // Wait fro creating connections and send few messages
-            Thread.sleep(1000);
-            cont1Count = jmsAdminOperationsContainer1.getNumberOfTempQueues();
-            cont2Count = jmsAdminOperationsContainer2.getNumberOfTempQueues();
-            responsiveProducer.join();
-            Assert.assertEquals("Invalid number of temp queues on CONTAINER1", 1, cont1Count);
-            Assert.assertEquals("Invalid number of temp queues on CONTAINER2", 0, cont2Count);
 
-        } catch (Exception e) {
-            log.error("Error occurred ", e);
-        }
+        int cont1Count = 0, cont2Count = 0;
+        ProducerResp responsiveProducer = new ProducerResp(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        JMSOperations jmsAdminOperationsContainer1 = getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperationsContainer2 = getJMSOperations(CONTAINER2);
+        responsiveProducer.start();
+        // Wait fro creating connections and send few messages
+        Thread.sleep(1000);
+        cont1Count = jmsAdminOperationsContainer1.getNumberOfTempQueues();
+        cont2Count = jmsAdminOperationsContainer2.getNumberOfTempQueues();
+        responsiveProducer.join();
+        Assert.assertEquals("Invalid number of temp queues on CONTAINER1", 1, cont1Count);
+        Assert.assertEquals("Invalid number of temp queues on CONTAINER2", 0, cont2Count);
+
 
     }
-
-
-    /**
-     * TODO
-     */
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void tempQueuesClusterTestPagingAfterFailOver() {
+    public void clusterTestPagingAfterFailOverTempQueue() throws Exception {
         prepareServers(true);
         controller.start(CONTAINER1);
-        try {
-            int counter = 0;
-            ArrayList<File> pagingFilesPath = new ArrayList<File>();
-            JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
-            Context context = getContext(CONTAINER1);
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
-            Connection connection = cf.createConnection();
-            Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-            TemporaryQueue tempQueue = session.createTemporaryQueue();
-            MessageProducer producer = session.createProducer(tempQueue);
-            TextMessage message = session.createTextMessage("message");
-            for (int i = 0; i < 10000; i++) {
-                producer.send(message);
-            }
-
-            killServer(CONTAINER1);
-            controller.start(CONTAINER1);
-
-            File mainPagingDirectoryPath = new File(jmsAdminOperations.getPagingDirectoryPath());
-            ArrayList<File> pagingDirectories = new ArrayList<File>(Arrays.asList(mainPagingDirectoryPath.listFiles()));
-            for (File dir : pagingDirectories) {
-                if (dir.isDirectory()) {
-                    ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
-                    for (File f : files) {
-                        if (f.isFile() && !f.getName().contains("address")) {
-                            counter++;
-                        }
-
-                    }
-
-                }
-
-            }
-
-            Assert.assertEquals("Too many paging files", 0, counter);
-
-
-        } catch (Exception e) {
-            log.error("Error occurred ", e);
-        } finally {
-            stopAllServers();
+        String pagingPath=null;
+        int counter = 0;
+        ArrayList<File> pagingFilesPath = new ArrayList<File>();
+        JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
+        pagingPath=jmsAdminOperations.getPagingDirectoryPath();
+        Context context = getContext(CONTAINER1);
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+        TemporaryQueue tempQueue = session.createTemporaryQueue();
+        MessageProducer producer = session.createProducer(tempQueue);
+        TextMessage message = session.createTextMessage("message");
+        for (int i = 0; i < 10000; i++) {
+            producer.send(message);
         }
+
+        Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size() == 0);
+        killServer(CONTAINER1);
+        controller.kill(CONTAINER1);
+        controller.start(CONTAINER1);
+      //  Thread.sleep(80000);
+        for(File f: getAllPagingFiles(pagingPath)){
+            log.error("FILE: "+f.getName());
+        }
+        Assert.assertEquals("Too many paging files was found", 0, getAllPagingFiles(pagingPath).size());
+        stopAllServers();
+
 
     }
 
@@ -625,7 +601,44 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void tempQueuesClusterTestReadMessageFromDifferentConnection() {
+    public void clusterTestPagingAfterFailOverNonDurableQueue() throws Exception {
+        prepareServer(CONTAINER1, false);
+        controller.start(CONTAINER1);
+        String pagingPath=null;
+        int counter = 0;
+        ArrayList<File> pagingFilesPath = new ArrayList<File>();
+        JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
+        jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, false);
+        pagingPath=jmsAdminOperations.getPagingDirectoryPath();
+        Context context = getContext(CONTAINER1);
+        Queue inqueue = (Queue) context.lookup(inQueueJndiNameForMdb);
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+
+        MessageProducer producer = session.createProducer(inqueue);
+        TextMessage message = session.createTextMessage("message");
+        for (int i = 0; i < 10000; i++) {
+            producer.send(message);
+        }
+
+        Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size()==0);
+        killServer(CONTAINER1);
+        controller.kill(CONTAINER1);
+        controller.start(CONTAINER1);
+        Assert.assertEquals("Too many paging files was found", 0, getAllPagingFiles(pagingPath).size());
+
+
+        stopAllServers();
+
+
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestReadMessageFromDifferentConnection() {
         prepareServers(true);
         boolean failed = false;
         controller.start(CONTAINER1);
@@ -655,7 +668,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void tempQueuesClusterTestTemQueueMessageExpiration() {
+    public void clusterTestTemQueueMessageExpiration() {
         prepareServers(true);
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
@@ -674,6 +687,30 @@ public class ClusterTestCase extends HornetQTestCase {
             stopAllServers();
         }
     }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestTemQueueMessageExpirationLM() throws Exception {
+        prepareServers(true);
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
+
+            int cont1Count = 0, cont2Count = 0;
+            ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1,300);
+            responsiveProducer.setUseLargeMessage(true);
+            responsiveProducer.start();
+            responsiveProducer.join();
+
+            Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
+
+
+
+            stopAllServers();
+
+    }
+
 
 
     /**
@@ -1307,23 +1344,22 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     *Prepares several servers for topology. Destinations will be created.
-     *
+     * Prepares several servers for topology. Destinations will be created.
      */
-    public void prepareServers(){
+    public void prepareServers() {
         prepareServers(true);
     }
 
     /**
-     *Prepares several servers for topology.
+     * Prepares several servers for topology.
      *
      * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
     public void prepareServers(boolean createDestinations) {
-        prepareServer(CONTAINER1,createDestinations);
-        prepareServer(CONTAINER2,createDestinations);
-        prepareServer(CONTAINER3,createDestinations);
-        prepareServer(CONTAINER4,createDestinations);
+        prepareServer(CONTAINER1, createDestinations);
+        prepareServer(CONTAINER2, createDestinations);
+        prepareServer(CONTAINER3, createDestinations);
+        prepareServer(CONTAINER4, createDestinations);
     }
 
     /**
@@ -1338,7 +1374,7 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName      Name of the container - defined in arquillian.xml
      * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
     private void prepareServer(String containerName, boolean createDestinations) {
@@ -1445,7 +1481,7 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithQueues()), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         File target = new File("/tmp/mdbOnQueue1.jar");
-       if (target.exists()) {
+        if (target.exists()) {
             target.delete();
         }
         mdbJar.as(ZipExporter.class).exportTo(target, true);
@@ -1529,6 +1565,7 @@ public class ClusterTestCase extends HornetQTestCase {
         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
+
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
@@ -1582,6 +1619,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         return mdbJar;
     }
+
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue and sends reply back to sender via tempQueue
      *
@@ -1668,6 +1706,30 @@ public class ClusterTestCase extends HornetQTestCase {
         sb.append("</messaging-deployment>\n");
         log.info(sb.toString());
         return sb.toString();
+    }
+
+    public ArrayList<File> getAllPagingFiles(String pagingDirectoryPath){
+        File mainPagingDirectoryPath = new File(pagingDirectoryPath);
+        ArrayList<File> out = new ArrayList<File>();
+        // get all paging directories in main paging directory
+        ArrayList<File> pagingDirectories = new ArrayList<File>(Arrays.asList(mainPagingDirectoryPath.listFiles()));
+        for (File dir : pagingDirectories) {
+            //if  some file exists in main paging directory skip it
+            if (dir.isDirectory()) {
+                ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
+                for (File f : files) {
+                    // name of file can not contain "address" because its file which doesn't contain paging data nad still exists in paging directories
+                    if (f.isFile() && !f.getName().contains("address")) {
+                        out.add(f);
+                    }
+
+                }
+
+            }
+
+        }
+
+        return out;
     }
 
 }

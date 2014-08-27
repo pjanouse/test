@@ -38,7 +38,8 @@ public class ProducerResp extends Client {
     private volatile TemporaryQueue tempQueue = null;
     private int count;
     private int waitBeforeReceive = 0;
-    private boolean largeMessage=false;
+    private boolean largeMessage = false;
+    private boolean skipReceive = false;
     private String largeString="";
     /**
      * @param hostname      hostname
@@ -110,6 +111,7 @@ public class ProducerResp extends Client {
                 // send message in while cycle
                 if(largeMessage) {
                     msg.setStringProperty("largeContent", largeString);
+
                 }
                 msg.setJMSReplyTo(tempQueue);
                 if (waitBeforeReceive > 0) {
@@ -128,9 +130,11 @@ public class ProducerResp extends Client {
             queueConnection.start();
             Message response;
             Thread.sleep(waitBeforeReceive);
-            while ((response = receiver.receive(10000)) != null) {
-                count++;
-                Thread.sleep(getTimeout() + 200);
+            if(skipReceive==false) {
+                while ((response = receiver.receive(10000)) != null) {
+                    count++;
+                    Thread.sleep(getTimeout() + 200);
+                }
             }
 
         } catch (Exception e) {
@@ -390,16 +394,24 @@ public class ProducerResp extends Client {
      * If not set, default value is false
      * @param b
      */
-    public void useLargeMessage(boolean b){
+    public void setUseLargeMessage(boolean b){
         largeMessage=b;
         StringBuilder sb = new StringBuilder("");
         if(b=true && largeString.length()<1) {
-            while (sb.length() < 500000) {
+            while (sb.length() < 200000) {
                 sb.append("some really interesting text ");
             }
             largeString=sb.toString();
         }
 
+    }
+
+    /**
+     * If not set default value is false
+     * @param b if true receiver will not try to get responses from temporary queue
+     */
+    public void setSkipReceive(boolean b){
+        skipReceive=b;
     }
 
 
