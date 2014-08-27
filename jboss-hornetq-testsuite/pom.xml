@@ -555,6 +555,7 @@
                                 <include>**/JmsBridgeAttributesTestCase.java</include>
                                 <include>**/JmsMessagesTestCase.java</include>
                                 <include>**/LargeMessagesCompressionTestCase.java</include>
+                                <include>**/JcaTestCase.java</include>
                             </includes>
                             <systemProperties>
                                 <property>
