@@ -138,7 +138,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-// give some time for servers to find each other
+
         waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
         waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
 
@@ -194,41 +194,42 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    /**
-     * This test will start two servers A and B in cluster.
-     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
-     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void clusterTestWitDuplicateId() throws Exception {
-
-        prepareServers();
-
-        controller.start(CONTAINER2);
-
-        controller.start(CONTAINER1);
-
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
-        messageBuilder.setAddDuplicatedHeader(true);
-        producer1.setMessageBuilder(messageBuilder);
-        producer1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
-        producer1.start();
-        producer1.join();
-
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 2000, 10, 10);
-        receiver1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
-        receiver1.start();
-        receiver1.join();
-
-        stopServer(CONTAINER1);
-
-        stopServer(CONTAINER2);
-
-    }
+// THIS WAS COMMENTED BECAUSE clusterTest() IS BASICALLY TESTING THE SAME SCENARIO
+//    /**
+//     * This test will start two servers A and B in cluster.
+//     * Start producers/publishers connected to A with client/transaction acknowledge on queue/topic.
+//     * Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+//     */
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
+//    public void clusterTestWitDuplicateId() throws Exception {
+//
+//        prepareServers();
+//
+//        controller.start(CONTAINER2);
+//
+//        controller.start(CONTAINER1);
+//
+//        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+//        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
+//        messageBuilder.setAddDuplicatedHeader(true);
+//        producer1.setMessageBuilder(messageBuilder);
+//        producer1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
+//        producer1.start();
+//        producer1.join();
+//
+//        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 2000, 10, 10);
+//        receiver1.setCommitAfter(NUMBER_OF_MESSAGES_PER_PRODUCER/5);
+//        receiver1.start();
+//        receiver1.join();
+//
+//        stopServer(CONTAINER1);
+//
+//        stopServer(CONTAINER2);
+//
+//    }
 
     /**
      * This test will start two servers A and B in cluster.
@@ -299,12 +300,12 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         // receive  some of them from first server and kill receiver -> only some of them gets back to
-        SoakReceiverClientAck receiver2 = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 100000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 10000, 10, 10);
         receiver2.start();
         receiver2.join();
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getCount());
+                NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
 
@@ -664,7 +665,7 @@ public class ClusterTestCase extends HornetQTestCase {
             responsiveProducer.start();
             responsiveProducer.join();
 
-            Assert.assertEquals("Number of recieved messages don't match", 0, responsiveProducer.getRecievedCount());
+            Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
 
 
         } catch (Exception e) {
@@ -933,8 +934,8 @@ public class ClusterTestCase extends HornetQTestCase {
         groupMessageVerifiers.add(messageVerifier);
 
         if (justInitializeConsumer) {
-            createConsumer(serverWithConsumer, inQueueJndiNameForMdb);
-            createConsumer(serverWithConsumer, inQueueJndiNameForMdb);
+            createConsumerReceiveAndRollback(serverWithConsumer, inQueueJndiNameForMdb);
+            createConsumerReceiveAndRollback(serverWithConsumer, inQueueJndiNameForMdb);
         } else {
             for (int i = 0; i < 2; i++) {
                 GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
@@ -1030,7 +1031,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * Kill the other server - B
      * Start the server with local message handler
      * Start producer connected to A to queue and send some messages with message grouping id1.
-     * Start producer connected to A to queue and send some messages with message grouping id2 -> this will print error
+     * Start producer connected to A to queue and send some messages with message grouping id2
      * Read messages
      */
     @Test
@@ -1054,17 +1055,32 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER1);
 
-        SecurityClient client1 = createConsumer(CONTAINER1, inQueueJndiNameForMdb);
-        SecurityClient client2 = createConsumer(CONTAINER2, inQueueJndiNameForMdb);
+        log.info("Send messages to first server.");
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        log.info("Send messages to first server - done.");
+        log.info("Send messages to second server.");
+        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        log.info("Send messages to second server - done.");
 
-        sendMesages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
-        sendMesages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
-
+        log.info("Sleep for " + timeout);
         // wait timeout time to get messages redistributed to the other node
-        Thread.sleep(2 * timeout);
+        Thread.sleep(timeout);
+        log.info("Sleep for " + timeout + " stop.");
 
-        client1.close();
-        client2.close();
+        log.info("Receive and rollback messages from first server.");
+        SecurityClient s1 = createConsumerReceiveAndRollback(CONTAINER1, inQueueJndiNameForMdb);
+        log.info("Receive and rollback messages from first server - done.");
+        log.info("Receive and rollback messages from second server.");
+        SecurityClient s2 = createConsumerReceiveAndRollback(CONTAINER2, inQueueJndiNameForMdb);
+        log.info("Receive and rollback messages from second server - done.");
+
+        log.info("Close first consumer.");
+        s1.close();
+        log.info("Close first consumer- done");
+
+        log.info("Close second consumer.");
+        s2.close();
+        log.info("Close second consumer - done.");
 
         // kill both of the servers
         killServer(CONTAINER1);
@@ -1076,8 +1092,8 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         // send messages to 1st node
-        sendMesages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
-        sendMesages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
         // wait timeout time to get messages redistributed to the other node
         Thread.sleep(2 * timeout);
@@ -1195,7 +1211,7 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
 
-    private SecurityClient createConsumer(String containerName, String queue) throws Exception {
+    private SecurityClient createConsumerReceiveAndRollback(String containerName, String queue) throws Exception {
 
         SecurityClient securityClient = new SecurityClient(getHostname(containerName), getJNDIPort(containerName), queue, NUMBER_OF_MESSAGES_PER_PRODUCER, null, null);
         securityClient.initializeClient();
@@ -1203,7 +1219,7 @@ public class ClusterTestCase extends HornetQTestCase {
         return securityClient;
     }
 
-    private void sendMesages(String containerName, String queue, MessageBuilder messageBuilder) throws InterruptedException {
+    private void sendMessages(String containerName, String queue, MessageBuilder messageBuilder) throws InterruptedException {
 
         // send messages to 1st node
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(containerName), getJNDIPort(containerName),
@@ -1281,6 +1297,9 @@ public class ClusterTestCase extends HornetQTestCase {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
         }
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
+        messageBuilder.setAddDuplicatedHeader(true);
+        clients.setMessageBuilder(messageBuilder);
         clients.setProducedMessagesCommitAfter(100);
         clients.setReceivedMessagesAckCommitAfter(100);
 
