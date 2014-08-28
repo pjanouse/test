@@ -244,7 +244,7 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 60000, shutdown);
+        executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         waitForMessages(inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
