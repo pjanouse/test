@@ -240,13 +240,13 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 3; i++) { // for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
 
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
-        waitForMessages(inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 1000, 100, 10);
