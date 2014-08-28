@@ -240,7 +240,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 5; i++) { // for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) { // for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
 
