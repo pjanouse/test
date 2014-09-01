@@ -2444,6 +2444,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setJmxManagementEnabled(boolean enable) {
+        setJmxManagementEnabled("default", enable);
+    }
+
+    @Override
+    public void setJmxManagementEnabled(String serverName, boolean enable) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("jmx-management-enabled");
+        model.get("value").set(enable);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Sets backup attribute.
      *
