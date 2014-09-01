@@ -21,19 +21,24 @@ import org.junit.runner.RunWith;
 public class JGroupsClusterTestCase extends ClusterTestCase {
 
     public void prepareServers() {
+        prepareServers(true);
+    }
 
-        prepareServer(CONTAINER1);
-        prepareServer(CONTAINER2);
-        prepareServer(CONTAINER3);
-        prepareServer(CONTAINER4);
+    public void prepareServers(boolean createDestinations) {
+
+        prepareServer(CONTAINER1, createDestinations);
+        prepareServer(CONTAINER2, createDestinations);
+        prepareServer(CONTAINER3, createDestinations);
+        prepareServer(CONTAINER4, createDestinations);
     }
 
     /**
      * Prepares server for topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName      Name of the container - defined in arquillian.xml
+     * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
-    private void prepareServer(String containerName) {
+    private void prepareServer(String containerName, boolean createDestinations) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -70,19 +75,20 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        if (createDestinations) {
+            for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+                jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+            }
+
+            for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+                jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+            }
+
+            jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
+            jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
+            jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
+            jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
         }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
-
-        jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
-        jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
-        jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
-        jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
-
         jmsAdminOperations.close();
         controller.stop(containerName);
 
