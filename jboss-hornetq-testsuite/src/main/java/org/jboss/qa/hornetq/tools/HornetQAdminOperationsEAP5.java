@@ -1034,6 +1034,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJmxManagementEnabled(boolean enable) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJmxManagementEnabled(String serverName, boolean enable) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalDirectory(String path) {
         String configurationFile = getHornetQConfigurationFile();
         try {

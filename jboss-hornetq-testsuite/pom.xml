@@ -556,6 +556,7 @@
                                 <include>**/JmsMessagesTestCase.java</include>
                                 <include>**/LargeMessagesCompressionTestCase.java</include>
                                 <include>**/JcaTestCase.java</include>
+                                <include>**/JmxClientNotificationTestCase.java</include>
                             </includes>
                             <systemProperties>
                                 <property>
