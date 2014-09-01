@@ -829,7 +829,12 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
             jmsAdminOperations.close();
+
 
             controller.stop(containerName);
 
@@ -921,7 +926,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
             jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -932,6 +937,10 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 //            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
 //            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+
+            // enable trace logging
+            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {
