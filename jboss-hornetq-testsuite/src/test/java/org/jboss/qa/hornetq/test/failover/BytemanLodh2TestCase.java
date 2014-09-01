@@ -1,26 +1,21 @@
 package org.jboss.qa.hornetq.test.failover;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakPublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -34,6 +29,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 
 
 /**
@@ -456,12 +456,15 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER4);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1),
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1),
                 getJNDIPort(CONTAINER1), IN_QUEUE, numberOfMessages);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
+        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.setCommitAfter(100);
         producer1.setTimeout(0);
         producer1.start();
 
@@ -478,40 +481,36 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             deployer.deploy("mdb2");
         }
 
+        waitForMessages(OUT_QUEUE_NAME, numberOfMessages/20, 300000, CONTAINER1,CONTAINER3);
+
         if (waitForProducer) {
             executeFailureSequence(failureSequence, 15000);
         } else {
             executeFailureSequence(failureSequence, 30000);
         }
 
-        // Wait to send and receive some messages
-        Thread.sleep(60 * 1000);
+        waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, CONTAINER1,CONTAINER3);
 
-        // set longer timeouts so xarecovery is done at least oncexarecovery
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER3),
-                getJNDIPort(CONTAINER3), OUT_QUEUE, 300000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER3),
+                getJNDIPort(CONTAINER3), OUT_QUEUE, 10000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+
         receiver1.start();
         producer1.join();
         receiver1.join();
 
-        logger.info("Number of sent messages: " + (producer1.getCounter()
-                + ", Producer to jms1 server sent: " + producer1.getCounter() + " messages"));
+        logger.info("Number of sent messages: " + (producer1.getListOfSentMessages().size()
+                + ", Producer to jms1 server sent: " + producer1.getListOfSentMessages().size() + " messages"));
 
-        logger.info("Number of received messages: " + (receiver1.getCount()
-                + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
+        logger.info("Number of received messages: " + (receiver1.getListOfReceivedMessages().size()
+                + ", Consumer from jms1 server received: " + receiver1.getListOfReceivedMessages().size() + " messages"));
 
+        Assert.assertTrue("There are lost ", messageVerifier.verifyMessages());
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(), receiver1.getCount());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("Receivers did not get any messages.",
                 receiver1.getCount() > 0);
-
-        List<String> lostMessages = checkLostMessages(producer1.getListOfSentMessages(), receiver1
-                .getListOfReceivedMessages());
-        Assert.assertEquals("There are lost messages. Check logs for details.", 0, lostMessages.size());
-        for (String dupId : lostMessages) {
-            logger.info("Lost message - _HQ_DUPL_ID=" + dupId);
-        }
 
         if (isFiltered) {
             deployer.undeploy("mdb1WithFilter");
@@ -591,11 +590,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(CONTAINER1, getHostname(CONTAINER1));
-        prepareMdbServer(CONTAINER2, getHostname(CONTAINER2), getHostname(CONTAINER1));
+        prepareJmsServer(CONTAINER1);
+        prepareMdbServer(CONTAINER2, CONTAINER1);
 
-        prepareJmsServer(CONTAINER3, getHostname(CONTAINER3));
-        prepareMdbServer(CONTAINER4, getHostname(CONTAINER4), getHostname(CONTAINER3));
+        prepareJmsServer(CONTAINER3);
+        prepareMdbServer(CONTAINER4, CONTAINER3);
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -606,9 +605,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      * Prepares jms server for remote jca topology.
      *
      * @param containerName  Name of the container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) {
+    private void prepareJmsServer(String containerName) {
 
         if (isEAP5()) {
 
@@ -621,11 +619,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, bindingAddress, port, GROUP_ADDRESS, groupPort,
+            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(containerName), port, GROUP_ADDRESS, groupPort,
                     broadcastPeriod, CONNECTOR_NAME, null);
 
             jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, bindingAddress, GROUP_ADDRESS, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(containerName), GROUP_ADDRESS, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
             jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000,
@@ -698,7 +696,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerName, String jmsServerContainerName) {
         if (isEAP5()) {
 
             int port = 9876;
@@ -716,11 +714,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setClustered(false);
 
             jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, bindingAddress, port, GROUP_ADDRESS, groupPort,
+            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(containerName), port, GROUP_ADDRESS, groupPort,
                     broadcastPeriod, CONNECTOR_NAME, null);
 
             jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, bindingAddress, GROUP_ADDRESS, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(containerName), GROUP_ADDRESS, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
             jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000,
@@ -766,7 +764,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerName), getHornetqPort(containerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerContainerName), getHornetqPort(jmsServerContainerName));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
