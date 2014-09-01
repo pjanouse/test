@@ -464,6 +464,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         executeFailureSequence(failureSequence, 3000, isShutdown);
 
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 10);
@@ -828,7 +829,12 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
             jmsAdminOperations.close();
+
 
             controller.stop(containerName);
 
@@ -874,7 +880,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-            jmsAdminOperations.setClustered(false);
+            jmsAdminOperations.setClustered(true);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, getHostname(containerName), port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
@@ -904,7 +910,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-            jmsAdminOperations.setClustered(false);
+            jmsAdminOperations.setClustered(true);
 
             jmsAdminOperations.setPersistenceEnabled(true);
             jmsAdminOperations.setSharedStore(true);
@@ -920,7 +926,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
             jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+
 
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -931,6 +937,10 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 //            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
 //            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+
+            // enable trace logging
+            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {

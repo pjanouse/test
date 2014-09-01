@@ -49,7 +49,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void NIOTCPTransportTest() throws Exception {
         prepareServerForTCPTransport(CONTAINER1, "NIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     @Test
@@ -58,7 +58,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void AIOTCPTransportTest() throws Exception {
         prepareServerForTCPTransport(CONTAINER1, "ASYNCIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     @Test
@@ -67,7 +67,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void NIOHTTPTransportTest() throws Exception {
         prepareServerForHTTPTransport(CONTAINER1, "NIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     @Test
@@ -76,7 +76,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void AIOHTTPTransportTest() throws Exception {
         prepareServerForHTTPTransport(CONTAINER1, "ASYNCIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     @Test
@@ -85,7 +85,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void NIOSSLTransportTest() throws Exception {
         prepareServerForSSLTransport(CONTAINER1, "NIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     @Test
@@ -94,7 +94,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void AIOSSLTransportTest() throws Exception {
         prepareServerForSSLTransport(CONTAINER1, "ASYNCIO");
-        TransportProtocolTest();
+        transportProtocolTest();
     }
 
     /**
@@ -102,7 +102,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void TransportProtocolTest() throws Exception {
+    public void transportProtocolTest() throws Exception {
 
         controller.start(CONTAINER1);
 

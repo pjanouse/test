@@ -162,6 +162,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
         jmsOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
         jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        jmsAdminOperations.close();
         stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
@@ -239,15 +240,16 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         List<String> killSequence = new ArrayList<String>();
 
-        for (int i = 0; i < 5; i++) { // for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
             killSequence.add(CONTAINER1);
         }
 
-        executeNodeFaillSequence(killSequence, 60000, shutdown);
+        executeNodeFaillSequence(killSequence, 20000, shutdown);
+
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
         logger.info("Start receiver.");
-
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 1000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();

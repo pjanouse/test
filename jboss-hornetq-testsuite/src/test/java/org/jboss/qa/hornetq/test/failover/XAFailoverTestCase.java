@@ -1,4 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
+//todo add to test plan to mojo
 
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
@@ -6,8 +7,6 @@ import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.XAConsumerTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
-import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.Test;
 
 import java.util.ArrayList;
