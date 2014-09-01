@@ -525,7 +525,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    //@CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
