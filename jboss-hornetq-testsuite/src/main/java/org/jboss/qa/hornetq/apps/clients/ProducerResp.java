@@ -129,7 +129,10 @@ public class ProducerResp extends Client {
             QueueReceiver receiver = session.createReceiver(tempQueue);
             queueConnection.start();
             Message response;
-            Thread.sleep(waitBeforeReceive);
+            if(waitBeforeReceive!=0){
+                Thread.sleep(waitBeforeReceive+60000);
+            }
+
             if(skipReceive==false) {
                 while ((response = receiver.receive(10000)) != null) {
                     count++;
