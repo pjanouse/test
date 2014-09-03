@@ -1858,5 +1858,12 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public boolean areThereUnfinishedArjunaTransactions() {
+
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
+    }
+
 
 }

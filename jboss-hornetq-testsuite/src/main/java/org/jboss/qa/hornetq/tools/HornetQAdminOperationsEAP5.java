@@ -2001,6 +2001,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public boolean areThereUnfinishedArjunaTransactions() {
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

@@ -1364,4 +1364,5 @@ public interface JMSOperations {
     String getPagingDirectoryPath();
 
 
+    boolean areThereUnfinishedArjunaTransactions();
 }
