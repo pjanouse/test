@@ -8,12 +8,15 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -27,7 +30,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -590,6 +595,80 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
+    /**
+     * Kills mdbs servers.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testAllTransactionsFinishedAfterCleanShutdown() throws Exception {
+
+        String inServer = CONTAINER1;
+        String outServer = CONTAINER1;
+
+        int numberOfMessages = NUMBER_OF_MESSAGES_PER_PRODUCER;
+
+        prepareRemoteJcaTopology(inServer, outServer);
+
+        // cluster A
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER3);
+        // cluster B
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER4);
+
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, numberOfMessages);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
+        builder.setAddDuplicatedHeader(true);
+        producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(100);
+        producer1.start();
+        producer1.join();
+
+        deployer.deploy(MDB_ON_QUEUE_1);
+        deployer.deploy(MDB_ON_QUEUE_2);
+
+        waitForMessages(outQueueName, numberOfMessages / 100, 120000, CONTAINER1, CONTAINER3);
+
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+
+        // check there are still some messages in InQueue
+        Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
+                        " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, CONTAINER1, CONTAINER3));
+
+        String journalFile1 = CONTAINER1 + "journal_content_after_shutdown.txt";
+        String journalFile3 = CONTAINER3 + "journal_content_after_shutdown.txt";
+
+        PrintJournal.printJournal(CONTAINER1, journalFile1);
+        PrintJournal.printJournal(CONTAINER3, journalFile3);
+
+        // check that there are failed transactions
+        String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+                new File(journalFile1), stringToFind));
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-3. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+                new File(journalFile3), stringToFind));
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER3);
+
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER4);
+
+        Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(CONTAINER2));
+        Assert.assertFalse("There are unfinished Arjuna transactions in node-4. Failing the test.", checkUnfinishedArjunaTransactions(CONTAINER4));
+
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER4);
+    }
+
+
+    /**
+     * @throws Exception
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -670,27 +749,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
         stopServer(CONTAINER1);
-    }
-
-    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-        // TODO optimize or use some libraries
-        //get lost messages
-        List<String> listOfLostMessages = new ArrayList<String>();
-
-
-        boolean messageIdIsMissing = false;
-        for (String sentMessageId : listOfSentMessages) {
-            for (String receivedMessageId : listOfReceivedMessages) {
-                if (sentMessageId.equalsIgnoreCase(receivedMessageId)) {
-                    messageIdIsMissing = true;
-                }
-            }
-            if (messageIdIsMissing) {
-                listOfLostMessages.add(sentMessageId);
-                messageIdIsMissing = false;
-            }
-        }
-        return listOfLostMessages;
     }
 
     /**
@@ -830,8 +888,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
-            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
             jmsAdminOperations.close();
 
@@ -939,8 +997,8 @@ public class Lodh2TestCase extends HornetQTestCase {
 //            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
 
             // enable trace logging
-            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
             // both are remote
             if (isServerRemote(inServer) && isServerRemote(outServer)) {
