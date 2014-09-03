@@ -36,6 +36,7 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -1235,24 +1236,60 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Waits until all containers in the given queue contains the given number of messages
+     *
      * @param queueName queue name
      * @param numberOfMessages number of messages
      * @param timeout time out
      * @param containerNames  container name
+     *
+     * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
      * @throws Exception
      */
-    public void waitForMessages(String queueName, long numberOfMessages, long timeout, String... containerNames) throws Exception {
+    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, String... containerNames) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
         long count = 0;
         while ((count = countMessages(queueName, containerNames)) < numberOfMessages) {
-            log.info("Total number of messages in queue: " + queueName + " on nodes " + containerNames + " is " + count);
+            log.info("Total number of messages in queue: " + queueName + " on node " + containerNames + " is " + count);
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {
-                break;
+                return false;
             }
         }
+        return true;
+    }
+
+    /**
+     * Checks whether file contains given string.
+     *
+     * @param fileToCheck
+     * @return true if file contains the string
+     * @throws Exception
+     */
+    public boolean checkThatFileContainsUnfinishedTransactionsString(File fileToCheck, String stringToFind) throws Exception {
+
+        Scanner scanner = new Scanner(fileToCheck);
+
+        //now read the file line by line...
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (line.contains(stringToFind)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkUnfinishedArjunaTransactions(String containerName) {
+
+        JMSOperations jmsOperations = getJMSOperations(containerName);
+        boolean unfinishedTransactions2 = jmsOperations.areThereUnfinishedArjunaTransactions();
+        jmsOperations.close();
+
+        log.info("Checking arjuna transactions on node: " + containerName + ". Are there unfinished transactions?: " + unfinishedTransactions2);
+        return unfinishedTransactions2;
+
     }
 
     /**
@@ -1273,6 +1310,32 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
         return sum;
     }
+
+    /**
+     * Copies one directory to another.
+     *
+     * @param srcDir source directory
+     * @param dstDir destination directory
+     * @throws IOException
+     */
+    public void copyDirectory(File srcDir, File dstDir) throws IOException {
+        log.info("Copy directory: " + srcDir.getAbsolutePath() + " to " + dstDir.getAbsolutePath());
+        if (srcDir.isDirectory()) {
+            if (!dstDir.exists()) {
+                dstDir.mkdir();
+            }
+
+            String[] children = srcDir.list();
+            for (String aChildren : children) {
+                copyDirectory(new File(srcDir, aChildren),
+                        new File(dstDir, aChildren));
+            }
+        } else {
+            // This method is implemented in Copying a File
+            copyFile(srcDir, dstDir);
+        }
+    }
+
 
     /**
      * Copies file from one place to another.
