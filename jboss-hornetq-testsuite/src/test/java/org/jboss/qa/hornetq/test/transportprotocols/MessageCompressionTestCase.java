@@ -5,18 +5,18 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Testing compression of messages
@@ -50,9 +50,9 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1);
         // Send messages into input node and read from output node
-        SoakProducerClientAck producer = new SoakProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
-        SoakReceiverClientAck receiver = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 10000, 10, 10);
 
         logger.info("Start producer and consumer.");
         producer.start();
@@ -61,15 +61,15 @@ public class MessageCompressionTestCase extends HornetQTestCase {
         producer.join();
         receiver.join();
 
-        Assert.assertEquals("Number of sent and received messages is different. Sent: " + producer.getCounter()
-                + "Received: " + receiver.getCount(), producer.getCounter(),
-                receiver.getCount());
-        Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getCounter()
-                , producer.getCounter() == 0);
-        Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getCount()
-                , receiver.getCount() == 0);
+        Assert.assertEquals("Number of sent and received messages is different. Sent: " + producer.getListOfSentMessages().size()
+                + "Received: " + receiver.getListOfReceivedMessages().size(), producer.getListOfSentMessages().size(),
+                receiver.getListOfReceivedMessages().size());
+        Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getListOfSentMessages().size()
+                , producer.getListOfSentMessages().size() == 0);
+        Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size()
+                , receiver.getListOfReceivedMessages().size() == 0);
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
-                + " Received: " + receiver.getCount(), receiver.getCount()
+                + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         stopServer(CONTAINER1);
