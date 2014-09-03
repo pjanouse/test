@@ -4,9 +4,9 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -107,8 +107,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         log.info("Start producer and consumer.");
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverAutoAck receiver = new ReceiverAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, RECEIVER_MAX_RETRIES);
+        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverTransAck receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();
