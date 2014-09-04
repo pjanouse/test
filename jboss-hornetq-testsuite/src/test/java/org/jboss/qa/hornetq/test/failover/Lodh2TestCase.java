@@ -49,7 +49,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
 
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
     public static final String MDB_ON_QUEUE_1 = "mdb1";
     public static final String MDB_ON_QUEUE_2 = "mdb2";
