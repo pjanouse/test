@@ -1,16 +1,10 @@
 package org.jboss.qa.hornetq.test.faultinjection;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-
-import javax.jms.Session;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -22,6 +16,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
+
+import javax.jms.Session;
+
+import static junit.framework.Assert.*;
 
 /**
  * Test case covers basic fault injection tests for standalone node.
@@ -143,7 +141,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
-     * Server is killed after transactional data are written into the journal during send
+     * Server is killed after transactional data are written into the journal during send. This is not during commit() but
+     * when sending messages in transaction is written to journal.
      *
      * @throws InterruptedException is something is wrong
      * @id commit03
@@ -290,6 +289,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
+     * TODO - check this scenario whether it's correct
      * Server is killed after is message deleted from journal after receive
      * 
      * @id commit14 
@@ -857,7 +857,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         				  client.getExceptionDuringSend());
         }
         
-        assertEquals("Incorrect number of messages recieved:", 
+        assertEquals("Incorrect number of messages received:",
         			 expectedNumMessagesRecieved,     
         			 client.getReceivedMessages());
         

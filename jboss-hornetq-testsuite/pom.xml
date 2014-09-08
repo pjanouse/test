@@ -556,6 +556,11 @@
                                 <include>**/JmsMessagesTestCase.java</include>
                                 <include>**/LargeMessagesCompressionTestCase.java</include>
                                 <include>**/JcaTestCase.java</include>
+                                <include>**/JmxClientNotificationTestCase.java</include>
+                                <include>**/DeadLetterTestCase.java</include>
+                                <include>**/BasicStompTestCase.java</include>
+                                <include>**/StompDurableSubscriptionsTestCase.java</include>
+                                <include>**/ServerNetworkUnavailableTestCase.java</include>
                             </includes>
                             <systemProperties>
                                 <property>

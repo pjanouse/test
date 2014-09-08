@@ -6,9 +6,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -254,16 +252,13 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getHostname(CONTAINER4), getJNDIPort(CONTAINER4), relativeJndiOutQueueName + 0, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER4), getJNDIPort(CONTAINER4), relativeJndiOutQueueName + 0, 10000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
         receiver1.start();
-
-        // Wait to send and receive some messages
-        Thread.sleep(30 * 1000);
 
         executeNodeFailSequence(killSequence, 20000, shutdown);
 
@@ -271,12 +266,12 @@ public class Lodh4TestCase extends HornetQTestCase {
         producer1.join();
         receiver1.join();
 
-        log.info("Number of sent messages: " + producer1.getCounter());
-        log.info("Number of received messages: " + receiver1.getCount());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getCounter(),
-                receiver1.getCount());
+                producer1.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size());
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);

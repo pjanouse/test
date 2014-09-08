@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
+import org.jboss.qa.hornetq.tools.ServerPathUtils;
 
 import java.io.*;
 
@@ -28,7 +28,7 @@ public class PrintJournal {
      * @param container                container name
      * @param relativePathToOutputFile relative path against $WORKSPACE
      */
-    public static void printJournal(String container, String relativePathToOutputFile) {
+    public static void printJournal(String container, String relativePathToOutputFile) throws Exception {
 
         jbossHome = HornetQTestCase.getJbossHome(container);
 
@@ -53,7 +53,7 @@ public class PrintJournal {
      * @param messagingjournalDirectory
      * @param outputFile                 file to which content of journal will be printed
      */
-    public static void printJournal(String jbossHome, String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) {
+    public static void printJournal(String jbossHome, String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) throws Exception {
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();
@@ -124,30 +124,21 @@ public class PrintJournal {
      *
      * @return classpat
      */
-    private static String buildClasspath() {
+    private static String buildClasspath() throws Exception {
 
         StringBuilder strbuilder = new StringBuilder();
-        if (jbossHome.contains("6.0")) {
-            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
-            strbuilder.append(File.separator).append("hornetq").append(File.separator).append("main").append(File.separator).append("*");
-            strbuilder.append(File.pathSeparator);
-            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("org");
-            strbuilder.append(File.separator).append("jboss").append(File.separator).append("netty").append(File.separator).append("main").append(File.separator).append("*");
-        } else { //modules/system/layers/base/org/hornetq/main/
-            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
-                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
-                    .append(File.separator).append("hornetq").append(File.separator).append("main").append(File.separator).append("*");
-            strbuilder.append(File.pathSeparator);
-            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
-                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
-                    .append(File.separator).append("jboss").append(File.separator).append("netty").append(File.separator).append("main").append(File.separator).append("*");
-            strbuilder.append(File.pathSeparator);
-            strbuilder.append(jbossHome).append(File.separator).append("modules").append(File.separator).append("system").append(File.separator)
-                    .append("layers").append(File.separator).append("base").append(File.separator).append("org")
-                    .append(File.separator).append("jboss").append(File.separator).append("logging").append(File.separator).append("main").append(File.separator).append("*");
 
-        }
+        //modules/system/layers/base/org/hornetq/main/
+        strbuilder.append(ServerPathUtils.getModuleDirectory(jbossHome, "org/hornetq")).append(File.separator).append("*");
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(ServerPathUtils.getModuleDirectory(jbossHome, "org/jboss/netty")).append(File.separator).append("*");
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(ServerPathUtils.getModuleDirectory(jbossHome, "org/jboss/logging")).append(File.separator).append("*");
 
+
+
+
+        System.out.println("Classpath " + strbuilder);
         log.debug("Classpath: " + strbuilder);
 
         return strbuilder.toString();
@@ -169,15 +160,15 @@ public class PrintJournal {
         PrintJournal.jbossHome = jbossHome;
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
         PrintJournal pj = new PrintJournal();
 
-        String messagingbindingsDirectory = "/home/mnovak/tmp/jboss-eap-6.0/standalone/data/messagingbindings";
-        String messagingjournalDirectory = "/home/mnovak/tmp/jboss-eap-6.0/standalone/data/messagingjournal";
-        String outputFile = "/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite/journal_output.log";
-        pj.setWorkingDirectory("/home/mnovak/tmp/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite");
-        pj.setJbossHome("/home/mnovak/tmp/jboss-eap-6.0");
-        printJournal("", messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
+        String messagingbindingsDirectory = "/home/mnovak/hornetq_eap6_dev/internal/6.3.1.CP.CR1/server1/jboss-eap-6.3/standalone/data/messagingbindings";
+        String messagingjournalDirectory = "/home/mnovak/hornetq_eap6_dev/internal/6.3.1.CP.CR1/server1/jboss-eap-6.3/standalone/data/messagingjournal";
+        String outputFile = "/home/mnovak/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite/journal_output.log";
+        pj.setWorkingDirectory("/home/mnovak/hornetq_eap6_dev/internal/eap-tests-hornetq/jboss-hornetq-testsuite");
+        pj.setJbossHome("/home/mnovak/hornetq_eap6_dev/internal/6.3.1.CP.CR1/server1/jboss-eap-6.3");
+        printJournal("/home/mnovak/hornetq_eap6_dev/internal/6.3.1.CP.CR1/server1/jboss-eap-6.3", messagingbindingsDirectory, messagingbindingsDirectory, outputFile);
     }
 
 }

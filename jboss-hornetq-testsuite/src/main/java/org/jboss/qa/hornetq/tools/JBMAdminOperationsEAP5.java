@@ -985,6 +985,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJmxManagementEnabled(boolean enable) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJmxManagementEnabled(String serverName, boolean enable) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalDirectory(String path) {
         String configurationFile = getMysqlConfigurationFile();
         try {
@@ -1846,6 +1856,13 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public String getPagingDirectoryPath(){
         logger.info("This operation is not supported: " + getMethodName());
         return null;
+    }
+
+    @Override
+    public boolean areThereUnfinishedArjunaTransactions() {
+
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
     }
 
 

@@ -913,6 +913,21 @@ public interface JMSOperations {
     void setJmxDomainName(String jmxDomainName);
 
     /**
+     * Enable access to hornetq management mbeans.
+     *
+     * @param enable Should we enable JMX.
+     */
+    void setJmxManagementEnabled(boolean enable);
+
+    /**
+     * Enable access to hornetq management mbeans.
+     *
+     * @param serverName HornetQ server name.
+     * @param enable Should we enable JMX.
+     */
+    void setJmxManagementEnabled(String serverName, boolean enable);
+
+    /**
      * The directory to store the journal files in.
      *
      * @param path set absolute path
@@ -1349,4 +1364,5 @@ public interface JMSOperations {
     String getPagingDirectoryPath();
 
 
+    boolean areThereUnfinishedArjunaTransactions();
 }

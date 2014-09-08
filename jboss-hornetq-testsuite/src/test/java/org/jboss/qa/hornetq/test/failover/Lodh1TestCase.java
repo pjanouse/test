@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
@@ -40,6 +41,8 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
+
+    private static final String MDB_NAME = "mdb1";
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -92,7 +95,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         return ejbXml.toString();
     }
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
+    @Deployment(managed = false, testable = false, name = MDB_NAME)
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createLodh1Deployment() {
 
@@ -196,7 +199,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB_NAME);
         stopServer(CONTAINER1);
 
     }
@@ -224,7 +227,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodh(boolean shutdown) throws Exception {
 
         // we use only the first server
-        prepareServer();
+        prepareJmsServer(CONTAINER1);
 
         controller.start(CONTAINER1);
 
@@ -236,7 +239,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        deployer.deploy("mdb1");
+        deployer.deploy(MDB_NAME);
 
         List<String> killSequence = new ArrayList<String>();
 
@@ -263,8 +266,71 @@ public class Lodh1TestCase extends HornetQTestCase {
                 + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()  + ".", producerToInQueue1.getListOfSentMessages().size(),
                 receiver1.getListOfReceivedMessages().size());
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB_NAME);
         stopServer(CONTAINER1);
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    /**
+     * Check whether clean shutdown does not leave unfinished transactions.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testAllTransactionsFinishedAfterCleanShutdown() throws Exception {
+
+        int numberOfMessages = 300;
+
+        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER2);
+
+        // cluster A
+        controller.start(CONTAINER1);
+
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, numberOfMessages);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
+        builder.setAddDuplicatedHeader(true);
+        producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(100);
+        producer1.start();
+        producer1.join();
+
+        deployer.deploy(MDB_NAME);
+
+        waitForMessages(outQueueName, numberOfMessages / 10, 120000, CONTAINER1);
+
+        stopServer(CONTAINER1);
+
+        String journalFile1 = CONTAINER1 + "-journal_content_after_shutdown.txt";
+        PrintJournal.printJournal(CONTAINER1, journalFile1);
+        // check that there are failed transactions
+        String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+                new File(journalFile1), stringToFind));
+
+        // copy tx-objectStore to container 2 and check there are no unfinished arjuna transactions
+        copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "tx-object-store"),
+                new File(getJbossHome(CONTAINER2), "standalone" + File.separator + "data" + File.separator + "tx-object-store"));
+        copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "messagingbindings"),
+                new File(getJbossHome(CONTAINER2), "standalone" + File.separator + "data" + File.separator + "messagingbindings"));
+        copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "messagingjournal"),
+                new File(getJbossHome(CONTAINER2), "standalone" + File.separator + "data" + File.separator + "messagingjournal"));
+        copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"),
+                new File(getJbossHome(CONTAINER2), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"));
+        copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "messagingpaging"),
+                new File(getJbossHome(CONTAINER2), "standalone" + File.separator + "data" + File.separator + "messagingpaging/"));
+
+        controller.start(CONTAINER2);
+        Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(CONTAINER2));
+        Assert.assertTrue("There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
+                waitForMessages(inQueueName, 1, 5000, CONTAINER2));
+
+        stopServer(CONTAINER2);
 
     }
 
@@ -288,7 +354,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        deployer.deploy("mdb1");
+        deployer.deploy(MDB_NAME);
 
         logger.info("Start receiver.");
 
@@ -303,7 +369,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
-        deployer.undeploy("mdb1");
+        deployer.undeploy(MDB_NAME);
         stopServer(CONTAINER1);
 
     }
@@ -401,6 +467,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+        jmsAdminOperations.setNodeIdentifier(1234567);
 
         try {
             jmsAdminOperations.removeQueue(inQueueName);

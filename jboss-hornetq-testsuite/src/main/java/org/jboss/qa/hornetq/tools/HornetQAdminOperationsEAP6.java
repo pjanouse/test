@@ -2444,6 +2444,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setJmxManagementEnabled(boolean enable) {
+        setJmxManagementEnabled("default", enable);
+    }
+
+    @Override
+    public void setJmxManagementEnabled(String serverName, boolean enable) {
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("jmx-management-enabled");
+        model.get("value").set(enable);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Sets backup attribute.
      *
@@ -4103,14 +4123,45 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         return result.get("result").asString();
     }
 
+    @Override
+    public boolean areThereUnfinishedArjunaTransactions() {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("probe");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
+        model.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
+
+        try {
+         this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        ModelNode readTransactionModel = new ModelNode();
+        readTransactionModel.get(ClientConstants.OP).set("read-resource");
+        readTransactionModel.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
+        readTransactionModel.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
+
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(readTransactionModel);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").get("transactions").isDefined();
+
+
+    }
+
 
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-            jmsAdminOperations.setHostname("192.168.40.1");
+            jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.getNumberOfNodesInCluster());
+            System.out.println(jmsAdminOperations.areThereUnfinishedArjunaTransactions());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";

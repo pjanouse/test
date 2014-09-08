@@ -92,6 +92,8 @@ public class SecurityClient extends Client {
 
         con = getConnection();
 
+        con.start();
+
         queue = (Queue) context.lookup(queueNameJndi);
 
         session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -110,44 +112,31 @@ public class SecurityClient extends Client {
 
     }
 
-    public void consumeAndRollback(int numberOfMessagesToConsumeAndRollback) throws JMSException {
+    public void consumeAndRollback(int numberOfMessagesToConsumeAndRollback) throws Exception {
 
-        try {
+        Session transSession = con.createSession(true, Session.SESSION_TRANSACTED);
+        MessageConsumer consumer = transSession.createConsumer(queue);
 
-            Session transSession = con.createSession(true, Session.SESSION_TRANSACTED);
-            MessageConsumer consumer = transSession.createConsumer(queue);
+        int numberOfConsumerMessageCounter = 0;
 
-            int numberOfConsumerMessageCounter = 0;
+        Message msg;
 
-            Message msg;
+        while (numberOfConsumerMessageCounter < numberOfMessagesToConsumeAndRollback) {
 
-            while (numberOfConsumerMessageCounter < numberOfMessagesToConsumeAndRollback) {
+            msg = consumer.receive(1000);
 
-                msg = consumer.receive(1000);
-
-                numberOfConsumerMessageCounter++;
-
-                if (msg != null) {
-                    logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() +
-                            " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
-                }
-
+            if (msg != null) {
+                logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() +
+                        " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
+            } else {
+                throw new Exception("Cannot receive " + numberOfMessagesToConsumeAndRollback + " messages. There are only " + numberOfConsumerMessageCounter + ". " +
+                        "Check the reason why there is not enough messages in queue: " + queueNameJndi);
             }
-
-            transSession.rollback();
-
-        } finally {
-            if (con != null) {
-                con.close();
-            }
-            if (context != null) {
-                try {
-                    context.close();
-                } catch (NamingException e) {
-                    // ignore
-                }
-            }
+            numberOfConsumerMessageCounter++;
         }
+
+        transSession.rollback();
+
     }
 
     /**
