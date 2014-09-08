@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.test.security.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -26,11 +27,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
+import javax.jms.Queue;
 import javax.naming.Context;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
@@ -56,6 +56,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     private static final String MDB_ON_QUEUE1 = "mdbOnQueue1";
     private static final String MDB_ON_QUEUE2 = "mdbOnQueue2";
+    private static final String MDB_ON_QUEUE1_SECURITY = "mdbOnQueue1Security";
 
     private static final String MDB_ON_TEMPQUEUE1 = "mdbOnTempQueue1";
     private static final String MDB_ON_TEMPQUEUE2 = "mdbOnTempQueue2";
@@ -638,7 +639,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestReadMessageFromDifferentConnection() {
+    public void clusterTestReadMessageFromDifferentConnection() throws Exception {
         prepareServers(true);
         boolean failed = false;
         controller.start(CONTAINER1);
@@ -657,7 +658,7 @@ public class ClusterTestCase extends HornetQTestCase {
         } catch (JMSException e) {
             failed = true;
         } catch (Exception e) {
-            log.warn("Unexpected exception " + e);
+            throw e;
         } finally {
             stopAllServers();
         }
@@ -668,11 +669,11 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestTemQueueMessageExpiration() {
+    public void clusterTestTemQueueMessageExpiration() throws Exception {
         prepareServers(true);
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
-        try {
+
             int cont1Count = 0, cont2Count = 0;
             ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1, 300);
             responsiveProducer.start();
@@ -681,11 +682,10 @@ public class ClusterTestCase extends HornetQTestCase {
             Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
 
 
-        } catch (Exception e) {
-            log.error("Error occurred ", e);
-        } finally {
+
+
             stopAllServers();
-        }
+
     }
 
     @Test
@@ -709,6 +709,167 @@ public class ClusterTestCase extends HornetQTestCase {
 
             stopAllServers();
 
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbHqXmlOnQueueRedeploy() throws Exception{
+        prepareServer(CONTAINER1,false);
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_TEMPQUEUE1);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
+        producer.start();
+        producer.join();
+        deployer.deploy(MDB_ON_TEMPQUEUE1);
+        receiver.start();
+        receiver.join();
+        Assert.assertEquals("Number of messages does not match", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
+        stopServer(CONTAINER1);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception{
+        prepareServer(CONTAINER1,true);
+        prepareServer(CONTAINER2,true);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        JMSOperations jmsAdminOperations1 = getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations2 = getJMSOperations(CONTAINER2);
+
+        //setup security
+        jmsAdminOperations1.setSecurityEnabled(true);
+        jmsAdminOperations2.setSecurityEnabled(true);
+
+
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/").giveUserAllPermissions("user").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+
+
+        UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
+        UsersSettings.forEapServer(getJbossHome(CONTAINER2)).withUser("user", "user.1234", "user").create();
+
+        //restart servers to changes take effect
+        stopServer(CONTAINER1);
+        controller.kill(CONTAINER1);
+        stopServer(CONTAINER2);
+        controller.kill(CONTAINER2);
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+
+        //setup producers and receivers
+        ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
+
+        ProducerClientAck producerRedG2 = new ProducerClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
+
+        ProducerClientAck producerBlueG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
+
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
+
+        producerBlueG1.start();
+        producerRedG1.start();
+        producerRedG2.start();
+        receiver1.start();
+        receiver2.start();
+
+        producerBlueG1.join();
+        producerRedG1.join();
+        producerRedG2.join();
+        receiver1.join();
+        receiver2.join();
+
+        Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
+        Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
+        ArrayList<String>receiver1GroupiIDs= new ArrayList<String>();
+        ArrayList<String>receiver2GroupiIDs= new ArrayList<String>();
+        for(Map<String, String> m: receiver1.getListOfReceivedMessages()){
+            if(m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))){
+                receiver1GroupiIDs.add(m.get("JMSXGroupID"));
+            }
+        }
+        for(Map<String, String> m: receiver2.getListOfReceivedMessages()){
+            if(m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))){
+                receiver2GroupiIDs.add(m.get("JMSXGroupID"));
+            }
+        }
+        for(String gId: receiver1GroupiIDs){
+            if(receiver2GroupiIDs.contains(gId)){
+                Assert.assertEquals("GroupIDs was mixed", false, true);
+            }
+
+        }
+
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception{
+        prepareServer(CONTAINER1,true);
+        prepareServer(CONTAINER2,true);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        JMSOperations jmsAdminOperations1 = getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations2 = getJMSOperations(CONTAINER2);
+
+        //setup security
+        jmsAdminOperations1.setSecurityEnabled(true);
+        jmsAdminOperations2.setSecurityEnabled(true);
+
+
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+
+
+        UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
+
+
+        //restart servers to changes take effect
+        stopServer(CONTAINER1);
+        controller.kill(CONTAINER1);
+        stopServer(CONTAINER2);
+        controller.kill(CONTAINER2);
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+
+        //setup producers and receivers
+        ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
+
+       ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
+
+        producerRedG1.start();
+        receiver2.start();
+
+        producerRedG1.join();
+        receiver2.join();
+
+
+        Assert.assertEquals("Number of received messages does not match on receiver2", 0, receiver2.getListOfReceivedMessages().size());
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
     }
 
 
@@ -1529,6 +1690,27 @@ public class ClusterTestCase extends HornetQTestCase {
 //        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
+
+    /**
+     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
+     *
+     * @return mdb
+     */
+    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_SECURITY)
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnQueueWithSecurity() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security.jar");
+        mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+//        File target = new File("/tmp/mdbOnQueue1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+
 
     /**
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue

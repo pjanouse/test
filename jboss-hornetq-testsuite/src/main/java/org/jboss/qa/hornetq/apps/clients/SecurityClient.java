@@ -191,6 +191,49 @@ public class SecurityClient extends Client {
         consumer.close();
     }
 
+    public void send() throws Exception{
+        con.start();
+
+        MessageProducer producer = session.createProducer(queue);
+
+        Message msg = null;
+
+        while (counter < messages && !stop) {
+
+            msg = messageBuilder.createMessage(session);
+            // send message in while cycle
+            producer.send(msg);
+
+            counter++;
+
+            logger.info("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+
+        }
+
+        producer.close();
+
+
+    }
+
+    public void receive() throws Exception{
+        con.start();
+        Message msg = null;
+
+        MessageConsumer consumer = session.createConsumer(queue);
+
+        counter = 0;
+
+        while ((msg = consumer.receive(1000))!=null && !stop) {
+            counter++;
+
+            logger.info("Consumer for node: " + hostname + ". Received message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+
+        }
+
+        consumer.close();
+
+    }
+
     /**
      * Close all resources.
      */
@@ -396,6 +439,9 @@ public class SecurityClient extends Client {
         this.password = password;
 
     }
+//    public int getCounter(){
+//        return counter;
+//    }
 
     public static void main(String[] args) throws Exception {
 

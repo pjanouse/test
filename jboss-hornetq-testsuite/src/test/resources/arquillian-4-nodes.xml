@@ -20,6 +20,7 @@
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true
                     -Djboss.socket.binding.port-offset=${PORT_OFFSET_1}
+
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -45,7 +46,7 @@
                     -Djboss.default.multicast.address=${MCAST_ADDR}
                     -Djboss.socket.binding.port-offset=${PORT_OFFSET_2}
                     -Djava.net.preferIPv4Stack=false
-                    -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=n
+                    -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>

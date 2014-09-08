@@ -69,6 +69,7 @@ public class TextMessageBuilder implements MessageBuilder {
             message.setText(new String(new char[this.size]));
 //            message.setStringProperty("text", new String(new char[this.size]));
         }
+
         return message;
     }
 
