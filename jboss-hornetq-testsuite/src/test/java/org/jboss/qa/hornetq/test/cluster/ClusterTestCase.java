@@ -1225,12 +1225,11 @@ public class ClusterTestCase extends HornetQTestCase {
      * This test will start two servers A and B in cluster.
      * Start producer connected to A to queue and send some messages with message grouping id1.
      * Start producer connected to B to queue and send some messages with message grouping id2.
+     * Start consumer on node B which consumes from queue
      * Kill server with local message handler - A
-     * Kill the other server - B
      * Start the server with local message handler
      * Start producer connected to A to queue and send some messages with message grouping id1.
-     * Start producer connected to A to queue and send some messages with message grouping id2
-     * Read messages
+     * Start producer connected to B to queue and send some messages with message grouping id2
      */
     @Test
     @RunAsClient
@@ -1242,7 +1241,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = 5000;
+        long timeout = -1;
 
         // set local grouping-handler on 1st node
         addMessageGrouping(CONTAINER1, name, "LOCAL", address, timeout);
@@ -1253,57 +1252,32 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER1);
 
+        // try to read them from second node
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 10000, 100, 10);
+        receiver.start();
+
         log.info("Send messages to first server.");
-        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
         log.info("Send messages to first server - done.");
         log.info("Send messages to second server.");
-        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
         log.info("Send messages to second server - done.");
-
-        log.info("Sleep for " + timeout);
-        // wait timeout time to get messages redistributed to the other node
-        Thread.sleep(timeout);
-        log.info("Sleep for " + timeout + " stop.");
-
-        log.info("Receive and rollback messages from first server.");
-        SecurityClient s1 = createConsumerReceiveAndRollback(CONTAINER1, inQueueJndiNameForMdb);
-        log.info("Receive and rollback messages from first server - done.");
-        log.info("Receive and rollback messages from second server.");
-        SecurityClient s2 = createConsumerReceiveAndRollback(CONTAINER2, inQueueJndiNameForMdb);
-        log.info("Receive and rollback messages from second server - done.");
-
-        log.info("Close first consumer.");
-        s1.close();
-        log.info("Close first consumer- done");
-
-        log.info("Close second consumer.");
-        s2.close();
-        log.info("Close second consumer - done.");
 
         // kill both of the servers
         killServer(CONTAINER1);
-        controller.kill(CONTAINER1);
-        killServer(CONTAINER2);
-        controller.kill(CONTAINER2);
 
         // start 1st server
         controller.start(CONTAINER1);
 
         // send messages to 1st node
         sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
-        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
-        // wait timeout time to get messages redistributed to the other node
-        Thread.sleep(2 * timeout);
-
-        // try to read them from 2nd node
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 10000, 100, 10);
-        receiver.start();
         receiver.join();
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 3 * NUMBER_OF_MESSAGES_PER_PRODUCER
-                        + " recieved but it's : " + receiver.getListOfReceivedMessages().size(), 3 * NUMBER_OF_MESSAGES_PER_PRODUCER,
+                        + " received but it's : " + receiver.getListOfReceivedMessages().size(), 3 * NUMBER_OF_MESSAGES_PER_PRODUCER,
                 receiver.getListOfReceivedMessages().size()
         );
 
