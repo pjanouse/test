@@ -1151,6 +1151,48 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWitMessageGroupingSimple() throws Exception {
+
+        prepareServers();
+
+        String name = "my-grouping-handler";
+        String address = "jms";
+        long timeout = 5000;
+
+        // set local grouping-handler on 1st node
+        addMessageGrouping(CONTAINER1, name, "LOCAL", address, timeout);
+
+        // set remote grouping-handler on 2nd node
+        addMessageGrouping(CONTAINER2, name, "REMOTE", address, timeout);
+
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER1);
+
+        log.info("Send messages to first server.");
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        log.info("Send messages to first server - done.");
+
+
+        // try to read them from 2nd node
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 10000, 100, 10);
+        receiver.start();
+        receiver.join();
+
+        log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Number of sent and received messages is not correct. There should be " + NUMBER_OF_MESSAGES_PER_PRODUCER
+                        + " receiver but it's : " + receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER,
+                receiver.getListOfReceivedMessages().size()
+        );
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
     /**
      * Start just local and send messages with different groupids.
      * Start consumers on local and check messages.
