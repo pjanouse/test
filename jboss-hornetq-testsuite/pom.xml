@@ -558,7 +558,6 @@
                                 <include>**/JcaTestCase.java</include>
                                 <include>**/JmxClientNotificationTestCase.java</include>
                                 <include>**/DeadLetterTestCase.java</include>
-                                <include>**/BasicStompTestCase.java</include>
                                 <include>**/ServerNetworkUnavailableTestCase.java</include>
                             </includes>
                             <systemProperties>
