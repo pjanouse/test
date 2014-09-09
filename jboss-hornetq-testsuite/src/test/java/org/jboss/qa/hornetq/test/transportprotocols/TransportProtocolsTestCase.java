@@ -28,7 +28,7 @@ import java.util.HashMap;
 public class TransportProtocolsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(TransportProtocolsTestCase.class);
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 200;
     private static final long RECEIVE_TIMEOUT = 10000;
     private static final int RECEIVER_MAX_RETRIES = 10;
     private static final String IN_QUEUE_NAME_FOR_MDB = "InQueue";
