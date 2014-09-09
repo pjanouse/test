@@ -17,12 +17,14 @@ import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
+import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import javax.naming.Context;
@@ -48,6 +50,9 @@ import java.util.concurrent.TimeoutException;
  */
 @RunWith(Arquillian.class)
 public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstants {
+
+    @Rule
+    public ArchiveServerLogsAfterFailedTest ruleExample = new ArchiveServerLogsAfterFailedTest();
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
@@ -472,7 +477,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         arquillianDescriptor = descriptor;
     }
 
-    protected ArquillianDescriptor getArquillianDescriptor() {
+    public static ArquillianDescriptor getArquillianDescriptor() {
         return arquillianDescriptor;
     }
 
