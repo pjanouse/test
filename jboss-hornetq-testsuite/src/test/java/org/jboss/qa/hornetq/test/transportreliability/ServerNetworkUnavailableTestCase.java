@@ -167,16 +167,21 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 500);
-
         producer.setMessageBuilder(messageBuilder);
 
-        producer.start();
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        subscriber.subscribe();
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
+        publisher.setMessageBuilder(messageBuilder);
+        publisher.start();
 
+        producer.start();
         producer.join();
+        publisher.join();
 
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
-
         receiver.start();
+        subscriber.start();
 
         if (testKill) {
 
@@ -203,12 +208,16 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         }
 
         receiver.join();
+        subscriber.join();
 
         Assert.assertEquals("There is differen number sent and recieved messages. Sent messages" + producer.getListOfSentMessages().size() +
                 "Received: " + receiver.getListOfReceivedMessages().size(),
                 producer.getListOfSentMessages().size(),
                 receiver.getListOfReceivedMessages().size());
-
+        Assert.assertEquals("There is different number sent and received messages. Publisher sent messages" + publisher.getListOfSentMessages().size() +
+                        "Subscriber: " + subscriber.getListOfReceivedMessages().size(),
+                publisher.getListOfSentMessages().size(),
+                subscriber.getListOfReceivedMessages().size());
 
         stopServer(CONTAINER1);
 
@@ -241,9 +250,10 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
+        publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
         producer.setMessageBuilder(messageBuilder);
@@ -347,7 +357,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
-        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
