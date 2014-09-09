@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +37,7 @@ import static org.junit.Assert.fail;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Ignore
 public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
 
     // Logger
