@@ -1,15 +1,12 @@
 package org.jboss.qa.hornetq.test.failover;
 
 
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
@@ -17,12 +14,11 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
-import org.jboss.qa.hornetq.tools.jms.settings.JmsServerSettings;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -32,7 +28,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -299,10 +302,12 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
         List<String> receivedMessages = new LinkedList<String>();
 
-        this.controller.start(CONTAINER1);
-        this.updateServerSettings();
+//        this.controller.start(CONTAINER1);
+//        this.updateServerSettings();
+//
+//        this.controller.stop(CONTAINER1);
+        prepareJmsServer(CONTAINER1);
 
-        this.controller.stop(CONTAINER1);
         this.controller.start(CONTAINER1);
 
         logger.info("!!!!! FIRST PASS !!!!!");
@@ -388,18 +393,48 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     }
 
 
-    public void updateServerSettings() {
-        JmsServerSettings
-                .forContainer(JmsServerSettings.ContainerType.EAP6_WITH_HORNETQ, CONTAINER1,
-                this.getArquillianDescriptor())
-                .withoutClustering()
-                .withPersistence()
-                .withSharedStore()
-                .withPaging(10 * 1024 * 1024, 50 * 1024, 0, 0)
-                .withQueue(IN_QUEUE_NAME, true)
-                .withQueue(OUT_QUEUE_NAME, true)
-                .create();
+
+    /**
+     * Prepares jms server for remote jca topology.
+     *
+     * @param containerName Name of the container - defined in arquillian.xml
+     */
+    private void prepareJmsServer(String containerName) {
+
+        controller.start(containerName);
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        jmsAdminOperations.setClustered(false);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+        jmsAdminOperations.removeClusteringGroup("my-cluster");
+        jmsAdminOperations.removeBroadcastGroup("bg-group1");
+        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+        jmsAdminOperations.setNodeIdentifier(1234567);
+
+        try {
+            jmsAdminOperations.removeQueue(IN_QUEUE_NAME);
+        } catch (Exception e) {
+            // Ignore it
+        }
+        jmsAdminOperations.createQueue("default", IN_QUEUE_NAME, IN_QUEUE, true);
+
+        try {
+            jmsAdminOperations.removeQueue(OUT_QUEUE_NAME);
+        } catch (Exception e) {
+            // Ignore it
+        }
+        jmsAdminOperations.createQueue("default", OUT_QUEUE_NAME, OUT_QUEUE, true);
+        jmsAdminOperations.close();
+
+        controller.stop(containerName);
+
     }
+
 
 
     private static String createEjbJarXml(final Class<?> mdbClass) {

@@ -34,11 +34,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Scanner;
+import java.nio.channels.ReadableByteChannel;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -1370,5 +1369,94 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             }
         }
     }
+
+    public String getEapVersion(String containerName) throws Exception {
+
+        File versionFile = new File(getJbossHome(containerName) + File.separator + "version.txt");
+
+        Scanner scanner = new Scanner(new FileInputStream(versionFile));
+        String eapVersion = scanner.nextLine();
+        log.info("Print content of version file: " + eapVersion);
+
+        String pattern = "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
+        String justVersion = eapVersion.replaceAll(pattern, "$3").trim();
+
+        StringTokenizer str = new StringTokenizer(justVersion, ".");
+        String majorVersion = str.nextToken();
+        String minorVersion = str.nextToken();
+        String microVersion;
+
+        switch (Integer.valueOf(majorVersion)) {
+            case 5:
+                microVersion = str.nextToken();
+                break;
+            case 6:
+                switch (Integer.valueOf(minorVersion)) {
+                    case 0:
+                        microVersion = str.nextToken();
+                        break;
+                    case 1:
+                        microVersion = str.nextToken();
+                        if (Integer.valueOf(microVersion) > 1) {
+                            // for 6.1.2+, use driver for version 6.1.1
+                            microVersion = "1";
+                        }
+                        break;
+                    default:
+                        // for version 6.2.0+ always use driver for '0' micro version
+                        microVersion = "0";
+                        break;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Given container is not EAP5 or EAP6! It says its major version is " + majorVersion);
+        }
+
+        return majorVersion + "." + minorVersion + "." + microVersion;
+    }
+
+    /**
+     * Download jdbc driver from svn jdbc repository to deployments directory.
+     *
+     * @param eapVersion 6.2.0
+     * @param database   oracle12c,mssql2012
+     * @throws Exception if anything goes wrong
+     */
+    public static String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
+
+        URL metaInfUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4//meta-inf.txt"));
+
+        log.info("Print mete-inf url: " + metaInfUrl);
+
+        ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
+        File targetDirDeployments = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+                + "deployments" + File.separator + "meta-inf.txt");
+
+        FileOutputStream fos = new FileOutputStream(targetDirDeployments);
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+
+
+        Scanner scanner = new Scanner(new FileInputStream(targetDirDeployments));
+        String jdbcFileName = scanner.nextLine();
+        log.info("Print jdbc file name: " + jdbcFileName);
+
+        URL jdbcUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4/" + jdbcFileName));
+        ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
+        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+                + "deployments" + File.separator + jdbcFileName);
+        FileOutputStream fos2 = new FileOutputStream(targetDirDeploymentsForJdbc);
+        fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);
+
+        fos.close();
+        fos2.close();
+        rbc.close();
+        rbc2.close();
+
+        return jdbcFileName;
+
+    }
+
+
 
 }

@@ -46,6 +46,8 @@ public interface HornetQTestCaseConstants {
     // Timeout for CLI tests
     public static final int DEFAULT_TEST_TIMEOUT = 300000;
 
+    public static final String URL_JDBC_DRIVERS = "http://www.qa.jboss.com/jdbc-drivers-products/EAP";
+
     // MUST be the same names as in DBAllocator - http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=report
     public static final String ORACLE11GR2 = "oracle11gR2";
     public static final String ORACLE12C = "oracle12c";
