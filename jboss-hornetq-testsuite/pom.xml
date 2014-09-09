@@ -604,7 +604,46 @@
 
             </dependencies>
         </profile>
+        <profile>
+            <id>eap6x-domain</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>6x-domain</value>
+                </property>
+            </activation>
 
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>arquillian.xml</name>
+                                    <value>arquillian-4-nodes-domain.xml</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-client</artifactId>
+                    <version>${eap6.client}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-domain-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile> <!-- this profile specifies all tests which can be run on max. 2 IPs on all platforms - used in
          functional tests -->
             <id>eap6x-common</id>
@@ -862,3 +901,4 @@
     </distributionManagement>
 
 </project>
+
