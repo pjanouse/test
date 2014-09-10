@@ -1319,6 +1319,8 @@ public interface JMSOperations {
 
     void addMessageGrouping(String name, String type, String address, long timeout);
 
+    void addMessageGrouping(String serverName, String name, String type, String address, long timeout);
+
     void setXADatasourceAtribute(String poolName, String attributeName, String value);
 
     void addExtension(String extensionName);

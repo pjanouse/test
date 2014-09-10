@@ -2677,20 +2677,36 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+
     /**
      * Adds grouping handler
      *
-     * @param name    name
+     * @param name    name of grouping handler
      * @param type    type - LOCAL, REMOTE
      * @param address cluster address
      * @param timeout timeout to have decision where the message will be routed
      */
     @Override
-    public void addMessageGrouping(String name, String type, String address, long timeout) {
+    public void addMessageGrouping(String name, String type, String address, long timeout){
+        addMessageGrouping("default",name,type,address,timeout);
+
+    }
+
+    /**
+     * Adds grouping handler
+     *
+     * @param serverName hornetq server name
+     * @param name    name of grouping handler
+     * @param type    type - LOCAL, REMOTE
+     * @param address cluster address
+     * @param timeout timeout to have decision where the message will be routed
+     */
+    public void addMessageGrouping(String serverName, String name, String type, String address, long timeout){
+
         ModelNode modelNode = new ModelNode();
         modelNode.get(ClientConstants.OP).set("add");
         modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         modelNode.get(ClientConstants.OP_ADDR).add("grouping-handler", name);
         modelNode.get("grouping-handler-address").set(address);
         modelNode.get("type").set(type);
@@ -2701,6 +2717,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+
     }
 
 
