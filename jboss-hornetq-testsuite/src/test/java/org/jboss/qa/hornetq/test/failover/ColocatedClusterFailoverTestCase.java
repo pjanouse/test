@@ -6,13 +6,13 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -30,8 +30,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -172,27 +170,27 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     // TODO UNCOMMENT WHEN IS FIXED: https://bugzilla.redhat.com/show_bug.cgi?id=1019378
 
-//    /**
-//     * Start simple failover test with client_ack on queues
-//     */
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testFailoverWithMdbsKill() throws Exception {
-//
-//        testFailWithMdbs(false);
-//    }
-//
-//    /**
-//     * Start simple failover test with client_ack on queues
-//     */
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest @RestoreConfigBeforeTest
-//    public void testFailoverWithMdbsShutdown() throws Exception {
-//
-//        testFailWithMdbs(true);
-//    }
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testFailoverWithMdbsKill() throws Exception {
+
+        testFailWithMdbs(false);
+    }
+
+    /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testFailoverWithMdbsShutdown() throws Exception {
+
+        testFailWithMdbs(true);
+    }
 
     public void testFailWithMdbs(boolean shutdown) throws Exception {
 
@@ -252,13 +250,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqBackupPort(CONTAINER1), 300000));
         Thread.sleep(10000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.start();
-
-        List<Client> listOfReceiverClientAckList = new ArrayList<Client>();
-        waitForReceiversUntil(listOfReceiverClientAckList, numberOfMessages - numberOfMessages/10, 300000);
-
         printQueueStatus(CONTAINER1, inQueueName);
         printQueueStatus(CONTAINER1, outQueueName);
 
@@ -270,6 +261,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("Second server started");
         logger.info("########################################");
 
+        Assert.assertTrue("Live server 2 is not up again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        waitForMessages(outQueueName, numberOfMessages, 300000, CONTAINER1, CONTAINER2);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 5000, 100, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
         receiver1.join();
 
         logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());

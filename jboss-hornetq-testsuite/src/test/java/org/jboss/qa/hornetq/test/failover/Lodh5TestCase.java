@@ -6,17 +6,20 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.HttpRequest;
+import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -28,9 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -43,14 +43,11 @@ import java.util.concurrent.TimeoutException;
 public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
-    // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 
     private static final String MDBTODB = "mdbToDb";
 
-    private static final String URL_JDBC_DRIVERS = "http://www.qa.jboss.com/jdbc-drivers-products/EAP";
 
     // queue to send messages
     static String inQueueHornetQName = "InQueue";
@@ -161,6 +158,8 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     public void testFail(String databaseName) throws Exception {
 
+        int numberOfMessages = 2000;
+
         prepareJmsServer(CONTAINER1, databaseName);
 
         controller.start(CONTAINER1);
@@ -169,7 +168,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         deleteRecords();
         countRecords();
 
-        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName, numberOfMessages);
 
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.setCommitAfter(1000);
@@ -182,7 +181,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         long howLongToWait = 360000;
         long startTime = System.currentTimeMillis();
 
-        while (countRecords() < NUMBER_OF_MESSAGES_PER_PRODUCER / 10 && (System.currentTimeMillis() - startTime) < howLongToWait) {
+        while (countRecords() < numberOfMessages / 10 && (System.currentTimeMillis() - startTime) < howLongToWait) {
             Thread.sleep(5000);
         }
 
@@ -200,7 +199,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         startTime = System.currentTimeMillis();
         long lastValue = 0;
         long newValue;
-        while ((newValue = countRecords()) < NUMBER_OF_MESSAGES_PER_PRODUCER && (newValue > lastValue
+        while ((newValue = countRecords()) < numberOfMessages && (newValue > lastValue
                 || (System.currentTimeMillis() - startTime) < howLongToWait)) {
             lastValue = newValue;
             Thread.sleep(5000);
@@ -216,7 +215,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         for (String m : lostMessages) {
             logger.info("Lost Message: " + m);
         }
-        Assert.assertEquals(NUMBER_OF_MESSAGES_PER_PRODUCER, countRecords());
+        Assert.assertEquals(numberOfMessages, countRecords());
 
         // check that there are no prepared transactions under this user
         int count = rollbackPreparedTransactions(databaseName, properties.get("db.username"));
@@ -255,81 +254,6 @@ public class Lodh5TestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
-
-    private String getEapVersion(String containerName) throws Exception {
-
-        File versionFile = new File(getJbossHome(containerName) + File.separator + "version.txt");
-
-        Scanner scanner = new Scanner(new FileInputStream(versionFile));
-        String eapVersion = scanner.nextLine();
-        logger.info("Print content of version file: " + eapVersion);
-
-        String pattern = "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
-        String justVersion = eapVersion.replaceAll(pattern, "$3").trim();
-
-        StringTokenizer str = new StringTokenizer(justVersion, ".");
-        String majorVersion = str.nextToken();
-        String minorVersion = str.nextToken();
-        String microVersion;
-
-        switch (Integer.valueOf(majorVersion)) {
-            case 5:
-                microVersion = str.nextToken();
-                break;
-            case 6:
-                switch (Integer.valueOf(minorVersion)) {
-                    case 0:
-                        microVersion = str.nextToken();
-                        break;
-                    case 1:
-                        microVersion = str.nextToken();
-                        if (Integer.valueOf(microVersion) > 1) {
-                            // for 6.1.2+, use driver for version 6.1.1
-                            microVersion = "1";
-                        }
-                        break;
-                    default:
-                        // for version 6.2.0+ always use driver for '0' micro version
-                        microVersion = "0";
-                        break;
-                }
-                break;
-            default:
-                throw new IllegalArgumentException(
-                        "Given container is not EAP5 or EAP6! It says its major version is " + majorVersion);
-        }
-
-        return majorVersion + "." + minorVersion + "." + microVersion;
-    }
-
-    private void allocateDatabase(String database) throws Exception {
-
-        String response = "";
-        String url = "http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
-                + database + "&expiry=60&requestee=eap6-hornetq-lodh5";
-        logger.info("Allocate db: " + url);
-        try {
-            response = HttpRequest.get(url, 20, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            throw new IllegalStateException("Error during allocating Database.", e);
-        }
-        logger.info("Response is: " + response);
-        // parse response
-        Scanner lines = new Scanner(response);
-        String line;
-        properties = new HashMap<String, String>();
-        while (lines.hasNextLine()) {
-            line = lines.nextLine();
-            logger.info("Print line: " + line);
-            if (!line.startsWith("#")) {
-                String[] property = line.split("=");
-                properties.put((property[0]), property[1].replaceAll("\\\\", ""));
-                logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
-            }
-        }
-
-    }
-
     /**
      * Deallocate db from db allocator if there is anything to deallocate
      *
@@ -346,6 +270,191 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         }
         logger.trace("Response from deallocating database is: " + response);
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction start",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "start",
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillOnTransactionStart() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction start",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "start",
+            isAfter = true,
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillAfterTransactionStart() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction end",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "end",
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillOnTransactionEnd() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction end",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "end",
+            isAfter = true,
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillAfterTransactionEnd() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction prepare",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "prepare",
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillOnTransactionPrepare() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction prepare",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "prepare",
+            isAfter = true,
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    public void testServerKillAfterTransactionPrepare() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction commit",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "commit",
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    /*@BMRule(name = "server kill on transaction commit",
+     targetClass = "com.arjuna.ats.arjuna.coordinator.BasicAction",
+     targetMethod = "phase2Commit",
+     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")*/
+    public void testServerKillOnTransactionCommit() throws Exception {
+        this.testFail();
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "server kill on transaction commit",
+            targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+            targetMethod = "commit",
+            isAfter = true,
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    //targetClass = "org.hornetq.core.client.impl.ClientSessionImpl",
+    public void testServerKillAfterTransactionCommit() throws Exception {
+        this.testFail();
+    }
+
+
+    public void testFail() throws Exception {
+
+        int numberOfMessages = 15;
+
+        try {
+            logger.info("!!!!! preparing server !!!!!");
+
+            prepareJmsServer(CONTAINER1, "mysql55");
+
+            controller.start(CONTAINER1);
+
+            logger.info("!!!!! deleting data in DB !!!!!");
+            deleteRecords();
+            countRecords();
+
+            logger.info("!!!!! sending messages !!!!!");
+            ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName,
+                    numberOfMessages);
+
+            producer.setMessageBuilder(new InfoMessageBuilder());
+            producer.start();
+            producer.join();
+
+            logger.info("!!!!! installing byteman rules !!!!!");
+            //HornetQCallsTracking.installTrackingRules(CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
+
+            logger.info("!!!!! deploying MDB !!!!!");
+            try {
+                this.deployer.deploy("mdbToDb");
+            } catch (Exception e) {
+                // byteman might kill the server before control returns back here from deploy method, which results
+                // in arquillian exception; it's safe to ignore, everything is deployed and running correctly on the server
+                logger.debug("Arquillian got an exception while deploying", e);
+            }
+
+            controller.kill(CONTAINER1);
+//            PrintJournal.printJournal(CTRACEONTAINER1, "journal_content_after_kill1.txt");
+            logger.info("!!!!! starting server again !!!!!");
+            controller.start(CONTAINER1);
+//            PrintJournal.printJournal(CONTAINER1, "journal_content_after_restart2.txt");
+            Thread.sleep(10000);
+
+            // 5 min
+            logger.info("!!!!! waiting for MDB !!!!!");
+            long howLongToWait = 300000;
+            long startTime = System.currentTimeMillis();
+            while (countRecords() < numberOfMessages && (System.currentTimeMillis() - startTime)
+                    < howLongToWait) {
+                Thread.sleep(10000);
+            }
+//        PrintJournal.printJournal(CONTAINER1, "journal_content_before_shutdown3.txt");
+
+            logger.info("Print lost messages:");
+            List<String> listOfSentMessages = new ArrayList<String>();
+            for (Map<String, String> m : producer.getListOfSentMessages()) {
+                listOfSentMessages.add(m.get("messageId"));
+            }
+            List<String> lostMessages = checkLostMessages(listOfSentMessages, printAll());
+            for (String m : lostMessages) {
+                logger.info("Lost Message: " + m);
+            }
+            Assert.assertEquals(numberOfMessages, countRecords());
+        } finally {
+            deployer.undeploy("mdbToDb");
+            stopServer(CONTAINER1);
+//        PrintJournal.printJournal(CONTAINER1, "journal_content_after_shutdown4.txt");
+        }
+
     }
 
 
@@ -831,44 +940,33 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
     }
 
-    /**
-     * Download jdbc driver from svn jdbc repository to deployments directory.
-     *
-     * @param eapVersion 6.2.0
-     * @param database   oracle12c,mssql2012
-     * @throws Exception if anything goes wrong
-     */
-    public static String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
 
-        URL metaInfUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4//meta-inf.txt"));
+    public void allocateDatabase(String database) throws Exception {
 
-        logger.info("Print mete-inf url: " + metaInfUrl);
-
-        ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
-        File targetDirDeployments = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
-                + "deployments" + File.separator + "meta-inf.txt");
-
-        FileOutputStream fos = new FileOutputStream(targetDirDeployments);
-        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-
-
-        Scanner scanner = new Scanner(new FileInputStream(targetDirDeployments));
-        String jdbcFileName = scanner.nextLine();
-        logger.info("Print jdbc file name: " + jdbcFileName);
-
-        URL jdbcUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4/" + jdbcFileName));
-        ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
-        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
-                + "deployments" + File.separator + jdbcFileName);
-        FileOutputStream fos2 = new FileOutputStream(targetDirDeploymentsForJdbc);
-        fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);
-
-        fos.close();
-        fos2.close();
-        rbc.close();
-        rbc2.close();
-
-        return jdbcFileName;
+        String response = "";
+        String url = "http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
+                + database + "&expiry=60&requestee=eap6-hornetq-lodh5";
+        logger.info("Allocate db: " + url);
+        try {
+            response = HttpRequest.get(url, 20, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            throw new IllegalStateException("Error during allocating Database.", e);
+        }
+        logger.info("Response is: " + response);
+        // parse response
+        Scanner lines = new Scanner(response);
+        String line;
+        properties = new HashMap<String, String>();
+        while (lines.hasNextLine()) {
+            line = lines.nextLine();
+            logger.info("Print line: " + line);
+            if (!line.startsWith("#")) {
+                String[] property = line.split("=");
+                properties.put((property[0]), property[1].replaceAll("\\\\", ""));
+                logger.info("Add property: " + property[0] + " " + property[1].replaceAll("\\\\", ""));
+            }
+        }
 
     }
+
 }
