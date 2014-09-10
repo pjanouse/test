@@ -1367,7 +1367,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    private void addMessageGrouping(String containerName, String name, String type, String address, long timeout) {
+    private void    addMessageGrouping(String containerName, String name, String type, String address, long timeout) {
 
         controller.start(containerName);
 
