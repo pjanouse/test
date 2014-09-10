@@ -393,7 +393,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             logger.info("!!!!! preparing server !!!!!");
 
-            prepareJmsServer(CONTAINER1, "mysql55");
+            prepareJmsServer(CONTAINER1, POSTGRESQLPLUS92);
 
             controller.start(CONTAINER1);
 
