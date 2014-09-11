@@ -647,10 +647,12 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
+        String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
+
         Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
-                new File(journalFile1), stringToFind));
+                new File(workingDirectory, journalFile1), stringToFind));
         Assert.assertFalse("There are unfinished HornetQ transactions in node-3. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
-                new File(journalFile3), stringToFind));
+                new File(workingDirectory, journalFile3), stringToFind));
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER3);

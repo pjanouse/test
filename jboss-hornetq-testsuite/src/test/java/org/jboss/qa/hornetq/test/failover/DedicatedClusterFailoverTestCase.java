@@ -4,34 +4,35 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
-import java.io.File;
 
 /**
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+// TODO fix and run this test - consumer first node, producer 3rd node
+@Ignore
 public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedClusterFailoverTestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
-    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
-    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 2;
+    private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
+    private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     private static final int BYTEMAN_PORT = 9091;
     static boolean topologyCreated = false;
     String queueNamePrefix = "testQueue";
@@ -82,32 +83,41 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareDedicatedTopologyInCluster();
 
+        controller.start(CONTAINER3);
         controller.start(CONTAINER2);
-
         controller.start(CONTAINER1);
 
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
 
         Clients clients = createClients(acknowledge, topic);
 
         clients.startClients();
 
+        waitForReceiversUntil(clients.getConsumers(), 50, 60000);
+
         controller.kill(CONTAINER1);
 
-        Thread.sleep(10000); // give some time to clients to failover
+        // wait for backup to wake up
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
+
+        waitForReceiversUntil(clients.getConsumers(), 300, 60000);
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             controller.start(CONTAINER1);
-            Thread.sleep(10000); // give it some time 
-            logger.info("########################################");
-            logger.info("failback - Stop backup server");
-            logger.info("########################################");
-            stopServer(CONTAINER2);
-            Thread.sleep(5000); // give some time to clients to do failback
+            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
+            waitForReceiversUntil(clients.getConsumers(), 500, 60000);
+//            logger.info("########################################");
+//            logger.info("failback - Stop backup server");
+//            logger.info("########################################");
+//            stopServer(CONTAINER2);
+//            Thread.sleep(5000); // give some time to clients to do failback
+
+            // check that backup is dead
+            Assert.assertFalse("Backup should deactivate after failback.", checkThatServerIsReallyUp(getHostname(CONTAINER2), getHornetqPort(CONTAINER2)));
         }
 
         clients.stopClients();
@@ -119,30 +129,24 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
         stopServer(CONTAINER1);
-
         stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
 
     }
 
+    @After
+    public void stopServers() {
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+    }
+
     public void prepareDedicatedTopologyInCluster() {
-        if (!topologyCreated) {
-            prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
 
-            prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
-            controller.start(CONTAINER2);
-            deployDestinations(CONTAINER2);
-            stopServer(CONTAINER2);
+        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2, JOURNAL_DIRECTORY_A);
 
-
-            prepareLiveServer(CONTAINER3, getHostname(CONTAINER3), JOURNAL_DIRECTORY_B);
-            controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3);
-            stopServer(CONTAINER3);
-            topologyCreated = true;
-        }
+        prepareLiveServer(CONTAINER3, JOURNAL_DIRECTORY_B);
     }
 
     /**
@@ -183,15 +187,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         return clients;
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    public void testFailoverAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false);
-    }
 
     /**
      * Start simple failover test with client_ack on queues
@@ -214,15 +209,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
 
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    public void testFailbackAutoAckQueue() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true);
-    }
 
     /**
      * Start simple failover test with client_ack on queues
@@ -242,16 +228,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
-    }
-
-    /**
-     * Start simple failover test with auto_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    public void testFailoverAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, false, true);
     }
 
     /**
@@ -275,16 +251,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with auto acknowledge on queues
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    public void testFailbackAutoAckTopic() throws Exception {
-        testFailover(Session.AUTO_ACKNOWLEDGE, true, true);
-    }
-
-    /**
      * Start simple failback test with client acknowledge on queues
      */
     @Test
@@ -305,33 +271,12 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Be sure that both of the servers are stopped before and after the test.
-     * Delete also the journal directory.
-     *
-     * @throws Exception
-     */
-    @Before
-    @After
-    public void stopAllServers() {
-
-        stopServer(CONTAINER1);
-
-        stopServer(CONTAINER2);
-
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
-
-        deleteFolder(new File(JOURNAL_DIRECTORY_B));
-
-    }
-
-    /**
      * Prepares live server for dedicated topology.
      *
      * @param containerName    Name of the container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    private void prepareLiveServer(String containerName, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -344,9 +289,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -376,6 +318,15 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+        }
+
         controller.stop(containerName);
 
     }
@@ -385,7 +336,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    private void prepareBackupServer(String containerName, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -396,10 +347,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(containerName);
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setJmxDomainName("org.hornetq.backup");
         jmsAdminOperations.setBackup(true);
@@ -435,35 +382,15 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
-        controller.stop(containerName);
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName
-     */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName
-     * @param serverName server name of the hornetq server
-     */
-    private void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
         }
 
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
-        jmsAdminOperations.close();
+
+        controller.stop(containerName);
     }
+
 }

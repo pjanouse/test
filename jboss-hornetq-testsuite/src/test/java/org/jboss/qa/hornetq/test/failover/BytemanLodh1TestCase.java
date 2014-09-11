@@ -8,8 +8,8 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
@@ -31,7 +31,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -300,7 +299,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
-        List<String> receivedMessages = new LinkedList<String>();
 
 //        this.controller.start(CONTAINER1);
 //        this.updateServerSettings();
@@ -326,24 +324,30 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         // try to stop server in case the kill didn't work out for any reason, otherwise the test fails
         // and breaks all following tests from the test suite
-        this.stopAllServers();
         this.controller.kill(CONTAINER1);
 
-        // try to read out any possible messages
-        // depending on a specific point of server kill, there might be already some messages in OutQueue
-        logger.info("Reading messages from OutQueue");
-        List<String> beforeCrash = this.readMessages();
-        receivedMessages.addAll(beforeCrash);
-        logger.info("Consumed " + beforeCrash.size() + " messages in first pass");
+//        // try to read out any possible messages
+//        // depending on a specific point of server kill, there might be already some messages in OutQueue
+//        logger.info("Reading messages from OutQueue");
+//        List<String> beforeCrash = this.readMessages();
+//        receivedMessages.addAll(beforeCrash);
+//        logger.info("Consumed " + beforeCrash.size() + " messages in first pass");
+//
+//        this.controller.stop(CONTAINER1);
+//        this.controller.start(CONTAINER1);
 
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+//        logger.info("!!!!! SECOND PASS !!!!!");
+//        logger.info("Reading messages from OutQueue");
+//        List<String> afterCrash = this.readMessages();
+//        receivedMessages.addAll(afterCrash);
+//        logger.info("Consumed " + afterCrash.size() + " messages in second pass");
 
-        logger.info("!!!!! SECOND PASS !!!!!");
-        logger.info("Reading messages from OutQueue");
-        List<String> afterCrash = this.readMessages();
-        receivedMessages.addAll(afterCrash);
-        logger.info("Consumed " + afterCrash.size() + " messages in second pass");
+        controller.start(CONTAINER1);
+
+        waitForMessages(IN_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+
+        List<java.util.Map<String, String>> receivedMessages = readMessages();
+
         this.controller.stop(CONTAINER1);
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
@@ -365,12 +369,12 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     }
 
 
-    private List<String> readMessages() throws Exception {
-        SoakReceiverClientAck receiver = null;
+    private List<java.util.Map<String, String>> readMessages() throws Exception {
+        ReceiverTransAck receiver = null;
         logger.info("Start receiver.");
 
         try {
-            receiver = new SoakReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 300000, 10, 10);
+            receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 300000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();

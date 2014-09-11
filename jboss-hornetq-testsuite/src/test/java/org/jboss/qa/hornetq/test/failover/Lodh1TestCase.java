@@ -283,7 +283,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RunAsClient
     public void testAllTransactionsFinishedAfterCleanShutdown() throws Exception {
 
-        int numberOfMessages = 300;
+        int numberOfMessages = 2000;
 
         prepareJmsServer(CONTAINER1);
         prepareJmsServer(CONTAINER2);
@@ -307,11 +307,15 @@ public class Lodh1TestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
         String journalFile1 = CONTAINER1 + "-journal_content_after_shutdown.txt";
+
+        // this create file in $WORKSPACE or working direcotry - depends whether it's defined
         PrintJournal.printJournal(CONTAINER1, journalFile1);
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
+
+        String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
         Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
-                new File(journalFile1), stringToFind));
+                new File(workingDirectory,journalFile1), stringToFind));
 
         // copy tx-objectStore to container 2 and check there are no unfinished arjuna transactions
         copyDirectory(new File(getJbossHome(CONTAINER1), "standalone" + File.separator + "data" + File.separator + "tx-object-store"),
