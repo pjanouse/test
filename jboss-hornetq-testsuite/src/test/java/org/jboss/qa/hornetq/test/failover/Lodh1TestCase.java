@@ -283,7 +283,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RunAsClient
     public void testAllTransactionsFinishedAfterCleanShutdown() throws Exception {
 
-        int numberOfMessages = 300;
+        int numberOfMessages = 2000;
 
         prepareJmsServer(CONTAINER1);
         prepareJmsServer(CONTAINER2);
@@ -307,6 +307,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
         String journalFile1 = CONTAINER1 + "-journal_content_after_shutdown.txt";
+
         // this create file in $WORKSPACE or working direcotry - depends whether it's defined
         PrintJournal.printJournal(CONTAINER1, journalFile1);
         // check that there are failed transactions
