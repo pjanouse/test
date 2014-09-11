@@ -699,7 +699,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
             int cont1Count = 0, cont2Count = 0;
             ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1,300);
-            responsiveProducer.setUseLargeMessage(true);
+            responsiveProducer.setMessageBuilder(new TextMessageBuilder(110*1024));
             responsiveProducer.start();
             responsiveProducer.join();
 
@@ -730,10 +730,11 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
+
+//   // @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception{
         prepareServer(CONTAINER1,true);
         prepareServer(CONTAINER2,true);
@@ -745,7 +746,8 @@ public class ClusterTestCase extends HornetQTestCase {
         //setup security
         jmsAdminOperations1.setSecurityEnabled(true);
         jmsAdminOperations2.setSecurityEnabled(true);
-
+        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms/queue/OutQueue", 5000);
+        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms/queue/OutQueue", 5000);
 
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
@@ -764,6 +766,7 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
         controller.kill(CONTAINER2);
         controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
 
         //setup producers and receivers
@@ -780,11 +783,12 @@ public class ClusterTestCase extends HornetQTestCase {
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
         ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
-        producerBlueG1.start();
-        producerRedG1.start();
-        producerRedG2.start();
         receiver1.start();
         receiver2.start();
+      //  producerBlueG1.start();
+        producerRedG1.start();
+        producerRedG2.start();
+        Thread.sleep(2000);
 
         producerBlueG1.join();
         producerRedG1.join();
@@ -818,10 +822,10 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
+//    @Test
+//    @RunAsClient
+//    @CleanUpBeforeTest
+//    @RestoreConfigBeforeTest
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception{
         prepareServer(CONTAINER1,true);
         prepareServer(CONTAINER2,true);
