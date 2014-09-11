@@ -58,16 +58,16 @@ public class PrepareServers {
 
     }
 
-    public void printProperties()   {
-        println "eapZipUrl = " +  eapZipUrl
+    public void printProperties() {
+        println "eapZipUrl = " + eapZipUrl
         println "patchVersion = " + patchVersion
-        println "eapVersion = " +  eapVersion
-        println "nativesUrl = " +  nativesUrl
+        println "eapVersion = " + eapVersion
+        println "nativesUrl = " + nativesUrl
         println "configurationDirUrl = " + configurationDirUrl
 
-        println "eapZipUrlOld  = " +  eapZipUrlOld
-        println "eapVersionOld = " +  eapVersionOld
-        println "nativesUrlOld = " +  nativesUrlOld
+        println "eapZipUrlOld  = " + eapZipUrlOld
+        println "eapVersionOld = " + eapVersionOld
+        println "nativesUrlOld = " + nativesUrlOld
         println "configurationDirUrlOld = " + configurationDirUrlOld
     }
 
@@ -138,15 +138,21 @@ public class PrepareServers {
 
         // download native zip to jboss-eap-native.zip //////////////
         if (new Platform().isRHEL()) {
-            if (nativesUrl == null || nativesUrl == '') { // get zip from eapZipUrl
-                downloadNativeZipBasedOnEapZipUrl(eapZipUrl)
-            } else if (nativesUrl.endsWith('.zip')) {     // else if zip then download it
-                downloadFile(nativesUrl, downloadedNativeZipFileName)
-            } else { //else if it's directory then get platform and download the correct zip     todo
-                throw new UnsupportedOperationException("natives url cannot be a directory, this was not yet implemented")
+            try {
+                if (nativesUrl == null || nativesUrl == '') { // get zip from eapZipUrl
+                    downloadNativeZipBasedOnEapZipUrl(eapZipUrl)
+                } else if (nativesUrl.endsWith('.zip')) {     // else if zip then download it
+                    downloadFile(nativesUrl, downloadedNativeZipFileName)
+                } else { //else if it's directory then get platform and download the correct zip     todo
+                    throw new UnsupportedOperationException("natives url cannot be a directory, this was not yet implemented")
+                }
+                // unzip jboss-eap-native.zip over jboss-eap
+                unzip(downloadedNativeZipFileName, whereToUnzipNativeDirName)
+            } catch (Exception ex) {
+                println "############################################ WARNING ############################################";
+                println "Natives could not be found/downloaded and will NOT be installed.";
+                println "########################################################################################";
             }
-            // unzip jboss-eap-native.zip over jboss-eap
-            unzip(downloadedNativeZipFileName, whereToUnzipNativeDirName)
         }
         ///////////////////////////////////////////////////////
 
@@ -224,7 +230,7 @@ public class PrepareServers {
             downloadFile(baseDir + "natives" + "/" + nativeFileName, downloadedNativeZipFileName)
         } catch (FileNotFoundException ex) {
             ex.printStackTrace()
-            println("Try native instead of natives.")
+            println("Trying native instead of natives.")
             downloadFile(baseDir + "native" + "/" + nativeFileName, downloadedNativeZipFileName)
         }
 
