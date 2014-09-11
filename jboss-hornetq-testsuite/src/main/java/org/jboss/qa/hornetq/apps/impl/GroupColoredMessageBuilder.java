@@ -15,17 +15,28 @@ public class GroupColoredMessageBuilder implements MessageBuilder {
 
     private String groupMessageId = "DefaultGroupMessageId";
     private String color = "RED";
-
+    private boolean largeMessages=false;
     private boolean addDuplicatedHeader = true;
 
     public GroupColoredMessageBuilder(String groupMessageId, String color) {
         this.groupMessageId = groupMessageId;
         this.color= color;
     }
+    public GroupColoredMessageBuilder(String groupMessageId, String color,boolean largeMessages) {
+        this(groupMessageId,color);
+        this.largeMessages=largeMessages;
+    }
 
     @Override
     public Message createMessage(Session session) throws Exception {
-        Message m = session.createTextMessage("message");
+        Message m=null;
+        if(largeMessages){
+           String s= new String(new char[110*1024]);
+            m = session.createTextMessage(s);
+        }else{
+           m = session.createTextMessage("message");
+        }
+
         m.setStringProperty("JMSXGroupID", groupMessageId);
         m.setStringProperty("color", color);
 

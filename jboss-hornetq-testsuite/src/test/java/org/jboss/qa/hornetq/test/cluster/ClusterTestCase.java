@@ -699,7 +699,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
             int cont1Count = 0, cont2Count = 0;
             ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1,300);
-            responsiveProducer.setUseLargeMessage(true);
+            responsiveProducer.setMessageBuilder(new TextMessageBuilder(110*1024));
             responsiveProducer.start();
             responsiveProducer.join();
 
@@ -764,6 +764,7 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
         controller.kill(CONTAINER2);
         controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
 
         //setup producers and receivers

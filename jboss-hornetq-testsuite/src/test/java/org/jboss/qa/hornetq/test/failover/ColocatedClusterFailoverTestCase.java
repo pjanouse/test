@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
@@ -373,13 +374,70 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
+
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testGroupingFailoverNodeOneDown() throws Exception{
+    public  void testGroupingFailoverNodeOneDown() throws Exception{
+        testGroupingFailover(CONTAINER1, false,true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeOneDownLM() throws Exception{
+        testGroupingFailover(CONTAINER1, true,true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeOneDownSd() throws Exception{
+        testGroupingFailover(CONTAINER1, false, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeOneDownSdLM() throws Exception{
+        testGroupingFailover(CONTAINER1, true,false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeTwoDown() throws Exception{
+        testGroupingFailover(CONTAINER2, false,true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeTwoDownLM() throws Exception{
+        testGroupingFailover(CONTAINER2, true,true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeTwoDownSd() throws Exception{
+        testGroupingFailover(CONTAINER2, false,false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public  void testGroupingFailoverNodeTwoDownSdLM() throws Exception{
+        testGroupingFailover(CONTAINER2, true,false);
+    }
+
+
+
+
+    public void testGroupingFailover(String containerToKill, boolean largeMessages, boolean useKill) throws Exception{
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = 5000;
+        long timeout = 50000;
         String backupServerName="backup";
         int number_of_messages=200;
         prepareColocatedTopologyInCluster();
@@ -397,61 +455,33 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
+        GroupMessageVerifier messageVerifier= new GroupMessageVerifier();
+
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, number_of_messages);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
+        if(largeMessages){
+            producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED",true));
+        }else {
+            producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
+        }
+        producerRedG1.setMessageVerifier(messageVerifier);
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueue, 20000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         producerRedG1.start();
         Thread.sleep(8000);
-        killServer(CONTAINER1);
-        controller.kill(CONTAINER1);
+        if(useKill){
+            killServer(containerToKill);
+        }else{
+            stopServer(containerToKill);
+        }
         producerRedG1.join();
         receiver1.join();
-
+        messageVerifier.verifyMessages();
         Assert.assertEquals("Number of sent messages does not match", number_of_messages, producerRedG1.getListOfSentMessages().size());
         Assert.assertEquals("Number of received messages does not match", producerRedG1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         stopAllServers();
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testGroupingFailoverNodeTwoDown() throws Exception{
-        String name = "my-grouping-handler";
-        String address = "jms";
-        long timeout = 5000;
-        String backupServerName="backup";
-        int number_of_messages=200;
-        prepareColocatedTopologyInCluster();
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
-        JMSOperations jmsAdminOperationsC1= this.getJMSOperations(CONTAINER1);
-        JMSOperations jmsAdminOperationsC2= this.getJMSOperations(CONTAINER2);
-
-
-        jmsAdminOperationsC1.addMessageGrouping(name, "LOCAL", address, timeout);
-        jmsAdminOperationsC1.addMessageGrouping(backupServerName,name, "REMOTE", address, timeout);
-        jmsAdminOperationsC2.addMessageGrouping(name, "REMOTE", address,timeout);
-        jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
-        ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, number_of_messages);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueue, 20000, 10, 10);
-        receiver1.start();
-        producerRedG1.start();
-        Thread.sleep(8000);
-        killServer(CONTAINER2);
-        controller.kill(CONTAINER2);
-        producerRedG1.join();
-        receiver1.join();
-
-        Assert.assertEquals("Number of sent messages does not match", number_of_messages, producerRedG1.getListOfSentMessages().size());
-        Assert.assertEquals("Number of received messages does not match", producerRedG1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-        stopAllServers();
-    }
 
     public void printQueueStatus(String containerName, String queueCoreName) {
 
