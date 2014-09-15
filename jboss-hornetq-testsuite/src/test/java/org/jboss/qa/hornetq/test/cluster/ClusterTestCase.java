@@ -32,7 +32,12 @@ import javax.jms.Queue;
 import javax.naming.Context;
 import java.io.File;
 import java.util.*;
-
+//TODO
+//ClusterTestCase
+//        - clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly
+//        - clusterTestWithMdbOnTopicDeployAndUndeployTwoServers
+//        - clusterTestWithMdbOnTopicCombinedDeployAndUndeployTwoServers
+//        - clusterTestWithMdbWithSelectorAndSecurityTwoServers
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
  * export MYTESTIP_1=$MYTESTIPV6_1
@@ -1169,7 +1174,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = -1;
+        long timeout = 5000;
 
         // set local grouping-handler on 1st node
         addMessageGrouping(CONTAINER1, name, "LOCAL", address, timeout);
@@ -1181,7 +1186,7 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
 
         // try to read them from second node
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 10000, 100, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 30000, 100, 10);
         receiver.start();
 
         log.info("Send messages to first server.");
@@ -1193,6 +1198,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         // kill both of the servers
         killServer(CONTAINER1);
+        controller.kill(CONTAINER1);
 
         // start 1st server
         controller.start(CONTAINER1);
@@ -1204,8 +1210,8 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver.join();
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
-        Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 3 * NUMBER_OF_MESSAGES_PER_PRODUCER
-                        + " received but it's : " + receiver.getListOfReceivedMessages().size(), 3 * NUMBER_OF_MESSAGES_PER_PRODUCER,
+        Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 4 * NUMBER_OF_MESSAGES_PER_PRODUCER
+                        + " received but it's : " + receiver.getListOfReceivedMessages().size(), 4 * NUMBER_OF_MESSAGES_PER_PRODUCER,
                 receiver.getListOfReceivedMessages().size()
         );
 

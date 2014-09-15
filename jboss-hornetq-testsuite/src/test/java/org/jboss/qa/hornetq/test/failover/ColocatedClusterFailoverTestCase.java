@@ -207,7 +207,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
         waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
 
-        int numberOfMessages = 6000;
+        int numberOfMessages = 2000;
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, numberOfMessages);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -221,23 +221,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         deployer.deploy("mdb2");
         deployer.deploy("mdb1");
 
-        JMSOperations jmsOperations1 = getJMSOperations(CONTAINER1);
-        JMSOperations jmsOperations2 = getJMSOperations(CONTAINER2);
-        long startTime = System.currentTimeMillis();
-        long timeout = 300000;
-        double numberOfMessagesForFailover = numberOfMessages * 0.7;
-
-        while (jmsOperations1.getCountOfMessagesOnQueue(inQueueName) + jmsOperations2.getCountOfMessagesOnQueue(inQueueName) > numberOfMessagesForFailover
-                && System.currentTimeMillis() - startTime < timeout) {
-            logger.info("Waiting for mdbs to process: " + numberOfMessagesForFailover + " from InQueue.");
-        }
-        jmsOperations1.close();
-        jmsOperations2.close();
-
-        printQueueStatus(CONTAINER1, inQueueName);
-        printQueueStatus(CONTAINER1, outQueueName);
-        printQueueStatus(CONTAINER2, inQueueName);
-        printQueueStatus(CONTAINER1, outQueueName);
+        // when 1/3 is processed then kill/shut down 2nd server
+        waitForMessages(outQueueName, numberOfMessages/10, 300000, CONTAINER1, CONTAINER2);
 
         logger.info("########################################");
         logger.info("kill - second server");
@@ -250,11 +235,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             controller.kill(CONTAINER2);
         }
 
+        // when 1/2 is processed then start 2nd server
+        waitForMessages(outQueueName, numberOfMessages/2, 300000, CONTAINER1);
+
         Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqBackupPort(CONTAINER1), 300000));
         Thread.sleep(10000);
-
-        printQueueStatus(CONTAINER1, inQueueName);
-        printQueueStatus(CONTAINER1, outQueueName);
 
         logger.info("########################################");
         logger.info("Start again - second server");
@@ -814,8 +799,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
-        // set security persmissions for roles admin,users - user is already there
+        // enable debugging
+//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
+        // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
@@ -860,7 +848,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT;
         String messagingGroupSocketBindingName = "messaging-group";
 
-
         controller.start(containerName);
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
@@ -892,6 +879,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        // enable debugging
+//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // set security persmissions for roles guest
         jmsAdminOperations.addSecuritySetting(backupServerName, "#");
