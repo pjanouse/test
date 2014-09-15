@@ -2744,7 +2744,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setAuthenticationForNullUsers(boolean b) {
-        logger.info("This operation is not supoprted - setAuthenticationForNullUsers");
+        logger.warn("This operation is not supoprted - setAuthenticationForNullUsers");
         // TODO IMPLEMENT IT
     }
 

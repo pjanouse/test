@@ -6,15 +6,18 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -158,19 +161,28 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
 
-        stopServer(CONTAINER1);
+        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-users.properties");
+        copyFile(applicationUsersModified, applicationUsersOriginal);
 
-        controller.start(CONTAINER1);
+        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-roles.properties");
+        copyFile(applicationRolesModified, applicationRolesOriginal);
+
+//        stopServer(CONTAINER1);
+//
+//        controller.start(CONTAINER1);
         String connectionFactoryName = "hornetq-ra";
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
-        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
-        jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+        jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
+        jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
         jmsAdminOperations.close();
         stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
         logger.info("Deploy MDBs.");
-        for (int j = 0; j < 22; j++) {
+        for (int j = 2; j < 22; j++) {
             deployer.deploy("mdb" + j);
         }
 
@@ -199,7 +211,10 @@ public class Lodh1TestCase extends HornetQTestCase {
                 receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
-        deployer.undeploy(MDB_NAME);
+        logger.info("Undeploy MDBs.");
+        for (int j = 2; j < 22; j++) {
+            deployer.undeploy("mdb" + j);
+        }
         stopServer(CONTAINER1);
 
     }
@@ -498,7 +513,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh2");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -521,7 +536,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh3");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -544,7 +559,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh4");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -568,7 +583,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh6");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -592,7 +607,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh7");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -616,7 +631,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh8");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -640,7 +655,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh9");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -664,7 +679,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh10");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -688,7 +703,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh12");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -712,7 +727,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh5");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -736,7 +751,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh13");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -760,7 +775,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh14");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -784,7 +799,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh15");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -808,7 +823,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh16");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -832,7 +847,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh17");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -856,7 +871,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh18");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -880,7 +895,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh19");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -904,7 +919,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh20");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -928,7 +943,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh21");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -952,7 +967,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh0");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
@@ -976,7 +991,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh11");
 
-        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(LocalMdbFromQueueWithSecurity.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 

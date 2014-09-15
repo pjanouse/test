@@ -23,6 +23,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -451,6 +452,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
@@ -477,6 +479,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void clusterTestWithMdbOnTopicDeployAndUndeployTwoServers() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServer(CONTAINER1, false);
@@ -510,6 +513,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void clusterTestWithMdbOnTopicCombinedDeployAndUndeployTwoServers() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServer(CONTAINER1, true);
@@ -568,11 +572,11 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestPagingAfterFailOverTempQueue() throws Exception {
         prepareServers(true);
         controller.start(CONTAINER1);
-        String pagingPath=null;
+        String pagingPath = null;
         int counter = 0;
         ArrayList<File> pagingFilesPath = new ArrayList<File>();
         JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
-        pagingPath=jmsAdminOperations.getPagingDirectoryPath();
+        pagingPath = jmsAdminOperations.getPagingDirectoryPath();
         Context context = getContext(CONTAINER1);
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
         Connection connection = cf.createConnection();
@@ -588,9 +592,9 @@ public class ClusterTestCase extends HornetQTestCase {
         killServer(CONTAINER1);
         controller.kill(CONTAINER1);
         controller.start(CONTAINER1);
-      //  Thread.sleep(80000);
-        for(File f: getAllPagingFiles(pagingPath)){
-            log.error("FILE: "+f.getName());
+        //  Thread.sleep(80000);
+        for (File f : getAllPagingFiles(pagingPath)) {
+            log.error("FILE: " + f.getName());
         }
         Assert.assertEquals("Too many paging files was found", 0, getAllPagingFiles(pagingPath).size());
         stopAllServers();
@@ -605,12 +609,12 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestPagingAfterFailOverNonDurableQueue() throws Exception {
         prepareServer(CONTAINER1, false);
         controller.start(CONTAINER1);
-        String pagingPath=null;
+        String pagingPath = null;
         int counter = 0;
         ArrayList<File> pagingFilesPath = new ArrayList<File>();
         JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
         jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, false);
-        pagingPath=jmsAdminOperations.getPagingDirectoryPath();
+        pagingPath = jmsAdminOperations.getPagingDirectoryPath();
         Context context = getContext(CONTAINER1);
         Queue inqueue = (Queue) context.lookup(inQueueJndiNameForMdb);
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
@@ -623,7 +627,7 @@ public class ClusterTestCase extends HornetQTestCase {
             producer.send(message);
         }
 
-        Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size()==0);
+        Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size() == 0);
         killServer(CONTAINER1);
         controller.kill(CONTAINER1);
         controller.start(CONTAINER1);
@@ -674,17 +678,15 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
-            int cont1Count = 0, cont2Count = 0;
-            ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1, 300);
-            responsiveProducer.start();
-            responsiveProducer.join();
+        int cont1Count = 0, cont2Count = 0;
+        ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1, 300);
+        responsiveProducer.start();
+        responsiveProducer.join();
 
-            Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
-
-
+        Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
 
 
-            stopAllServers();
+        stopAllServers();
 
     }
 
@@ -697,17 +699,16 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
-            int cont1Count = 0, cont2Count = 0;
-            ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1,300);
-            responsiveProducer.setMessageBuilder(new TextMessageBuilder(110*1024));
-            responsiveProducer.start();
-            responsiveProducer.join();
+        int cont1Count = 0, cont2Count = 0;
+        ProducerResp responsiveProducer = new ProducerResp(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, 1, 300);
+        responsiveProducer.setMessageBuilder(new TextMessageBuilder(110 * 1024));
+        responsiveProducer.start();
+        responsiveProducer.join();
 
-            Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
+        Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());
 
 
-
-            stopAllServers();
+        stopAllServers();
 
     }
 
@@ -715,8 +716,8 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWithMdbHqXmlOnQueueRedeploy() throws Exception{
-        prepareServer(CONTAINER1,false);
+    public void clusterTestWithMdbHqXmlOnQueueRedeploy() throws Exception {
+        prepareServer(CONTAINER1, false);
         controller.start(CONTAINER1);
         deployer.deploy(MDB_ON_TEMPQUEUE1);
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -735,9 +736,10 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception{
-        prepareServer(CONTAINER1,true);
-        prepareServer(CONTAINER2,true);
+    @Ignore
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception {
+        prepareServer(CONTAINER1, true);
+        prepareServer(CONTAINER2, true);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
         JMSOperations jmsAdminOperations1 = getJMSOperations(CONTAINER1);
@@ -750,11 +752,11 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
 
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
         AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
 
 
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
@@ -784,8 +786,8 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver1.start();
         receiver2.start();
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
-
         Thread.sleep(2000);
+        //  producerBlueG1.start();
         producerRedG1.start();
         producerRedG2.start();
         //  producerBlueG1.start();
@@ -798,20 +800,20 @@ public class ClusterTestCase extends HornetQTestCase {
 
         Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
-        ArrayList<String>receiver1GroupiIDs= new ArrayList<String>();
-        ArrayList<String>receiver2GroupiIDs= new ArrayList<String>();
-        for(Map<String, String> m: receiver1.getListOfReceivedMessages()){
-            if(m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))){
+        ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
+        ArrayList<String> receiver2GroupiIDs = new ArrayList<String>();
+        for (Map<String, String> m : receiver1.getListOfReceivedMessages()) {
+            if (m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))) {
                 receiver1GroupiIDs.add(m.get("JMSXGroupID"));
             }
         }
-        for(Map<String, String> m: receiver2.getListOfReceivedMessages()){
-            if(m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))){
+        for (Map<String, String> m : receiver2.getListOfReceivedMessages()) {
+            if (m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))) {
                 receiver2GroupiIDs.add(m.get("JMSXGroupID"));
             }
         }
-        for(String gId: receiver1GroupiIDs){
-            if(receiver2GroupiIDs.contains(gId)){
+        for (String gId : receiver1GroupiIDs) {
+            if (receiver2GroupiIDs.contains(gId)) {
                 Assert.assertEquals("GroupIDs was mixed", false, true);
             }
 
@@ -822,13 +824,13 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
     }
 
-//    @Test
+    //    @Test
 //    @RunAsClient
 //    @CleanUpBeforeTest
 //    @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception{
-        prepareServer(CONTAINER1,true);
-        prepareServer(CONTAINER2,true);
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception {
+        prepareServer(CONTAINER1, true);
+        prepareServer(CONTAINER2, true);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
         JMSOperations jmsAdminOperations1 = getJMSOperations(CONTAINER1);
@@ -840,11 +842,11 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
 
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
 
 
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
@@ -862,7 +864,7 @@ public class ClusterTestCase extends HornetQTestCase {
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
 
-       ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
         producerRedG1.start();
         receiver2.start();
@@ -875,7 +877,6 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
-
 
 
     /**
@@ -1246,7 +1247,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
         Assert.assertTrue("Number received messages must be 0 as producer was not up in parallel with consumer. There should be 0"
-                        + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size() == 0);
+                + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size() == 0);
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
@@ -1371,7 +1372,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    private void    addMessageGrouping(String containerName, String name, String type, String address, long timeout) {
+    private void addMessageGrouping(String containerName, String name, String type, String address, long timeout) {
 
         controller.start(containerName);
 
@@ -1831,7 +1832,7 @@ public class ClusterTestCase extends HornetQTestCase {
         return sb.toString();
     }
 
-    public ArrayList<File> getAllPagingFiles(String pagingDirectoryPath){
+    public ArrayList<File> getAllPagingFiles(String pagingDirectoryPath) {
         File mainPagingDirectoryPath = new File(pagingDirectoryPath);
         ArrayList<File> out = new ArrayList<File>();
         // get all paging directories in main paging directory

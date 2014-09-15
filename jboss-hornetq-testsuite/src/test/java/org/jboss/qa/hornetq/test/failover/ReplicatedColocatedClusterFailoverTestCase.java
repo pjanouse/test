@@ -58,7 +58,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testShutdowonInClusterMixMessages() throws Exception {
+    public void testShutdownInClusterLargeMessages() throws Exception {
         testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
     }
 

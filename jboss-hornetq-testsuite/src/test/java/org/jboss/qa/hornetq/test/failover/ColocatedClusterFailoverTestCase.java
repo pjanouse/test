@@ -10,7 +10,6 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
@@ -58,8 +57,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
 
-    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40,200);
-//    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 200);
+    //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients = null;
 
     /**
@@ -82,7 +81,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFail(acknowledge, failback, topic, true);
     }
 
-    @Before @After
+    @Before
+    @After
     public void makeSureAllClientsAreDead() throws InterruptedException {
         if (clients != null) {
             clients.stopClients();
@@ -131,7 +131,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
         logger.info("kill - first server");
         logger.info("########################################");
-        if (shutdown)   {
+        if (shutdown) {
             controller.stop(CONTAINER1);
         } else {
             // install rule to first server
@@ -176,7 +176,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverWithMdbsKill() throws Exception {
 
         testFailWithMdbs(false);
@@ -187,7 +188,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverWithMdbsShutdown() throws Exception {
 
         testFailWithMdbs(true);
@@ -241,7 +243,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("kill - second server");
         logger.info("########################################");
 
-        if (shutdown)   {
+        if (shutdown) {
             controller.stop(CONTAINER2);
         } else {
             killServer(CONTAINER2);
@@ -263,7 +265,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         Assert.assertTrue("Live server 2 is not up again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
-        waitForMessages(outQueueName, numberOfMessages, 300000, CONTAINER1, CONTAINER2);
+        waitForMessages(outQueueName, numberOfMessages, 400000, CONTAINER1, CONTAINER2);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -287,30 +289,34 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     // TODO UNCOMMENT WHEN https://bugzilla.redhat.com/show_bug.cgi?id=1019378 IS FIXED
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testKillInClusterSmallMessages() throws Exception {
         testFailInCluster(false, new TextMessageBuilder(10));
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShutdowonInClusterSmallMessages() throws Exception {
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testShutdownInClusterSmallMessages() throws Exception {
         testFailInCluster(true, new TextMessageBuilder(10));
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testKillInClusterMixMessages() throws Exception {
-        testFailInCluster(false, new ClientMixMessageBuilder(10, 200));
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testKillInClusterLargeMessages() throws Exception {
+        testFailInCluster(false, new ClientMixMessageBuilder(120, 200));
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShutdowonInClusterMixMessages() throws Exception {
-        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testShutdownInClusterLargeMessages() throws Exception {
+        testFailInCluster(true, new ClientMixMessageBuilder(120, 200));
     }
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
@@ -339,7 +345,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("kill - second server");
         logger.info("########################################");
 
-        if (shutdown)   {
+        if (shutdown) {
             controller.stop(CONTAINER2);
         } else {
             killServer(CONTAINER2);
@@ -357,7 +363,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setAckAfter(1000);
+        receiver1.setAckAfter(100);
         printQueueStatus(CONTAINER1, inQueueName);
         printQueueStatus(CONTAINER2, inQueueName);
 
@@ -377,90 +383,96 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeOneDown() throws Exception{
-        testGroupingFailover(CONTAINER1, false,true);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeOneDown() throws Exception {
+        testGroupingFailover(CONTAINER1, false, true);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeOneDownLM() throws Exception{
-        testGroupingFailover(CONTAINER1, true,true);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeOneDownLM() throws Exception {
+        testGroupingFailover(CONTAINER1, true, true);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeOneDownSd() throws Exception{
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeOneDownSd() throws Exception {
         testGroupingFailover(CONTAINER1, false, false);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeOneDownSdLM() throws Exception{
-        testGroupingFailover(CONTAINER1, true,false);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeOneDownSdLM() throws Exception {
+        testGroupingFailover(CONTAINER1, true, false);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeTwoDown() throws Exception{
-        testGroupingFailover(CONTAINER2, false,true);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeTwoDown() throws Exception {
+        testGroupingFailover(CONTAINER2, false, true);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeTwoDownLM() throws Exception{
-        testGroupingFailover(CONTAINER2, true,true);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeTwoDownLM() throws Exception {
+        testGroupingFailover(CONTAINER2, true, true);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeTwoDownSd() throws Exception{
-        testGroupingFailover(CONTAINER2, false,false);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeTwoDownSd() throws Exception {
+        testGroupingFailover(CONTAINER2, false, false);
     }
 
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public  void testGroupingFailoverNodeTwoDownSdLM() throws Exception{
-        testGroupingFailover(CONTAINER2, true,false);
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGroupingFailoverNodeTwoDownSdLM() throws Exception {
+        testGroupingFailover(CONTAINER2, true, false);
     }
 
 
-
-
-    public void testGroupingFailover(String containerToKill, boolean largeMessages, boolean useKill) throws Exception{
+    public void testGroupingFailover(String containerToKill, boolean largeMessages, boolean useKill) throws Exception {
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 50000;
-        String backupServerName="backup";
-        int number_of_messages=200;
+        String backupServerName = "backup";
+        int number_of_messages = 200;
         prepareColocatedTopologyInCluster();
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        JMSOperations jmsAdminOperationsC1= this.getJMSOperations(CONTAINER1);
-        JMSOperations jmsAdminOperationsC2= this.getJMSOperations(CONTAINER2);
+        JMSOperations jmsAdminOperationsC1 = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperationsC2 = this.getJMSOperations(CONTAINER2);
 
 
         jmsAdminOperationsC1.addMessageGrouping(name, "LOCAL", address, timeout);
-        jmsAdminOperationsC1.addMessageGrouping(backupServerName,name, "REMOTE", address, timeout);
-        jmsAdminOperationsC2.addMessageGrouping(name, "REMOTE", address,timeout);
+        jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout);
+        jmsAdminOperationsC2.addMessageGrouping(name, "REMOTE", address, timeout);
         jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout);
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        GroupMessageVerifier messageVerifier= new GroupMessageVerifier();
+        GroupMessageVerifier messageVerifier = new GroupMessageVerifier();
 
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, number_of_messages);
-        if(largeMessages){
-            producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED",true));
-        }else {
+        if (largeMessages) {
+            producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED", true));
+        } else {
             producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
         }
         producerRedG1.setMessageVerifier(messageVerifier);
@@ -469,9 +481,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         receiver1.start();
         producerRedG1.start();
         Thread.sleep(8000);
-        if(useKill){
+        if (useKill) {
             killServer(containerToKill);
-        }else{
+        } else {
             stopServer(containerToKill);
         }
         producerRedG1.join();
@@ -587,7 +599,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -598,7 +611,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueShutDown() throws Exception {
 
         testFailoverWithShutDown(Session.CLIENT_ACKNOWLEDGE, false, false);
@@ -609,7 +623,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -619,7 +634,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -629,7 +645,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -649,7 +666,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -659,7 +677,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -679,7 +698,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -689,7 +709,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackClientAckTopicShutdown() throws Exception {
         testFailoverWithShutDown(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -699,7 +720,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -708,11 +730,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
      */
     @Before
     @After
-    public void stopAllServers()  {
+    public void stopAllServers() {
 
         stopServer(CONTAINER1);
 
@@ -722,15 +743,14 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     /**
      * Prepare two servers in colocated topology in cluster.
-     *
      */
     public void prepareColocatedTopologyInCluster() {
 
-            prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-            prepareColocatedBackupServer(CONTAINER1, getHostname(CONTAINER1), "backup", JOURNAL_DIRECTORY_B);
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
+        prepareColocatedBackupServer(CONTAINER1, getHostname(CONTAINER1), "backup", JOURNAL_DIRECTORY_B);
 
-            prepareLiveServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_B);
-            prepareColocatedBackupServer(CONTAINER2, getHostname(CONTAINER2), "backup", JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_B);
+        prepareColocatedBackupServer(CONTAINER2, getHostname(CONTAINER2), "backup", JOURNAL_DIRECTORY_A);
 
     }
 
