@@ -26,7 +26,7 @@ import java.io.IOException;
 public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedClusterFailoverTestCase {
 
 
-    private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
+    private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
 
 //    /**
 //     * Start simple failover test with client_ack on queues
@@ -234,6 +234,10 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
 //        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
 
+        // enable debugging
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
@@ -322,6 +326,10 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-non-durable-queue", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "send", true);
+
+        // enable debugging
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
 //        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
 //            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
