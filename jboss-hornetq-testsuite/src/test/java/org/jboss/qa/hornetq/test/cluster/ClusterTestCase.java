@@ -753,8 +753,8 @@ public class ClusterTestCase extends HornetQTestCase {
         //setup security
         jmsAdminOperations1.setSecurityEnabled(true);
         jmsAdminOperations2.setSecurityEnabled(true);
-        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms/queue/OutQueue", 5000);
-        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms/queue/OutQueue", 5000);
+        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
+        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
 
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
         AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
@@ -774,17 +774,15 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.kill(CONTAINER2);
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
-        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+
 
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-
+        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("", "RED"));
         ProducerClientAck producerRedG2 = new ProducerClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
-
+        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("", "RED"));
         ProducerClientAck producerBlueG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
+       // producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
 
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
@@ -792,12 +790,14 @@ public class ClusterTestCase extends HornetQTestCase {
 
         receiver1.start();
         receiver2.start();
+        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+        Thread.sleep(2000);
         //  producerBlueG1.start();
         producerRedG1.start();
         producerRedG2.start();
-        Thread.sleep(2000);
+        //  producerBlueG1.start();
 
-        producerBlueG1.join();
+        //producerBlueG1.join();
         producerRedG1.join();
         producerRedG2.join();
         receiver1.join();
