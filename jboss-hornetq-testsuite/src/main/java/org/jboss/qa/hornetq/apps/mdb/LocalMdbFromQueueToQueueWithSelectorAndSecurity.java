@@ -39,7 +39,7 @@ public class LocalMdbFromQueueToQueueWithSelectorAndSecurity implements MessageD
     public void onMessage(Message message) {
         QueueConnection queueConnection=null;
         try{
-            queueConnection = connectionFactory.createQueueConnection();
+            queueConnection = connectionFactory.createQueueConnection(username,password);
             QueueSession session = queueConnection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
             QueueSender queueSender = session.createSender(queue);
             Message response= message;
