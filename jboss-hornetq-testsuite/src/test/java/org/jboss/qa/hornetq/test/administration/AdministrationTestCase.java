@@ -4,15 +4,16 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 /**
  * Test administration console - cli
@@ -20,6 +21,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class AdministrationTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AdministrationTestCase.class);

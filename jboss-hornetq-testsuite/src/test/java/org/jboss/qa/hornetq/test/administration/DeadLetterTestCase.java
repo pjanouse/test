@@ -7,12 +7,14 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
@@ -25,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class DeadLetterTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(DeadLetterTestCase.class);

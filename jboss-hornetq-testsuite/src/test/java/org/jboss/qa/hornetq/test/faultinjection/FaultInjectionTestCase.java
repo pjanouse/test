@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -14,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -30,6 +32,7 @@ import static junit.framework.Assert.*;
  * @author dpogrebn@redhat.com
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class FaultInjectionTestCase extends HornetQTestCase {
 
     @Rule

@@ -4,10 +4,12 @@ package org.jboss.qa.hornetq.test.messages;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
@@ -23,6 +25,7 @@ import static org.junit.Assert.*;
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class JmsMessagesTestCase extends HornetQTestCase {
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);

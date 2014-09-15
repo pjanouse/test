@@ -8,10 +8,10 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
 import org.jboss.dmr.ModelNode;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JmsServerInfo;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -92,6 +93,7 @@ import static org.junit.Assert.*;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Rule

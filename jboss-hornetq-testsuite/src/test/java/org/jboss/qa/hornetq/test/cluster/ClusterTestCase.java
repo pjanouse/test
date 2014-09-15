@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.security.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -25,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
@@ -50,6 +52,7 @@ import java.util.*;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);

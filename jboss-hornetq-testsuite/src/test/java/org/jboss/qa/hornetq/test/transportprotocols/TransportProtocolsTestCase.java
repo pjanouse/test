@@ -8,12 +8,14 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -25,6 +27,7 @@ import java.util.HashMap;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class TransportProtocolsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(TransportProtocolsTestCase.class);

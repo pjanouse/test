@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.test.cluster;
 
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 
@@ -18,6 +20,7 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class JGroupsClusterTestCase extends ClusterTestCase {
 
     public void prepareServers() {

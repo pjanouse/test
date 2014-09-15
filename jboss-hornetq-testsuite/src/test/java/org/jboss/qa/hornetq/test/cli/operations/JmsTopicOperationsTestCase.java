@@ -4,18 +4,21 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
+import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
-import org.jboss.qa.management.cli.CliClient;
-import org.jboss.qa.management.cli.CliConfiguration;
-import org.jboss.qa.management.cli.CliUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.management.cli.CliClient;
+import org.jboss.qa.management.cli.CliConfiguration;
+import org.jboss.qa.management.cli.CliUtils;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -43,6 +46,7 @@ import java.util.List;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class JmsTopicOperationsTestCase extends CliTestBase {
 
     @Rule

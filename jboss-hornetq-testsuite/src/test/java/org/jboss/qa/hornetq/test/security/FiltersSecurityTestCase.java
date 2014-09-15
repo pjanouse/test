@@ -1,17 +1,20 @@
 package org.jboss.qa.hornetq.test.security;
 
 
-import java.io.IOException;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.clients.SecurityClient;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
 
 
 /**
@@ -23,6 +26,7 @@ import org.junit.runner.RunWith;
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class FiltersSecurityTestCase extends HornetQTestCase {
 
     private static final String TEST_ADDRESS = "jms.queue.test.#";

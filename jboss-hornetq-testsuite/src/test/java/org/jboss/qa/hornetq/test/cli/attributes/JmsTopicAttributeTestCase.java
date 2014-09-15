@@ -6,15 +6,17 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
-import org.jboss.qa.management.cli.CliClient;
-import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.management.cli.CliClient;
+import org.jboss.qa.management.cli.CliConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -39,6 +41,7 @@ import java.util.Properties;
 
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class JmsTopicAttributeTestCase extends CliTestBase {
 
     @Rule

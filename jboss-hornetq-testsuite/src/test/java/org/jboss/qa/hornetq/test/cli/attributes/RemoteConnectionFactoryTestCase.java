@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
@@ -13,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -63,6 +65,7 @@ import java.util.Properties;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class RemoteConnectionFactoryTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(RemoteConnectionFactoryTestCase.class);

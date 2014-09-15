@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -15,6 +16,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.Properties;
 /**
  * @author mnovak@redhat.com
  */
+@Category(FunctionalTests.class)
 public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsBridgeAttributesTestCase.class);

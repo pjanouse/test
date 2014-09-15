@@ -1,14 +1,6 @@
 package org.jboss.qa.hornetq.test.jmx;
 
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import javax.management.MBeanServerConnection;
-import javax.management.Notification;
-import javax.management.remote.JMXConnector;
-
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -18,18 +10,28 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import javax.management.MBeanServerConnection;
+import javax.management.Notification;
+import javax.management.remote.JMXConnector;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for checking that JMX notifications are delivered correctly.
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(JmxClientNotificationTestCase.class);

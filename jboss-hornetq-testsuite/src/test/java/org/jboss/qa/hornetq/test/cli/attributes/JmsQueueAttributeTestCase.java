@@ -4,15 +4,17 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
-import org.jboss.qa.management.cli.CliClient;
-import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.management.cli.CliClient;
+import org.jboss.qa.management.cli.CliConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
@@ -39,12 +41,12 @@ import java.util.Properties;
 
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class JmsQueueAttributeTestCase extends CliTestBase {
 
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
-//    private static final Logger log = Logger.getLogger(JmsQueueAttributeTestCase.class);
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
 
