@@ -736,7 +736,6 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception {
         prepareServer(CONTAINER1, true);
         prepareServer(CONTAINER2, true);
@@ -745,60 +744,69 @@ public class ClusterTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations1 = getJMSOperations(CONTAINER1);
         JMSOperations jmsAdminOperations2 = getJMSOperations(CONTAINER2);
 
+
+
         //setup security
         jmsAdminOperations1.setSecurityEnabled(true);
         jmsAdminOperations2.setSecurityEnabled(true);
+
+        jmsAdminOperations1.setClusterUserPassword("password");
+        jmsAdminOperations2.setClusterUserPassword("password");
         jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
         jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
 
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
-
-
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
         UsersSettings.forEapServer(getJbossHome(CONTAINER2)).withUser("user", "user.1234", "user").create();
+
+
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+
+
+
 
         //restart servers to changes take effect
         stopServer(CONTAINER1);
         controller.kill(CONTAINER1);
         stopServer(CONTAINER2);
         controller.kill(CONTAINER2);
+
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
 
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("", "RED"));
+        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
         ProducerClientAck producerRedG2 = new ProducerClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("", "RED"));
+        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
         ProducerClientAck producerBlueG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
-       // producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
+        producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
 
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
         ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
 
-        receiver1.start();
-        receiver2.start();
-        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
-        Thread.sleep(2000);
-        //  producerBlueG1.start();
-        producerRedG1.start();
-        producerRedG2.start();
-        //  producerBlueG1.start();
 
-        //producerBlueG1.join();
+        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+       receiver1.start();
+       receiver2.start();
+
+          producerBlueG1.start();
+        producerRedG1.start();
+       producerRedG2.start();
+
+
+        producerBlueG1.join();
         producerRedG1.join();
-        producerRedG2.join();
+       producerRedG2.join();
         receiver1.join();
         receiver2.join();
 
-        Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
+       Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
         ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
         ArrayList<String> receiver2GroupiIDs = new ArrayList<String>();
@@ -824,10 +832,10 @@ public class ClusterTestCase extends HornetQTestCase {
         stopServer(CONTAINER2);
     }
 
-    //    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest
-//    @RestoreConfigBeforeTest
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception {
         prepareServer(CONTAINER1, true);
         prepareServer(CONTAINER2, true);
@@ -840,16 +848,20 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations1.setSecurityEnabled(true);
         jmsAdminOperations2.setSecurityEnabled(true);
 
-
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/").giveUserAllPermissions("user").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
-
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms/queue/InQueue").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
-
+        jmsAdminOperations1.setClusterUserPassword("password");
+        jmsAdminOperations2.setClusterUserPassword("password");
+        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
+        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
 
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
+
+
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+
 
 
         //restart servers to changes take effect
