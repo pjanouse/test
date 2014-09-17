@@ -1903,5 +1903,13 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     }
 
+    @Override
+    public int getNumberOfActiveClientConnections() {
+
+        logger.info("This operation is not supported: " + getMethodName());
+
+        return 0;
+    }
+
 
 }

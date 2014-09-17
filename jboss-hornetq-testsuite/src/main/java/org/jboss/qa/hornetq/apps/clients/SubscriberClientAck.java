@@ -458,6 +458,7 @@ public class SubscriberClientAck extends Client {
         SubscriberClientAck client =
                 new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", getJNDIPort(), "jms/topic/testTopic", "mnovakClientId",
                         "mnovakSubscriberName");
+        client.receiveTimeOut = 60000;
 //        SubscriberClientAck client =
 //                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.2", 4447, "jms/topic/InTopic", "mnovakClientId",
 //                        "mnovakSubscriberName");

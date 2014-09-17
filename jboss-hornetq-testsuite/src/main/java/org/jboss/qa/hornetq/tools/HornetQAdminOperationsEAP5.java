@@ -2045,6 +2045,14 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     }
 
+    @Override
+    public int getNumberOfActiveClientConnections() {
+
+        logger.info("This operation is not supported: " + getMethodName());
+
+        return 0;
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

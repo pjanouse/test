@@ -4292,6 +4292,24 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public int getNumberOfActiveClientConnections() {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("list-connection-ids");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return  result.get("result").asList().size();
+    }
+
 
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
@@ -4299,7 +4317,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            jmsAdminOperations.setDiscoveryGroupOnConnectionFactory("RemoteConnectionFactory", "dg-group1");
+            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";
