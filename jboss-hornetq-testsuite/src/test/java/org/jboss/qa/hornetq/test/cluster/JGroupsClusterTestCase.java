@@ -1,11 +1,18 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import junit.framework.Assert;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import javax.jms.*;
+import javax.naming.Context;
 
 
 /**
@@ -22,6 +29,9 @@ import org.junit.runner.RunWith;
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
 public class JGroupsClusterTestCase extends ClusterTestCase {
+
+    private static String JGROUPS_CONNECTION_FACTORY = "JGroupsConnectionFactory";
+
 
     public void prepareServers() {
         prepareServers(true);
@@ -72,6 +82,11 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
+        // prepare connection factory
+        jmsAdminOperations.createConnectionFactory(JGROUPS_CONNECTION_FACTORY, "java:jboss/exported/jms/" + JGROUPS_CONNECTION_FACTORY, connectorName);
+        jmsAdminOperations.setDiscoveryGroupOnConnectionFactory(JGROUPS_CONNECTION_FACTORY, discoveryGroupName);
+
+
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
@@ -94,7 +109,58 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         }
         jmsAdminOperations.close();
         controller.stop(containerName);
-
     }
 
+    // TODO un-ignore when bz https://bugzilla.redhat.com/show_bug.cgi?id=1132190 is fixed
+    @Ignore
+    @Test
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @Category(FunctionalTests.class)
+    public void testLookupOfConnectionFactoryWithJGroupsDiscoveryGroup() throws Exception {
+
+        prepareServer(CONTAINER1, true);
+
+        controller.start(CONTAINER1);
+
+        Context context = null;
+        Connection connection = null;
+
+        try {
+            context = getContext(CONTAINER1);
+
+            Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
+
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("jms/" + JGROUPS_CONNECTION_FACTORY);
+
+            connection = connectionFactory.createConnection();
+
+            connection.start();
+
+            Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
+
+            MessageProducer producer = session.createProducer(queue);
+
+            producer.send(session.createTextMessage());
+
+            session.commit();
+
+            MessageConsumer consumer = session.createConsumer(queue);
+
+            Message message = consumer.receive(3000);
+
+            session.commit();
+
+            Assert.assertNotNull("Message cannot be null", message);
+
+        } finally {
+            if (context != null)    {
+                context.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
+            stopServer(CONTAINER1);
+        }
+    }
 }

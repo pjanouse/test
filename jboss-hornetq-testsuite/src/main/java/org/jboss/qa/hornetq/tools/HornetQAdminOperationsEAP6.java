@@ -4260,6 +4260,38 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         return getJNDIEntries(DESTINATION_TYPE_TOPIC, destinationCoreName);
     }
 
+    @Override
+    public void setDiscoveryGroupOnConnectionFactory(String connectionFactoryName, String discoveryGroupName) {
+
+        ModelNode composite = new ModelNode();
+        composite.get(ClientConstants.OP).set("composite");
+        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+
+        ModelNode undefineConnector = new ModelNode();
+        undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
+        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        undefineConnector.get("name").set("connector");
+
+        ModelNode setDiscoveryGroup = new ModelNode();
+        setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        setDiscoveryGroup.get("name").set("discovery-group-name");
+        setDiscoveryGroup.get("value").set(discoveryGroupName);
+        composite.get(ClientConstants.STEPS).add(undefineConnector);
+        composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
+
+        try {
+            this.applyUpdate(composite);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
@@ -4267,9 +4299,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            for (String s : jmsAdminOperations.getJNDIEntriesForQueue("testQueue1"))    {
-                System.out.println(s);
-            }
+            jmsAdminOperations.setDiscoveryGroupOnConnectionFactory("RemoteConnectionFactory", "dg-group1");
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";

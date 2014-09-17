@@ -1897,5 +1897,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public void setDiscoveryGroupOnConnectionFactory(String connectionFactoryName, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
 
 }

@@ -1377,4 +1377,6 @@ public interface JMSOperations {
     List<String> getJNDIEntriesForQueue(String destinationCoreName);
 
     List<String> getJNDIEntriesForTopic(String destinationCoreName);
+
+    void setDiscoveryGroupOnConnectionFactory(String connectionFactoryName, String discoveryGroupName);
 }

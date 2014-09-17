@@ -2039,6 +2039,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public void setDiscoveryGroupOnConnectionFactory(String connectionFactoryName, String discoveryGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
