@@ -1,3 +1,4 @@
+// TODO ADD TESTS FOR DOMAIN MODE
 package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.apache.log4j.Logger;
@@ -8,6 +9,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -115,9 +117,9 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
         jmsOperations.addTopicJNDIName(topicCoreName1, topicJndiNameFullExported2);
 
         // remove jndi name
-        jmsOperations.removeQueueJNDIName(topicCoreName1, topicJndiNameFullExported2);
+        jmsOperations.removeTpicJNDIName(topicCoreName1, topicJndiNameFullExported2);
 
-        checkJNDIEntriesForTopic(jmsOperations, topicCoreName1, topicJndiNameFullExported1, topicJndiNameFull1);
+        checkJNDIEntriesForTopic(jmsOperations, topicCoreName1, topicJndiNameFullExported1, topicJndiNameRelative1);
 
         jmsOperations.close();
         stopServer(CONTAINER1);
@@ -125,6 +127,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
 
     // TODO un-ignore when https://bugzilla.redhat.com/show_bug.cgi?id=1142619 is fixed
+    @Ignore
     @Test(expected=RuntimeException.class)
     @RunAsClient
     @CleanUpBeforeTest
