@@ -1,22 +1,19 @@
 package org.jboss.qa.hornetq.tools.arquillian.extension;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
+import org.jboss.arquillian.container.spi.event.container.BeforeStart;
 import org.jboss.arquillian.core.api.annotation.Observes;
-import org.jboss.arquillian.test.spi.event.suite.After;
-import org.jboss.arquillian.test.spi.event.suite.AfterClass;
 import org.jboss.arquillian.test.spi.event.suite.Before;
 import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.Map;
 
 /**
@@ -37,48 +34,70 @@ public class RestoreConfig {
      * @param descriptor arquillian.xml
      * @throws IOException
      */
-    public void backupConfiguration(@Observes BeforeClass event, ArquillianDescriptor descriptor) throws IOException {
+    public void backupConfigurationObserver(@Observes BeforeClass event, ArquillianDescriptor descriptor) throws IOException {
+        // we'll going to backup both standalone and domain configurations no matter the arquillian configuration
+        backupStandaloneConfiguration(descriptor);
+        backupDomainConfiguration(descriptor);
+        backupConfigurationEAP5(descriptor);
+    }
 
-        Map<String, String> containerProperties;
-        String jbossHome;
-        String serverConfig;
-        File configurationFile;
-        File configurationFileBackup;
-        StringBuilder pathToConfigDir;
-        String fileSeparator = System.getProperty("file.separator");
+    /**
+     * Backups EAP6 domain configuration.
+     *
+     * @param descriptor arquillian.xml
+     * @throws IOException
+     */
+    private void backupDomainConfiguration(ArquillianDescriptor descriptor) throws IOException {
+        for (ContainerDef containerDef : descriptor.getContainers()) {
+            JbossConfigFiles files = JbossConfigFiles.forContainer(containerDef);
+
+            if (!files.getDomainConfigDir().exists()) {
+                // don't bother, this isn't EAP6
+                continue;
+            }
+
+            File domainXml = files.getDomainXml();
+            File domainXmlBackup = files.getDomainXmlBackup();
+            if (domainXml.exists() && !domainXmlBackup.exists()) {
+                logger.info("Copying configuration file " + domainXml.getAbsolutePath()
+                        + " to " + domainXmlBackup.getAbsolutePath());
+                FileUtils.copyFile(domainXml, domainXmlBackup);
+            }
+
+            File hostXml = files.getHostXml();
+            File hostXmlBackup = files.getHostXmlBackup();
+            if (hostXml.exists() && !hostXmlBackup.exists()) {
+                logger.info("Copying configuration file " + hostXml.getAbsolutePath()
+                        + " to " + hostXmlBackup.getAbsolutePath());
+                FileUtils.copyFile(hostXml, hostXmlBackup);
+            }
+        }
+    }
+
+    /**
+     * Backups standalone configuration of all containers.
+     *
+     * Works for both EAP6 and EAP5
+     *
+     * @param descriptor arquillian.xml
+     * @throws IOException
+     */
+    private void backupStandaloneConfiguration(ArquillianDescriptor descriptor) throws IOException {
         for (GroupDef groupDef : descriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                containerProperties = containerDef.getContainerProperties();
-                jbossHome = containerProperties.get("jbossHome");
-                serverConfig = containerProperties.get("serverConfig");
-                serverConfig = (serverConfig == null) ? containerProperties.get("profileName") : serverConfig;
-                if (jbossHome != null && serverConfig != null) {
-                    pathToConfigDir = new StringBuilder(jbossHome)
-                            .append(fileSeparator)
-                            .append("standalone")
-                            .append(fileSeparator)
-                            .append("configuration")
-                            .append(fileSeparator);
-                    configurationFile = new File(pathToConfigDir.toString() + serverConfig);
-                    if (!configurationFile.exists()) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug(String.format("Configuration file: %s does not exist. "
-                                    + "Probably container EAP5 is used. Trying to create backup of EAP 5 configuration."
-                                    , configurationFile.getAbsolutePath()));
-                        }
-                        backupConfigurationEAP5(descriptor);
-                        continue;
-                    }
-                    configurationFileBackup = new File(pathToConfigDir.toString() + serverConfig + ".backup");
+            for (ContainerDef containerDef : groupDef.getContainers()) {
+                JbossConfigFiles files = JbossConfigFiles.forContainer(containerDef);
 
-                    if (configurationFileBackup.exists()) {
-                        continue;
-                    }
+                if (!files.getStandaloneConfigDir().exists()) {
+                    // don't bother, this isn't EAP6
+                    continue;
+                }
 
-                    logger.info("Copying configuration file " + configurationFile.getAbsolutePath()
-                            + " to " + configurationFileBackup.getAbsolutePath());
-
-                    copyFile(configurationFile, configurationFileBackup);
+                File standaloneXml = files.getStandaloneXml();
+                File standaloneXmlBackup = files.getStandaloneXmlBackup();
+                if (standaloneXml.exists() && !standaloneXmlBackup.exists()) {
+                    logger.info("Copying configuration file " + standaloneXml.getAbsolutePath()
+                            + " to " + standaloneXmlBackup.getAbsolutePath());
+                    FileUtils.copyFile(standaloneXml, standaloneXmlBackup);
                 }
             }
         }
@@ -89,7 +108,7 @@ public class RestoreConfig {
      *
      * @param descriptor arquillian descriptor (arquillian.xml)
      */
-    public void backupConfigurationEAP5(ArquillianDescriptor descriptor) throws IOException {
+    private void backupConfigurationEAP5(ArquillianDescriptor descriptor) throws IOException {
 
         Map<String, String> containerProperties;
         String jbossHome;
@@ -130,108 +149,83 @@ public class RestoreConfig {
                         return;
                     }
 
-                    copyDirectory(originalProfileDirectory, backupProfileDirectory);
+                    FileUtils.copyDirectory(originalProfileDirectory, backupProfileDirectory);
                 }
             }
         }
     }
 
     /**
-     * Restore configuration of all containers after test class. Must be annotated by @RestoreConfigAfterTest.
+     * Restore configuration of all containers before test class. Must be annotated by {@link RestoreConfigBeforeTest}.
      *
      * @param event      when to backup configuration
      * @param descriptor arquillian.xml
      * @throws IOException
      */
-    public void restoreConfigurationAfterTestClass(@Observes AfterClass event, ArquillianDescriptor descriptor) throws IOException {
-
-        // if there is no RestoreConfigAfterTest annotation then do nothing
-        if (event.getTestClass().getAnnotation(RestoreConfigAfterTest.class) == null) return;
-
-        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
-
-        restoreConfiguration(descriptor);
-        restoreConfigurationEAP5(descriptor);
-    }
-
-    /**
-     * Restore configuration of all containers after test class. Must be annotated by @RestoreConfigAfterTest.
-     *
-     * @param event      when to backup configuration
-     * @param descriptor arquillian.xml
-     * @throws IOException
-     */
-    public void restoreConfigurationAfterTest(@Observes After event, ArquillianDescriptor descriptor) throws IOException {
-
-        // if there is no RestoreConfigAfterTest annotation then do nothing
-        if (event.getTestMethod().getAnnotation(RestoreConfigAfterTest.class) == null) return;
-
-        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
-
-        restoreConfiguration(descriptor);
-        restoreConfigurationEAP5(descriptor);
-    }
-
-    /**
-     * Restore configuration of all containers after test class. Must be annotated by @RestoreConfigAfterTest.
-     *
-     * @param event      when to backup configuration
-     * @param descriptor arquillian.xml
-     * @throws IOException
-     */
-    public void restoreConfigurationBeforeTest(@Observes Before event, ArquillianDescriptor descriptor) throws IOException {
+    public void restoreConfigurationBeforeTest(@Observes BeforeStart event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no RestoreConfigBeforeTest annotation then do nothing
-        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) return;
+//        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) {
+//            return;
+//        }
+//
+//        logger.info("Restoring configuration before test: " + event.getTestClass().getName());
 
-        logger.info("Restoring configuration after test: " + event.getTestClass().getName());
-
-        restoreConfiguration(descriptor);
+        restoreStandaloneConfiguration(descriptor);
+        restoreDomainConfiguration(descriptor);
         restoreConfigurationEAP5(descriptor);
     }
 
 
+    private void restoreDomainConfiguration(ArquillianDescriptor descriptor) throws IOException {
+        for (ContainerDef containerDef : descriptor.getContainers()) {
+            JbossConfigFiles files = JbossConfigFiles.forContainer(containerDef);
 
-    private void restoreConfiguration(ArquillianDescriptor descriptor) throws IOException {
+            if (!files.getDomainConfigDir().exists()) {
+                // don't bother, this isn't EAP6 domain
+                continue;
+            }
 
-        Map<String, String> containerProperties;
-        String jbossHome;
-        String serverConfig;
-        File configurationFile;
-        File configurationFileBackup;
-        StringBuilder pathToConfigurationDirectory;
-        String fileSeparator = System.getProperty("file.separator");
+            File domainXml = files.getDomainXml();
+            File domainXmlBackup = files.getDomainXmlBackup();
+            if (domainXmlBackup.exists()) {
+                logger.info("Restoring configuration file " + domainXmlBackup.getAbsolutePath()
+                        + " to " + domainXml.getAbsolutePath());
+                FileUtils.copyFile(domainXmlBackup, domainXml);
+            }
+
+            File hostXml = files.getHostXml();
+            File hostXmlBackup = files.getHostXmlBackup();
+            if (hostXmlBackup.exists()) {
+                logger.info("Restoring configuration file " + hostXmlBackup.getAbsolutePath()
+                        + " to " + hostXml.getAbsolutePath());
+                FileUtils.copyFile(hostXmlBackup, hostXml);
+            }
+        }
+
+//        logger.info("Reloading container after configuration restore");
+//        DomainOperations.forDefaultContainer().reloadDomain();
+//        logger.info("ContainerReloaded");
+    }
 
 
+    private void restoreStandaloneConfiguration(ArquillianDescriptor descriptor) throws IOException {
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                JbossConfigFiles files = JbossConfigFiles.forContainer(containerDef);
 
-                containerProperties = containerDef.getContainerProperties();
-                jbossHome = containerProperties.get("jbossHome");
-                serverConfig = containerProperties.get("serverConfig");
-
-                // Restore configuration
-                pathToConfigurationDirectory = new StringBuilder(jbossHome)
-                        .append(fileSeparator).append("standalone").append(fileSeparator).append("configuration").append(fileSeparator);
-
-                configurationFile = new File(pathToConfigurationDirectory.toString() + serverConfig);
-
-                if (!configurationFile.exists()) {
-                    logger.warn("Configuration file " + configurationFile.getAbsolutePath() + " does not exist. Probably EAP 5 is used.");
+                if (!files.getStandaloneConfigDir().exists()) {
+                    // don't bother, this isn't EAP6
                     continue;
                 }
 
-                configurationFileBackup = new File(pathToConfigurationDirectory.toString() + serverConfig + ".backup");
-
-                if (!configurationFileBackup.exists()) {
-                    logger.error("Backup configuration file " + configurationFileBackup.getAbsolutePath() + " was not created. Configuration won't be restored.");
-                    continue;
+                File standaloneXml = files.getStandaloneXml();
+                File standaloneXmlBackup = files.getStandaloneXmlBackup();
+                if (standaloneXmlBackup.exists()) {
+                    logger.info("Copying configuration file " + standaloneXmlBackup.getAbsolutePath()
+                            + " to " + standaloneXml.getAbsolutePath());
+                    FileUtils.copyFile(standaloneXmlBackup, standaloneXml);
                 }
-
-                logger.info("Restoring configuration file " + configurationFileBackup.getAbsolutePath()
-                        + " to " + configurationFile.getAbsolutePath());
-
-                copyFile(configurationFileBackup, configurationFile);
             }
         }
     }
@@ -272,61 +266,8 @@ public class RestoreConfig {
                 }
                 // TODO NEPREPISUJ LOGY
                 // TODO NEMAZ PROFILE PO TESTU ALE PRED TESTEM
-                copyDirectory(backupProfileDirectory, originalProfileDirectory);
+                FileUtils.copyDirectory(backupProfileDirectory, originalProfileDirectory);
             }
-        }
-    }
-
-    /**
-     * Copies file from one place to another.
-     *
-     * @param sourceFile source file
-     * @param destFile   destination file - file will be rewritten
-     * @throws IOException
-     */
-    public void copyFile(File sourceFile, File destFile) throws IOException {
-        if (!destFile.exists()) {
-            destFile.createNewFile();
-        }
-
-        FileChannel source = null;
-        FileChannel destination = null;
-
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-        }
-    }
-
-    /**
-     * Copies one directory to another.
-     *
-     * @param srcDir source directory
-     * @param dstDir destination directory
-     * @throws IOException
-     */
-    public void copyDirectory(File srcDir, File dstDir) throws IOException {
-        if (srcDir.isDirectory()) {
-            if (!dstDir.exists()) {
-                dstDir.mkdir();
-            }
-
-            String[] children = srcDir.list();
-            for (String aChildren : children) {
-                copyDirectory(new File(srcDir, aChildren),
-                        new File(dstDir, aChildren));
-            }
-        } else {
-            // This method is implemented in Copying a File
-            copyFile(srcDir, dstDir);
         }
     }
 
