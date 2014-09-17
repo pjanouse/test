@@ -369,6 +369,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addTopicJNDIName(String queueName, String jndiName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeQueueJNDIName(String queueName, String jndiName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeTpicJNDIName(String topicName, String jndiName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void cleanupQueue(String queueName) {
         try {
             connect(hostname, rmiPort);
@@ -2010,6 +2025,18 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     public boolean areThereUnfinishedArjunaTransactions() {
         logger.info("This operation is not supported: " + getMethodName());
         return false;
+    }
+
+    @Override
+    public List<String> getJNDIEntriesForQueue(String destinationCoreName) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
+
+    @Override
+    public List<String> getJNDIEntriesForTopic(String destinationCoreName) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
     }
 
     public static void main(String[] args) {

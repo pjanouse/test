@@ -179,6 +179,39 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Adds JNDI name for queue
+     *
+     * @param queueName queue name
+     * @param jndiName  new JNDI name for the queue
+     */
+    @Override
+    public void addTopicJNDIName(String queueName, String jndiName) {
+        addDestinationJNDIName(DESTINATION_TYPE_TOPIC, queueName, jndiName);
+    }
+
+    /**
+     * Adds JNDI name for queue
+     *
+     * @param queueName queue name
+     * @param jndiName  new JNDI name for the queue
+     */
+    @Override
+    public void removeQueueJNDIName(String queueName, String jndiName) {
+        removeDestinationJNDIName(DESTINATION_TYPE_QUEUE, queueName, jndiName);
+    }
+
+    /**
+     * Adds JNDI name for queue
+     *
+     * @param topicName topic name
+     * @param jndiName  new JNDI name for the queue
+     */
+    @Override
+    public void removeTpicJNDIName(String topicName, String jndiName) {
+        removeDestinationJNDIName(DESTINATION_TYPE_TOPIC, topicName, jndiName);
+    }
+
+    /**
      * Cleanups queue
      *
      * @param queueName queue name
@@ -722,6 +755,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("add-jndi");
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
+        addJmsJNDIName.get("jndi-binding").set(jndiName);
+        try {
+            this.applyUpdate(addJmsJNDIName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * Add JNDI name
+     *
+     * @param destinationType type of destination (queue, topic)
+     * @param destinationName destination name
+     * @param jndiName        JNDI name
+     */
+    private void removeDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
+        final ModelNode addJmsJNDIName = new ModelNode();
+        addJmsJNDIName.get(ClientConstants.OP).set("remove-jndi");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
@@ -4172,6 +4227,39 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    @Override
+    public List<String> getJNDIEntriesForQueue(String destinationCoreName) {
+        return getJNDIEntries(DESTINATION_TYPE_QUEUE, destinationCoreName);
+    }
+
+    public List<String> getJNDIEntries(String destinationType, String destinationCoreName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add(destinationType, destinationCoreName);
+        model.get("name").set("entries");
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        List<String> entries = new ArrayList<String>();
+        for (ModelNode m: result.get("result").asList())   {
+            entries.add(m.toString().replaceAll("\"", ""));
+        }
+        return entries;
+    }
+
+    @Override
+    public List<String> getJNDIEntriesForTopic(String destinationCoreName) {
+        return getJNDIEntries(DESTINATION_TYPE_TOPIC, destinationCoreName);
+    }
+
 
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
@@ -4179,7 +4267,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.areThereUnfinishedArjunaTransactions());
+            for (String s : jmsAdminOperations.getJNDIEntriesForQueue("testQueue1"))    {
+                System.out.println(s);
+            }
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";

@@ -193,6 +193,12 @@ public interface JMSOperations {
      */
     void addXADatasourceProperty(String poolName, String propertyName, String value);
 
+    void addTopicJNDIName(String queueName, String jndiName);
+
+    void removeQueueJNDIName(String queueName, String jndiName);
+
+    void removeTpicJNDIName(String topicName, String jndiName);
+
     /**
      * Cleanups queue
      *
@@ -1367,4 +1373,8 @@ public interface JMSOperations {
 
 
     boolean areThereUnfinishedArjunaTransactions();
+
+    List<String> getJNDIEntriesForQueue(String destinationCoreName);
+
+    List<String> getJNDIEntriesForTopic(String destinationCoreName);
 }
