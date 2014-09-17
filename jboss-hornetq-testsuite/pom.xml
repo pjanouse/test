@@ -32,6 +32,7 @@
         <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.CR3</arquillian.eap5x.container.version>
         <version.byteman>2.0.1</version.byteman>
+        <version.commons-io>2.4</version.commons-io>
         <version.junit>4.11</version.junit>
         <version.log4j>1.2.16</version.log4j>
         <version.jnp-client>5.0.5.Final</version.jnp-client>
@@ -184,6 +185,12 @@
             <groupId>org.jboss.byteman</groupId>
             <artifactId>byteman-submit</artifactId>
             <version>${version.byteman}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${version.commons-io}</version>
         </dependency>
 
         <dependency>
