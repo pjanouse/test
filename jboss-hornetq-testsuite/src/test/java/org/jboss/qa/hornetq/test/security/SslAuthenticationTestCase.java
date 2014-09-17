@@ -501,17 +501,17 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         targetforSecjar.createNewFile();
         copyFile(secJar, targetforSecjar);
 
-        // patch $JBOSS_HOME/modules/sun/jdk/main/module.xml by sed -i 's#\(<path name="sun/security/provider"/>\)#\1<path name="sun/security/pkcs11"/>#'
-        File jdkModuleXml = new File(getJbossHome(containerName), "modules" + File.separator + "system"
-                + File.separator + "layers" + File.separator + "base" + File.separator + "sun"
-                + File.separator + "jdk" + File.separator + "main" + File.separator + "module.xml");
-        if (!jdkModuleXml.exists())  {
-            throw new Exception("File: " + jdkModuleXml.getAbsolutePath() + " does not exists");
-        }
+//        // patch $JBOSS_HOME/modules/sun/jdk/main/module.xml by sed -i 's#\(<path name="sun/security/provider"/>\)#\1<path name="sun/security/pkcs11"/>#'
+//        File jdkModuleXml = new File(getJbossHome(containerName), "modules" + File.separator + "system"
+//                + File.separator + "layers" + File.separator + "base" + File.separator + "sun"
+//                + File.separator + "jdk" + File.separator + "main" + File.separator + "module.xml");
+//        if (!jdkModuleXml.exists())  {
+//            throw new Exception("File: " + jdkModuleXml.getAbsolutePath() + " does not exists");
+//        }
 
-        String original = "<path name=\"sun/security/provider\"/>";
-        String replacement = "<path name=\"sun/security/pkcs11\"/>";
-        replaceStringInFile(jdkModuleXml, original, replacement);
+//        String original = "<path name=\"sun/security/provider\"/>";
+//        String replacement = "<path name=\"sun/security/pkcs11\"/>";
+//        replaceStringInFile(jdkModuleXml, original, replacement);
 
     }
 
