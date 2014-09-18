@@ -2742,8 +2742,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param timeout timeout to have decision where the message will be routed
      */
     @Override
-    public void addMessageGrouping(String name, String type, String address, long timeout){
-        addMessageGrouping("default",name,type,address,timeout);
+    public void addMessageGrouping(String name, String type, String address, long timeout) {
+        addMessageGrouping("default", name, type, address, timeout);
 
     }
 
@@ -2751,12 +2751,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * Adds grouping handler
      *
      * @param serverName hornetq server name
-     * @param name    name of grouping handler
-     * @param type    type - LOCAL, REMOTE
-     * @param address cluster address
-     * @param timeout timeout to have decision where the message will be routed
+     * @param name       name of grouping handler
+     * @param type       type - LOCAL, REMOTE
+     * @param address    cluster address
+     * @param timeout    timeout to have decision where the message will be routed
      */
-    public void addMessageGrouping(String serverName, String name, String type, String address, long timeout){
+    public void addMessageGrouping(String serverName, String name, String type, String address, long timeout) {
 
         ModelNode modelNode = new ModelNode();
         modelNode.get(ClientConstants.OP).set("add");
@@ -4134,7 +4134,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
         ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
-        int counter=0;
+        int counter = 0;
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -4146,10 +4146,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        List <ModelNode> results=result.get("result").get("runtime-queue").asList();
+        List<ModelNode> results = result.get("result").get("runtime-queue").asList();
         logger.info(results.toString());
-        for(ModelNode node : results){
-            if(node.toString().contains(clientId)){
+        for (ModelNode node : results) {
+            if (node.toString().contains(clientId)) {
                 counter++;
             }
         }
@@ -4158,8 +4158,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfTempQueues(){
-        int counter=0;
+    public int getNumberOfTempQueues() {
+        int counter = 0;
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -4171,10 +4171,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        List <ModelNode> results=result.get("result").get("runtime-queue").asList();
+        List<ModelNode> results = result.get("result").get("runtime-queue").asList();
         logger.info(results.toString());
-        for(ModelNode node : results){
-            if(node.toString().contains("tempqueue")){
+        for (ModelNode node : results) {
+            if (node.toString().contains("tempqueue")) {
                 counter++;
             }
         }
@@ -4183,7 +4183,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
-    public String getPagingDirectoryPath(){
+    public String getPagingDirectoryPath() {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("resolve-path");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -4207,7 +4207,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
 
         try {
-         this.applyUpdate(model);
+            this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -4251,7 +4251,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
         List<String> entries = new ArrayList<String>();
-        for (ModelNode m: result.get("result").asList())   {
+        for (ModelNode m : result.get("result").asList()) {
             entries.add(m.toString().replaceAll("\"", ""));
         }
         return entries;
@@ -4309,7 +4309,23 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        return  result.get("result").asList().size();
+        return result.get("result").asList().size();
+    }
+
+    @Override
+    public void removeMessageFromQueue(String queueName, String jmsMessageID) {
+        final ModelNode removeMessagesFromQueue = new ModelNode();
+        removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
+        removeMessagesFromQueue.get("message-id").set(jmsMessageID);
+
+        try {
+            this.applyUpdate(removeMessagesFromQueue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

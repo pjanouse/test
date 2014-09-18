@@ -1381,4 +1381,6 @@ public interface JMSOperations {
     void setDiscoveryGroupOnConnectionFactory(String connectionFactoryName, String discoveryGroupName);
 
     int getNumberOfActiveClientConnections();
+
+    void removeMessageFromQueue(String queueName, String jmsMessageID);
 }

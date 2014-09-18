@@ -1911,5 +1911,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return 0;
     }
 
+    @Override
+    public void removeMessageFromQueue(String queueName, String jmsMessageID) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
 
 }
