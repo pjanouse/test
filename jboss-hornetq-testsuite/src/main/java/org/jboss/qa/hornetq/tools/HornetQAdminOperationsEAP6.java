@@ -2766,6 +2766,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         modelNode.get("grouping-handler-address").set(address);
         modelNode.get("type").set(type);
         modelNode.get("timeout").set(timeout);
+//        modelNode.get("group-timeout").set(timeout);
+
 
         try {
             this.applyUpdate(modelNode);

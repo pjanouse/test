@@ -3,12 +3,17 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +27,57 @@ import java.util.Map;
 public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);
+
+    // test JMS bridge clean shutdown - no unfinished transactions
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testUnfinishedTransactionsAfterShutdownOfServerWithDeployedJMSBridge() throws Exception {
+
+        int numberOfMessages = 20000;
+
+        deployBridge(CONTAINER1, ONCE_AND_ONLY_ONCE, -1);
+
+        controller.start(CONTAINER1);
+
+        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
+
+        // send some messages to InQueue to server 1
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(40));
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(100);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        // start target server for the bridge with queue OutQueue
+        controller.start(CONTAINER3);
+
+        // check that some messages got to OutQueue on server 3 and shutdown server1
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, CONTAINER3);
+
+        for (int i = 0; i < 5; i++) {
+
+            // shutdown server 3
+            stopServer(CONTAINER1);
+
+            // check HornetQ journal that there are no unfinished transactions
+            String outputJournalFile = CONTAINER1 + "-hornetq_journal_content_after_shutdown_of_JMS_bridge.txt";
+            PrintJournal.printJournal(getJbossHome(CONTAINER1), JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                    JOURNAL_DIRECTORY_A + File.separator + "journal", outputJournalFile);
+            // check that there are failed transactions
+            String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
+            String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
+
+            Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+                    new File(workingDirectory, outputJournalFile), stringToFind));
+
+            controller.start(CONTAINER1);
+        }
+
+        stopServer(CONTAINER3);
+    }
 
     /////////////////// Test Initial Failover /////////////////
     @Test
@@ -57,8 +113,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         testInitialFailover();
     }
 
-    /////////////////// Test Failover /////////////////    ///////////////////
-
+    /////////////////// Test Failover ////////////////////////////////////
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
