@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -185,12 +185,66 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
+     * and call CLI operations :force-failover on messaging subsystem. Live should stop and clients failover to backup,
+     * backup activates.
+     *
+     *
+     *
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testForceFailoverOperation() throws Exception {
+
+        int acknowledge = Session.SESSION_TRANSACTED;
+        boolean topic = false;
+
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        clients = createClients(acknowledge, topic);
+        clients.setProducedMessagesCommitAfter(2);
+        clients.setReceivedMessagesAckCommitAfter(9);
+        clients.startClients();
+
+        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
+
+        // call force-failover operation
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        jmsOperations.forceFailover();
+        jmsOperations.close();
+
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        waitForClientsToFailover();
+        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+
+        clients.stopClients();
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
+
     private void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (checkThatServerIsReallyUp(getHostname(container), port))    {
-              Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime < timeout)   {
+        while (checkThatServerIsReallyUp(getHostname(container), port)) {
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
             }
         }
@@ -226,7 +280,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
             startValue = c.getCount();
 
-            while (c.getCount() <= startValue)   {
+            while (c.getCount() <= startValue) {
                 if (System.currentTimeMillis() - startTime > 120000) {
                     Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
                 }
@@ -317,7 +371,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         long startTime = System.currentTimeMillis();
 
-        while (isRunning && System.currentTimeMillis() - startTime < timeout)    {
+        while (isRunning && System.currentTimeMillis() - startTime < timeout) {
             isRunning = checkThatServerIsReallyUp(getHostname(CONTAINER1), getHttpPort(container));
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);

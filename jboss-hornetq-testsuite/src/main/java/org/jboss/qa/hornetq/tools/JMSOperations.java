@@ -1383,4 +1383,6 @@ public interface JMSOperations {
     int getNumberOfActiveClientConnections();
 
     void removeMessageFromQueue(String queueName, String jmsMessageID);
+
+    void forceFailover();
 }

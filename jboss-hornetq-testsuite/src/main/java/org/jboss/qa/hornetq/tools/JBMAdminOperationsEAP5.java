@@ -1917,5 +1917,10 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     }
 
+    @Override
+    public void forceFailover() {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
 }
