@@ -1067,6 +1067,12 @@ public interface JMSOperations {
      */
     void setPersistenceEnabled(boolean persistenceEnabled);
 
+    void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
+                   String filter, String routingName, String transformerClassName);
+
+    void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
+                   String filter, String routingName, String transformerClassName);
+
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *

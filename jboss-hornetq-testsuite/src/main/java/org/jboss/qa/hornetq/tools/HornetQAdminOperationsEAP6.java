@@ -877,6 +877,46 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         setPersistenceEnabled("default", persistenceEnabled);
     }
 
+    @Override
+    public void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
+                          String filter, String routingName, String transformerClassName) {
+        addDivert("default", divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName, transformerClassName);
+    }
+
+    /**
+     * Sets persistence-enabled attribute in servers configuration.
+     *
+     * @param serverName         sets name of the hornetq server to be changed
+     * @param divertName
+     */
+    @Override
+    public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
+                          String filter, String routingName, String transformerClassName) {
+        final ModelNode addDivert = new ModelNode();
+        addDivert.get(ClientConstants.OP).set(ClientConstants.ADD);
+        addDivert.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        addDivert.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        addDivert.get(ClientConstants.OP_ADDR).add("divert", divertName);
+        addDivert.get("divert-address").set(divertAddress);
+        addDivert.get("forwarding-address").set(forwardingAddress);
+        addDivert.get("exclusive").set(isExclusive);
+        if (filter != null && !"".equals(filter)) {
+            addDivert.get("filter").set(filter);
+        }
+        if (routingName != null && !"".equals(routingName)) {
+            addDivert.get("routing-name").set(routingName);
+        }
+        if (transformerClassName != null && !"".equals(transformerClassName)) {
+            addDivert.get("transformer-class-name").set(transformerClassName);
+        }
+
+        try {
+            this.applyUpdate(addDivert);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *
@@ -4349,7 +4389,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
+//            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
 //            String jmsServerBindingAddress = "192.168.40.1";

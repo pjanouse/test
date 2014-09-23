@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -40,6 +40,7 @@ import java.util.*;
 //        - clusterTestWithMdbOnTopicDeployAndUndeployTwoServers
 //        - clusterTestWithMdbOnTopicCombinedDeployAndUndeployTwoServers
 //        - clusterTestWithMdbWithSelectorAndSecurityTwoServers
+
 /**
  * This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
  * export MYTESTIP_1=$MYTESTIPV6_1
@@ -753,7 +754,6 @@ public class ClusterTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations2 = getJMSOperations(CONTAINER2);
 
 
-
         //setup security
         jmsAdminOperations1.setSecurityEnabled(true);
         jmsAdminOperations2.setSecurityEnabled(true);
@@ -767,13 +767,11 @@ public class ClusterTestCase extends HornetQTestCase {
         UsersSettings.forEapServer(getJbossHome(CONTAINER2)).withUser("user", "user.1234", "user").create();
 
 
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
 
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-
-
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
 
 
         //restart servers to changes take effect
@@ -800,21 +798,21 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
-       receiver1.start();
-       receiver2.start();
+        receiver1.start();
+        receiver2.start();
 
-          producerBlueG1.start();
+        producerBlueG1.start();
         producerRedG1.start();
-       producerRedG2.start();
+        producerRedG2.start();
 
 
         producerBlueG1.join();
         producerRedG1.join();
-       producerRedG2.join();
+        producerRedG2.join();
         receiver1.join();
         receiver2.join();
 
-       Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
+        Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
         ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
         ArrayList<String> receiver2GroupiIDs = new ArrayList<String>();
@@ -864,12 +862,11 @@ public class ClusterTestCase extends HornetQTestCase {
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
 
 
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER1).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
 
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND,"guest").create();
-        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.CONSUME,"guest").create();
-
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.InQueue").givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest").create();
+        AddressSecuritySettings.forContainer(this, CONTAINER2).forAddress("jms.queue.OutQueue").givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
 
 
         //restart servers to changes take effect
@@ -1272,6 +1269,104 @@ public class ClusterTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
+
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithDivertsExclusiveSmallMessages() throws Exception {
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(1,1));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithDivertsNotExclusiveSmallMessages() throws Exception {
+        clusterTestWithDiverts(false, new ClientMixMessageBuilder(1,1));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithDivertsExclusiveLargeMessages() throws Exception {
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120,120));
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithDivertsNotExclusiveLargeMessages() throws Exception {
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120,120));
+    }
+
+    /**
+     * Start 2 servers in cluster
+     * - Create divert which sends message to queue - exclusive + non-exclusive
+     * - Check that messages gets load-balanced
+     */
+    private void clusterTestWithDiverts(boolean isExclusive, MessageBuilder messageBuilder) throws Exception {
+
+        int numberOfMessages = 100;
+
+        prepareServers();
+
+        String divertName = "myDivert";
+        String divertAddress = "jms.queue." + inQueueNameForMdb;
+        String forwardingAddress = "jms.queue." + outQueueNameForMdb;
+
+        createDivert(CONTAINER1, divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
+        createDivert(CONTAINER2, divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // start client
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setCommitAfter(10);
+        producerToInQueue1.start();
+
+        ReceiverClientAck receiverOriginalAddress = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 30000, 100, 10);
+        receiverOriginalAddress.start();
+
+        ReceiverClientAck receiverDivertedAddress = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 30000, 100, 10);
+        receiverDivertedAddress.start();
+
+        producerToInQueue1.join(60000);
+        receiverOriginalAddress.join(60000);
+        receiverDivertedAddress.join(60000);
+
+        // if exclusive check that messages are just in diverted address
+        if (isExclusive)    {
+            Assert.assertEquals("In exclusive mode there must be messages just in diverted address only but there are messages in " +
+                    "original address.", 0, receiverOriginalAddress.getListOfReceivedMessages().size());
+            Assert.assertEquals("In exclusive mode there must be messages in diverted address.",
+                    numberOfMessages, receiverDivertedAddress.getListOfReceivedMessages().size());
+        } else {
+            Assert.assertEquals("In non-exclusive mode there must be messages in " +
+                    "original address.", numberOfMessages, receiverOriginalAddress.getListOfReceivedMessages().size());
+            Assert.assertEquals("In non-exclusive mode there must be messages in diverted address.",
+                    numberOfMessages, receiverDivertedAddress.getListOfReceivedMessages().size());
+        }
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+
+    }
+
+    private void createDivert(String containerName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
+                              String filter, String routingName, String transformerClassName) {
+
+        controller.start(containerName);
+        JMSOperations jmsOperations = getJMSOperations(containerName);
+        jmsOperations.addDivert(divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName, transformerClassName);
+        jmsOperations.close();
+        stopServer(containerName);
 
     }
 

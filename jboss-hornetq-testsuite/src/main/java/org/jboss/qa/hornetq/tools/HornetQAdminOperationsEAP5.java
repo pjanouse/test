@@ -1203,6 +1203,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive, String filter, String routingName, String transformerClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive, String filter, String routingName, String transformerClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         logger.info("Profile is" + profile + ", persistenceEnabled is: " + persistenceEnabled);
         String configurationFile = getHornetQConfigurationFile();
