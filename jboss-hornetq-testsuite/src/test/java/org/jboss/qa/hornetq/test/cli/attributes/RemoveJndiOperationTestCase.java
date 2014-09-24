@@ -9,7 +9,6 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -125,29 +124,33 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
     }
 
-
-    // TODO un-ignore when https://bugzilla.redhat.com/show_bug.cgi?id=1142619 is fixed
-    @Ignore
-    @Test(expected=RuntimeException.class)
+    @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void createQueueAndRemoveJndiEntryWhichDoesNotExists() throws Exception {
+    public void createQueueAndRemoveJndiEntryWhichDoesNotExists() {
 
         controller.start(CONTAINER1);
 
         JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
 
         jmsOperations.createQueue(queueCoreName1, queueJndiNameRelative1);
-        jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported1);
         jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported2);
 
         jmsOperations.removeQueueJNDIName(queueCoreName1, queueJndiNameRelative1);
-        jmsOperations.removeQueueJNDIName(queueCoreName1, queueJndiNameRelative1);
+
+        try {
+            jmsOperations.removeQueueJNDIName(queueCoreName1, queueJndiNameRelative1);
+            Assert.fail("RuntimeException should be thrown when removing jndi entry which does not exist.");
+        } catch (RuntimeException ex)   {
+            log.info("RuntimeException was thrown - this is correct in this case.");
+            log.error("RuntimeException was thrown - this is correct in this case.", ex);
+        }
 
         checkJNDIEntriesForQueue(jmsOperations, queueCoreName1, queueJndiNameFullExported1, queueJndiNameFullExported2);
 
         jmsOperations.close();
+
         stopServer(CONTAINER1);
     }
 }
