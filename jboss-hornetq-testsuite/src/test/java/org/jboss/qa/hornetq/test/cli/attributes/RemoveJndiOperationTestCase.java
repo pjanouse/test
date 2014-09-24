@@ -143,11 +143,39 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
             jmsOperations.removeQueueJNDIName(queueCoreName1, queueJndiNameRelative1);
             Assert.fail("RuntimeException should be thrown when removing jndi entry which does not exist.");
         } catch (RuntimeException ex)   {
-            log.info("RuntimeException was thrown - this is correct in this case.");
             log.error("RuntimeException was thrown - this is correct in this case.", ex);
         }
 
         checkJNDIEntriesForQueue(jmsOperations, queueCoreName1, queueJndiNameFullExported1, queueJndiNameFullExported2);
+
+        jmsOperations.close();
+
+        stopServer(CONTAINER1);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void createTopicAndRemoveJndiEntryWhichDoesNotExists() {
+
+        controller.start(CONTAINER1);
+
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+
+        jmsOperations.createQueue(topicCoreName1, topicJndiNameRelative1);
+        jmsOperations.addQueueJNDIName(topicCoreName1, topicJndiNameFullExported2);
+
+        jmsOperations.removeQueueJNDIName(topicCoreName1, topicJndiNameRelative1);
+
+        try {
+            jmsOperations.removeQueueJNDIName(topicCoreName1, topicJndiNameRelative1);
+            Assert.fail("RuntimeException should be thrown when removing jndi entry which does not exist.");
+        } catch (RuntimeException ex)   {
+            log.error("RuntimeException was thrown - this is correct in this case.", ex);
+        }
+
+        checkJNDIEntriesForQueue(jmsOperations, topicCoreName1, topicJndiNameFullExported1, topicJndiNameFullExported2);
 
         jmsOperations.close();
 
