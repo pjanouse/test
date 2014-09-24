@@ -9,6 +9,8 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -40,6 +42,9 @@ public class SimpleJMSClient extends Client {
 
     private Exception exceptionDuringSend;
     private Exception exceptionDuringReceive;
+
+    private List<Message> listOfSentMesages = new LinkedList<Message>();
+    private List<Message> listOfReceivedMessages = new LinkedList<Message>();
 
     /**
      * Constructor
@@ -135,6 +140,7 @@ public class SimpleJMSClient extends Client {
                     log.debug(String.format("Sending '%s'. message with id '%s'", i, message.getJMSMessageID()));
                 }
                 producer.send(message);
+                listOfSentMesages.add(message);
                 if (this.ackMode == Session.CLIENT_ACKNOWLEDGE) {
                     message.acknowledge();
                 }
@@ -203,6 +209,7 @@ public class SimpleJMSClient extends Client {
                     log.debug(String.format("Received '%s'. message with id '%s'", counter++, message.getJMSMessageID()));
                 }
                 this.receivedMessages++;
+                listOfReceivedMessages.add(message);
             }
             if (this.transactionSession) {
                 if (!this.rollbackOnly) {
@@ -389,4 +396,19 @@ public class SimpleJMSClient extends Client {
         this.initialContextClass = initialContextClass;
     }
 
+    public List<Message> getListOfReceivedMessages() {
+        return listOfReceivedMessages;
+    }
+
+    public void setListOfReceivedMessages(List<Message> listOfReceivedMessages) {
+        this.listOfReceivedMessages = listOfReceivedMessages;
+    }
+
+    public List<Message> getListOfSentMesages() {
+        return listOfSentMesages;
+    }
+
+    public void setListOfSentMesages(List<Message> listOfSentMesages) {
+        this.listOfSentMesages = listOfSentMesages;
+    }
 }
