@@ -44,8 +44,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
+    String divertedQueue = "divertedQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
+    String divertedQueueJndiName = "jms/queue/divertedQueue";
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
     //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
@@ -185,12 +187,169 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverWithDivertsTransAckQueueKill() throws Exception {
+        testFailoverWithDiverts(false, false, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverWithDivertsTransAckQueueShutdown() throws Exception {
+        testFailoverWithDiverts(false, false, true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackWithDivertsTransAckQueueKill() throws Exception {
+        testFailoverWithDiverts(true, false, false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverWithDivertsTransAckTopicKill() throws Exception {
+        testFailoverWithDiverts(false, true, false);
+    }
+
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @param failback whether to test failback
+     * @param topic    whether to test with topics
+     * @throws Exception
+     */
+    private void testFailoverWithDiverts(boolean failback, boolean topic, boolean shutdown) throws Exception {
+
+        boolean isExclusive = false;
+        int acknowledge = Session.SESSION_TRANSACTED;
+
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER2);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 10000);
+        addDivert(CONTAINER2, divertedQueue, isExclusive, topic);
+        stopServer(CONTAINER2);
+
+        controller.start(CONTAINER1);
+        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 30000);
+        addDivert(CONTAINER1, divertedQueue, isExclusive, topic);
+        stopServer(CONTAINER1);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        Thread.sleep(10000);
+
+        clients = createClients(acknowledge, topic);
+        clients.setProducedMessagesCommitAfter(2);
+        clients.setReceivedMessagesAckCommitAfter(9);
+        clients.startClients();
+
+        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
+
+        if (!shutdown) {
+            logger.warn("########################################");
+            logger.warn("Kill live server");
+            logger.warn("########################################");
+            killServer(CONTAINER1);
+            controller.kill(CONTAINER1);
+        } else {
+            logger.warn("########################################");
+            logger.warn("Shutdown live server");
+            logger.warn("########################################");
+            stopServer(CONTAINER1);
+        }
+
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        waitForClientsToFailover();
+        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+
+        if (failback) {
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again ");
+            logger.warn("########################################");
+            controller.start(CONTAINER1);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            logger.warn("########################################");
+            logger.warn("failback - Live started again ");
+            logger.warn("########################################");
+            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            // check that backup is really down
+            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+            waitForClientsToFailover();
+            Thread.sleep(5000); // give it some time
+            logger.warn("########################################");
+            logger.warn("failback - Stop backup server");
+            logger.warn("########################################");
+            stopServer(CONTAINER2);
+            logger.warn("########################################");
+            logger.warn("failback - Backup server stopped");
+            logger.warn("########################################");
+        }
+
+        Thread.sleep(5000);
+
+        clients.stopClients();
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
+
+        // compare numbers in original and diverted queue
+        int sum = 0;
+        for (Client c : clients.getProducers()) {
+            if (c instanceof ProducerTransAck) {
+                sum = sum + ((ProducerTransAck) c).getListOfSentMessages().size();
+            }
+            if (c instanceof PublisherTransAck) {
+                sum = sum + ((PublisherTransAck) c).getListOfSentMessages().size();
+            }
+        }
+
+        JMSOperations jmsOperations;
+        if (failback) {
+            jmsOperations = getJMSOperations(CONTAINER1);
+
+        } else {
+            jmsOperations = getJMSOperations(CONTAINER2);
+        }
+        long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
+        jmsOperations.close();
+
+        Assert.assertEquals("There is different number of sent messages and received messages from diverted address",
+                sum, numberOfMessagesInDivertedQueue);
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
+    private void addDivert(String containerName, String divertedQueue, boolean isExclusive, boolean topic) {
+        JMSOperations jmsOperations = getJMSOperations(containerName);
+
+        jmsOperations.addDivert("myDivert",
+                topic ? "jms.topic." + topicNamePrefix + "0" : "jms.queue." + queueNamePrefix + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
+
+        jmsOperations.close();
+    }
+
+
     /**
      * Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
      * and call CLI operations :force-failover on messaging subsystem. Live should stop and clients failover to backup,
      * backup activates.
-     *
-     *
      *
      * @throws Exception
      */
@@ -1010,6 +1169,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
+        jmsAdminOperations.createQueue(serverName, divertedQueue, divertedQueueJndiName, true);
 
         jmsAdminOperations.close();
     }
