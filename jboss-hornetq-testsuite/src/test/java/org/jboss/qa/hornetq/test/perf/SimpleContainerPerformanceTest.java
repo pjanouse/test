@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -46,7 +46,7 @@ import static org.junit.Assert.fail;
  * @author pslavice@redhat.com
  */
 @RunWith(Arquillian.class)
-@RestoreConfigAfterTest
+@RestoreConfigBeforeTest
 public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     // Logger
@@ -134,7 +134,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void normalByteMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new ByteMessageBuilder(512));
     }
@@ -146,7 +146,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void normalTextMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new TextMessageBuilder(512));
     }
@@ -158,7 +158,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void largeByteMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }
@@ -170,7 +170,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void largeTextMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }

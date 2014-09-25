@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.apps.servlets.HornetQTestServlet;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigAfterTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author mnovak@rehat.com
  */
-@RestoreConfigAfterTest
+@RestoreConfigBeforeTest
 @RunWith(Arquillian.class)
 public class ConnectionFactoryTestCase extends HornetQTestCase {
 
@@ -35,7 +35,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
     @Test
     @RunAsClient
-    @RestoreConfigAfterTest
+    @RestoreConfigBeforeTest
     public void testXAConnectionFactoryEnabled() throws Exception {
         testXAConnectionFactoryLookup(true);
     }
