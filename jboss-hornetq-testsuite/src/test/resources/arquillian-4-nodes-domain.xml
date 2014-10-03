@@ -16,13 +16,16 @@
                 master:node-4=node-4
             </property> -->
             <property name="containerNameMap">
-                main-server-group=backend,
-                master:server-one=backend-1,
-                master:server-two=backend-2,
-                master:server-three=frontend-1
+                master:server-1=node-1,
+                master:server-2=node-2,
+                master:server-3=node-3,
+                master:server-4=node-4
             </property>
+            <!-- <property name="containerNameMap">
+                main-server-group=server-group
+            </property> -->
             <property name="containerModeMap">
-                other.*=manual
+                .*=manual
             </property>
             <!-- <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                 -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
