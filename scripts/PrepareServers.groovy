@@ -1,3 +1,4 @@
+
 /**
  * Prepares 4 jboss-eap-6.x servers.
  *
@@ -386,6 +387,47 @@ public class PrepareServers {
 
         }
 
+        def domainDirectory = "${jbossHome}${File.separator}domain${File.separator}configuration"
+
+        // modify domain.xml
+        def domainTemp = new File('domain-tmp.txt')
+        def domainFile = new File("${domainDirectory}${File.separator}domain.xml")
+        def domainDocument = new XmlParser().parse(domainFile)
+
+        // copy original full-ha profile and full-ha-sockets 4 times and rename it to full-ha-N / full-ha-sockets-N
+        def profiles = domainDocument.profiles.get(0)
+        def originalProfile = profiles.profile.findAll{ it.@name == 'full-ha' }.get(0)
+
+        disableSecurity(originalProfile)
+        enableDebugConsle(originalProfile)
+        cloneProfiles(profiles, originalProfile)
+        cloneSocketBindings(domainDocument.'socket-binding-groups'.get(0))
+        cloneServerGroups(domainDocument.'server-groups'.get(0))
+
+        new XmlNodePrinter(new IndentPrinter(new FileWriter(domainTemp))).print(domainDocument)
+        copyFile(domainTemp, domainFile)
+
+        // modify host.xml
+        def hostTemp = new File('host-tmp.txt')
+        def hostFile = new File("${domainDirectory}${File.separator}host.xml")
+        def hostDocument = new XmlParser().parse(hostFile)
+
+        updateInterfacesHostnames(hostDocument)
+
+        def servers = hostDocument.servers.get(0)
+        servers.server.each{ servers.remove(it) }
+
+        for (i in 1..4) {
+            def newServer = servers.appendNode('server', [name:"server-${i}", group:"server-group-${i}", 'auto-start':'false'])
+            if (i != 1) {
+                int portOffset = i * 10000
+                newServer.appendNode('socket-bindings', ['port-offset':portOffset])
+            }
+        }
+
+        new XmlNodePrinter(new IndentPrinter(new FileWriter(hostTemp))).print(hostDocument)
+        copyFile(hostTemp, hostFile)
+
         // modify mgmt-groups.properties and mgmt-users.properties
         File managementGroupsFile = new File(jbossHome + File.separator + 'standalone' + File.separator + 'configuration' + File.separator + 'mgmt-groups.properties')
         if (managementGroupsFile.exists()) {
@@ -460,6 +502,79 @@ public class PrepareServers {
         AntBuilder ant = new AntBuilder()
         ant.copy(overwrite: true, file: sourceFile.absolutePath,
                 tofile: toFile.absolutePath)
+    }
+
+    private static void disableSecurity(Node profile) {
+        def hornetq = profile.subsystem.'hornetq-server'.get(0)
+        hornetq.appendNode('security-enabled', false)
+        //hornetq.children().add(1, new Node(hornetq, 'security-enabled', false))
+        hornetq.'journal-type'.get(0).value = 'ASYNCIO'
+
+        def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find{ it.@name == 'other' }
+        def remotingSecurity = securityDomainOther.authentication.'login-module'.find{ it.@code == 'Remoting' }
+        remotingSecurity.appendNode('module-option', [name:'unauthenticatedIdentity', value:'guest'])
+    }
+
+    private static void enableDebugConsle(Node profile) {
+        def logging = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
+        logging.'console-handler'.find{ it.@name == 'CONSOLE' }.level.each{ it.@name = 'DEBUG' }
+
+        //consoleHandler.formatter.'named-formatter'.each{ consoleHandler.formatter.remove(it) }
+        //def formatter = consoleHandler.appendNode('formatter')
+        //formatter.appendNode('pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+    }
+
+    private static void cloneProfiles(Node profiles, Node originalProfile) {
+        for (i in 1..4) {
+            def newProfile = originalProfile.clone()
+            newProfile.@name = "full-ha-${i}"
+            profiles.append(newProfile)
+        }
+        profiles.remove(originalProfile)
+    }
+
+    private static void cloneSocketBindings(Node sockets) {
+        def originalSockets = sockets.'socket-binding-group'.find{ it.@name == 'full-ha-sockets' }
+        for (i in 1..4) {
+            def newSockets = originalSockets.clone()
+            newSockets.@name = "full-ha-sockets-${i}"
+            sockets.append(newSockets)
+        }
+        sockets.remove(originalSockets)
+    }
+
+    private static void cloneServerGroups(Node serverGroups) {
+        serverGroups.'server-group'.each{ serverGroups.remove(it) }
+
+        for (i in 1..4) {
+            def newServerGroup = serverGroups.appendNode('server-group', [name:"server-group-${i}", profile:"full-ha-${i}"])
+            def jvm = newServerGroup.appendNode('jvm', [name:'default'])
+            jvm.appendNode('heap', [size:'64m', 'max-size':'788m'])
+            jvm.appendNode('permgen', ['max-size':'256m'])
+            newServerGroup.appendNode('socket-binding-group', [ref:"full-ha-sockets-${i}"])
+        }
+    }
+
+    private static void updateInterfacesHostnames(Node host) {
+        def interfaces = host.interfaces.get(0)
+        def addressList = interfaces.interface.collect{ it.'inet-address'.get(0) }
+
+        for (address in addressList) {
+            if (address.@value.startsWith('${jboss.bind.address')) {
+                address.@value = '${jboss.bind.address:127.0.0.1}'
+            }
+        }
+    }
+
+    private static void copyDomainXml(File config, File target) {
+        target.withWriter { w ->
+            config.eachLine { line ->
+                w << line
+                        .replaceAll('jboss.bind.address.management:127.0.0.1', 'jboss.bind.address:127.0.0.1')
+                        .replaceAll('jboss.bind.address.unsecure:127.0.0.1', 'jboss.bind.address:127.0.0.1')
+                        .concat("\n")
+            }
+        }
     }
 
     public static void main(String[] args) {
