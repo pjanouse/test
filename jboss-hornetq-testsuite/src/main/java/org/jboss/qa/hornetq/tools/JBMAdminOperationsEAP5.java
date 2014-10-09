@@ -289,6 +289,20 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public int getNumberOfPreparedTransaction() {
+
+        logger.info("This operation is not supported: " + getMethodName());
+        return 0;
+    }
+
+    @Override
+    public int getNumberOfPreparedTransaction(String serverName) {
+
+        logger.info("This operation is not supported: " + getMethodName());
+        return 0;
+    }
+
     /**
      * Removes protocol from JGroups stack
      *
@@ -1929,6 +1943,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void forceFailover() {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setTransactionTimeout(long hornetqTransactionTimeout) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

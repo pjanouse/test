@@ -41,6 +41,10 @@ public interface JMSOperations {
      */
     void addBackup(String serverName, boolean isBackup);
 
+    int getNumberOfPreparedTransaction();
+
+    int getNumberOfPreparedTransaction(String serverName);
+
     /**
      * Removes protocol from JGroups stack
      *
@@ -1391,4 +1395,6 @@ public interface JMSOperations {
     void removeMessageFromQueue(String queueName, String jmsMessageID);
 
     void forceFailover();
+
+    void setTransactionTimeout(long hornetqTransactionTimeout);
 }

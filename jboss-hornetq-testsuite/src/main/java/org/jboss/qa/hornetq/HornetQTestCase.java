@@ -412,7 +412,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param path folder which should be deleted
      * @return true if operation was successful, false otherwise
      */
-    protected boolean deleteFolder(File path) {
+    protected static boolean deleteFolder(File path) {
         if (log.isDebugEnabled()) {
             log.debug(String.format("Removing folder '%s'", path));
         }

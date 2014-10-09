@@ -1883,6 +1883,41 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
 
+    @Override
+    public int getNumberOfPreparedTransaction()    {
+        return getNumberOfPreparedTransaction("default");
+    }
+
+        /**
+         * Get number of prepared transactions
+         */
+    @Override
+    public int getNumberOfPreparedTransaction(String serverName)    {
+        //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        int i = -1;
+        try {
+            ModelNode model = new ModelNode();
+            model.get(ClientConstants.OP).set("list-prepared-transactions");
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+            model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+
+            ModelNode result;
+            try {
+                result = this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            i = result.get("result").asList().size();
+            logger.info(result.toString());
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return i;
+    }
+
+
     /**
      * Removes protocol from JGroups stack
      *
@@ -4382,6 +4417,23 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setTransactionTimeout(long hornetqTransactionTimeout) {
+
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("transaction-timeout");
+        model.get("value").set(hornetqTransactionTimeout);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public static void main(String[] args) {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
@@ -4389,6 +4441,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
+            jmsAdminOperations.setTransactionTimeout(120000);
 //            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 

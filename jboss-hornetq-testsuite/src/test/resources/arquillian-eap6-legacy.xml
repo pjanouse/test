@@ -18,6 +18,7 @@
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false -Dcom.arjuna.ats.jta.orphanSafetyInterval=40000
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_1}
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -41,6 +42,7 @@
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_2}
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -64,6 +66,7 @@
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_3}
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
@@ -87,6 +90,7 @@
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
+                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_4}
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=mnovak-laptop1:8586,server=y,suspend=n-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">60</property>
