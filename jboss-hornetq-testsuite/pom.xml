@@ -202,6 +202,24 @@
             <groupId>org.jboss.jbossts.jta</groupId>
             <artifactId>narayana-jta</artifactId>
             <version>4.17.23.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-journal</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hornetq</groupId>
+                    <artifactId>hornetq-commons</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.logmanager</groupId>
+                    <artifactId>jboss-logmanager</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
