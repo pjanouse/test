@@ -7,7 +7,6 @@ import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import org.apache.log4j.Logger;
-import org.hornetq.jms.server.recovery.HornetQXAResourceRecovery;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -105,7 +104,7 @@ public class RecoveryManagerWrapper {
 
     public static void main(String[] args) throws Exception {
 
-        String resourceRecoveryClass = HornetQXAResourceRecovery.class.getName();
+        String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
         String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
                 "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
 
