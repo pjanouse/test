@@ -520,7 +520,13 @@
 
         <profile>
             <id>eap6x-xa-clients</id>
-
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>6x-xa-clients</value>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
