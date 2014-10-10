@@ -12,7 +12,6 @@ import com.arjuna.ats.jta.TransactionManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import org.apache.log4j.Logger;
-import org.hornetq.jms.server.recovery.HornetQXAResourceRecovery;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
@@ -447,11 +446,11 @@ public class XAConsumerTransAck extends Client {
         synchronized (recoveryManagerLock) {
             if (recoveryManager == null) {
 
-                String resourceRecoveryClass = HornetQXAResourceRecovery.class.getName();
+                String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
                 //org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost1,port=5446"
-
                 String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
-                        "guest,guest,host=" + HornetQTestCase.getHostname(CONTAINER1) + ",port=" + HornetQTestCase.getHornetqPort(CONTAINER1) + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
+                        "guest,guest,host=" + HornetQTestCase.getHostname(CONTAINER1) + ",port=" + HornetQTestCase.getHornetqPort(CONTAINER1)
+                        + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
                         + HornetQTestCase.getHostname(CONTAINER2) + " ,port=" + HornetQTestCase.getHornetqPort(CONTAINER2);
 
 //                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
