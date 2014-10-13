@@ -274,6 +274,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
             targetMethod = "deleteLargeMessageFile",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    @Ignore
     public void testServerKillOnDeletingLargeMessageFilePassThrough() throws Exception {
         this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -324,6 +325,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         // try to stop server in case the kill didn't work out for any reason, otherwise the test fails
         // and breaks all following tests from the test suite
+        logger.info("No Byteman rule worked, trying to hard-kill the server");
         this.controller.kill(CONTAINER1);
 
 //        // try to read out any possible messages
@@ -348,7 +350,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
-        this.controller.stop(CONTAINER1);
+        stopServer(CONTAINER1);
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
         assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
