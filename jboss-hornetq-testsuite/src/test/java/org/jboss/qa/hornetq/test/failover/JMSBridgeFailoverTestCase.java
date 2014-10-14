@@ -68,10 +68,10 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
                     JOURNAL_DIRECTORY_A + File.separator + "journal", outputJournalFile);
             // check that there are failed transactions
             String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
-            String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
+//            String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
 
             Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
-                    new File(workingDirectory, outputJournalFile), stringToFind));
+                    new File(outputJournalFile), stringToFind));
 
             controller.start(CONTAINER1);
         }
