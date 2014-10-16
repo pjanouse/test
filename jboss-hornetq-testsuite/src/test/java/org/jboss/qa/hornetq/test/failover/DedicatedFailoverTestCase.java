@@ -236,12 +236,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         prepareSimpleDedicatedTopology();
 
         controller.start(CONTAINER2);
-        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 10000);
+        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 100000);
         addDivert(CONTAINER2, divertedQueue, isExclusive, topic);
         stopServer(CONTAINER2);
 
         controller.start(CONTAINER1);
-        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 30000);
+        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000);
         addDivert(CONTAINER1, divertedQueue, isExclusive, topic);
         stopServer(CONTAINER1);
         controller.start(CONTAINER1);
