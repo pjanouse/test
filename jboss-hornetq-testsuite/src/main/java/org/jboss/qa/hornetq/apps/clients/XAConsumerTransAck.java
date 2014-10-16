@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * This class implements a JMS consumer which receives messages in XA transaction. JMS consumer is able to failover.
  * <p/>
- * Messages are received in "optimized" XA transaction.
+ * Messages are received in XA transaction - 2 phase commit if forced even with one xaresource
  * <p/>
  * <p/>
  * This class extends Thread class and should be started as a thread using
@@ -55,7 +55,6 @@ public class XAConsumerTransAck extends Client {
     private static AtomicInteger numberOfConsumers = new AtomicInteger(0);
 
     public String consumerIdentifier = null;
-
 
     private String hostname;
 
