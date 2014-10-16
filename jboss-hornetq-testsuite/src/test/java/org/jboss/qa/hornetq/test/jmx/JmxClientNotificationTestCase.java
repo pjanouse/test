@@ -56,9 +56,12 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testConsumerConnectDisconnectNotifications() throws Exception {
+
+        String queueName = "testQueue";
+        String queueJndiName = "jms/queue/" + queueName;
         JMSOperations ops = getJMSOperations();
         ops.setJmxManagementEnabled(true);
-        ops.createQueue("testQueue0", "jms/queue/testQueue0");
+        ops.createQueue(queueName+"0", queueJndiName+"0");
         ops.close();
 
         // we have to restart server for JMX to activate after config change
@@ -79,7 +82,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
                     null, null);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1, 1, 1, 1);
             clients.setMessages(1);
             clients.startClients();
             while (!clients.isFinished()) {
