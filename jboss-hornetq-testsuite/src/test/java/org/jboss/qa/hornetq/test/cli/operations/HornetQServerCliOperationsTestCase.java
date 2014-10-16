@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
+import javax.naming.NamingException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
             Random r = new Random();
 
-            Xid xid = new XidImpl(("xa-example1" + r.nextInt()).getBytes(), 1, UUIDGenerator.getInstance().generateStringUUID().getBytes());
+            Xid xid = new XidImpl((System.currentTimeMillis() + "xa-example1" + r.nextInt()).getBytes(), 1, (System.currentTimeMillis() + UUIDGenerator.getInstance().generateStringUUID()).getBytes());
 
             xaResource.start(xid, XAResource.TMNOFLAGS);
 
@@ -182,10 +183,25 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
             // Step 18. Prepare
             xaResource.prepare(xid);
 
-            con.close();
 
         } catch (Exception ex) {
             logger.error("Error: ", ex);
+        } finally {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (JMSException e) {
+                    //ignore
+                }
+                if (context != null)    {
+                    try {
+                        context.close();
+                    } catch (NamingException e) {
+                        //ignore
+                    }
+                }
+            }
+
         }
     }
 
