@@ -51,8 +51,8 @@ import static junit.framework.Assert.assertTrue;
 @Category(FunctionalTests.class)
 public class TransferOverBridgeTestCase extends HornetQTestCase {
 
-    @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+    @Rule // set to 10 min
+    public Timeout timeout = new Timeout(60 * 1000 * 60);
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
