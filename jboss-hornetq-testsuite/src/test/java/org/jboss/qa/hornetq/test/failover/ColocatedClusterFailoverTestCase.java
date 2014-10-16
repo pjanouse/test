@@ -25,6 +25,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -410,6 +411,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testGroupingFailoverNodeTwoDownLM() throws Exception {
         testGroupingFailover(CONTAINER2, true, true);
     }
@@ -418,6 +420,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testGroupingFailoverNodeTwoDownSd() throws Exception {
         testGroupingFailover(CONTAINER2, false, false);
     }
@@ -426,6 +429,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testGroupingFailoverNodeTwoDownSdLM() throws Exception {
         testGroupingFailover(CONTAINER2, true, false);
     }
