@@ -1089,7 +1089,7 @@ public class ClusterTestCase extends HornetQTestCase {
         for (int i = 0; i < 2; i++) {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
             groupMessageVerifiers.add(groupMessageVerifier);
-            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(serverWithConsumer), getJNDIPort(serverWithConsumer), inQueueJndiNameForMdb, 20000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(serverWithConsumer), getJNDIPort(serverWithConsumer), inQueueJndiNameForMdb, 40000, 100, 10);
             receiver.setMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
