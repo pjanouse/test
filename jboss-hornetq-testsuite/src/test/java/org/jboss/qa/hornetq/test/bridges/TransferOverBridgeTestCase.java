@@ -52,7 +52,7 @@ import static junit.framework.Assert.assertTrue;
 public class TransferOverBridgeTestCase extends HornetQTestCase {
 
     @Rule // set to 10 min
-    public Timeout timeout = new Timeout(60 * 1000 * 60);
+    public Timeout timeout = new Timeout(600 * 1000);
 
     // Logger
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
@@ -164,7 +164,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void startTargetServerLaterWithLargeMessagesTest() throws InterruptedException {
-        testLogicForTargetServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTargetServerLaterStart(new ByteMessageBuilder(5 * 1024 * 1024));
     }
 
     /**
@@ -190,7 +190,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void startSourceServerLaterWithLargeMessagesTest() throws InterruptedException {
-        testLogicForSourceServerLaterStart(new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForSourceServerLaterStart(new ByteMessageBuilder(5 * 1024 * 1024));
     }
 
     /**
