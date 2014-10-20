@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 //todo add to test plan to mojo
-// todo report bug with bad count-messages on queue after failover
 // todo report that first xa transaction after failover fails
 
 import org.apache.log4j.Logger;
@@ -51,6 +50,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
             deleteFolder(objectStoreDirFile);
         }
     }
+
     //////////////////// TESTS WITH MULTIPLE CONSUMERS ///////////////////////////
     @Test
     @CleanUpBeforeTest
@@ -101,6 +101,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithXAConsumersKillBeforePrepare() throws Exception {
         testFailoverWithXAConsumers();
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -125,6 +126,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithXAConsumersKillBeforeCommit() throws Exception {
         testFailoverWithXAConsumers();
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -192,6 +194,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithXAConsumerKillBeforePrepare() throws Exception {
         testFailoverWithXAConsumer();
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -216,6 +219,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithXAConsumerKillBeforeCommit() throws Exception {
         testFailoverWithXAConsumer();
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -381,6 +385,79 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         stopServer(CONTAINER2);
 
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    @BMRule(name = "Kill before commit is written to journal.",
+            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetMethod = "xaCommit",
+            action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+    public void testFailFirstTransactionOnBackup() throws Exception {
+        int numberOfMessagesToSend = 1000;
+
+        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2, JOURNAL_DIRECTORY_A);
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        MessageBuilder messageBuilder = new TextMessageBuilder(1);
+        messageBuilder.setAddDuplicatedHeader(true);
+        p.setMessageBuilder(messageBuilder);
+        p.setMessageVerifier(messageVerifier);
+        p.setCommitAfter(100);
+        p.setTimeout(0);
+        p.start();
+        p.join();
+
+        XAConsumerTransAck c = new XAConsumerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
+        c.setCommitAfter(10);
+        c.setMessageVerifier(messageVerifier);
+        c.start();
+
+        List<Client> receivers = new ArrayList<Client>();
+        receivers.add(c);
+        waitForReceiversUntil(receivers, 500, 60000);
+
+        logger.warn("########################################");
+        logger.warn("Kill live server");
+        logger.warn("########################################");
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
+        controller.kill(CONTAINER1);
+
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+
+        // wait for clients to receive more messages from backup
+        int numberOfReceivedMessages = c.getListOfReceivedMessages().size();
+        while (numberOfReceivedMessages >= c.getListOfReceivedMessages().size()) {
+            Thread.sleep(500);
+        }
+
+        logger.info("Get information about transactions from HQ after failover to backup and recovery passed.:");
+        int numberOfPreparedTransaction = 100;
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER2);
+        numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+        String result = jmsOperations.listPreparedTransaction();
+        jmsOperations.close();
+
+        c.join();
+
+        messageVerifier.verifyMessages();
+
+        Assert.assertEquals("Number of send and received messages is different.", numberOfMessagesToSend, c.getListOfReceivedMessages().size());
+        Assert.assertTrue("Number of prepared transactions must be 0 or 1 after failover to backup but it's " + numberOfPreparedTransaction + ". If there is just one " +
+                "consumer then after failover there can be max 1 transaction in prepared state. List of prepared transactions after failover: " + result
+                , 2 < numberOfPreparedTransaction);
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
     }
 
     private void waitForClientsToFinish(List<Client> listOfReceivers, long timeout) throws InterruptedException {

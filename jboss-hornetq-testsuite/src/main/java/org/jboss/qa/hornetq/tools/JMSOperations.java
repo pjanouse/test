@@ -45,6 +45,10 @@ public interface JMSOperations {
 
     int getNumberOfPreparedTransaction(String serverName);
 
+    String listPreparedTransaction();
+
+    String listPreparedTransaction(String serverName);
+
     /**
      * Removes protocol from JGroups stack
      *

@@ -1917,6 +1917,35 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         return i;
     }
 
+    @Override
+    public String listPreparedTransaction()    {
+        return listPreparedTransaction("default");
+    }
+
+    @Override
+    public String listPreparedTransaction(String serverName)    {
+        //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        int i = -1;
+        ModelNode result = null;
+        try {
+            ModelNode model = new ModelNode();
+            model.get(ClientConstants.OP).set("list-prepared-transactions");
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+            model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+
+
+            try {
+                result = this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return result.toString();
+    }
+
 
     /**
      * Removes protocol from JGroups stack
