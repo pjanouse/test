@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -23,10 +22,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
@@ -237,7 +233,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         // when 1/2 is processed then start 2nd server
-        waitForMessages(outQueueName, numberOfMessages/2, 300000, CONTAINER1);
+        waitForMessages(outQueueName, numberOfMessages/2, 120000, CONTAINER1);
 
         Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqBackupPort(CONTAINER1), 300000));
         Thread.sleep(10000);
@@ -251,7 +247,27 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         Assert.assertTrue("Live server 2 is not up again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
-        waitForMessages(outQueueName, numberOfMessages, 400000, CONTAINER1, CONTAINER2);
+        waitForMessages(outQueueName, numberOfMessages, 120000, CONTAINER1, CONTAINER2);
+
+        logger.info("Get information about transactions from HQ:");
+        long timeout = 180000;
+        long startTime = System.currentTimeMillis();
+        int numberOfPreparedTransaction = 100;
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+            numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+            Thread.sleep(1000);
+        }
+        jmsOperations.close();
+
+        logger.info("Get information about transactions from HQ:");
+        numberOfPreparedTransaction = 100;
+        jmsOperations = getJMSOperations(CONTAINER2);
+        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+            numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+            Thread.sleep(1000);
+        }
+        jmsOperations.close();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -403,6 +419,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testGroupingFailoverNodeTwoDown() throws Exception {
         testGroupingFailover(CONTAINER2, false, true);
     }
@@ -510,7 +527,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb.jar");
+        File target = new File("/tmp/mdb1.jar");
         if (target.exists()) {
             target.delete();
         }
@@ -804,8 +821,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         // enable debugging
-//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
@@ -885,8 +902,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         // enable debugging
-//        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-//        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // set security persmissions for roles guest
         jmsAdminOperations.addSecuritySetting(backupServerName, "#");
