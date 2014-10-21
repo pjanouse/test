@@ -552,14 +552,14 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
     private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills)
-            throws InterruptedException {
+            throws Exception {
 
         for (String containerName : failureSequence) {
             Thread.sleep(timeBetweenKills);
-            String containerHostname = CONTAINER_BYTEMAN_MAP.get(containerName).containerHostname;
-            int bytemanPort = CONTAINER_BYTEMAN_MAP.get(containerName).bytemanPort;
+            //String containerHostname = CONTAINER_BYTEMAN_MAP.get(containerName).containerHostname;
+            //int bytemanPort = CONTAINER_BYTEMAN_MAP.get(containerName).bytemanPort;
             //HornetQCallsTracking.installTrackingRules(containerHostname, bytemanPort);
-            RuleInstaller.installRule(this.getClass(), containerHostname, bytemanPort);
+            RuleInstaller.installRule(this.getClass(), getHostname(containerName), getBytemanPort(containerName));
             Thread.sleep(3000);
 
             this.controller.kill(containerName);
