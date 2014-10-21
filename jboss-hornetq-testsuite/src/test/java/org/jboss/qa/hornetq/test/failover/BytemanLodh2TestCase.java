@@ -91,15 +91,15 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     private static final String GROUP_ADDRESS = "233.6.88.5";
 
-    private static final Map<String, BytemanCoords> CONTAINER_BYTEMAN_MAP;
-
-    static {
-        CONTAINER_BYTEMAN_MAP = new HashMap<String, BytemanCoords>(4);
-        CONTAINER_BYTEMAN_MAP.put(CONTAINER1, new BytemanCoords(getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT));
-        CONTAINER_BYTEMAN_MAP.put(CONTAINER2, new BytemanCoords(getHostname(CONTAINER2), BYTEMAN_CONTAINER2_PORT));
-        CONTAINER_BYTEMAN_MAP.put(CONTAINER3, new BytemanCoords(getHostname(CONTAINER3), BYTEMAN_CONTAINER3_PORT));
-        CONTAINER_BYTEMAN_MAP.put(CONTAINER4, new BytemanCoords(getHostname(CONTAINER4), BYTEMAN_CONTAINER4_PORT));
-    }
+//    private static final Map<String, BytemanCoords> CONTAINER_BYTEMAN_MAP;
+//
+//    static {
+//        CONTAINER_BYTEMAN_MAP = new HashMap<String, BytemanCoords>(4);
+//        CONTAINER_BYTEMAN_MAP.put(CONTAINER1, new BytemanCoords(getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT));
+//        CONTAINER_BYTEMAN_MAP.put(CONTAINER2, new BytemanCoords(getHostname(CONTAINER2), BYTEMAN_CONTAINER2_PORT));
+//        CONTAINER_BYTEMAN_MAP.put(CONTAINER3, new BytemanCoords(getHostname(CONTAINER3), BYTEMAN_CONTAINER3_PORT));
+//        CONTAINER_BYTEMAN_MAP.put(CONTAINER4, new BytemanCoords(getHostname(CONTAINER4), BYTEMAN_CONTAINER4_PORT));
+//    }
 
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2)
@@ -555,17 +555,16 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             throws Exception {
 
         for (String containerName : failureSequence) {
-            Thread.sleep(timeBetweenKills);
+
             //String containerHostname = CONTAINER_BYTEMAN_MAP.get(containerName).containerHostname;
             //int bytemanPort = CONTAINER_BYTEMAN_MAP.get(containerName).bytemanPort;
             //HornetQCallsTracking.installTrackingRules(containerHostname, bytemanPort);
             RuleInstaller.installRule(this.getClass(), getHostname(containerName), getBytemanPort(containerName));
-            Thread.sleep(3000);
-
             this.controller.kill(containerName);
             logger.info("Starting server: " + containerName);
             this.controller.start(containerName);
             logger.info("Server " + containerName + " -- STARTED");
+            Thread.sleep(timeBetweenKills);
         }
     }
 
