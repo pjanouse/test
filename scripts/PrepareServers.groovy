@@ -17,6 +17,10 @@
  * eap.version.old
  * optionally natives.url.old, configuration.dir.url.old
  *
+ * Disable trace logging at server:
+ * Trace logs can be disabled by -DdisableTraceLogs like:
+ *      groovy -DEAP_VERSION=6.4.0.DR6 -DdisableTraceLogs PrepareServers.groovy
+ *
  */
 
 public class PrepareServers {
@@ -38,6 +42,8 @@ public class PrepareServers {
     public static String eapVersionOld = getUniversalProperty('eap.version.old')
     public static String nativesUrlOld = getUniversalProperty('natives.url.old')
     public static String configurationDirUrlOld = getUniversalProperty('configuration.dir.url.old')
+
+    public static String disableTraceLogs = getUniversalProperty('disable.trace.logs')
 
     public PrepareServers() {
 
@@ -282,6 +288,10 @@ public class PrepareServers {
 
     }
 
+    /**
+     * if disableTraceLogs is set to some value then server then servers will not create trace logs
+     * @param jbossHome
+     */
     public static void modifyConfiguration(String jbossHome) {
 
         println "Modifying default configuration in server: " + jbossHome
@@ -296,14 +306,17 @@ public class PrepareServers {
                             .replaceAll('<module-option name="password-stacking" value="useFirstPass"/>'
                             , '<module-option name="password-stacking" value="useFirstPass"/>\n<module-option name="unauthenticatedIdentity" value="guest"/>')
                             .replaceAll('<root-logger>',
-                            '            <console-handler name="CONSOLE">\n' +
-                                    '                <level name="DEBUG"/>\n' +
+                            '<console-handler name="CONSOLE">\n' +
+                                    '                <level name="INFO"/>\n' +
                                     '                <formatter>\n' +
                                     '                    <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>\n' +
                                     '                </formatter>\n' +
                                     '            </console-handler>\n' +
-                                    '<root-logger>\n')
-                            .replaceAll('<handler name="FILE"/>', '<handler name="FILE"/>\n<handler name="CONSOLE"/>')
+                                    '            <root-logger>\n')
+                            .replaceAll('<periodic-rotating-file-handler name="FILE" autoflush="true">', '<periodic-rotating-file-handler name="FILE" autoflush="true">\n' +
+                            '                <level name="INFO"/>\n')
+                            .replaceAll('<handler name="FILE"/>', '<handler name="FILE"/>\n' +
+                            '                    <handler name="CONSOLE"/>')
                             .replaceAll('NIO', 'ASYNCIO')
                             .replaceAll('jboss.bind.address.management:127.0.0.1', 'jboss.bind.address:127.0.0.1')
                             .replaceAll('jboss.bind.address.unsecure:127.0.0.1', 'jboss.bind.address:127.0.0.1')
@@ -311,6 +324,42 @@ public class PrepareServers {
                 }
         }
         copyFile(tempFile, standaloneFile)
+        // if disable trace logging is set anyhow then do not set trace server logs
+        if (disableTraceLogs == null) {
+            tempFile.withWriter {
+                w ->
+                    standaloneFile.eachLine { line ->
+                        w << line.replaceAll('<root-logger>',
+                                '            <periodic-rotating-file-handler name="FILE-TRACE" autoflush="true">\n' +
+                                        '                <level name="TRACE"/>\n' +
+                                        '                <formatter>\n' +
+                                        '                    <named-formatter name="PATTERN"/>\n' +
+                                        '                </formatter>\n' +
+                                        '                <file relative-to="jboss.server.log.dir" path="server-trace.log"/>\n' +
+                                        '                <suffix value=".yyyy-MM-dd"/>\n' +
+                                        '                <append value="true"/>\n' +
+                                        '            </periodic-rotating-file-handler>\n' +
+                                        '            <root-logger>\n')
+
+                                .replaceAll('<handler name="FILE"/>', '<handler name="FILE"/>\n' +
+                                '                    <handler name="FILE-TRACE"/>\n')
+                                .replaceAll('<logger category="com.arjuna">\n' +
+                                '                <level name="WARN"/>',
+                                '<logger category="com.arjuna">\n' +
+                                        '                <level name="TRACE"/>')
+                                .replaceAll('<logger category="com.arjuna">',
+                                '<logger category="org.hornetq">\n' +
+                                        '                <level name="TRACE"/>\n' +
+                                        '            </logger>\n<logger category="com.arjuna">')
+                                .concat("\n")
+                    }
+            }
+            copyFile(tempFile, standaloneFile)
+        } else {
+
+            println "Trace logging will not be set for EAP servers."
+
+        }
 
         // modify mgmt-groups.properties and mgmt-users.properties
         File managementGroupsFile = new File(jbossHome + File.separator + 'standalone' + File.separator + 'configuration' + File.separator + 'mgmt-groups.properties')
