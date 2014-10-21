@@ -22,7 +22,7 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.clients.version>6.4.0.DR4</eap6.clients.version>
+        <eap6.clients.version>6.4.0.DR6</eap6.clients.version>
         <eap6.client>${eap6.clients.version}</eap6.client>
         <eap6.controller.client>${eap6.clients.version}</eap6.controller.client>
         <eap6.cli.client>${eap6.clients.version}</eap6.cli.client>
