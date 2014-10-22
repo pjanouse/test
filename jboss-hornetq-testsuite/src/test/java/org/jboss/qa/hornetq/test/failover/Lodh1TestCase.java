@@ -197,7 +197,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producer1.start();
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 6000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 20000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
