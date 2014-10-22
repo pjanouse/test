@@ -96,7 +96,7 @@ public class ProducerClientAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
+                logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
                         + counter + ", messageId:" + msg.getJMSMessageID()
                         + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
 
@@ -289,7 +289,7 @@ public class ProducerClientAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerClientAck producer = new ProducerClientAck("127.0.0.1", 4447, "queue/InQueue", 10);
+        ProducerClientAck producer = new ProducerClientAck("127.0.0.1", 4447, "jms/queue/testQueue0", 10000);
 //        ProducerClientAck producer = new ProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
 //        producer.setMessageBuilder(new MessageBuilderForInfo());
         MessageBuilder builder = new TextMessageBuilder(2000 * 1024);
