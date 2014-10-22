@@ -175,6 +175,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(5000);
 
+        waitForClientsToFailover();
+
         clients.stopClients();
         // blocking call checking whether all consumers finished
         waitForClientsToFinish(clients);
@@ -398,7 +400,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
 
-    private void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
+    protected void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
         while (checkThatServerIsReallyUp(getHostname(container), port)) {
@@ -410,29 +412,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-    private void waitForClientsToFailover() {
+    protected void waitForClientsToFailover() {
 
-        long timeout = 120000;
-
-        Map<Client, Integer> consumersCounts = new HashMap<Client, Integer>();
-        for (Client c : clients.getConsumers()) {
-            consumersCounts.put(c, c.getCount());
-        }
-        // wait for 2 min for consumers to receive more messages
+        long timeout = 180000;
+        // wait for 2 min for producers to receive more messages
         long startTime = System.currentTimeMillis();
-        do {
-            for (Client c : clients.getConsumers()) {
-                if (c.getCount() > consumersCounts.get(c)) {
-                    consumersCounts.remove(c);
-                }
-            }
-            if (System.currentTimeMillis() - startTime > 120000) {
-                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
-            }
-        } while (consumersCounts.size() > 0);
-
-        // wait for 2 min for producers to send more messages
-        startTime = System.currentTimeMillis();
 
         int startValue = 0;
         for (Client c : clients.getProducers()) {
@@ -440,7 +424,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             startValue = c.getCount();
 
             while (c.getCount() <= startValue) {
-                if (System.currentTimeMillis() - startTime > 120000) {
+                if (System.currentTimeMillis() - startTime > timeout) {
                     Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
                 }
                 try {
@@ -450,6 +434,26 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 }
             }
         }
+
+        // wait for 2 min for consumers to send more messages
+        startTime = System.currentTimeMillis();
+
+        Map<Client, Integer> consumersCounts = new HashMap<Client, Integer>();
+        for (Client c : clients.getConsumers()) {
+            consumersCounts.put(c, c.getCount());
+        }
+
+        do {
+            for (Client c : clients.getConsumers()) {
+                if (c.getCount() > consumersCounts.get(c)) {
+                    consumersCounts.remove(c);
+                }
+            }
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
+            }
+        } while (consumersCounts.size() > 0);
+
     }
 
     /**
