@@ -96,12 +96,11 @@ public class ProducerClientAck extends Client {
                 // send message in while cycle
                 sendMessage(producer, msg);
 
-                Thread.sleep(getTimeout());
-
                 logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
                         + counter + ", messageId:" + msg.getJMSMessageID()
                         + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
 
+                Thread.sleep(getTimeout());
             }
 
             producer.close();
