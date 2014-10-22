@@ -23,10 +23,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -127,7 +124,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @BMRule(name = "server kill after transaction start",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "start",
-            isAfter = true,
+            targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillAfterTransactionStart() throws Exception {
         this.generalLodh1Test();
@@ -154,7 +151,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @BMRule(name = "server kill after transaction end",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "end",
-            isAfter = true,
+            targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillAfterTransactionEnd() throws Exception {
         this.generalLodh1Test();
@@ -208,6 +205,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @BMRule(name = "server kill after transaction commit",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "commit",
+            targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillAfterTransactionCommit() throws Exception {
         this.generalLodh1Test();
@@ -244,9 +242,13 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+//    @BMRule(name = "server kill on large message file send",
+//            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+//            targetMethod = "sendLargeMessageFiles",
+//            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     @BMRule(name = "server kill on large message file send",
-            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
-            targetMethod = "sendLargeMessageFiles",
+            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetMethod = "sendContinuations",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillOnSendingLargeMessage() throws Exception {
         this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
@@ -301,10 +303,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
     private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
 
-//        this.controller.start(CONTAINER1);
-//        this.updateServerSettings();
-//
-//        this.controller.stop(CONTAINER1);
         prepareJmsServer(CONTAINER1);
 
         this.controller.start(CONTAINER1);
@@ -314,7 +312,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.sendMessages(msgBuilder);
 
         logger.info("Deploying MDB " + deploymentName);
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
         try {
             this.deployer.deploy(deploymentName);
         } catch (Exception e) {
@@ -323,30 +321,25 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             logger.debug("Arquillian got an exception while deploying", e);
         }
 
-        // try to stop server in case the kill didn't work out for any reason, otherwise the test fails
-        // and breaks all following tests from the test suite
-        logger.info("No Byteman rule worked, trying to hard-kill the server");
         this.controller.kill(CONTAINER1);
-
-//        // try to read out any possible messages
-//        // depending on a specific point of server kill, there might be already some messages in OutQueue
-//        logger.info("Reading messages from OutQueue");
-//        List<String> beforeCrash = this.readMessages();
-//        receivedMessages.addAll(beforeCrash);
-//        logger.info("Consumed " + beforeCrash.size() + " messages in first pass");
-//
-//        this.controller.stop(CONTAINER1);
-//        this.controller.start(CONTAINER1);
-
-//        logger.info("!!!!! SECOND PASS !!!!!");
-//        logger.info("Reading messages from OutQueue");
-//        List<String> afterCrash = this.readMessages();
-//        receivedMessages.addAll(afterCrash);
-//        logger.info("Consumed " + afterCrash.size() + " messages in second pass");
 
         controller.start(CONTAINER1);
 
-        waitForMessages(IN_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+        // check that number of prepared transaction gets to 0
+        logger.info("Get information about transactions from HQ:");
+        long timeout = 300000;
+        long startTime = System.currentTimeMillis();
+        int numberOfPreparedTransaction = 100;
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+            numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+            Thread.sleep(1000);
+        }
+        jmsOperations.close();
+        // wait for InQueue to be empty
+        waitForMessages(IN_QUEUE_NAME, 0, 300000, CONTAINER1);
+        // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
+        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
@@ -354,6 +347,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
         assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
+        Assert.assertEquals("Number of prepared transactions must be 0", 0, numberOfPreparedTransaction);
+
     }
 
 
@@ -376,7 +371,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 300000, 10, 10);
+            receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 5000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();
@@ -421,6 +416,10 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
         jmsAdminOperations.setNodeIdentifier(1234567);
+
+        // enable trace logs
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.seRootLoggingLevel("TRACE");
 
         try {
             jmsAdminOperations.removeQueue(IN_QUEUE_NAME);
