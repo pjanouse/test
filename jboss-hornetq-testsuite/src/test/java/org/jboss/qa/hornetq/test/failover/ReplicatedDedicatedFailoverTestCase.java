@@ -2,11 +2,17 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.jms.Session;
@@ -188,6 +194,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      */
 
     /////////////////////////////////////////// FAILOVER ON TOPIC ///////////////////////////////////////////////
+
     /**
      * Start simple failover test with trans_ack on queues. Server is killed when message is sent to server but not stored to journal.
      * It's the same method for client_ack and trans session.
@@ -333,6 +340,124 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testClientsNotBlockedWhenBackupStoppedDuringSynchronization() throws Exception {
+
+        int numberOfMessages = 1000;
+
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER1);
+
+        // send lots of messages (GBs)
+        logger.info("Start producer to send: " + numberOfMessages + " messages.");
+
+        long producerStartTime = System.currentTimeMillis();
+
+        ProducerTransAck prod1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", numberOfMessages);
+
+        prod1.setMessageBuilder(new TextMessageBuilder(1024 * 1024)); // 1MB
+
+        prod1.setTimeout(0);
+
+        prod1.setCommitAfter(20);
+
+        prod1.start();
+
+        prod1.join();
+
+        long producerFinishTime = System.currentTimeMillis() - producerStartTime;
+
+        logger.info("Producer sent: " + numberOfMessages + " messages.");
+
+
+        logger.info("Start producer and consumer.");
+        // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
+
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 50);
+
+        MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
+
+        builder.setAddDuplicatedHeader(true);
+
+        producer.setMessageBuilder(builder);
+
+        producer.setTimeout(100);
+
+        producer.start();
+
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 30000, 1, 100);
+
+        receiver.setTimeout(100);
+
+        receiver.start();
+
+        // start backup
+        logger.info("Start backup server.");
+
+        controller.start(CONTAINER2);
+
+        logger.info("Backup started - synchronization with live will started now.");
+
+        // put here some safe time, replication cannot be finished - lets say is a safe value producerFinishTime/2
+        Thread.sleep(producerFinishTime/2);
+
+        // during synchronization live-> backup stop backup (it takes 2 min for live disconnect backup and clients continue to work)
+        logger.info("Stop backup server - synchronization with live must be in progress now.");
+
+        stopServer(CONTAINER2);
+
+        logger.info("Backup server stopped");
+
+        // now check whether producer and consumer sent/received some messages
+        long timeout = 60000;
+        // wait for 1 min for producers and consumers to receive more messages
+        long startTime = System.currentTimeMillis();
+
+        Thread.sleep(10000);
+
+        int startValueProducer = producer.getListOfSentMessages().size();
+
+        int startValueConsumer = receiver.getListOfReceivedMessages().size();
+
+        logger.info("Check that clients did send or received messages in next: " + timeout);
+
+        while (producer.getListOfSentMessages().size() <= startValueProducer && receiver.getListOfReceivedMessages().size() <= startValueConsumer) {
+
+            if (System.currentTimeMillis() - startTime > timeout) {
+
+                Assert.fail("Clients - producer and consumer did not sent/received new messages after backup was stopped for 60 s.");
+            }
+
+            try {
+
+                Thread.sleep(1000);
+
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+
+        logger.info("Client did send or received messages in timeout: " + timeout);
+
+        // ok, stop clients.
+        producer.stopSending();
+
+        receiver.interrupt();
+
+        producer.join();
+
+        receiver.join();
+
+        stopServer(CONTAINER1);
+    }
 
 
     /**
