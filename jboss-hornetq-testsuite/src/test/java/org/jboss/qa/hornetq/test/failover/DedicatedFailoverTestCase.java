@@ -164,13 +164,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
-            logger.warn("########################################");
-            logger.warn("failback - Stop backup server");
-            logger.warn("########################################");
-            stopServer(CONTAINER2);
-            logger.warn("########################################");
-            logger.warn("failback - Backup server stopped");
-            logger.warn("########################################");
+//            logger.warn("########################################");
+//            logger.warn("failback - Stop backup server");
+//            logger.warn("########################################");
+//            stopServer(CONTAINER2);
+//            logger.warn("########################################");
+//            logger.warn("failback - Backup server stopped");
+//            logger.warn("########################################");
         }
 
         Thread.sleep(5000);
@@ -291,16 +291,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
-            logger.warn("########################################");
-            logger.warn("failback - Stop backup server");
-            logger.warn("########################################");
-            stopServer(CONTAINER2);
-            logger.warn("########################################");
-            logger.warn("failback - Backup server stopped");
-            logger.warn("########################################");
+//            logger.warn("########################################");
+//            logger.warn("failback - Stop backup server");
+//            logger.warn("########################################");
+//            stopServer(CONTAINER2);
+//            logger.warn("########################################");
+//            logger.warn("failback - Backup server stopped");
+//            logger.warn("########################################");
         }
 
         Thread.sleep(5000);
+
+        waitForClientsToFailover();
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
@@ -507,14 +509,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             controller.start(CONTAINER1);
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
-            Thread.sleep(10000); // give it some time
-            logger.warn("########################################");
-            logger.warn("failback - Stop backup server");
-            logger.warn("########################################");
-            stopServer(CONTAINER2);
+            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 300000);
+            Thread.sleep(5000); // give it some time
+//            logger.warn("########################################");
+//            logger.warn("failback - Stop backup server");
+//            logger.warn("########################################");
+//            stopServer(CONTAINER2);
         }
 
         Thread.sleep(10000);
+
+        waitForClientsToFailover();
+
         clients.stopClients();
 
         // blocking call checking whether all consumers finished
