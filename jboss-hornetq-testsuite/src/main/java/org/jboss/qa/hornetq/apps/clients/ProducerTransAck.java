@@ -19,11 +19,11 @@ public class ProducerTransAck extends Client {
 
     MessageProducer producer;
 
-    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String, String>>();
+    private List<Map<String, String>> listOfSentMessages = new ArrayList<Map<String, String>>();
     private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
 
     private String hostname;
-    private  int port;
+    private int port;
     private int messages;
     private String queueNameJndi;
     private boolean stop = false;
@@ -35,21 +35,21 @@ public class ProducerTransAck extends Client {
     private MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
     /**
-     * @param hostname       hostname
-     * @param port           port
-     * @param messages       number of messages to send
-     * @param queueNameJndi  set jndi name of the queue to send messages
+     * @param hostname      hostname
+     * @param port          port
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
      */
     public ProducerTransAck(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }
 
     /**
-     * @param container      EAP container
-     * @param hostname       hostname
-     * @param port           port
-     * @param messages       number of messages to send
-     * @param queueNameJndi  set jndi name of the queue to send messages
+     * @param container     EAP container
+     * @param hostname      hostname
+     * @param port          port
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
      */
     public ProducerTransAck(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
@@ -102,9 +102,9 @@ public class ProducerTransAck extends Client {
                         stringBuilder.append(m.getJMSMessageID());
                     }
                     logger.debug("Adding messages: " + stringBuilder.toString());
-                    for (Message m : listOfMessagesToBeCommited)    {
+                    for (Message m : listOfMessagesToBeCommited) {
                         m = cleanMessage(m);
-                        addMessage(listOfSentMessages,m);
+                        addMessage(listOfSentMessages, m);
                     }
 
                     logger.info("COMMIT - session was commited. Last message with property counter: " + counter
@@ -121,9 +121,9 @@ public class ProducerTransAck extends Client {
                 stringBuilder.append(m.getJMSMessageID());
             }
             logger.debug("Adding messages: " + stringBuilder.toString());
-            for (Message m : listOfMessagesToBeCommited)    {
+            for (Message m : listOfMessagesToBeCommited) {
                 m = cleanMessage(m);
-                addMessage(listOfSentMessages,m);
+                addMessage(listOfSentMessages, m);
             }
 //                    StringBuilder stringBuilder2 = new StringBuilder();
 //                    for (Map<String,String> m : listOfSentMessages) {
@@ -137,7 +137,7 @@ public class ProducerTransAck extends Client {
 
             producer.close();
 
-            if (messageVerifier != null)    {
+            if (messageVerifier != null) {
                 messageVerifier.addSendMessages(listOfSentMessages);
             }
 
@@ -266,6 +266,7 @@ public class ProducerTransAck extends Client {
     public void stopSending() {
         this.stop = true;
     }
+
     /**
      * @return the exception
      */
@@ -296,8 +297,9 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 200000);
-        producer.setMessageBuilder(new TextMessageBuilder(1024));
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 20000);
+        MessageBuilder builder = new TextMessageBuilder(2000 * 1024);
+        producer.setMessageBuilder(builder);
         producer.setTimeout(0);
         producer.setCommitAfter(10);
         producer.start();
