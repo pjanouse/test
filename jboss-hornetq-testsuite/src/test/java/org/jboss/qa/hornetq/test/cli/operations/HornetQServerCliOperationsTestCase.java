@@ -582,11 +582,11 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingConnectionIds() throws Exception {
+        int numberOfExpectedConnections = this.runOperation("list-remote-addresses").getResponse().get("result").asList().size();
         Result response = this.runOperation("list-connection-ids");
         assertTrue("Operation should not fail", response.isSuccess());
-        assertEquals("Incorrect response size", 1, response.getResponse().get("result").asList().size());
+        assertEquals("Incorrect response size", numberOfExpectedConnections, response.getResponse().get("result").asList().size());
     }
-
 
     @Test
     @RunAsClient
