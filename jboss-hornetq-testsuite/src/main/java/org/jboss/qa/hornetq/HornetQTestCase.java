@@ -1,7 +1,6 @@
-// TODO move jboss_home, container_ip, port_offset, container_name to pom.xml and read it from there
 package org.jboss.qa.hornetq;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -118,7 +117,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // if MCAST_ADDR is null then generate multicast address
         String tmpMultiCastAddress = System.getProperty("MCAST_ADDR");
         MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
-                    new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
+                new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
                         .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
 
         JBOSS_HOME_1 = verifyJbossHome(getEnvProperty("JBOSS_HOME_1"));
@@ -206,7 +205,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 log.error("Address: " + ipAddress + " cannot be found. Double check your MYTESTIP_{1..4} properties whether they're correct.", e);
             }
             if (ia instanceof Inet6Address && !ipAddress.contains("[")) {
-                    return "[" + ipAddress + "]";
+                return "[" + ipAddress + "]";
             }
         }
         return ipAddress;
@@ -1212,10 +1211,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      *
-     * @param containerName name of the container
-     * @param queueCoreName queue name
+     * @param containerName            name of the container
+     * @param queueCoreName            queue name
      * @param expectedNumberOfMessages number of messages
-     * @param timeout timeout
+     * @param timeout                  timeout
      * @return Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      * @throws Exception
      */
@@ -1226,7 +1225,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         long startTime = System.currentTimeMillis();
 
         while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) < expectedNumberOfMessages &&
-                System.currentTimeMillis() - startTime < timeout)   {
+                System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(500);
         }
         jmsAdminOperations.close();
@@ -1241,11 +1240,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Waits until all containers in the given queue contains the given number of messages
      *
-     * @param queueName queue name
+     * @param queueName        queue name
      * @param numberOfMessages number of messages
-     * @param timeout time out
-     * @param containerNames  container name
-     *
+     * @param timeout          time out
+     * @param containerNames   container name
      * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
      * @throws Exception
      */
@@ -1299,11 +1297,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns total number of messages in queue on given nodes
      *
-     * @param queueName    queue name
+     * @param queueName      queue name
      * @param containerNames container name
      * @return total number of messages in queue on given nodes
      */
-    public long countMessages(String queueName, String... containerNames)   {
+    public long countMessages(String queueName, String... containerNames) {
         long sum = 0;
         for (String containerName : containerNames) {
             JMSOperations jmsOperations = getJMSOperations(containerName);
@@ -1457,6 +1455,39 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     }
 
+    /**
+     * Wait for given time-out for no xa transactions in prepared state.
+     *
+     * @param timeout
+     * @param containerName
+     * @throws Exception
+     */
+    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, String containerName) throws Exception {
+
+        // check that number of prepared transaction gets to 0
+        log.info("Get information about transactions from HQ:");
+
+        long startTime = System.currentTimeMillis();
+
+        int numberOfPreparedTransaction = 100;
+
+        JMSOperations jmsOperations = getJMSOperations(containerName);
+
+        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+
+            numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+
+            Thread.sleep(1000);
+
+        }
+
+        jmsOperations.close();
+
+        if (System.currentTimeMillis() - startTime < timeout)   {
+            log.error("There are prepared transactions in HornetQ journal.");
+            Assert.fail("There are prepared transactions in HornetQ journal - number of prepared transactions is: " + numberOfPreparedTransaction);
+        }
+    }
 
 
 }
