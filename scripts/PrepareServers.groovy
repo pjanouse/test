@@ -21,6 +21,9 @@
  * Trace logs can be disabled by -DdisableTraceLogs like:
  *      groovy -DEAP_VERSION=6.4.0.DR6 -DdisableTraceLogs PrepareServers.groovy
  *
+ * How to install legacy extension (it'll just unzip it and will NOT make any configuration changes):
+ *      set -DLEGACY_EXTENSION_URL=file:///home/mnovak/tmp/jboss-as-legacy-naming-dist-1.1.0.redhat-1.zip
+ *
  */
 
 public class PrepareServers {
@@ -44,6 +47,10 @@ public class PrepareServers {
     public static String configurationDirUrlOld = getUniversalProperty('configuration.dir.url.old')
 
     public static String disableTraceLogs = getUniversalProperty('disable.trace.logs')
+
+    // if legacy.extension.url is set then it will be installed to eap 6 server
+    public static String legacyExtensionUrl = getUniversalProperty('legacy.extension.url')
+    public static String whereToDownloadLegacyExtension = 'legacy-extension.zip'
 
     public PrepareServers() {
 
@@ -75,6 +82,9 @@ public class PrepareServers {
         println "eapVersionOld = " + eapVersionOld
         println "nativesUrlOld = " + nativesUrlOld
         println "configurationDirUrlOld = " + configurationDirUrlOld
+
+        println "legacyExtensionUrl = " + legacyExtensionUrl
+
     }
 
     /**
@@ -165,6 +175,11 @@ public class PrepareServers {
         // rename everything with jboss-eap-* to jboss-eap
         renameEAPDir(eapDirName)
 
+        // install legacy extension if legacyExtensionUrl is set
+        if (legacyExtensionUrl != null && !''.equals(legacyExtensionUrl))   {
+            installLegacyExtension();
+        }
+
         // modify configuration
         // if configuration file url specified then download it and copy to standalone/configuration
         if (configurationDirUrl != null && configurationDirUrl != '') {
@@ -175,6 +190,16 @@ public class PrepareServers {
         }
 
         return new File(eapDirName).absolutePath
+    }
+
+    public static void installLegacyExtension()    {
+
+        println "Legacy extension will be installed. Provided url to legacy extension is: " + legacyExtensionUrl
+
+        downloadFile(legacyExtensionUrl, whereToDownloadLegacyExtension)
+
+        unzip(whereToDownloadLegacyExtension, eapDirName)
+
     }
 
     public static void cleanUp() {
