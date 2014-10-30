@@ -36,7 +36,9 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
     public static AtomicInteger globalCounter = new AtomicInteger();
 
     private static final long serialVersionUID = 2770941392406343837L;
+
     private static final Logger log = Logger.getLogger(LocalMdbFromQueue.class.getName());
+
     private MessageDrivenContext context = null;
 
     public LocalMdbFromQueue() {
@@ -59,13 +61,14 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
     public void onMessage(Message message) {
 
         Connection con = null;
+
         Session session;
 
         try {
+
             long time = System.currentTimeMillis();
             int counter = globalCounter.incrementAndGet();
-
-            log.log(Level.INFO, " Start of message: " + counter + ", message info:" + message.getJMSMessageID());
+            log.info("Start of message: " + counter + ", message info:" + message.getJMSMessageID());
 
             con = cf.createConnection();
 
@@ -74,16 +77,23 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
+
             MessageProducer sender = session.createProducer(queue);
+
             TextMessage newMessage = session.createTextMessage(text);
+
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
+
             sender.send(newMessage);
+
             Thread.sleep(100);
 
-            log.log(Level.DEBUG, " End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
+
             log.log(Level.FATAL, t.getMessage(), t);
+
             context.setRollbackOnly();
 
         } finally {
