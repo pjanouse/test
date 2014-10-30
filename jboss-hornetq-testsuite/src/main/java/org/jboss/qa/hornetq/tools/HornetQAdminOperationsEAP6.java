@@ -2882,6 +2882,42 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    /**
+     * Adds external context.
+     *
+     */
+    @Override
+    public void addExternalContext(String binding, String className, String module, String bindingType, Map<String,String> environmentProperies) {
+//        [standalone@localhost:9999 /] /subsystem=naming/binding="java:global/client-context":add(module=org.jboss.legacy.naming.spi,
+// class=javax.naming.InitialContext,binding-type=external-context,
+// environment={"java.naming.provider.url" => "jnp://localhost:5599", "java.naming.factory.url.pkgs" => "org.jnp.interfaces",
+// "java.naming.factory.initial" => "org.jboss.legacy.jnp.factory.WatchfulContextFactory" })
+
+        ModelNode modelNode = new ModelNode();
+        modelNode.get(ClientConstants.OP).set("add");
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "naming");
+        modelNode.get(ClientConstants.OP_ADDR).add("binding", binding);
+
+        modelNode.get("class").set(className);
+        modelNode.get("module").set(module);
+        modelNode.get("binding-type").set(bindingType);
+
+        if (environmentProperies != null) {
+            for (String key : environmentProperies.keySet()) {
+                modelNode.get("environment").add(key, environmentProperies.get(key));
+            }
+        }
+
+        try {
+            this.applyUpdate(modelNode);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+
 
     /**
      * Sets transaction node identifier.
@@ -4470,7 +4506,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            jmsAdminOperations.setTransactionTimeout(120000);
+            Map<String,String> params = new HashMap<String,String>();
+            params.put("java.naming.provider.url" ,"jnp://localhost:5599");
+            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
+            params.put("java.naming.factory.initial", "org.jboss.legacy.jnp.factory.WatchfulContextFactory");
+            jmsAdminOperations.addExternalContext("java:global/client-context2", "javax.naming.InitialContext", "org.jboss.legacy.naming.spi", "external-context", params );
 //            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 

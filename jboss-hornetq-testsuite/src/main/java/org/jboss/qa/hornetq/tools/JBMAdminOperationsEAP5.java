@@ -1670,6 +1670,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addExternalContext(String binding, String className, String module, String bindingType, Map<String, String> environmentProperies) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Sets transaction node identifier.
      *

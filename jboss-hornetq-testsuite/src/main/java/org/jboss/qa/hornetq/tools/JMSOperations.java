@@ -1275,6 +1275,8 @@ public interface JMSOperations {
     void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                             long redistributionDelay, long pageSizeBytes);
 
+    void addExternalContext(String binding, String className, String module, String bindingType, Map<String, String> environmentProperies);
+
     /**
      * Sets transaction node identifier.
      *
