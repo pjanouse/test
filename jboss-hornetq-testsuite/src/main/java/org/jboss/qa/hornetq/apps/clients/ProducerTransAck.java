@@ -210,7 +210,7 @@ public class ProducerTransAck extends Client {
 
             } catch (TransactionRolledBackException ex) {
                 // if transaction rollback exception -> send messages again and commit
-                ex.printStackTrace();
+                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once, this can't happen
                 if (numberOfRetries > 0) {
@@ -297,11 +297,11 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 20000);
-        MessageBuilder builder = new TextMessageBuilder(2000 * 1024);
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 200000);
+        MessageBuilder builder = new TextMessageBuilder(10);
         producer.setMessageBuilder(builder);
         producer.setTimeout(0);
-        producer.setCommitAfter(10);
+        producer.setCommitAfter(7);
         producer.start();
         producer.join();
         System.out.println("Number of sent messages: " + producer.getListOfSentMessages().size());
