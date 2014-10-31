@@ -1483,7 +1483,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         jmsOperations.close();
 
-        if (System.currentTimeMillis() - startTime < timeout)   {
+        if (System.currentTimeMillis() - startTime > timeout)   {
             log.error("There are prepared transactions in HornetQ journal.");
             Assert.fail("There are prepared transactions in HornetQ journal - number of prepared transactions is: " + numberOfPreparedTransaction);
         }
