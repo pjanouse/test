@@ -250,7 +250,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         waitForMessages(outQueueName, numberOfMessages, 120000, CONTAINER1, CONTAINER2);
 
         logger.info("Get information about transactions from HQ:");
-        long timeout = 180000;
+        long timeout = 300000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
         JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
@@ -458,46 +458,84 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         long timeout = 50000;
         String backupServerName = "backup";
         int number_of_messages = 200;
+
         prepareColocatedTopologyInCluster();
+
         controller.start(CONTAINER1);
+
         controller.start(CONTAINER2);
+
         JMSOperations jmsAdminOperationsC1 = this.getJMSOperations(CONTAINER1);
+
         JMSOperations jmsAdminOperationsC2 = this.getJMSOperations(CONTAINER2);
 
-
         jmsAdminOperationsC1.addMessageGrouping(name, "LOCAL", address, timeout);
+
         jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout);
+
         jmsAdminOperationsC2.addMessageGrouping(name, "REMOTE", address, timeout);
+
         jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout);
+
         stopServer(CONTAINER1);
+
         stopServer(CONTAINER2);
+
         controller.start(CONTAINER1);
+
         controller.start(CONTAINER2);
+
         GroupMessageVerifier messageVerifier = new GroupMessageVerifier();
 
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, number_of_messages);
+
         if (largeMessages) {
+
             producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED", true));
+
         } else {
+
             producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
+
         }
+
         producerRedG1.setMessageVerifier(messageVerifier);
+
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueue, 20000, 10, 10);
+
         receiver1.setMessageVerifier(messageVerifier);
+
         receiver1.start();
+
+        // try to add here some delay so HQ knows about this consumer
+        Thread.sleep(5000);
+
         producerRedG1.start();
+
         Thread.sleep(8000);
+
         if (useKill) {
+
             killServer(containerToKill);
+
         } else {
+
             stopServer(containerToKill);
+
         }
+
         producerRedG1.join();
+
         receiver1.join();
+
         messageVerifier.verifyMessages();
+
         Assert.assertEquals("Number of sent messages does not match", number_of_messages, producerRedG1.getListOfSentMessages().size());
+
         Assert.assertEquals("Number of received messages does not match", producerRedG1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
         stopAllServers();
+
     }
 
 
