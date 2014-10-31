@@ -623,6 +623,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             </xa-datasource>
             */
 
+
             String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
@@ -638,8 +639,10 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "User", recoveryUsername);
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", recoveryPassword);
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName + "com.mysql.jdbc.Driver_5_1", "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
+
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
