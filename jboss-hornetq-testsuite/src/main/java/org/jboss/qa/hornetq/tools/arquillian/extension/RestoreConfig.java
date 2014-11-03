@@ -162,7 +162,7 @@ public class RestoreConfig {
      * @param descriptor arquillian.xml
      * @throws IOException
      */
-    public void restoreConfigurationBeforeTest(@Observes BeforeStart event, ArquillianDescriptor descriptor) throws IOException {
+    public void restoreConfigurationBeforeTest(@Observes Before event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no RestoreConfigBeforeTest annotation then do nothing
 //        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) {

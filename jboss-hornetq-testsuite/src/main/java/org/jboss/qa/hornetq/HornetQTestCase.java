@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 import org.junit.Assert;
+import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -89,6 +90,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     protected static final String SERVLET_KILLER_2 = "killerServlet2";
     protected static final String SERVLET_KILLER_3 = "killerServlet3";
     protected static final String SERVLET_KILLER_4 = "killerServlet4";
+    protected static final String SERVLET_KILLER_GROUP1 = "killerServletGroup1";
+    protected static final String SERVLET_KILLER_GROUP2 = "killerServletGroup2";
+    protected static final String SERVLET_KILLER_GROUP3 = "killerServletGroup3";
+    protected static final String SERVLET_KILLER_GROUP4 = "killerServletGroup4";
 
     // Active server - EAP 5 or EAP 6?
     protected String currentContainerForTest;
@@ -133,13 +138,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     // composite info objects for easier passing to utility classes
-    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, CONTAINER1_IP,
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, "server-1", CONTAINER1_IP,
             BYTEMAN_CONTAINER1_PORT, PORT_OFFSET_1, JBOSS_HOME_1);
-    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, CONTAINER2_IP,
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, "server-2", CONTAINER2_IP,
             BYTEMAN_CONTAINER2_PORT, PORT_OFFSET_2, JBOSS_HOME_2);
-    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, CONTAINER3_IP,
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, "server-3", CONTAINER3_IP,
             BYTEMAN_CONTAINER3_PORT, PORT_OFFSET_3, JBOSS_HOME_3);
-    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, CONTAINER4_IP,
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, "server-4", CONTAINER4_IP,
             BYTEMAN_CONTAINER4_PORT, PORT_OFFSET_4, JBOSS_HOME_4);
 
     /**
@@ -147,10 +152,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+//        stopServer(CONTAINER1);
+//        stopServer(CONTAINER2);
+//        stopServer(CONTAINER3);
+//        stopServer(CONTAINER4);
     }
 
     /**
@@ -385,6 +390,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 eap5JbmAdmOps.setJbossHome(getJbossHome(container));
                 operations = eap5JbmAdmOps;
                 break;
+            case EAP6_DOMAIN_CONTAINER:
+                HornetQAdminOperationsEAP6 eap6DomainAdmOps = new HornetQAdminOperationsEAP6();
+                eap6DomainAdmOps.setHostname("localhost");
+                eap6DomainAdmOps.setPort(9999);
+                eap6DomainAdmOps.connect();
+                operations = eap6DomainAdmOps;
+                break;
             default:
                 HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
                 eap6AdmOps.setHostname(getHostname(container));
@@ -491,27 +503,44 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Kills server using killer servlet. This just kill server and does not do
      * anything else. It doesn't call controller.kill
      *
-     * @param ContainerName container name which should be killed
+     * @param containerName container name which should be killed
      */
-    protected void killServer(String ContainerName) {
-        log.info("Killing server: " + ContainerName);
+    protected void killServer(String containerName) {
+        log.info("Killing server: " + containerName);
         try {
-            if (CONTAINER1.equals(ContainerName)) {
-                killServer(CONTAINER1, SERVLET_KILLER_1, getHostname(CONTAINER1));
-            } else if (CONTAINER2.equals(ContainerName)) {
-                killServer(CONTAINER2, SERVLET_KILLER_2, CONTAINER2_IP);
-            } else if (CONTAINER3.equals(ContainerName)) {
-                killServer(CONTAINER3, SERVLET_KILLER_3, getHostname(CONTAINER3));
-            } else if (CONTAINER4.equals(ContainerName)) {
-                killServer(CONTAINER4, SERVLET_KILLER_4, getHostname(CONTAINER4));
+            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
+                if (CONTAINER1.equals(containerName)) {
+                    killServer(CONTAINER1, SERVLET_KILLER_GROUP1, getHostname(CONTAINER1));
+                } if (CONTAINER2.equals(containerName)) {
+                    killServer(CONTAINER2, SERVLET_KILLER_GROUP2, getHostname(CONTAINER2));
+                } if (CONTAINER3.equals(containerName)) {
+                    killServer(CONTAINER3, SERVLET_KILLER_GROUP3, getHostname(CONTAINER3));
+                } if (CONTAINER4.equals(containerName)) {
+                    killServer(CONTAINER4, SERVLET_KILLER_GROUP4, getHostname(CONTAINER4));
+                } else {
+                    throw new RuntimeException(
+                            String.format("Name of the container %s for is not known. It can't be used",
+                                    containerName));
+                }
             } else {
-                throw new RuntimeException(
-                        String.format("Name of the container %s for is not known. It can't be used", ContainerName));
+                if (CONTAINER1.equals(containerName)) {
+                    killServer(CONTAINER1, SERVLET_KILLER_1, getHostname(CONTAINER1));
+                } else if (CONTAINER2.equals(containerName)) {
+                    killServer(CONTAINER2, SERVLET_KILLER_2, CONTAINER2_IP);
+                } else if (CONTAINER3.equals(containerName)) {
+                    killServer(CONTAINER3, SERVLET_KILLER_3, getHostname(CONTAINER3));
+                } else if (CONTAINER4.equals(containerName)) {
+                    killServer(CONTAINER4, SERVLET_KILLER_4, getHostname(CONTAINER4));
+                } else {
+                    throw new RuntimeException(
+                            String.format("Name of the container %s for is not known. It can't be used",
+                                    containerName));
+                }
             }
         } catch (Exception ex) {
             log.error("Using killer servlet failed: ", ex);
         } finally {
-            log.info("Server: " + ContainerName + " -- KILLED");
+            log.info("Server: " + containerName + " -- KILLED");
         }
     }
 
@@ -585,6 +614,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             if (!(checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
                     || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
+                log.info("===== calling controller kill for " + containerName);
                 controller.kill(containerName); // call controller.kill to arquillian that server is really dead
                 return;
             }
@@ -594,6 +624,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
         // we kill server when it takes too long
+        log.info("===== trying to get PID for " + containerName);
         final long pid = getProcessId(containerName);
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
@@ -603,8 +634,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
                 long startTime = System.currentTimeMillis();
                 try {
-                    while (checkThatServerIsReallyUp(getHostname(containerName), getPort(containerName))
-                            || checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
+                    while (checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
                             || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
@@ -633,6 +663,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 }
             }
         };
+        log.info("===== starting shutdown hook for " + containerName);
         shutdownHook.start();
         controller.stop(containerName);
         try {
@@ -685,54 +716,71 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             return -1;
         }
 
-        if (CONTAINER1.equals(containerName)) {
-            try {
-                deployer.undeploy(SERVLET_KILLER_1);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-            try {
-                deployer.deploy(SERVLET_KILLER_1);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-        } else if (CONTAINER2.equals(containerName)) {
-            try {
-                deployer.undeploy(SERVLET_KILLER_2);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-            try {
-                deployer.deploy(SERVLET_KILLER_2);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-        } else if (CONTAINER3.equals(containerName)) {
-            try {
-                deployer.undeploy(SERVLET_KILLER_3);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-            try {
-                deployer.deploy(SERVLET_KILLER_3);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-        } else if (CONTAINER4.equals(containerName)) {
-            try {
-                deployer.undeploy(SERVLET_KILLER_4);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
-            try {
-                deployer.deploy(SERVLET_KILLER_4);
-            } catch (Exception ex) {
-                log.debug("Ignore this exception: " + ex.getMessage());
-            }
+        if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
+            // try to deploy on all server groups
+            log.info("===== deploying domain killer servlets (container " + containerName + ")");
+            log.info("domain killer servlet 1");
+            deployKillerServletToDomain(SERVER_GROUP1);
+            log.info("domain killer servlet 2");
+            deployKillerServletToDomain(SERVER_GROUP2);
+            log.info("domain killer servlet 3");
+            deployKillerServletToDomain(SERVER_GROUP3);
+            log.info("domain killer servlet 4");
+            deployKillerServletToDomain(SERVER_GROUP4);
         } else {
-            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
+            log.info("===== deploying killer servlet for container" + containerName);
+            deployKillerServletToStandalone(containerName);
         }
 
+//        if (CONTAINER1.equals(containerName)) {
+//            try {
+//                deployer.undeploy(SERVLET_KILLER_1);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//            try {
+//                deployer.deploy(SERVLET_KILLER_1);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//        } else if (CONTAINER2.equals(containerName)) {
+//            try {
+//                deployer.undeploy(SERVLET_KILLER_2);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//            try {
+//                deployer.deploy(SERVLET_KILLER_2);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//        } else if (CONTAINER3.equals(containerName)) {
+//            try {
+//                deployer.undeploy(SERVLET_KILLER_3);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//            try {
+//                deployer.deploy(SERVLET_KILLER_3);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//        } else if (CONTAINER4.equals(containerName)) {
+//            try {
+//                deployer.undeploy(SERVLET_KILLER_4);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//            try {
+//                deployer.deploy(SERVLET_KILLER_4);
+//            } catch (Exception ex) {
+//                log.debug("Ignore this exception: " + ex.getMessage());
+//            }
+//        } else {
+//            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
+//        }
+
+        log.info("===== connecting to server to read PID");
         String pid = "";
         try {
             log.info("Calling get pid: http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId");
@@ -744,8 +792,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.error("Timeout when calling killer servlet for pid.", e);
         }
 
+        log.info("===== undeploying killer servlets");
         try {
-            if (CONTAINER1.equals(containerName)) {
+            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
+                deployer.undeploy(SERVLET_KILLER_GROUP1);
+                deployer.undeploy(SERVLET_KILLER_GROUP2);
+                deployer.undeploy(SERVLET_KILLER_GROUP3);
+                deployer.undeploy(SERVLET_KILLER_GROUP4);
+            } else if (CONTAINER1.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_1);
             } else if (CONTAINER2.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_2);
@@ -762,10 +816,75 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.debug("Killer servlet was not deployed and can't be un-deployed.");
         }
 
+        log.info("Parsing PID");
         return Long.parseLong(pid.trim());
-
     }
 
+    private void deployKillerServletToStandalone(String containerName) {
+        if (CONTAINER1.equals(containerName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_1);
+        } else if (CONTAINER2.equals(containerName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_2);
+        } else if (CONTAINER3.equals(containerName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_3);
+        } else if (CONTAINER4.equals(containerName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_4);
+        } else {
+            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
+        }
+    }
+
+    private void deployKillerServletToDomain(String serverGroupName) {
+        if (SERVER_GROUP1.equals(serverGroupName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_GROUP1);
+        } else if (SERVER_GROUP2.equals(serverGroupName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_GROUP2);
+        } else if (SERVER_GROUP3.equals(serverGroupName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_GROUP3);
+        } else if (SERVER_GROUP4.equals(serverGroupName)) {
+            deployKillerServletDeployment(SERVLET_KILLER_GROUP4);
+        }
+    }
+
+    private void deployKillerServletDeployment(String deploymentName) {
+        try {
+            deployer.undeploy(deploymentName);
+        } catch (Exception ex) {
+            log.debug("Ignore this exception", ex);
+        }
+
+        try {
+            deployer.deploy(deploymentName);
+        } catch (Exception ex) {
+            log.debug("Ignore this exception", ex);
+        }
+    }
+
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP1)
+    @TargetsContainer(SERVER_GROUP1)
+    @SuppressWarnings("unused")
+    public static WebArchive getDeploymentKillServletServerGroup1() throws Exception {
+        return createKillerServlet("killerServletGroup1.war");
+    }
+
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP2)
+    @TargetsContainer(SERVER_GROUP2)
+    @SuppressWarnings("unused")
+    public static WebArchive getDeploymentKillServletServerGroup2() throws Exception {
+        return createKillerServlet("killerServletGroup2.war");
+    }
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP3)
+    @TargetsContainer(SERVER_GROUP3)
+    @SuppressWarnings("unused")
+    public static WebArchive getDeploymentKillServletServerGroup3() throws Exception {
+        return createKillerServlet("killerServletGroup3.war");
+    }
+    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP4)
+    @TargetsContainer(SERVER_GROUP4)
+    @SuppressWarnings("unused")
+    public static WebArchive getDeploymentKillServletServerGroup4() throws Exception {
+        return createKillerServlet("killerServletGroup4.war");
+    }
     /**
      * Creates archive with the killer server
      *
@@ -776,7 +895,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @TargetsContainer(CONTAINER1)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer1() throws Exception {
-        return createKillerServlet();
+        return createKillerServlet("killerServlet.war");
     }
 
     /**
@@ -789,7 +908,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @TargetsContainer(CONTAINER2)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer2() throws Exception {
-        return createKillerServlet();
+        return createKillerServlet("killerServlet.war");
     }
 
     /**
@@ -802,7 +921,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @TargetsContainer(CONTAINER3)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer3() throws Exception {
-        return createKillerServlet();
+        return createKillerServlet("killerServlet.war");
     }
 
     /**
@@ -815,7 +934,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @TargetsContainer(CONTAINER4)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer4() throws Exception {
-        return createKillerServlet();
+        return createKillerServlet("killerServlet.war");
     }
 
     /**
@@ -823,8 +942,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return web archive
      */
-    private static WebArchive createKillerServlet() {
-        final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, "killerServlet.war");
+    private static WebArchive createKillerServlet(String archiveName) {
+        final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, archiveName);
         StringBuilder webXml = new StringBuilder();
         webXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
         webXml.append("<web-app version=\"2.5\" xmlns=\"http://java.sun.com/xml/ns/javaee\" \n");
@@ -896,6 +1015,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 }
             } else if (arqConfigurationFile.toLowerCase().contains("legacy")) {
                 containerId = EAP6_LEGACY_CONTAINER;
+            } else if (arqConfigurationFile.toLowerCase().contains("domain")) {
+                containerId = EAP6_DOMAIN_CONTAINER;
             }
         }
         return containerId;
@@ -1102,6 +1223,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             socket = new Socket();
             socket.connect(new InetSocketAddress(ipAddress, port), 100);
+            log.info("===== server is really up");
             return true;
         } catch (Exception ex) {
             if (socket != null) {
@@ -1111,6 +1233,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                     e.printStackTrace();
                 }
             }
+            log.info("===== server is not really up");
             return false;
         }
     }
@@ -1253,7 +1376,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         long count = 0;
         while ((count = countMessages(queueName, containerNames)) < numberOfMessages) {
-            log.info("Total number of messages in queue: " + queueName + " on node " + containerNames + " is " + count);
+            log.info("Total number of messages in queue: " + queueName + " on node " + Arrays.toString(containerNames) + " is " + count);
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {
                 return false;
@@ -1305,6 +1428,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         long sum = 0;
         for (String containerName : containerNames) {
             JMSOperations jmsOperations = getJMSOperations(containerName);
+
+            ContainerInfo ci = getContainerInfo(containerName);
+            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(ci.getContainerType())) {
+                jmsOperations.addAddressPrefix("host", "master");
+                jmsOperations.addAddressPrefix("server", ci.getDomainName());
+            }
             long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
             log.info("Number of messages on node : " + containerName + " is: " + count);
             sum += count;

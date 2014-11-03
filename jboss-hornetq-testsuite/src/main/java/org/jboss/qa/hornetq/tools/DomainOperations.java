@@ -86,13 +86,32 @@ public final class DomainOperations {
 
     public DomainOperations reloadDomain() {
         ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).add("reload");
+        model.get(ClientConstants.OP).set("reload");
         model.get(ClientConstants.OP_ADDR).add("host", "master");
 
         try {
+            LOG.info("Reloading configuration so the config restoration can take effect");
             this.applyUpdate(model);
+            Thread.sleep(10000L);
         } catch (Exception e) {
-            LOG.error("Cannot create server group", e);
+            LOG.error("Cannot reload the host controller", e);
+        }
+
+        return this;
+    }
+
+    public DomainOperations startNode(final String serverDomainName) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("start");
+        model.get(ClientConstants.OP_ADDR).add("host", "master");
+        model.get(ClientConstants.OP_ADDR).add("server-config", serverDomainName);
+
+        try {
+            LOG.info("Starting server " + serverDomainName);
+            this.applyUpdate(model);
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            LOG.error("Cannot start server " + serverDomainName, e);
         }
 
         return this;

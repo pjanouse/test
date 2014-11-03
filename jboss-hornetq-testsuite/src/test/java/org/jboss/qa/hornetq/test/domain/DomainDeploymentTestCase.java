@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -19,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
-public class DomainDeploymentTestCase { // extends HornetQTestCase {
+public class DomainDeploymentTestCase extends HornetQTestCase {
 
     @ArquillianResource
     private ContainerController controller;
@@ -57,8 +58,8 @@ public class DomainDeploymentTestCase { // extends HornetQTestCase {
         domainOps.removeServer("server-1");
         domainOps.removeServer("server-2");
 
-        domainOps.createServer("server-1", "server-group-1");
-        domainOps.createServer("server-2", "server-group-1", 20000);
+        domainOps.createServer("server-1", "server-group-1", PORT_OFFSET_1);
+        domainOps.createServer("server-2", "server-group-1", PORT_OFFSET_2);
         domainOps.close();
 
         HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
@@ -80,10 +81,14 @@ public class DomainDeploymentTestCase { // extends HornetQTestCase {
 
 //        deployer.undeploy("node-deployment");
 //        deployer.undeploy("server-deployment");
-        //deployer.undeploy("server-group-deployment");
+        deployer.undeploy("server-group-deployment");
 
-        controller.stop("node-2");
-        controller.stop("node-1");
+//        controller.stop("node-2");
+//        controller.stop("node-1");
+        stopServer("node-2");
+        stopServer("node-1");
+
+//        Thread.sleep(60000);
     }
 
 }

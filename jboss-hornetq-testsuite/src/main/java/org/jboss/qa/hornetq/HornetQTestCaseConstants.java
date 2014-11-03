@@ -11,6 +11,12 @@ public interface HornetQTestCaseConstants {
     public static final String CONTAINER3 = "node-3";
     public static final String CONTAINER4 = "node-4";
 
+    // Server groups (EAP6 domain only)
+    public static final String SERVER_GROUP1 = "server-group-1";
+    public static final String SERVER_GROUP2 = "server-group-2";
+    public static final String SERVER_GROUP3 = "server-group-3";
+    public static final String SERVER_GROUP4 = "server-group-4";
+
     // Name of the connection factory in JNDI
     public static String CONNECTION_FACTORY_JNDI_EAP5 = "ConnectionFactory";
     public static String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
@@ -37,10 +43,11 @@ public interface HornetQTestCaseConstants {
     public static final String EAP5_CONTAINER = "EAP5_CONTAINER";
     public static final String EAP6_CONTAINER = "EAP6_CONTAINER";
     public static final String EAP6_LEGACY_CONTAINER = "EAP6_LEGACY_CONTAINER";
+    public static final String EAP6_DOMAIN_CONTAINER = "EAP6_DOMAIN_CONTAINER";
     public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM_CONTAINER";
 
     public enum CONTAINER_TYPE {
-        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER
+        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER, EAP6_DOMAIN_CONTAINER
     }
 
     // Timeout for CLI tests
