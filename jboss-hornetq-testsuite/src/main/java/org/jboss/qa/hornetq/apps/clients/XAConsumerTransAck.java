@@ -176,12 +176,12 @@ public class XAConsumerTransAck extends Client {
                     logger.warn("Recreating all JMS objects.");
                     // we have to recreate all objects so failover is successful TODO check whether it's ok behaviour
                     // it's necessary to close old sessions so no more messages are scheduled for it TODO check whether it's ok behaviour
-                    session.close();
-                    xaSession.close();
-
-                    xaSession = con.createXASession();
-                    session = xaSession.getSession();
-                    consumer = session.createConsumer(queue);
+//                    session.close();
+//                    xaSession.close();
+//
+//                    xaSession = con.createXASession();
+//                    session = xaSession.getSession();
+//                    consumer = session.createConsumer(queue);
 
                     // run recovery of failed transactions -- this just to commit already prepared transactions
                     runRecoveryScan();
