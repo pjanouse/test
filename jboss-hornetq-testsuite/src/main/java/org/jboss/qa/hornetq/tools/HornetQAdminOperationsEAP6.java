@@ -1426,6 +1426,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("same-rm-override").set(isSameRmOverride);
         model.get("enabled").set(true);
 
+        model.toString();
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
