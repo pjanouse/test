@@ -36,7 +36,7 @@ public class CleanUp {
 
         // if there is no CleanUpBeforeTest annotation on either the test method or the test class then do nothing
         if (event.getTestMethod().getAnnotation(CleanUpBeforeTest.class) == null
-                || event.getTestClass().getAnnotation(CleanUpBeforeTest.class) == null) {
+                && event.getTestClass().getAnnotation(CleanUpBeforeTest.class) == null) {
 
             return;
         }
@@ -83,12 +83,15 @@ public class CleanUp {
                 FileUtils.deleteQuietly(new File(nodeDirectory, "data"));
                 FileUtils.deleteQuietly(new File(nodeDirectory, "work"));
             }
+
+            JournalDirectory.deleteJournalDirectoryA(containerDef.getContainerProperties().get("jbossHome"));
+            JournalDirectory.deleteJournalDirectoryB(containerDef.getContainerProperties().get("jbossHome"));
         }
 
-        JournalDirectory.deleteJournalDirectoryA(
-                descriptor.getContainers().get(0).getContainerProperties().get("jbossHome"));
-        JournalDirectory.deleteJournalDirectoryB(
-                descriptor.getContainers().get(0).getContainerProperties().get("jbossHome"));
+//        JournalDirectory.deleteJournalDirectoryA(
+//                descriptor.getContainers().get(0).getContainerProperties().get("jbossHome"));
+//        JournalDirectory.deleteJournalDirectoryB(
+//                descriptor.getContainers().get(0).getContainerProperties().get("jbossHome"));
     }
 
     private void cleanUpEAP5(ArquillianDescriptor descriptor)  {
