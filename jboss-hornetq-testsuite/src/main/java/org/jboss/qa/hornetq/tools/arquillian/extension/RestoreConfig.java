@@ -83,11 +83,15 @@ public class RestoreConfig {
      * @throws IOException
      */
     private void backupStandaloneConfiguration(ArquillianDescriptor descriptor) throws IOException {
+        logger.info("Trying to back up standalone config");
         for (GroupDef groupDef : descriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getContainers()) {
+            logger.info("Backing up configs for group " + groupDef.getGroupName());
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                logger.info("Backing up standalone config for container " + containerDef.getContainerName());
                 JbossConfigFiles files = JbossConfigFiles.forContainer(containerDef);
 
                 if (!files.getStandaloneConfigDir().exists()) {
+                    logger.info("not EAP6");
                     // don't bother, this isn't EAP6
                     continue;
                 }
@@ -165,11 +169,9 @@ public class RestoreConfig {
     public void restoreConfigurationBeforeTest(@Observes Before event, ArquillianDescriptor descriptor) throws IOException {
 
         // if there is no RestoreConfigBeforeTest annotation then do nothing
-//        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) {
-//            return;
-//        }
-//
-//        logger.info("Restoring configuration before test: " + event.getTestClass().getName());
+        if (event.getTestMethod().getAnnotation(RestoreConfigBeforeTest.class) == null) {
+            return;
+        }
 
         restoreStandaloneConfiguration(descriptor);
         restoreDomainConfiguration(descriptor);
