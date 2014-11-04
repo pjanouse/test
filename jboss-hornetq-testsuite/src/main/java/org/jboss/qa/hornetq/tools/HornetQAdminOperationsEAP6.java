@@ -41,6 +41,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     // Instance of Model controller client
     private ModelControllerClient modelControllerClient;
 
+    private final List<PrefixEntry> prefix = new ArrayList<PrefixEntry>();
+
     private String hostname;
 
     private int port;
@@ -85,6 +87,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void addAddressPrefix(String key, String value) {
+        // note that the key can be empty if there's no parameter
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("Prefix key cannot be empty");
+        }
+
+        prefix.add(new PrefixEntry(key, value));
     }
 
     /**
@@ -248,7 +260,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public long getCountOfMessagesOnQueue(String queueName) {
-        final ModelNode countMessages = new ModelNode();
+        final ModelNode countMessages = createModelNode();
         countMessages.get(ClientConstants.OP).set("count-messages");
         countMessages.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         countMessages.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -271,7 +283,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public long removeMessagesFromQueue(String queueName) {
-        final ModelNode removeMessagesFromQueue = new ModelNode();
+        final ModelNode removeMessagesFromQueue = createModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-messages");
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -303,7 +315,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setClusterUserPassword(String serverName, String password) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -332,7 +344,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void disableSecurity(String serverName) {
-        final ModelNode disableSecurity = new ModelNode();
+        final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
         disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -346,7 +358,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     public void setSecurityEnabled(String serverName, boolean value) {
-        final ModelNode disableSecurity = new ModelNode();
+        final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
         disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -387,7 +399,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addSecurityEnabled(String serverName, boolean value) {
-        final ModelNode disableSecurity = new ModelNode();
+        final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("add");
         disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -407,7 +419,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addExtension(String extensionName) {
-        final ModelNode addExtension = new ModelNode();
+        final ModelNode addExtension = createModelNode();
         addExtension.get(ClientConstants.OP).set("add");
         addExtension.get(ClientConstants.OP_ADDR).add("extension", extensionName);
 
@@ -436,19 +448,19 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
 
-        ModelNode composite = new ModelNode();
+        ModelNode composite = createModelNode();
         composite.get(ClientConstants.OP).set("composite");
         composite.get(ClientConstants.OP_ADDR).setEmptyList();
         composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
 
-        ModelNode undefineConnector = new ModelNode();
+        ModelNode undefineConnector = createModelNode();
         undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
         undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         undefineConnector.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         undefineConnector.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         undefineConnector.get("name").set("connector");
 
-        ModelNode setDiscoveryGroup = new ModelNode();
+        ModelNode setDiscoveryGroup = createModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -468,7 +480,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -516,7 +528,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -541,14 +553,14 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
-        ModelNode modelnew = new ModelNode();
+        ModelNode modelnew = createModelNode();
         modelnew.get(connectorName).clear();
         model.get("value").set(modelnew);
 
@@ -570,7 +582,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createPooledConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -581,7 +593,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("entries").add(jndiName);
 
         model.get("name").set("connector");
-        ModelNode modelnew = new ModelNode();
+        ModelNode modelnew = createModelNode();
         modelnew.get(connectorName).clear();
         model.get("connector").set(modelnew);
 
@@ -603,7 +615,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -612,7 +624,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("entries").add(jndiName);
 
 //        model.get("name").set("connector");
-        ModelNode modelnew = new ModelNode();
+        ModelNode modelnew = createModelNode();
         modelnew.get(connectorName).clear();
         model.get("connector").set(modelnew);
 
@@ -632,7 +644,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeConnectionFactory(String connectionFactoryName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -656,14 +668,14 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
-        ModelNode modelnew = new ModelNode();
+        ModelNode modelnew = createModelNode();
         for (String connectorName : connectorNames) {
             modelnew.get(connectorName).clear();
         }
@@ -696,7 +708,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     public void addRoleToSecuritySettings(String serverName, String address, String role) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -717,7 +729,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addSecuritySetting(String serverName, String s) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -732,7 +744,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void removeSecuritySettings(String serverName, String addressMask) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -753,7 +765,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param jndiName        JNDI name
      */
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
-        final ModelNode addJmsJNDIName = new ModelNode();
+        final ModelNode addJmsJNDIName = createModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("add-jndi");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -798,7 +810,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     private void createJmsDestination(String serverName, String destinationType, String destinationName, String jndiName, boolean durable) {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
-        ModelNode createJmsQueueOperation = new ModelNode();
+        ModelNode createJmsQueueOperation = createModelNode();
         createJmsQueueOperation.get(ClientConstants.OP).set(ClientConstants.ADD);
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -820,7 +832,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param destinationName destination name
      */
     private void removeJmsDestination(String destinationType, String destinationName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove-messages");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -831,7 +843,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        final ModelNode removeJmsQueue = new ModelNode();
+        final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("remove");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -865,6 +877,29 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                     result.get(ClientConstants.OUTCOME)));
         }
         return result;
+    }
+
+    /**
+     * Creates initial model node for the operation.
+     *
+     * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation
+     * address will be populated with path composed of prefix entries (in the order they were added).
+     *
+     * @return created model node instance
+     */
+    private ModelNode createModelNode() {
+        ModelNode model = new ModelNode();
+        if (!prefix.isEmpty()) {
+            for (PrefixEntry p : prefix) {
+                if (p.value == null || p.value.isEmpty()) {
+                    model.get(ClientConstants.OP_ADDR).add(p.key);
+                } else {
+                    model.get(ClientConstants.OP_ADDR).add(p.key, p.value);
+                }
+            }
+        }
+
+        return model;
     }
 
     /**
@@ -925,7 +960,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
-        final ModelNode removeJmsQueue = new ModelNode();
+        final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -956,7 +991,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setIdCacheSize(String serverName, long numberOfIds) {
-        final ModelNode removeJmsQueue = new ModelNode();
+        final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -987,7 +1022,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addPersistenceEnabled(String serverName, boolean persistenceEnabled) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1018,7 +1053,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setClustered(String serverName, boolean clustered) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1049,7 +1084,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addClustered(String serverName, boolean clustered) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1082,7 +1117,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setSharedStore(String serverName, boolean sharedStore) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1114,7 +1149,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addSharedStore(String serverName, boolean sharedStore) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1145,7 +1180,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setAllowFailback(String serverName, boolean allowFailback) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1177,7 +1212,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setJournalType(String serverName, String journalType) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1209,7 +1244,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addJournalType(String serverName, String journalType) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1243,7 +1278,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         removePath(serverName, "journal-directory");
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1277,7 +1312,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         removePath(serverName, "paging-directory");
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1311,7 +1346,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         removePath(serverName, "large-messages-directory");
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1346,7 +1381,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         removePath(serverName, "bindings-directory");
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1362,7 +1397,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     private void removePath(String serverName, String attributeName) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1383,7 +1418,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setDefaultResourceAdapter(String resourceAdapterName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
         model.get("name").set("default-resource-adapter-name");
@@ -1411,7 +1446,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                    boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
                                    boolean isSameRmOverride, boolean noTxSeparatePool) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
@@ -1445,7 +1480,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
@@ -1470,7 +1505,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setXADatasourceAtribute(String poolName, String attributeName, String value) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
@@ -1491,7 +1526,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createJDBCDriver(String driverName, String moduleName, String driverClass, String xaDatasourceClass) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("jdbc-driver", driverName);
@@ -1559,7 +1594,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                   String groupAddress, int groupPort, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1637,7 +1672,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1678,7 +1713,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -1743,7 +1778,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setDiscoveryGroup(String serverName, String name, String localBindAddress,
                                   String groupAddress, int groupPort, long refreshTimeout) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1802,7 +1837,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -1837,7 +1872,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -1958,7 +1993,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName) {
 
         try {
-            ModelNode model = new ModelNode();
+            ModelNode model = createModelNode();
             model.get(ClientConstants.OP).set("remove");
             model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
             model.get(ClientConstants.OP_ADDR).add("stack", nameOfStack);
@@ -1994,7 +2029,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                       String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2029,7 +2064,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setReconnectAttemptsForClusterConnection(String clusterGroupName, int attempts) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2054,7 +2089,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setConnectionTtlOverride(String serverName, long valueInMillis) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2087,7 +2122,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                             long retryInterval, boolean useDuplicateDetection,
                                             String connectorName, String... remoteConnectors) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2172,7 +2207,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setJournalFileSize(String serverName, long sizeInBytes) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2193,7 +2228,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setRedistributionDelay(long delay) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2216,7 +2251,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addJndiBindingForConnectionFactory(String connectionFactoryName, String newConnectionFactoryJndiName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add-jndi");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2239,7 +2274,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2258,14 +2293,14 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
         //java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
-        ModelNode modelnew = new ModelNode();
+        ModelNode modelnew = createModelNode();
         modelnew.get(connectorName).clear();
         model.get("value").set(modelnew);
 
@@ -2280,7 +2315,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2297,7 +2332,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2322,7 +2357,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2346,7 +2381,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setHaForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2370,7 +2405,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2403,7 +2438,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setFailoverOnShutdown(boolean value, String serverName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2426,7 +2461,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2447,7 +2482,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2468,7 +2503,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2488,7 +2523,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setRetryIntervalForPooledConnectionFactory(String connectionFactoryName, long value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2508,7 +2543,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2529,7 +2564,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setRetryIntervalMultiplierForPooledConnectionFactory(String connectionFactoryName, double value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2551,7 +2586,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2573,7 +2608,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2592,7 +2627,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setJmxDomainName(String jmxDomainName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -2612,7 +2647,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setJmxManagementEnabled(String serverName, boolean enable) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2643,7 +2678,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setBackup(String serverName, boolean isBackup) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2675,7 +2710,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addBackup(String serverName, boolean isBackup) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2706,7 +2741,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void removeAddressSettings(String serverName, String address) {
         try {
-            ModelNode setAddressAttributes = new ModelNode();
+            ModelNode setAddressAttributes = createModelNode();
             setAddressAttributes.get(ClientConstants.OP).set("remove");
             setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
             setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2754,7 +2789,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes) {
-        ModelNode setAddressAttributes = new ModelNode();
+        ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
@@ -2790,7 +2825,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
-        ModelNode setAddressAttributes = new ModelNode();
+        ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
@@ -2817,7 +2852,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
                                    int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue,
                                    String deadLetterQueue, int maxDeliveryAttempts) {
 
-        ModelNode setAddressAttributes = new ModelNode();
+        ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
@@ -2864,7 +2899,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     public void addMessageGrouping(String serverName, String name, String type, String address, long timeout) {
 
-        ModelNode modelNode = new ModelNode();
+        ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("add");
         modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2929,7 +2964,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setNodeIdentifier(int i) {
 
-        ModelNode setNodeIdentifier = new ModelNode();
+        ModelNode setNodeIdentifier = createModelNode();
         setNodeIdentifier.get(ClientConstants.OP).set("write-attribute");
         setNodeIdentifier.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
         setNodeIdentifier.get("name").set("node-identifier");
@@ -2949,7 +2984,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addDatasourceProperty(String poolName, String propertyName, String value) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         model.get(ClientConstants.OP_ADDR).add("data-source", poolName);
@@ -2971,7 +3006,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setBackupGroupName(String nameOfBackupGroup, String serverName) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -2992,7 +3027,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setCheckForLiveServer(boolean b, String serverName) {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3019,7 +3054,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setLoopBackAddressType(String interfaceName, String ipAddress) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
         model.get("name").set("loopback-address");
@@ -3031,7 +3066,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("undefine-attribute");
         model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
         model.get("name").set("inet-address");
@@ -3056,7 +3091,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setInetAddress(String interfaceName, String ipAddress) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("interface", interfaceName);
         model.get("name").set("inet-address");
@@ -3076,7 +3111,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3097,7 +3132,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void removeDiscoveryGroup(String dggroup) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3119,7 +3154,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void removeClusteringGroup(String clusterGroupName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3162,7 +3197,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void setLoggingLevelForConsole(String level) {
         // ./console-handler=CONSOLE:add(level=DEBUG,formatter="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n")
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("console-handler", "CONSOLE");
@@ -3177,7 +3212,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         //./root-logger=ROOT:write-attribute(name=handlers,value=["FILE", "CONSOLE"])
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("add-handler");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
@@ -3200,8 +3235,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void seRootLoggingLevel(String level) {
 
         // /subsystem=logging/root-logger=ROOT:write-attribute(name=level, value=ERROR)
-        ModelNode model = new ModelNode();
-        model = new ModelNode();
+        ModelNode model = createModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
@@ -3223,7 +3258,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeBridge(String name) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3253,7 +3288,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
                                  String... staticConnector) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3283,7 +3318,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             , String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime
             , boolean addMessageIDInHeader) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
@@ -3320,7 +3355,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setFactoryType(String serverName, String connectionFactoryName, String factoryType) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3341,7 +3376,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
@@ -3367,7 +3402,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //            logger.error(e);
 //        }
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
@@ -3380,7 +3415,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error(e);
         }
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
@@ -3394,7 +3429,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error(e);
         }
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
@@ -3430,7 +3465,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
                                  String discoveryGroupName) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3453,7 +3488,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     private void removeRemoteConnector(String serverName, String name) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3510,7 +3545,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
         removeRemoteConnector(serverName, name);
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3536,7 +3571,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createSocketBinding(String socketBindingName, int port) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3560,7 +3595,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
                                     int multicastPort) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3587,7 +3622,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress,
                                     int multicastPort) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3610,7 +3645,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeSocketBinding(String socketBindingName) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3633,7 +3668,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addSocketBinding(String socketBindingName, String multicastAddress, int multicastPort) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3649,7 +3684,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addSocketBinding(String socketBindingName, int port) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3669,7 +3704,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setMulticastAddressOnSocketBinding(String socketBindingName, String multicastAddress) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3692,7 +3727,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
@@ -3715,7 +3750,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -3792,7 +3827,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     private void removeInVmConnector(String serverName, String name) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3821,7 +3856,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception ex) {
             logger.warn("Removing old connector failed:", ex);
         }
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3866,7 +3901,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception ex) {
             logger.warn("Removing remote acceptor failed: ", ex);
         }
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3895,7 +3930,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param name name of the remote acceptor
      */
     private void removeRemoteAcceptor(String serverName, String name) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3929,7 +3964,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -3954,7 +3989,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeRemoteSocketBinding(String name) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", name);
@@ -3975,7 +4010,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addRemoteSocketBinding(String name, String host, int port) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", name);
@@ -3996,7 +4031,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void addLoggerCategory(String category, String level) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("logger", category);
@@ -4007,7 +4042,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error("Operation remove catogory was not completed.", e);
         }
 
-        model = new ModelNode();
+        model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         model.get(ClientConstants.OP_ADDR).add("logger", category);
@@ -4069,7 +4104,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addMessagingSubsystem(String serverName) {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -4198,7 +4233,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setPropertyReplacement(String propertyName, boolean isEnabled) {
 
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "ee");
         model.get("name").set(propertyName);
@@ -4214,7 +4249,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addSubsystem(String subsystemName) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", subsystemName);
 
@@ -4227,7 +4262,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addSecurityProvider(String providerName, String providerType, Map<String, String> attributes) {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "security-providers");
         model.get(ClientConstants.OP_ADDR).add(providerName, providerType);
@@ -4256,7 +4291,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public int getNumberOfNodesInCluster(String clusterName) {
         ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("get-nodes");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -4277,7 +4312,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
         ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
         int counter = 0;
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -4302,7 +4337,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public int getNumberOfTempQueues() {
         int counter = 0;
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -4326,7 +4361,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     public String getPagingDirectoryPath() {
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("resolve-path");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -4343,7 +4378,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public boolean areThereUnfinishedArjunaTransactions() {
 
-        ModelNode model = new ModelNode();
+        ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("probe");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
         model.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
@@ -4354,7 +4389,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        ModelNode readTransactionModel = new ModelNode();
+        ModelNode readTransactionModel = createModelNode();
         readTransactionModel.get(ClientConstants.OP).set("read-resource");
         readTransactionModel.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
         readTransactionModel.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
@@ -4558,6 +4593,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.close();
         } finally {
             jmsAdminOperations.close();
+        }
+    }
+
+    private static class PrefixEntry {
+        private final String key;
+        private final String value;
+
+        private PrefixEntry(String key, String value) {
+            this.key = key;
+            this.value = value;
         }
     }
 }

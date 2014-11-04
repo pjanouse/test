@@ -13,6 +13,16 @@ import java.util.Map;
 public interface JMSOperations {
 
     /**
+     * Add path prefix for all the subsequent operations.
+     *
+     * This is useful for EAP 6 domains, where you can set the domain/profile prefix for all the operations.
+     *
+     * @param key path key
+     * @param value path value
+     */
+    void addAddressPrefix(String key, String value);
+
+    /**
      * Adds address settings
      *
      * @param address             address specification

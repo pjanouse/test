@@ -228,6 +228,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addAddressPrefix(String key, String value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes) {
 
         removeAddressSettings(address);

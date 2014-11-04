@@ -3,8 +3,8 @@ package org.jboss.qa.hornetq.test.journalreplication.utils;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.tools.arquillian.extension.RestoreConfig;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
@@ -20,13 +20,10 @@ public class FileUtil
 	 */
 	public static void copyFile(File original, File destination)
 	{
-		RestoreConfig copyrator = new RestoreConfig();
-
 		try
 		{
-			copyrator.copyFile(original, destination);
-		} catch (IOException copyException)
-		{
+            FileUtils.copyFile(original, destination);
+		} catch (IOException copyException) {
 			log.error("Exception while copying: " + original.getAbsolutePath() + " ->" + destination.getAbsolutePath(),
 					copyException);
 			throw new RuntimeException(copyException);

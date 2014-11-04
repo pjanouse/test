@@ -16,6 +16,10 @@ public final class ContainerInfo {
 
     private final String name;
 
+    // name of the node in case of domain mode, useful for setting up ModelNode paths, that require this for getting
+    // runtime info
+    private final String domainName;
+
     private final String ipAddress;
 
     private final int bytemanPort;
@@ -26,8 +30,11 @@ public final class ContainerInfo {
 
     private HornetQTestCaseConstants.CONTAINER_TYPE containerType;
 
-    public ContainerInfo(final String name, final String ipAddress, final int bytemanPort, final int portOffset, final String jbossHome) {
+    public ContainerInfo(final String name, final String domainName, final String ipAddress, final int bytemanPort,
+            final int portOffset, final String jbossHome) {
+
         this.name = name;
+        this.domainName = domainName;
         this.ipAddress = ipAddress;
         this.bytemanPort = bytemanPort;
         this.portOffset = portOffset;
@@ -44,6 +51,7 @@ public final class ContainerInfo {
         eap5hqPath.append(File.separator).append("client").append(File.separator).append("hornetq-core-client.jar");
         StringBuilder eap5jbmPath = new StringBuilder(jbossHome);
         eap5jbmPath.append(File.separator).append("client").append(File.separator).append("jboss-messaging-client.jar");
+
         String arqConfigurationFile = System.getProperty("arquillian.xml");
         if (new File(eap5hqPath.toString()).exists())   {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_CONTAINER;
@@ -51,7 +59,12 @@ public final class ContainerInfo {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER;
         } else if (arqConfigurationFile != null && !arqConfigurationFile.trim().isEmpty()
                 && arqConfigurationFile.toLowerCase().contains("eap6-legacy")) {
+
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER;
+        } else if (arqConfigurationFile != null && !arqConfigurationFile.trim().isEmpty()
+                && arqConfigurationFile.toLowerCase().contains("domain")) {
+
+            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER;
         } else {
             containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
         }
@@ -59,6 +72,11 @@ public final class ContainerInfo {
 
     public String getName() {
         return name;
+    }
+
+
+    public String getDomainName() {
+        return domainName;
     }
 
 
