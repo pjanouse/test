@@ -564,6 +564,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
 
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -660,6 +662,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
+
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
 
         jmsAdminOperations.close();
 
