@@ -860,31 +860,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP1)
-    @TargetsContainer(SERVER_GROUP1)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKillServletServerGroup1() throws Exception {
-        return createKillerServlet("killerServletGroup1.war");
-    }
-
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP2)
-    @TargetsContainer(SERVER_GROUP2)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKillServletServerGroup2() throws Exception {
-        return createKillerServlet("killerServletGroup2.war");
-    }
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP3)
-    @TargetsContainer(SERVER_GROUP3)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKillServletServerGroup3() throws Exception {
-        return createKillerServlet("killerServletGroup3.war");
-    }
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_GROUP4)
-    @TargetsContainer(SERVER_GROUP4)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKillServletServerGroup4() throws Exception {
-        return createKillerServlet("killerServletGroup4.war");
-    }
     /**
      * Creates archive with the killer server
      *
@@ -942,7 +917,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return web archive
      */
-    private static WebArchive createKillerServlet(String archiveName) {
+    protected static WebArchive createKillerServlet(String archiveName) {
         final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, archiveName);
         StringBuilder webXml = new StringBuilder();
         webXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> ");

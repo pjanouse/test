@@ -12,6 +12,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -44,7 +45,7 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class DomainLodh1TestCase extends HornetQTestCase {
+public class DomainLodh1TestCase extends DomainHornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DomainLodh1TestCase.class);
 

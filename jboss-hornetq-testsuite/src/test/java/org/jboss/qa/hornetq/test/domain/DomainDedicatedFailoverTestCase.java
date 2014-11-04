@@ -10,6 +10,7 @@ import javax.jms.Session;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.Clients;
@@ -45,7 +46,7 @@ import org.junit.runner.RunWith;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class DomainDedicatedFailoverTestCase extends HornetQTestCase {
+public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DomainDedicatedFailoverTestCase.class);
     protected static final int NUMBER_OF_DESTINATIONS = 1;
