@@ -93,11 +93,9 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
         List<FileDeploymentDefinition> assets = new ArrayList<FileDeploymentDefinition>(1);
 
         // ip in property file on n-th mdb container points to n-th queue container
-        Asset contents = new StringAsset("remote-jms-server=" + this.queuesContainer.getIpAddress() + "\n");
-        Asset contents2 = new StringAsset("remote-jms-jndi-server=" + getJNDIPort(queuesContainer.getName()) + "\n");
+        Asset contents = new StringAsset("remote-jms-server=" + this.queuesContainer.getIpAddress() + "\n" +
+            "remote-jms-jndi-port=" + getJNDIPort(queuesContainer.getName()) + "\n");
         assets.add(new FileDeploymentDefinition(contents, "remote-jca-resending-bean.properties",
-                this.mdbContainer.getName()));
-        assets.add(new FileDeploymentDefinition(contents2, "remote-jca-resending-bean.properties",
                 this.mdbContainer.getName()));
         return assets;
     }
