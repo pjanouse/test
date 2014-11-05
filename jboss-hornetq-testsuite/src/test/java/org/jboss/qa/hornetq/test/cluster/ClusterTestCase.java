@@ -53,7 +53,6 @@ import java.util.*;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
 public class ClusterTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusterTestCase.class);
