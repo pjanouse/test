@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.test.soak.clients.FilterSoakClient;
 import org.jboss.qa.hornetq.test.soak.clients.TemporaryQueuesSoakClient;
 import org.jboss.qa.hornetq.test.soak.modules.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.MemoryCpuMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -102,6 +103,21 @@ public class NewSoakTestCase extends HornetQTestCase {
         this.setupJmsServer(CONTAINER1);
         this.setupMdbServer(CONTAINER2);
 
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+
+        // start measuring of
+        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring();
+
+        jmsServerMeasurement.startMeasuring(getProcessId(CONTAINER1), "jms-server");
+
+        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring();
+
+        mdbServerMeasurement.startMeasuring(getProcessId(CONTAINER2), "mdb-server");
+
+
         this.restartAllServers();
 
         this.deployer.deploy(CONTAINER1_DEPLOYMENT);
@@ -163,6 +179,10 @@ public class NewSoakTestCase extends HornetQTestCase {
             receivedMessagesCount += consumers[i].getCount();
         }
 
+        // stop measuring
+        jmsServerMeasurement.stopMeasuring();
+        mdbServerMeasurement.stopMeasuring();
+
         // evaluate
         LOG.info("Soak test results:");
         LOG.info("========================================");
@@ -187,6 +207,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         int filterModuleExpected = filterClients.getNumberOfSentMessages() / 2;
         assertEquals("Number of messages received in filtering module should be half of sent messages",
                 filterModuleExpected, filterClients.getNumberOfReceivedMessages());
+
     }
 
 

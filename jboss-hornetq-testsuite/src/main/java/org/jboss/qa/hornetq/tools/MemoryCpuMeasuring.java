@@ -15,7 +15,7 @@ public class MemoryCpuMeasuring {
 
     Process p = null;
 
-    public void startMeasuring(int pid, String prefixOfCsvFiles) {
+    public void startMeasuring(long pid, String prefixOfCsvFiles) {
         // start create_memory_cpu_csv.sh
         log.info("Start measuring process: " + pid + " and store info to files with prefix: " + prefixOfCsvFiles);
         ProcessBuilder processBuilder = new ProcessBuilder("src/test/resources/create_memory_cpu_csv.sh", String.valueOf(pid), prefixOfCsvFiles);
