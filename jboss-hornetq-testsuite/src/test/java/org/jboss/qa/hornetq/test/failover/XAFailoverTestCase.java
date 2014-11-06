@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,6 +50,14 @@ public class XAFailoverTestCase extends HornetQTestCase {
         if (objectStoreDirFile.exists()) {
             deleteFolder(objectStoreDirFile);
         }
+    }
+
+    @After
+    public void stopServers()   {
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
     }
 
     //////////////////// TESTS WITH MULTIPLE CONSUMERS ///////////////////////////
