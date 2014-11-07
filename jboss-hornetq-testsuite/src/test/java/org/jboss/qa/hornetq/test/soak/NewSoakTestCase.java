@@ -103,22 +103,17 @@ public class NewSoakTestCase extends HornetQTestCase {
         this.setupJmsServer(CONTAINER1);
         this.setupMdbServer(CONTAINER2);
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        this.restartAllServers();
 
         // start measuring of
-        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring();
+        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
 
-        jmsServerMeasurement.startMeasuring(getProcessId(CONTAINER1), "jms-server");
+        jmsServerMeasurement.startMeasuring();
 
-        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring();
+        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER2), "mdb-server");
 
-        mdbServerMeasurement.startMeasuring(getProcessId(CONTAINER2), "mdb-server");
+        mdbServerMeasurement.startMeasuring();
 
-
-        this.restartAllServers();
 
         this.deployer.deploy(CONTAINER1_DEPLOYMENT);
         this.deployer.deploy(CONTAINER2_DEPLOYMENT);
@@ -180,8 +175,8 @@ public class NewSoakTestCase extends HornetQTestCase {
         }
 
         // stop measuring
-        jmsServerMeasurement.stopMeasuring();
-        mdbServerMeasurement.stopMeasuring();
+        jmsServerMeasurement.stopMeasuringAndGenerateMeasuring();
+        mdbServerMeasurement.stopMeasuringAndGenerateMeasuring();
 
         // evaluate
         LOG.info("Soak test results:");
