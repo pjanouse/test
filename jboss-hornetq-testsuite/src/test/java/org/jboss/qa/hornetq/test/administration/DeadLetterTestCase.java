@@ -59,7 +59,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToExistingDLQ() throws Exception {
-        this.controller.start(this.container.getName());
+        controller.start(this.container.getName());
 
         JMSOperations ops = this.getJMSOperations(this.container.getName());
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
@@ -70,10 +70,12 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
         ops.close();
 
-        this.controller.stop(this.container.getName());
-        this.controller.start(this.container.getName());
+        stopServer(this.container.getName());
+        controller.start(this.container.getName());
 
         this.testDLQDelivery();
+
+        stopServer(this.container.getName());
     }
 
 
@@ -85,7 +87,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToSubaddressDLQ() throws Exception {
-        this.controller.start(this.container.getName());
+        controller.start(this.container.getName());
 
         JMSOperations ops = this.getJMSOperations(this.container.getName());
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
@@ -95,10 +97,12 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
         ops.close();
 
-        this.controller.stop(this.container.getName());
-        this.controller.start(this.container.getName());
+        stopServer(this.container.getName());
+        controller.start(this.container.getName());
 
         this.testDLQDelivery();
+
+        stopServer(this.container.getName());
     }
 
 
@@ -112,7 +116,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToNonExistantDLQ() throws Exception {
-        this.controller.start(this.container.getName());
+        controller.start(this.container.getName());
 
         JMSOperations ops = this.getJMSOperations(this.container.getName());
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
@@ -121,10 +125,12 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
                 "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
 
-        this.controller.stop(this.container.getName());
-        this.controller.start(this.container.getName());
+        stopServer(this.container.getName());
+        controller.start(this.container.getName());
 
         this.testDLQDelivery();
+
+        stopServer(this.container.getName());
     }
 
 
@@ -133,7 +139,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDLQDeployedDuringProcessing() throws Exception {
-        this.controller.start(this.container.getName());
+        controller.start(this.container.getName());
 
         // No DLQ deployed during initial setup
         JMSOperations ops = this.getJMSOperations(this.container.getName());
@@ -143,8 +149,8 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
                 "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
 
-        this.controller.stop(this.container.getName());
-        this.controller.start(this.container.getName());
+        stopServer(this.container.getName());
+        controller.start(this.container.getName());
 
         try {
             this.testDLQDelivery();
@@ -159,6 +165,8 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
         // try again, message should be delivered to DLQ now
         this.testDLQDelivery();
+
+        stopServer(this.container.getName());
     }
 
 

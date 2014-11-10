@@ -1,20 +1,10 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
-import static org.junit.Assert.assertEquals;
-
-import java.rmi.RemoteException;
-import java.util.Random;
-
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalReplicationConfiguration;
@@ -26,9 +16,17 @@ import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import java.rmi.RemoteException;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
@@ -61,6 +59,12 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 		
 		preparator.prepareBackup();
 	}
+
+    @After
+    public void stopServer()    {
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+    }
 
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 	@RunAsClient

@@ -1,37 +1,37 @@
 package org.jboss.qa.hornetq.test.soak;
 
 
-import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.clients.DurableSubscriptionClient;
 import org.jboss.qa.hornetq.test.soak.clients.FilterSoakClient;
 import org.jboss.qa.hornetq.test.soak.clients.TemporaryQueuesSoakClient;
-import org.jboss.qa.hornetq.test.soak.modules.BridgeSoakModule;
-import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
-import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
-import org.jboss.qa.hornetq.test.soak.modules.JcaBridgeModuleConnection;
-import org.jboss.qa.hornetq.test.soak.modules.RemoteJcaSoakModule;
-import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
+import org.jboss.qa.hornetq.test.soak.modules.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.MemoryCpuMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -105,6 +105,16 @@ public class NewSoakTestCase extends HornetQTestCase {
 
         this.restartAllServers();
 
+        // start measuring of
+        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
+
+        jmsServerMeasurement.startMeasuring();
+
+        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER2), "mdb-server");
+
+        mdbServerMeasurement.startMeasuring();
+
+
         this.deployer.deploy(CONTAINER1_DEPLOYMENT);
         this.deployer.deploy(CONTAINER2_DEPLOYMENT);
 
@@ -164,6 +174,10 @@ public class NewSoakTestCase extends HornetQTestCase {
             receivedMessagesCount += consumers[i].getCount();
         }
 
+        // stop measuring
+        jmsServerMeasurement.stopMeasuringAndGenerateMeasuring();
+        mdbServerMeasurement.stopMeasuringAndGenerateMeasuring();
+
         // evaluate
         LOG.info("Soak test results:");
         LOG.info("========================================");
@@ -188,6 +202,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         int filterModuleExpected = filterClients.getNumberOfSentMessages() / 2;
         assertEquals("Number of messages received in filtering module should be half of sent messages",
                 filterModuleExpected, filterClients.getNumberOfReceivedMessages());
+
     }
 
 
@@ -221,6 +236,12 @@ public class NewSoakTestCase extends HornetQTestCase {
             }
         }
 
+        //          Uncomment when you want to see what's in the servlet
+        File target = new File("/tmp/mdb-for-soak.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        archive.as(ZipExporter.class).exportTo(target, true);
         return archive;
     }
 
@@ -260,7 +281,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "netty");
 
         ops.removeAddressSettings("#");
-        ops.addAddressSettings("#", "PAGE", 500 * 1024 * 1024, 0, 0, 1024 * 1204);
+        ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1204);
 
         ops.close();
     }
@@ -285,7 +306,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "netty");
 
         ops.removeAddressSettings("#");
-        ops.addAddressSettings("#", "PAGE", 500 * 1024 * 1024, 0, 0, 1024 * 1204);
+        ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1204);
 
         ops.close();
     }

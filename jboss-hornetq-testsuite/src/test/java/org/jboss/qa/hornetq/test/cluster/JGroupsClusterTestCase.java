@@ -27,7 +27,6 @@ import javax.naming.Context;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
 public class JGroupsClusterTestCase extends ClusterTestCase {
 
     private static String JGROUPS_CONNECTION_FACTORY = "JGroupsConnectionFactory";

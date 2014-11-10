@@ -142,7 +142,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessagesOnOneNode(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER2);
+        waitUntilThereAreNoPreparedHornetQTransactions(360000, CONTAINER2);
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER2);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 3000, 100, 10);
