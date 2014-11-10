@@ -1935,6 +1935,18 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public boolean closeClientsByDestinationAddress(String address) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
+    }
+
+    @Override
+    public boolean closeClientsByUserName(String username) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
+    }
+
+    @Override
     public List<String> getJNDIEntriesForQueue(String destinationCoreName) {
         logger.info("This operation is not supported: " + getMethodName());
         return null;
