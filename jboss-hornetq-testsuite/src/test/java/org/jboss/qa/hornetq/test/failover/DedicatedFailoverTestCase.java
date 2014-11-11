@@ -305,29 +305,84 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         // blocking call checking whether all consumers finished
         waitForClientsToFinish(clients);
 
-        // compare numbers in original and diverted queue
-        int sum = 0;
+        // message verifiers for diverted messages - compares send and diverted messages
+        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier();
+        // compare received and diverted messages, to send  messages add messages from normal receiver, to received messages from diverted queue
+        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier();
+
+        // add send messages to sendDivertedMessageVerifier
         for (Client c : clients.getProducers()) {
+
             if (c instanceof ProducerTransAck) {
-                sum = sum + ((ProducerTransAck) c).getListOfSentMessages().size();
+
+                sendDivertedMessageVerifier.addSendMessages(((ProducerTransAck) c).getListOfSentMessages());
+
             }
+
             if (c instanceof PublisherTransAck) {
-                sum = sum + ((PublisherTransAck) c).getListOfSentMessages().size();
+
+                sendDivertedMessageVerifier.addSendMessages(((PublisherTransAck) c).getListOfSentMessages());
+
             }
         }
 
-        JMSOperations jmsOperations;
-        if (failback) {
-            jmsOperations = getJMSOperations(CONTAINER1);
+        // count messages in test queue + add those messages to message verifier for receivedDivertedMessageVerifier
+        int sum = 0;
 
-        } else {
-            jmsOperations = getJMSOperations(CONTAINER2);
+        for (Client c : clients.getConsumers()) {
+
+            if (c instanceof ReceiverTransAck)  {
+
+                sum += ((ReceiverTransAck) c).getListOfReceivedMessages().size();
+
+                receivedDivertedMessageVerifier.addSendMessages(((ReceiverTransAck) c).getListOfReceivedMessages());
+
+            }
+
+            if (c instanceof SubscriberTransAck)    {
+
+                sum += ((SubscriberTransAck) c).getListOfReceivedMessages().size();
+
+                receivedDivertedMessageVerifier.addSendMessages(((SubscriberTransAck) c).getListOfReceivedMessages());
+
+            }
         }
+
+        // check number of messages in diverted queue
+        JMSOperations jmsOperations = failback ? getJMSOperations(CONTAINER1) : getJMSOperations(CONTAINER2);
+
         long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
+
         jmsOperations.close();
 
-        Assert.assertEquals("There is different number of sent messages and received messages from diverted address",
-                sum, numberOfMessagesInDivertedQueue);
+        // receive messages from diverted queue
+        ReceiverTransAck receiverFromDivertedQueue;
+
+        if (failback) {
+
+            receiverFromDivertedQueue = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), divertedQueueJndiName, 5000, 100, 5);
+
+        } else {
+
+            receiverFromDivertedQueue = new ReceiverTransAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), divertedQueueJndiName, 5000, 100, 5);
+
+        }
+        receiverFromDivertedQueue.start();
+
+        receiverFromDivertedQueue.join();
+
+        sendDivertedMessageVerifier.addReceivedMessages(receiverFromDivertedQueue.getListOfReceivedMessages());
+
+        receivedDivertedMessageVerifier.addReceivedMessages(receiverFromDivertedQueue.getListOfReceivedMessages());
+
+        logger.info("Number of messages in diverted queue is: " + numberOfMessagesInDivertedQueue + ", number of messages in test queue: " + sum);
+
+        Assert.assertEquals("There is different number of messages which are in test queue and diverted queue.", sum, numberOfMessagesInDivertedQueue);
+
+        // do asserts
+        Assert.assertTrue("There is different number of send messages and messages in diverted queue: ", sendDivertedMessageVerifier.verifyMessages());
+
+        Assert.assertTrue("There is different number of received messages and messages in diverted queue: ", receivedDivertedMessageVerifier.verifyMessages());
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 

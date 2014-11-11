@@ -166,8 +166,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
-    // TODO UNCOMMENT WHEN IS FIXED: https://bugzilla.redhat.com/show_bug.cgi?id=1019378
-
     /**
      * Start simple failover test with client_ack on queues
      */
@@ -815,6 +813,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
+        String pooledConnectionFactoryName = "hornetq-ra";
 
 
         controller.start(containerName);
@@ -853,6 +852,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        // set ha also for hornetq-ra
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setSecurityEnabled(true);
@@ -908,6 +913,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String socketBindingName = "messaging-backup";
         int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT;
         String messagingGroupSocketBindingName = "messaging-group";
+        String pooledConnectionFactoryName = "hornetq-ra";
 
         controller.start(containerName);
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
@@ -940,6 +946,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings(backupServerName, "#");
         jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        // set ha also for hornetq-ra
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
 
         // enable debugging
         jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");

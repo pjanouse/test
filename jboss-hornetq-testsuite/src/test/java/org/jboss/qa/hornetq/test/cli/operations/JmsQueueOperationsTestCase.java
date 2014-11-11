@@ -98,6 +98,54 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         stopServer(CONTAINER1);
     }
 
+// TODO uncomment when bz: https://bugzilla.redhat.com/show_bug.cgi?id=1155247 gets clear
+//    /**
+//     * When queue is destroyed with connected consumers then nothing should happen.
+//     */
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    public void testDestroyWithActiveClients() {
+//
+//        // setup server
+//        prepareServer(CONTAINER1);
+//
+//        // send some messages to queue and receive them
+//        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+//
+//        producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+//
+//        producer.start();
+//
+//        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1000, 100, 10);
+//
+//        receiverClientAck.start();
+//
+//        Result r1 = runOperation("remove");
+//
+//        CliTestUtils.assertFailure(r1);
+//
+//    }
+//
+//    /**
+//     * When queue is destroyed with connected consumers then nothing should happen.
+//     */
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    public void testDestroyWithoutClients() {
+//
+//        // setup server
+//        prepareServer(CONTAINER1);
+//
+//        Result r1 = runOperation("remove");
+//
+//        CliTestUtils.assertSuccess(r1);
+//
+//    }
+
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest

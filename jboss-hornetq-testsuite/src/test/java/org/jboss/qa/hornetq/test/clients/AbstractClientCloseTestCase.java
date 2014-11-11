@@ -52,7 +52,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
     private static final String QUEUE_JNDI_NAME = "jms/queue/" + QUEUE_NAME;
 
-    private static final int NUMBER_OF_MESSAGES = 1000;
+    private static final int NUMBER_OF_MESSAGES = 3000;
 
     private static final Map<String, String> USER_PASSWORD = new HashMap<String, String>(3);
 
@@ -115,8 +115,11 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             assertTrue("Clients should be properly disconnected", connectionClosed.await(500, TimeUnit.MILLISECONDS));
             assertTrue("Operation should return true on successful client close", closeOperationSucceeded);
 
+            // wait a little bit to make sure JMX notifications get delivered
+            Thread.sleep(1000);
+
             // check JMX got proper notifications about client disconnection
-            // there should be 2 - 1 for client connect and 1 (more interesting in this case) for client disconnect
+            // there should be 2: 1 for client connect and 1 (more interesting in this case) for client disconnect
             List<Notification> notifications = notificationListener.getCaughtNotifications();
             // there might be other notifications if the reconnect-attempts were set to -1 or positive number
             assertTrue("There should be at least 2 notifications", notifications.size() >= 2);
@@ -239,7 +242,9 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
                 for (int i = 0; i < NUMBER_OF_MESSAGES; i++) {
                     Message msg = msgBuilder.createMessage(session);
                     producer.send(msg);
-                    LOG.info("Sent message with counter " + i);
+                    if (i % 10 == 0) {
+                        LOG.info("Sent message with counter " + i);
+                    }
                 }
 
                 return null;
@@ -277,7 +282,9 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
                 MessageConsumer consumer = session.createConsumer(q);
                 try {
                     while (consumer.receive(30000) != null) {
-                        LOG.info("Read message with counter" + counter++);
+                        if ((++counter) % 10 == 0) {
+                            LOG.info("Read message with counter " + counter++);
+                        }
                     }
                 } catch (JMSException e) {
                     LOG.info("JMSException on server force disconnect caught", e);
