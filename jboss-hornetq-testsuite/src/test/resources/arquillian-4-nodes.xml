@@ -22,7 +22,7 @@
                     -Djboss.socket.binding.port-offset=${PORT_OFFSET_1}
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">60</property>
+                <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
                 <property name="managementPort">${MANAGEMENT_PORT_1}</property>
                 <property name="username">admin</property>
@@ -48,7 +48,7 @@
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">60</property>
+                <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
                 <property name="managementPort">${MANAGEMENT_PORT_2}</property>
                 <property name="username">admin</property>
@@ -74,7 +74,7 @@
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">60</property>
+                <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
                 <property name="managementPort">${MANAGEMENT_PORT_3}</property>
                 <property name="username">admin</property>
@@ -99,7 +99,7 @@
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">60</property>
+                <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
                 <property name="managementPort">${MANAGEMENT_PORT_4}</property>
                 <property name="username">admin</property>
