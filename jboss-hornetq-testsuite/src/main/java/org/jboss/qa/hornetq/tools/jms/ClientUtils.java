@@ -20,7 +20,7 @@ public class ClientUtils {
 
     private static final int DEFAULT_MAX_RETRIES = 30;
 
-    private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(120);
 
 
     public static String sendMessage(final MessageProducer producer, final Message msg)
