@@ -1,22 +1,6 @@
 package org.jboss.qa.hornetq.test.soak.clients;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.naming.Context;
-import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -25,6 +9,16 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
+
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 /**
@@ -242,6 +236,8 @@ public class FilterSoakClient extends Client {
                             + ", messageId:" + msg.getJMSMessageID());
                     msg.acknowledge();
                 }
+
+                LOG.error("Filter soak consumer ended - received NULL - number of received messages: " + counter);
 
                 return this.counter;
             } finally {
