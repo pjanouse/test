@@ -4407,6 +4407,42 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public boolean closeClientsByDestinationAddress(String address) {
+        ModelNode closeOperation = createModelNode();
+        closeOperation.get(ClientConstants.OP).set("close-consumer-connections-for-address");
+        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        closeOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        closeOperation.get("address-match").set(address);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(closeOperation);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return result.asBoolean();
+    }
+
+    @Override
+    public boolean closeClientsByUserName(String username) {
+        ModelNode closeOperation = createModelNode();
+        closeOperation.get(ClientConstants.OP).set("close-connections-for-user");
+        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        closeOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        closeOperation.get("user").set(username);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(closeOperation);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return result.asBoolean();
+    }
+
+    @Override
     public List<String> getJNDIEntriesForQueue(String destinationCoreName) {
         return getJNDIEntries(DESTINATION_TYPE_QUEUE, destinationCoreName);
     }
