@@ -614,7 +614,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             if (!(checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
                     || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
-                log.info("===== calling controller kill for " + containerName);
                 controller.kill(containerName); // call controller.kill to arquillian that server is really dead
                 return;
             }
@@ -624,7 +623,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
         // we kill server when it takes too long
-        log.info("===== trying to get PID for " + containerName);
         final long pid = getProcessId(containerName);
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
@@ -663,7 +661,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 }
             }
         };
-        log.info("===== starting shutdown hook for " + containerName);
         shutdownHook.start();
         controller.stop(containerName);
         try {
@@ -718,7 +715,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
             // try to deploy on all server groups
-            log.info("===== deploying domain killer servlets (container " + containerName + ")");
             log.info("domain killer servlet 1");
             deployKillerServletToDomain(SERVER_GROUP1);
             log.info("domain killer servlet 2");
@@ -728,7 +724,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.info("domain killer servlet 4");
             deployKillerServletToDomain(SERVER_GROUP4);
         } else {
-            log.info("===== deploying killer servlet for container" + containerName);
             deployKillerServletToStandalone(containerName);
         }
 
@@ -780,7 +775,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 //            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
 //        }
 
-        log.info("===== connecting to server to read PID");
         String pid = "";
         try {
             log.info("Calling get pid: http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId");
@@ -792,7 +786,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.error("Timeout when calling killer servlet for pid.", e);
         }
 
-        log.info("===== undeploying killer servlets");
         try {
             if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
                 deployer.undeploy(SERVLET_KILLER_GROUP1);
@@ -1198,7 +1191,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         try {
             socket = new Socket();
             socket.connect(new InetSocketAddress(ipAddress, port), 100);
-            log.info("===== server is really up");
             return true;
         } catch (Exception ex) {
             if (socket != null) {
@@ -1208,7 +1200,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                     e.printStackTrace();
                 }
             }
-            log.info("===== server is not really up");
             return false;
         }
     }

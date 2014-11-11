@@ -483,6 +483,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER2);
 
+        logger.info("@@@@@@@@@@@@@@@ SERVERS RUNNING @@@@@@@@@@@");
+
         GroupMessageVerifier messageVerifier = new GroupMessageVerifier();
 
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, number_of_messages);
@@ -502,14 +504,14 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueue, 20000, 10, 10);
 
         receiver1.setMessageVerifier(messageVerifier);
-
+        Thread.sleep(15000);
         receiver1.start();
-
+        logger.info("@@@@@@@@@@@@@@@ RECEIVERS RUNNING @@@@@@@@@@@");
         // try to add here some delay so HQ knows about this consumer
         Thread.sleep(5000);
 
         producerRedG1.start();
-
+        logger.info("@@@@@@@@@@@@@@@ PRODUCERS RUNNING @@@@@@@@@@@");
         Thread.sleep(8000);
 
         if (useKill) {

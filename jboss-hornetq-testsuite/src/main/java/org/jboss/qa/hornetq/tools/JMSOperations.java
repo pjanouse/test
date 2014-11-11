@@ -1400,6 +1400,10 @@ public interface JMSOperations {
 
     boolean areThereUnfinishedArjunaTransactions();
 
+    boolean closeClientsByDestinationAddress(String address);
+
+    boolean closeClientsByUserName(String username);
+
     List<String> getJNDIEntriesForQueue(String destinationCoreName);
 
     List<String> getJNDIEntriesForTopic(String destinationCoreName);
