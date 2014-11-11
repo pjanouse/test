@@ -156,9 +156,9 @@ public class MemoryCpuMeasuring {
 
                 renderer.setBaseFillPaint(Color.yellow);
 
-                int width = 640; /* Width of the image */
+                int width = 1600; /* Width of the image */
 
-                int height = 480; /* Height of the image */
+                int height = 1200; /* Height of the image */
 
                 File outputPng = new File(csvFile.getName().replaceAll(".csv", ".png"));
                 if (outputPng.exists()) {
