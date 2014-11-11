@@ -186,6 +186,12 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory(pooledConnectionFactoryName, true);
 
+        // pooled connection factory must support HA
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+
         jmsAdminOperations.setPagingDirectory(journalDirectoryPath);
         jmsAdminOperations.setBindingsDirectory(journalDirectoryPath);
         jmsAdminOperations.setJournalDirectory(journalDirectoryPath);
