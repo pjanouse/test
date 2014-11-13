@@ -1,22 +1,13 @@
 package org.jboss.qa.hornetq.test.soak.components;
 
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.Topic;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
+
+import javax.annotation.Resource;
+import javax.ejb.*;
+import javax.jms.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -38,23 +29,35 @@ public class MessagesToTopicBean {
     @Resource(mappedName = "java:/" + EjbSoakModule.EJB_OUT_TOPIC_JNDI)
     private Topic outTopic;
 
+    private static AtomicInteger counter = new AtomicInteger();
+
     public void resendMessage(final Message msg) {
         Connection connection = null;
         Session session = null;
 
         try {
             connection = this.connectionFactory.createConnection();
+
             connection.start();
 
             session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
 
             MessageProducer queueProducer = session.createProducer(this.outQueue);
+
             MessageProducer topicProducer = session.createProducer(this.outTopic);
 
             queueProducer.send(msg);
+
             topicProducer.send(msg);
+
+            if (counter.incrementAndGet() % 10 == 0) {
+                LOG.info("MessagesToTopicBean - processed " + counter.get() + " messages, messageId: " + msg.getJMSMessageID());
+            }
+
         } catch (JMSException ex) {
+
             LOG.error("Error while sending message", ex);
+
         } finally {
             if (session != null) {
                 try {
