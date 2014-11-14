@@ -478,4 +478,64 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testDuplicateQueue() throws Exception {
+
+        String queueName = "myTestQueue";
+
+        String queueJndiName = "jms/queue/" + queueName;
+
+        JMSOperations ops = getJMSOperations();
+
+        ops.setJmxManagementEnabled(true);
+        ops.createQueue(queueJndiName, queueName, true);
+
+
+
+        ops.close();
+
+        // we have to restart server for JMX to activate after config change
+        stopServer(CONTAINER1);
+
+        controller.start(CONTAINER1);
+
+        JMXConnector connector = null;
+
+        try {
+
+            connector = JmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+
+            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
+
+            JMSServerControl jmsServerControl = JmxUtils.getJmsServerMBean(mbeanServer);
+
+            boolean result = false;
+
+            try {
+
+                result = jmsServerControl.createQueue(queueName);
+
+
+
+            } catch (Exception ex)   {
+
+                // this is expected
+            }
+
+            Assert.assertFalse("Creating already existing queue must throw exception.", result);
+
+
+        } finally {
+            if (connector != null) {
+                connector.close();
+            }
+        }
+
+        stopServer(CONTAINER1);
+
+    }
+
 }
