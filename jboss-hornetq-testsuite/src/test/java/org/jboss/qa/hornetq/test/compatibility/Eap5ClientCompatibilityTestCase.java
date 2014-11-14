@@ -15,6 +15,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.xml.xpath.XPath;
@@ -153,7 +155,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         Context ctx = null;
 
         try {
-            ctx = this.getContext(getHostname(CONTAINER1), getLegacyJNDIPort(CONTAINER1));
+
+            // get eap 5 context even when you're connecting to eap 6 server
+            ctx = getEAP5Context(getHostname(CONTAINER1), getLegacyJNDIPort(CONTAINER1));
 
             List<String> jndiNameToLookup = new ArrayList<String>();
 
@@ -170,6 +174,23 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
                 Object o = ctx.lookup(jndiName);
                 if (o == null) {
                     Assert.fail("jndiName: " + jndiName + " could not be found.");
+                } else {
+                    if (o instanceof ConnectionFactory) {
+
+                        ConnectionFactory cf = (ConnectionFactory) o;
+
+                        LOG.info("jndiName: " + jndiName + " was found and cast to connection factory.");
+
+                    } else if (o instanceof Destination) {
+
+                        Destination cf = (Destination) o;
+
+                        LOG.info("jndiName: " + jndiName + " was found and cast to destination.");
+
+                    } else {
+                        Assert.fail("jndiName: " + jndiName + " could not be cast to connection factory of destination which is an error.");
+                    }
+
                 }
             }
 
