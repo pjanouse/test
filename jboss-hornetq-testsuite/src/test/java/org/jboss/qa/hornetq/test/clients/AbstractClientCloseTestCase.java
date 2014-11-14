@@ -154,6 +154,13 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
         controller.start(CONTAINER1);
 
+        // disable clustering
+        ops.setClustered(false);
+        ops.removeClusteringGroup("my-cluster");
+        ops.removeBroadcastGroup("bg-group1");
+        ops.removeDiscoveryGroup("dg-group1");
+        ops.setNodeIdentifier(987654);
+
         // lower the paging threshold to force server into paging mode
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);

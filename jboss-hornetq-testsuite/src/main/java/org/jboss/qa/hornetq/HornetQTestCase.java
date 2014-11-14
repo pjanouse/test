@@ -271,7 +271,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
-    private Context getEAP6Context(String hostName, int port) throws NamingException {
+    protected Context getEAP6Context(String hostName, int port) throws NamingException {
         return JMSTools.getEAP6Context(hostName, port);
     }
 
@@ -283,7 +283,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
-    private Context getEAP5Context(String hostName, int port) throws NamingException {
+    protected Context getEAP5Context(String hostName, int port) throws NamingException {
         return JMSTools.getEAP5Context(hostName, port);
     }
 

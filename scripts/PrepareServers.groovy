@@ -343,6 +343,10 @@ public class PrepareServers {
                             '                <level name="INFO"/>\n')
                             .replaceAll('<handler name="FILE"/>', '<handler name="FILE"/>\n' +
                             '                    <handler name="CONSOLE"/>')
+                            .replaceAll('<formatter name="PATTERN">.*</formatter>', '')
+                            .replaceAll('<formatter>.*</formatter>', '<formatter>\n' +
+                            '                    <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>\n' +
+                            '                </formatter>') // for eap 6.1.x it's necessary to add pattern formatter
                             .replaceAll('NIO', 'ASYNCIO')
                             .replaceAll('jboss.bind.address.management:127.0.0.1', 'jboss.bind.address:127.0.0.1')
                             .replaceAll('jboss.bind.address.unsecure:127.0.0.1', 'jboss.bind.address:127.0.0.1')
@@ -359,7 +363,7 @@ public class PrepareServers {
                                 '            <periodic-rotating-file-handler name="FILE-TRACE" autoflush="true">\n' +
                                         '                <level name="TRACE"/>\n' +
                                         '                <formatter>\n' +
-                                        '                    <named-formatter name="PATTERN"/>\n' +
+                                        '                   <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>\n' +
                                         '                </formatter>\n' +
                                         '                <file relative-to="jboss.server.log.dir" path="server-trace.log"/>\n' +
                                         '                <suffix value=".yyyy-MM-dd"/>\n' +

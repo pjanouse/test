@@ -1,23 +1,35 @@
 package org.jboss.qa.hornetq.test.compatibility;
 
 
-import java.io.File;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Assert;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Forward compatibility tests for EAP5 HornetQ clients connecting to EAP6 server.
- *
+ * <p/>
  * For this test working properly, you need to use arqullian-eap6-legacy.xml descriptor. Your JBOSS_HOME_X
  * properties need to point to EAP6 servers with org.jboss.legacy.jnp module installed. When running
  * this test, use eap5x-backward-compatibility maven profile and set netty.version and hornetq.version
@@ -128,5 +140,74 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
     }
+
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testJNDILookupTroughLegacyExtension() throws Exception {
+
+        prepareContainer(CONTAINER1_INFO);
+
+        controller.start(CONTAINER1);
+
+        Context ctx = null;
+
+        try {
+
+            // get eap 5 context even when you're connecting to eap 6 server
+            ctx = getEAP5Context(getHostname(CONTAINER1), getLegacyJNDIPort(CONTAINER1));
+
+            List<String> jndiNameToLookup = new ArrayList<String>();
+
+            jndiNameToLookup.add(CONNECTION_FACTORY_JNDI_EAP6);
+            jndiNameToLookup.add(CONNECTION_FACTORY_JNDI_EAP6_FULL_NAME);
+            jndiNameToLookup.add("jms/queue/" + QUEUE_NAME_PREFIX + "0");
+            jndiNameToLookup.add("java:jms/queue/" + QUEUE_NAME_PREFIX + "0");
+            jndiNameToLookup.add("java:jboss/exported/jms/queue/" + QUEUE_NAME_PREFIX + "0");
+            jndiNameToLookup.add("jms/topic/" + TOPIC_NAME_PREFIX + "0");
+            jndiNameToLookup.add("java:jms/topic/" + TOPIC_NAME_PREFIX + "0");
+            jndiNameToLookup.add("java:jboss/exported/jms/topic/" + TOPIC_NAME_PREFIX + "0");
+
+            for (String jndiName : jndiNameToLookup) {
+                Object o = ctx.lookup(jndiName);
+                if (o == null) {
+                    Assert.fail("jndiName: " + jndiName + " could not be found.");
+                } else {
+                    if (o instanceof ConnectionFactory) {
+
+                        ConnectionFactory cf = (ConnectionFactory) o;
+
+                        LOG.info("jndiName: " + jndiName + " was found and cast to connection factory.");
+
+                    } else if (o instanceof Destination) {
+
+                        Destination cf = (Destination) o;
+
+                        LOG.info("jndiName: " + jndiName + " was found and cast to destination.");
+
+                    } else {
+                        Assert.fail("jndiName: " + jndiName + " could not be cast to connection factory of destination which is an error.");
+                    }
+
+                }
+            }
+
+        } catch (Exception ex) {
+            LOG.error("Error during jndi lookup.", ex);
+            throw new Exception(ex);
+        } finally {
+
+            if (ctx != null) {
+                try {
+                    ctx.close();
+                } catch (NamingException ex) {
+                    LOG.error("Error while closing the naming context", ex);
+                }
+            }
+        }
+    }
+
 
 }
