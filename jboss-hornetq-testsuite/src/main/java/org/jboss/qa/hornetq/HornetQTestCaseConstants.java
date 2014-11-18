@@ -60,9 +60,16 @@ public interface HornetQTestCaseConstants {
     public static final String ORACLE12C = "oracle12c";
     public static final String ORACLE11GR1 = "oracle11gR1";
     public static final String MYSQL55 = "mysql55";
+    public static final String MYSQL57 = "mysql57";
+    public static final String POSTGRESQL92 ="postgresql92";
+    public static final String POSTGRESQL93 ="postgresql93";
     public static final String POSTGRESQLPLUS92 = "postgresplus92";
+    public static final String POSTGRESQLPLUS93 = "postgresplus93";
+    public static final String MSSQL2014 = "mssql2014";
     public static final String MSSQL2012 = "mssql2012";
     public static final String MSSQL2008R2 = "mssql2008R2";
+    public static final String DB2105 = "db2-105";
+    public static final String SYBASE157 ="sybase157";
 
     // type of messages
     public static final String SMALL_MESSAGES = "small";

@@ -27,6 +27,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -84,8 +85,64 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testPosgrePlus() throws Exception {
+    @Ignore
+    public void testSybase157() throws Exception {
+        testFail(SYBASE157);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testDb2015() throws Exception {
+        testFail(DB2105);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgre92() throws Exception {
+        testFail(POSTGRESQL92);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgre93() throws Exception {
+        testFail(POSTGRESQL93);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgrePlus92() throws Exception {
         testFail(POSTGRESQLPLUS92);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgrePlus93() throws Exception {
+        testFail(POSTGRESQLPLUS93);
     }
 
     /**
@@ -141,6 +198,17 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    public void testMssql2014() throws Exception {
+        testFail(MSSQL2014);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
     public void testMssql2012() throws Exception {
         testFail(MSSQL2012);
     }
@@ -152,8 +220,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testMysql() throws Exception {
+    public void testMysql55() throws Exception {
         testFail(MYSQL55);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMysql57() throws Exception {
+        testFail(MYSQL57);
     }
 
     public void testFail(String databaseName) throws Exception {
@@ -482,7 +561,48 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
-        if (ORACLE11GR2.equalsIgnoreCase(database)) {
+
+        if (DB2105.equalsIgnoreCase(database)) {
+            /*
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
+            // UNCOMMENT WHEN DB ALLOCATOR IS READY
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+            String url = properties.get("db.jdbc_url");
+
+//            String databaseName = "crashrec"; // db.name
+//            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
+//            String serverName = "dev151.mw.lab.eng.bos.redhat.com:1521"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
+//            String portNumber = "1521"; // db.port=5432
+//            String recoveryUsername = "crashrec";
+//            String recoveryPassword = "crashrec";
+//            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DriverType", "4");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+           // jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
+        } else if (ORACLE11GR2.equalsIgnoreCase(database)) {
             /*
                 <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
                 <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
@@ -601,7 +721,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
             jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
 
-        } else if (MYSQL55.equalsIgnoreCase(database)) {
+        } else if (MYSQL55.equalsIgnoreCase(database) || MYSQL57.equalsIgnoreCase(database)) {
             /** MYSQL DS XA DATASOURCE **/
             /*
             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
@@ -650,7 +770,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
             jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:mysql://" + serverName + ":" + portNumber + "/crashrec");
 
-        } else if (POSTGRESQLPLUS92.equals(database)) {
+        } else if (POSTGRESQLPLUS92.equals(database) || POSTGRESQLPLUS93.equals(database) || POSTGRESQL92.equalsIgnoreCase(database) || POSTGRESQL93.equalsIgnoreCase(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
 //            <xa-datasource-property name="ServerName">db14.mw.lab.eng.bos.redhat.com</xa-datasource-property>
 //            <xa-datasource-property name="PortNumber">5432</xa-datasource-property>
@@ -723,7 +843,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
 
-        } else if (MSSQL2012.equals(database)) {
+        } else if (MSSQL2012.equals(database) || MSSQL2014.equals(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
 //            <xa-datasource-property name="SelectMethod">
 //                    cursor
@@ -759,6 +879,46 @@ public class Lodh5TestCase extends HornetQTestCase {
                     datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "SelectMethod", "cursor");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+        }else if (SYBASE157.equals(database)) {
+//            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+//            <xa-datasource-property name="SelectMethod">
+//                    cursor
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="ServerName">
+//                    db06.mw.lab.eng.bos.redhat.com
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="PortNumber">
+//                    1433
+//                    </xa-datasource-property>
+//            <xa-datasource-property name="DatabaseName">
+//                    crashrec
+//                    </xa-datasource-property>
+//            <xa-datasource-class>com.microsoft.sqlserver.jdbc.SQLServerXADataSource</xa-datasource-class>
+//            <driver>mssql2012-jdbc-driver.jar</driver>
+//            <xa-pool>
+//            <is-same-rm-override>false</is-same-rm-override>
+//            </xa-pool>
+//            <security>
+//            <user-name>crashrec</user-name>
+//            <password>crashrec</password>
+//            </security>
+//            </xa-datasource>
+
+            String databaseName = properties.get("db.name");   // db.name
+            String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
+            String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
+            String portNumber = properties.get("db.port"); // db.port=5432
+            String recoveryUsername = properties.get("db.username");
+            String recoveryPassword = properties.get("db.password");
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
             jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");

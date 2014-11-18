@@ -102,7 +102,7 @@ public class DbUtilServlet extends HttpServlet {
             connection = getConnection();
 //            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
 //            String sql = "DROP TABLE MESSAGE_INFO2 PURGE";
-            String sql = "delete from MESSAGE_INFO2";
+            String sql = "delete * from MESSAGE_INFO2";
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
@@ -123,7 +123,7 @@ public class DbUtilServlet extends HttpServlet {
 
         try {
 
-            String sql = "create table MESSAGE_INFO2 (MESSAGE_ID VARCHAR(50) primary key, MESSAGE_NAME VARCHAR(50), MESSAGE_ADDRESS VARCHAR(50))";
+            String sql = "create table MESSAGE_INFO2 (MESSAGE_ID VARCHAR(50) primary key not null, MESSAGE_NAME VARCHAR(50), MESSAGE_ADDRESS VARCHAR(50))";
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
