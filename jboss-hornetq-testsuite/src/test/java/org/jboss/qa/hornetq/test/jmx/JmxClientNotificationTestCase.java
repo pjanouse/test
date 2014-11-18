@@ -512,12 +512,13 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             JMSServerControl jmsServerControl = JmxUtils.getJmsServerMBean(mbeanServer);
 
-            boolean result = false;
+
 
             try {
 
-                result = jmsServerControl.createQueue(queueName);
-
+                jmsServerControl.createQueue(queueName);
+                jmsServerControl.createQueue(queueName);
+                Assert.fail("Creating already existing queue must throw exception.");
 
 
             } catch (Exception ex)   {
@@ -525,7 +526,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
                 // this is expected
             }
 
-            Assert.assertFalse("Creating already existing queue must throw exception.", result);
+
 
 
         } finally {
