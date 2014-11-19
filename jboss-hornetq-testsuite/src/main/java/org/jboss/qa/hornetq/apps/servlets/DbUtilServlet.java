@@ -102,7 +102,7 @@ public class DbUtilServlet extends HttpServlet {
             connection = getConnection();
 //            PreparedStatement ps = (PreparedStatement) connection.prepareStatement("DELETE FROM MessageInfo");
 //            String sql = "DROP TABLE MESSAGE_INFO2 PURGE";
-            String sql = "delete * from MESSAGE_INFO2";
+            String sql = "delete from MESSAGE_INFO2";
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
