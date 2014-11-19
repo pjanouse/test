@@ -856,7 +856,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         // set ha also for hornetq-ra
         jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
         jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
