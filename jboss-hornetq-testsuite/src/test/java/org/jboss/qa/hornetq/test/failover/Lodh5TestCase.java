@@ -760,7 +760,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "User", recoveryUsername);
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", recoveryPassword);
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName + "com.mysql.jdbc.Driver_5_1", "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
@@ -1030,7 +1030,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 30, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
