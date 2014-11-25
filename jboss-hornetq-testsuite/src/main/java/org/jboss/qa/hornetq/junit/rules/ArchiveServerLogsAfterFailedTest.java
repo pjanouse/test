@@ -28,7 +28,7 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
         log.info("Test: " + description.getClassName() + "." + description.getMethodName() + " failed. Archiving server logs for investigation.");
 
         try {
-            archiveEAP6SeverLogs(description);
+            archiveEAPSeverLogs(description);
         } catch (Exception e1) {
             log.error("Archiving server logs for test " + description.getClassName() + "." + description.getMethodName()
                     + " failed. Check exception and test log for more details.", e1);
@@ -43,7 +43,7 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
      *
      * @throws IOException
      */
-    public void archiveEAP6SeverLogs(Description description) throws Exception {
+    public void archiveEAPSeverLogs(Description description) throws Exception {
 
         ArquillianDescriptor descriptor = HornetQTestCase.getArquillianDescriptor();
 
@@ -59,18 +59,30 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                 jbossHome = containerProperties.get("jbossHome");
 
                 if (jbossHome != null) {
+                    // if eap 6 then go to standalone/log/ directory
+                    // else if eap 5 go to server/${profile}/log directory
                     pathToServerLogDirectory = new StringBuilder(jbossHome)
                             .append(fileSeparator)
                             .append("standalone")
                             .append(fileSeparator)
                             .append("log");
                     serverLogDirectory = new File(pathToServerLogDirectory.toString());
-                    if (!serverLogDirectory.exists()) {
-                            log.info(String.format("Server log directory: %s does not exist. "
-                                    + "This directory won't be archived."
-                                    , serverLogDirectory.getAbsolutePath()));
-
-                        continue;
+                    if (!serverLogDirectory.exists()) {      // if does not exist try eap 5 directory
+                        log.info(String.format("Server log directory: %s does not exist. ",
+                                serverLogDirectory.getAbsolutePath()));
+                        pathToServerLogDirectory = new StringBuilder(jbossHome)
+                                .append(fileSeparator)
+                                .append("server")
+                                .append(fileSeparator)
+                                .append(containerProperties.get("profileName"))
+                                .append(fileSeparator)
+                                .append("log");
+                        serverLogDirectory = new File(pathToServerLogDirectory.toString());
+                        if (!serverLogDirectory.exists()) {
+                            log.info(String.format("Server log directory: %s does not exist. ",
+                                    serverLogDirectory.getAbsolutePath()));
+                            return;
+                        }
                     }
                     whereToCopyServerLogDirectory = new File("target", description.getClassName() + "." + description.getMethodName()
                             + fileSeparator + containerDef.getContainerName() + "-log");

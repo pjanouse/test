@@ -1,18 +1,12 @@
 package org.jboss.qa.hornetq.test.compatibility;
 
 
-import javax.jms.Session;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -22,6 +16,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.jms.Session;
 
 
 /**
@@ -34,7 +30,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(ClientCompatibilityTestBase.class);
 
-    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
 
     protected static final int NUMBER_OF_DESTINATIONS = 1;
 
@@ -165,6 +161,8 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
                         this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients.setProducedMessagesCommitAfter(10);
+
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
@@ -184,11 +182,22 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
                         this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients.setProducedMessagesCommitAfter(10);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
         }
+
         clients.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+
+        for (Client c : clients.getProducers()) {
+            c.setTimeout(0);
+        }
+
+        for (Client c : clients.getConsumers()) {
+            c.setTimeout(0);
+        }
+
         return clients;
     }
 

@@ -1,4 +1,5 @@
-
+// TODO patch version should be checked when eap_version is not specified
+// TODO add patched_eap_zip_url property - will be checked if eapZipUrl is not specified
 /**
  * Prepares 4 jboss-eap-6.x servers.
  *
