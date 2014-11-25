@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.jmx;
 
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.hornetq.api.jms.management.JMSQueueControl;
 import org.hornetq.api.jms.management.JMSServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith;
 import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
+import javax.naming.NamingException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -479,8 +481,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
-    public void testDuplicateQueue() throws Exception {
+    public void testDuplicateJNDIName() throws Exception {
 
         String queueName = "myTestQueue";
 
@@ -490,8 +491,6 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         ops.setJmxManagementEnabled(true);
         ops.createQueue(queueJndiName, queueName, true);
-
-
 
         ops.close();
 
@@ -508,22 +507,20 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
-            JMSServerControl jmsServerControl = JmxUtils.getJmsServerMBean(mbeanServer);
-
-
-
-
+           // JMSServerControl jmsServerControl = JmxUtils.getJmsServerMBean(mbeanServer);
+            JMSQueueControl jmsQueueControl =(JMSQueueControl) JmxUtils.getHornetQMBean(mbeanServer,ObjectNameBuilder.DEFAULT.getJMSQueueObjectName(queueJndiName),JMSQueueControl.class);
             try {
-
-
-
-
+                jmsQueueControl.addJNDI("newName");
+                jmsQueueControl.addJNDI("newName");
                 Assert.fail("Creating already existing queue must throw exception.");
 
 
-            } catch (Exception ex)   {
+            } catch (NamingException ex)   {
 
                 // this is expected
+            } catch (Exception e){
+                e.printStackTrace();
+                Assert.fail("Unexpected exception during test was thrown.");
             }
 
 
