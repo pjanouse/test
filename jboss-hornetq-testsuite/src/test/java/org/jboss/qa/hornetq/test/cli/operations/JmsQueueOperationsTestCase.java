@@ -260,7 +260,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
         List<Client> receivers = new ArrayList<Client>();
         receivers.add(receiverClientAck);
-        waitForReceiversUntil(receivers, 10, 60000);
+        waitForReceiversUntil(receivers, 10, 120000);
 
         Result r20 = runOperation("list-consumers-as-json", null);
         logger.info("Result :list-consumers-as-json: " + r20.getResponse().asString());
