@@ -661,15 +661,21 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         Thread.sleep(5000);
 
         Clients clients = createClients(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, false);
+
         clients.setProducedMessagesCommitAfter(10);
+
         clients.setReceivedMessagesAckCommitAfter(9);
+
         clients.setMessageBuilder(new ClientMixMessageBuilder(10,200));
+
         clients.startClients();
 
         waitForReceiversUntil(clients.getConsumers(), 100, 300000);
+
         waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         clients.stopClients();
+
         // blocking call checking whether all consumers finished
         waitForClientsToFinish(clients);
 
