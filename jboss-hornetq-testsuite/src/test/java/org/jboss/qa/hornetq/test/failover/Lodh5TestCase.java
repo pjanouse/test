@@ -760,7 +760,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "User", recoveryUsername);
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", recoveryPassword);
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName + "com.mysql.jdbc.Driver_5_1", "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
