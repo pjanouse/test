@@ -560,6 +560,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1, CONTAINER2, CONTAINER3, CONTAINER4);
 
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1);
+
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER3);
+
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 3000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
