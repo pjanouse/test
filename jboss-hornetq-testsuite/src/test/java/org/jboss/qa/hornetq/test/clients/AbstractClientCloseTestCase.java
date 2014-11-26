@@ -1,30 +1,6 @@
 package org.jboss.qa.hornetq.test.clients;
 
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.ExceptionListener;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.management.MBeanServerConnection;
-import javax.management.Notification;
-import javax.management.remote.JMXConnector;
-import javax.naming.Context;
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -34,7 +10,20 @@ import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import static org.junit.Assert.*;
+
+import javax.jms.*;
+import javax.management.MBeanServerConnection;
+import javax.management.Notification;
+import javax.management.remote.JMXConnector;
+import javax.naming.Context;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -116,17 +105,20 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             assertTrue("Operation should return true on successful client close", closeOperationSucceeded);
 
             // wait a little bit to make sure JMX notifications get delivered
-            Thread.sleep(1000);
+            notificationListener.waitForNotificationsCount(2, 60000);
+
 
             // check JMX got proper notifications about client disconnection
             // there should be 2: 1 for client connect and 1 (more interesting in this case) for client disconnect
             List<Notification> notifications = notificationListener.getCaughtNotifications();
             // there might be other notifications if the reconnect-attempts were set to -1 or positive number
-            assertTrue("There should be at least 2 notifications", notifications.size() >= 2);
+            LOG.info("Notification count: "+ notifications.size());
+
             assertEquals("There should be notification for consumer creation", "CONSUMER_CREATED",
                     notifications.get(0).getType());
             assertEquals("There should be notification for consumer destruction", "CONSUMER_CLOSED",
                     notifications.get(1).getType());
+            assertTrue("There should be at least 2 notifications", notifications.size() >= 2);
 
             controller.stop(CONTAINER1);
         } finally {
