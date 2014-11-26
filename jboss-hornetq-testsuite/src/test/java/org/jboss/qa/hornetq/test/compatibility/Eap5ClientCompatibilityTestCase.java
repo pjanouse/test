@@ -645,6 +645,96 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         testFailover(Session.SESSION_TRANSACTED, false);
     }
 
+    /**
+     * Start simple failback test with transaction acknowledge on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testCompressLargeMessages() throws Exception {
+
+        prepareServerForCompressLargeMessages(CONTAINER1);
+
+        controller.start(CONTAINER1);
+
+        Thread.sleep(5000);
+
+        Clients clients = createClients(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, false);
+        clients.setProducedMessagesCommitAfter(10);
+        clients.setReceivedMessagesAckCommitAfter(9);
+        clients.setMessageBuilder(new ClientMixMessageBuilder(10,200));
+        clients.startClients();
+
+        waitForReceiversUntil(clients.getConsumers(), 100, 300000);
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
+
+        clients.stopClients();
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param containerName    Name of the container - defined in arquillian.xml
+     */
+    protected void prepareServerForCompressLargeMessages(String containerName) throws Exception {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectionFactoryName = "RemoteConnectionFactory";
+
+        controller.start(containerName);
+
+        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        jmsAdminOperations.setClustered(false);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setJournalType("ASYNCIO");
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+
+        jmsAdminOperations.setCompressionOnConnectionFactory(connectionFactoryName, true);
+
+        jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.removeAddressSettings("#");
+
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
+
+        jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
+
+        jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
+
+        deployDestinations(jmsAdminOperations);
+
+        jmsAdminOperations.close();
+
+        controller.stop(containerName);
+
+        activateLegacyJnpModule(getContainerInfo(containerName));
+
+    }
+
+
+
 
     protected Clients createClients(final ContainerInfo container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
