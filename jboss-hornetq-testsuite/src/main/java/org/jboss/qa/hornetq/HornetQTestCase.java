@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq;
 
-import org.junit.Assert;
-import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -23,6 +21,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -310,7 +309,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public static int getJNDIPort(String containerName) {
 
         if (getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_CONTAINER
-                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER) {
+                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER
+                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP6_LEGACY_CONTAINER) {
             return 1099 + getContainerInfo(containerName).getPortOffset();
         } else {
             return 4447 + getContainerInfo(containerName).getPortOffset();
