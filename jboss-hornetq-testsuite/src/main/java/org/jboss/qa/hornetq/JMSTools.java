@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq;
 
+import org.apache.log4j.Logger;
 import sun.net.util.IPAddressUtil;
 
 import javax.jms.Connection;
@@ -9,14 +10,13 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Utilities for JMS clients
  */
 public final class JMSTools {
+
+    private static final Logger LOG = Logger.getLogger(JMSTools.class);
 
     /**
      * Cleanups resources
@@ -30,21 +30,22 @@ public final class JMSTools {
             try {
                 session.close();
             } catch (JMSException e) {
-                // Ignore it
+                LOG.error("Error while trying to close JMS session", e);
             }
         }
         if (connection != null) {
             try {
+                connection.stop();
                 connection.close();
             } catch (JMSException e) {
-                // Ignore it
+                LOG.error("Error while trying to close JMS connection", e);
             }
         }
         if (context != null) {
             try {
                 context.close();
             } catch (NamingException e) {
-                // Ignore it
+                LOG.error("Error while trying to close naming context", e);
             }
         }
     }
