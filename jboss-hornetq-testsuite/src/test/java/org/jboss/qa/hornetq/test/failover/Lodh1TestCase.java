@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -262,12 +262,16 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(CONTAINER1);
         }
 
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 300000, CONTAINER1);
+
         executeNodeFaillSequence(killSequence, 20000, shutdown);
+
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1);
 
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 1000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
