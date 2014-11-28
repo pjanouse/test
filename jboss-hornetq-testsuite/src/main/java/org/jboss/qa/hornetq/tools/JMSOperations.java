@@ -7,6 +7,7 @@ package org.jboss.qa.hornetq.tools;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * @author mnovak@redhat.com
  */
@@ -35,6 +36,27 @@ public interface JMSOperations {
      * @param pageSizeBytes       The paging size
      */
     void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes);
+
+    /**
+     * Adds settings for slow consumers to existing address settings for given mask.
+     *
+     * @param address       address specification
+     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy        what should happen with slow consumers
+     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     */
+    void setSlowConsumerPolicy(String address, int threshold, SlowConsumerPolicy policy, int checkPeriod);
+
+    /**
+     * Adds settings for slow consumers to existing address settings for given mask.
+     *
+     * @param serverName    hornetq server name
+     * @param address       address specification
+     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy        what should happen with slow consumers
+     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     */
+    void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy, int checkPeriod);
 
     /**
      * Adds backup attribute.
