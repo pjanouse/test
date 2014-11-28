@@ -1298,6 +1298,10 @@ public interface JMSOperations {
 
     void addDatasourceProperty(String lodhDb, String propertyName, String value);
 
+    void setMaxSavedReplicatedJournals(int numberOfReplicatedJournals);
+
+    void setMaxSavedReplicatedJournals(String serverName, int numberOfReplicatedJournals);
+
     void setBackupGroupName(String nameOfBackupGroup);
 
     void setBackupGroupName(String nameOfBackupGroup, String serverName);
