@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.remote.jca;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -8,12 +7,14 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.mdb.MdbFromNonDurableTopicWithOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithConnectionParameters;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -22,6 +23,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,12 +47,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
     private static final String MDB1 = "mdb1";
+    private static final String MDB1_NON_DURABLE = "mdb1-non-durable";
     private static final String MDB2 = "mdb2";
     private static final String MDB1_WITH_CONNECTOR_PARAMETERS = "mdbWithConnectionParameters";
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
+
+    static String inTopicName = "InTopic";
+    static String inTopicJndiName = "jms/topic/" + inTopicName;
+
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
@@ -64,6 +71,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+
+    }
+
+    @Deployment(managed = false, testable = false, name = MDB1_NON_DURABLE)
+    @TargetsContainer(CONTAINER2)
+    public static Archive getDeployment67() throws Exception {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB1_NON_DURABLE + ".jar");
+        mdbJar.addClasses(MdbFromNonDurableTopicWithOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
@@ -214,6 +233,57 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         stopServer(CONTAINER1);
 
     }
+
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest @RestoreConfigBeforeTest
+    public void testRemoteJcaWithNonDurableMdbs() throws Exception {
+
+        prepareRemoteJcaTopology();
+        // cluster A
+        controller.start(CONTAINER1);
+
+        // cluster B
+        controller.start(CONTAINER2);
+
+        deployer.deploy(MDB1_NON_DURABLE);
+
+        stopServer(CONTAINER1);
+
+        controller.start(CONTAINER1);
+
+        while (!checkThatServerIsReallyUp(getHostname(CONTAINER1), getHornetqPort(CONTAINER1))) {
+            Thread.sleep(3000);
+        }
+
+        Thread.sleep(10000);
+
+        // parse server.log with mdb for "HornetQException[errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"
+        StringBuilder pathToServerLogFile = new StringBuilder(getJbossHome(CONTAINER1));
+
+        pathToServerLogFile.append(File.separator).append("standalone").append(File.separator).append("log").append(File.separator).append("server.log");
+
+        logger.info("Check server.log: " + pathToServerLogFile);
+
+        File serverLog = new File(pathToServerLogFile.toString());
+
+        String stringToFind = "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists";
+
+        Assert.assertFalse("Server log cannot contain string: " + stringToFind + ". This is fail - see https://bugzilla.redhat.com/show_bug.cgi?id=1167193.",
+                checkThatFileContainsGivenString(serverLog, stringToFind));
+
+        deployer.undeploy(MDB1_NON_DURABLE);
+
+        stopServer(CONTAINER2);
+
+        stopServer(CONTAINER1);
+
+    }
+
+
 
     /**
      * @throws Exception
@@ -514,6 +584,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
+
+        jmsAdminOperations.createTopic(serverName, inTopicName, inTopicJndiName);
 
 
         jmsAdminOperations.close();
