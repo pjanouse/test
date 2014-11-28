@@ -279,6 +279,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -301,12 +302,10 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
-
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
-
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-
         activateLegacyJnpModule(getContainerInfo(containerName));
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
