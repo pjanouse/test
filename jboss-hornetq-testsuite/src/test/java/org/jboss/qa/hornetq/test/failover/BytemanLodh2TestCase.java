@@ -270,9 +270,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     public void testLodh2KillOnTransactionCommit() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER2);
-        failureSequence.add(CONTAINER2);
-        failureSequence.add(CONTAINER4);
-        failureSequence.add(CONTAINER2);
         failureSequence.add(CONTAINER4);
         testRemoteJcaInCluster(failureSequence, LODH2_NUMBER_OF_MESSAGES, false);
     }
@@ -288,9 +285,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testLodh2KillOnTransactionPrepare() throws Exception {
         List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2);
-        failureSequence.add(CONTAINER2);
-        failureSequence.add(CONTAINER4);
         failureSequence.add(CONTAINER2);
         failureSequence.add(CONTAINER4);
         testRemoteJcaInCluster(failureSequence, LODH2_NUMBER_OF_MESSAGES, false);
@@ -342,9 +336,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER1);
         failureSequence.add(CONTAINER3);
-        failureSequence.add(CONTAINER1);
-        failureSequence.add(CONTAINER3);
-        failureSequence.add(CONTAINER1);
         testRemoteJcaInCluster(failureSequence, LODH3_NUMBER_OF_MESSAGES, true);
     }
 
@@ -362,9 +353,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         List<String> failureSequence = new ArrayList<String>();
         failureSequence.add(CONTAINER1);
         failureSequence.add(CONTAINER3);
-        failureSequence.add(CONTAINER1);
-        failureSequence.add(CONTAINER3);
-        failureSequence.add(CONTAINER1);
         testRemoteJcaInCluster(failureSequence, LODH3_NUMBER_OF_MESSAGES, true);
     }
 
