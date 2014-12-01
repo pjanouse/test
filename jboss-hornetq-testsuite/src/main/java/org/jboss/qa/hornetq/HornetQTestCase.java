@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq;
 
-import org.junit.Assert;
-import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -23,16 +21,14 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -310,7 +306,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public static int getJNDIPort(String containerName) {
 
         if (getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_CONTAINER
-                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER) {
+                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER
+                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP6_LEGACY_CONTAINER) {
             return 1099 + getContainerInfo(containerName).getPortOffset();
         } else {
             return 4447 + getContainerInfo(containerName).getPortOffset();
@@ -511,11 +508,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
                 if (CONTAINER1.equals(containerName)) {
                     killServer(CONTAINER1, SERVLET_KILLER_GROUP1, getHostname(CONTAINER1));
-                } if (CONTAINER2.equals(containerName)) {
+                }
+                if (CONTAINER2.equals(containerName)) {
                     killServer(CONTAINER2, SERVLET_KILLER_GROUP2, getHostname(CONTAINER2));
-                } if (CONTAINER3.equals(containerName)) {
+                }
+                if (CONTAINER3.equals(containerName)) {
                     killServer(CONTAINER3, SERVLET_KILLER_GROUP3, getHostname(CONTAINER3));
-                } if (CONTAINER4.equals(containerName)) {
+                }
+                if (CONTAINER4.equals(containerName)) {
                     killServer(CONTAINER4, SERVLET_KILLER_GROUP4, getHostname(CONTAINER4));
                 } else {
                     throw new RuntimeException(
@@ -1360,6 +1360,18 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public boolean checkThatFileContainsUnfinishedTransactionsString(File fileToCheck, String stringToFind) throws Exception {
 
+        return checkThatFileContainsGivenString(fileToCheck, stringToFind);
+
+    }
+
+    /**
+     * Checks whether file contains given string.
+     *
+     * @param fileToCheck
+     * @return true if file contains the string, false if not
+     * @throws Exception if file does not exist or any other error
+     */
+    public boolean checkThatFileContainsGivenString(File fileToCheck, String stringToFind) throws Exception {
         Scanner scanner = new Scanner(fileToCheck);
 
         //now read the file line by line...
@@ -1578,7 +1590,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         jmsOperations.close();
 
-        if (System.currentTimeMillis() - startTime > timeout)   {
+        if (System.currentTimeMillis() - startTime > timeout) {
             log.error("There are prepared transactions in HornetQ journal.");
             Assert.fail("There are prepared transactions in HornetQ journal - number of prepared transactions is: " + numberOfPreparedTransaction);
         }

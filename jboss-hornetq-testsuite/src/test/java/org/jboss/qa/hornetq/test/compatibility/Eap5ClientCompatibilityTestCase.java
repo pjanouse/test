@@ -279,6 +279,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setAllowFailback(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -301,12 +302,10 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
-
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
-
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-
         activateLegacyJnpModule(getContainerInfo(containerName));
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -661,15 +660,21 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         Thread.sleep(5000);
 
         Clients clients = createClients(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, false);
+
         clients.setProducedMessagesCommitAfter(10);
+
         clients.setReceivedMessagesAckCommitAfter(9);
+
         clients.setMessageBuilder(new ClientMixMessageBuilder(10,200));
+
         clients.startClients();
 
         waitForReceiversUntil(clients.getConsumers(), 100, 300000);
+
         waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         clients.stopClients();
+
         // blocking call checking whether all consumers finished
         waitForClientsToFinish(clients);
 

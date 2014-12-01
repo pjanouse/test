@@ -2999,6 +2999,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setMaxSavedReplicatedJournals(int numberOfReplicatedJournals) {
+        setMaxSavedReplicatedJournals("default", numberOfReplicatedJournals);
+    }
+
+    @Override
+    public void setMaxSavedReplicatedJournals(String serverName, int numberOfReplicatedJournals) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get("name").set("max-saved-replicated-journal-size");
+        model.get("value").set(numberOfReplicatedJournals);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void setBackupGroupName(String nameOfBackupGroup) {
         setBackupGroupName(nameOfBackupGroup, "default");
     }

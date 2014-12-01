@@ -186,6 +186,126 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMultipleFailoverWithQueueKill() throws Exception {
+        testMultipleFailover(Session.SESSION_TRANSACTED, false, false);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMultipleFailoverWithQueueShutdown() throws Exception {
+        testMultipleFailover(Session.SESSION_TRANSACTED, false, true);
+    }
+
+
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @param acknowledge acknowledge type
+     * @param topic       whether to test with topics
+     * @throws Exception
+     */
+    public void testMultipleFailover(int acknowledge, boolean topic, boolean shutdown) throws Exception {
+
+        prepareSimpleDedicatedTopology();
+
+        controller.start(CONTAINER1);
+
+        controller.start(CONTAINER2);
+
+        Thread.sleep(10000);
+
+        clients = createClients(acknowledge, topic);
+        clients.setProducedMessagesCommitAfter(2);
+        clients.setReceivedMessagesAckCommitAfter(9);
+        clients.startClients();
+
+        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
+
+        for (int numberOfFailovers = 0; numberOfFailovers < 50; numberOfFailovers++) {
+
+            logger.warn("########################################");
+            logger.warn("Running new cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            if (!shutdown) {
+
+                logger.warn("########################################");
+                logger.warn("Kill live server - number of failovers: " + numberOfFailovers);
+                logger.warn("########################################");
+                killServer(CONTAINER1);
+                controller.kill(CONTAINER1);
+
+            } else {
+
+                logger.warn("########################################");
+                logger.warn("Shutdown live server - number of failovers: " + numberOfFailovers);
+                logger.warn("########################################");
+                stopServer(CONTAINER1);
+            }
+
+            logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+            Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
+                    + numberOfFailovers, waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+
+            waitForClientsToFailover();
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+            controller.start(CONTAINER1);
+
+            Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+
+            logger.warn("########################################");
+            logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+
+            // check that backup is really down
+            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+
+            waitForClientsToFailover();
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("Ending cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+        }
+
+        waitForClientsToFailover();
+
+        clients.stopClients();
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
+    }
+
 
     @Test
     @RunAsClient
@@ -331,7 +451,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         for (Client c : clients.getConsumers()) {
 
-            if (c instanceof ReceiverTransAck)  {
+            if (c instanceof ReceiverTransAck) {
 
                 sum += ((ReceiverTransAck) c).getListOfReceivedMessages().size();
 
@@ -339,7 +459,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
             }
 
-            if (c instanceof SubscriberTransAck)    {
+            if (c instanceof SubscriberTransAck) {
 
                 sum += ((SubscriberTransAck) c).getListOfReceivedMessages().size();
 

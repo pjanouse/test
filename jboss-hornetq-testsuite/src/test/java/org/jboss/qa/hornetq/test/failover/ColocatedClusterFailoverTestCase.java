@@ -146,11 +146,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             controller.start(CONTAINER1);
             Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
-            Thread.sleep(10000);
-            logger.info("########################################");
-            logger.info("failback - Stop second server to be sure that failback occurred");
-            logger.info("########################################");
-            stopServer(CONTAINER2);
+//            Thread.sleep(10000);
+//            logger.info("########################################");
+//            logger.info("failback - Stop second server to be sure that failback occurred");
+//            logger.info("########################################");
+//            stopServer(CONTAINER2);
         }
         Thread.sleep(20000); // give some time to clients
 

@@ -1,6 +1,9 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
-import junit.framework.Assert;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.SocketBinding;
+import org.jboss.qa.hornetq.tools.XMLManipulation;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -17,7 +20,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -100,6 +109,32 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    private void activateLegacyJnpModule(final ContainerInfo container) throws Exception {
+        StringBuilder pathToStandaloneXml = new StringBuilder();
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getJbossHome())
+                .append(File.separator).append("standalone")
+                .append(File.separator).append("configuration")
+                .append(File.separator).append("standalone-full-ha.xml");
+        Document doc = XMLManipulation.getDOMModel(pathToStandaloneXml.toString());
+
+        Element e = doc.createElement("subsystem");
+        e.setAttribute("xmlns", "urn:jboss:domain:legacy-jnp:1.0");
+
+        Element entry = doc.createElement("jnp-connector");
+        entry.setAttribute("socket-binding", "jnp");
+        entry.setAttribute("rmi-socket-binding", "rmi-jnp");
+        e.appendChild(entry);
+
+        /*Element entry2 = doc.createElement("remoting");
+         entry2.setAttribute("socket-binding", "legacy-remoting");
+         e.appendChild(entry2);*/
+        XPath xpathInstance = XPathFactory.newInstance().newXPath();
+        Node node = (Node) xpathInstance.evaluate("//profile", doc, XPathConstants.NODE);
+        node.appendChild(e);
+
+        XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
+    }
+
     /**
      * Test: starts 1 server, creates producer and consumer, producer sends messages to queue and consumer receives them
      *
@@ -107,11 +142,31 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      */
     public void transportProtocolTest() throws Exception {
 
+        if (getContainerType(CONTAINER1).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
+            // configure legacy extension
+
+            controller.start(CONTAINER1);
+
+            JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
+
+            jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
+
+            jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
+
+            jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
+
+            jmsAdminOperations.close();
+
+            stopServer(CONTAINER1);
+
+            activateLegacyJnpModule(getContainerInfo(CONTAINER1));
+        }
+
         controller.start(CONTAINER1);
 
         log.info("Start producer and consumer.");
-        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverTransAck receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
+        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1).toString() ,getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1).toString(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();

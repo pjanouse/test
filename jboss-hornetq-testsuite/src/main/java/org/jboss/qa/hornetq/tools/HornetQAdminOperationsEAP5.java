@@ -1895,6 +1895,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setMaxSavedReplicatedJournals(int numberOfReplicatedJournals) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setMaxSavedReplicatedJournals(String serverName, int numberOfReplicatedJournals) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setBackupGroupName(String nameOfBackupGroup) {
         logger.info("This operation is not supported: " + getMethodName());
     }

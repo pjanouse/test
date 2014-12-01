@@ -12,16 +12,25 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.SocketBinding;
+import org.jboss.qa.hornetq.tools.XMLManipulation;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.jms.*;
 import javax.naming.Context;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -297,7 +306,15 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         prepareSeverWithPkcs11(CONTAINER1);
 
         this.controller.start(CONTAINER1);
-        Context context = getContext(getHostname(CONTAINER1),getJNDIPort(CONTAINER1));
+
+        Context context;
+
+        if (getContainerType(CONTAINER1).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
+            context = getEAP5Context(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+        } else {
+            context = getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+        }
+
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -442,9 +459,47 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", acceptorConnectorName);
         ops.setSecurityEnabled(true);
 
+        if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+            ops.addExtension("org.jboss.legacy.jnp");
+            ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
+            ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
+            activateLegacyJnpModule(getContainerInfo(containerName));
+        }
+
         ops.close();
 
         stopServer(CONTAINER1);
+
+        if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+            activateLegacyJnpModule(getContainerInfo(containerName));
+        }
+
+    }
+
+    private void activateLegacyJnpModule(final ContainerInfo container) throws Exception {
+        StringBuilder pathToStandaloneXml = new StringBuilder();
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getJbossHome())
+                .append(File.separator).append("standalone")
+                .append(File.separator).append("configuration")
+                .append(File.separator).append("standalone-full-ha.xml");
+        Document doc = XMLManipulation.getDOMModel(pathToStandaloneXml.toString());
+
+        Element e = doc.createElement("subsystem");
+        e.setAttribute("xmlns", "urn:jboss:domain:legacy-jnp:1.0");
+
+        Element entry = doc.createElement("jnp-connector");
+        entry.setAttribute("socket-binding", "jnp");
+        entry.setAttribute("rmi-socket-binding", "rmi-jnp");
+        e.appendChild(entry);
+
+        /*Element entry2 = doc.createElement("remoting");
+         entry2.setAttribute("socket-binding", "legacy-remoting");
+         e.appendChild(entry2);*/
+        XPath xpathInstance = XPathFactory.newInstance().newXPath();
+        Node node = (Node) xpathInstance.evaluate("//profile", doc, XPathConstants.NODE);
+        node.appendChild(e);
+
+        XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
     }
 
     /**

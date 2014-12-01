@@ -21,7 +21,14 @@ public class CliTestBase extends HornetQTestCase {
         if (isWritable) {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
             if (cliClient.reloadRequired()) {
-                cliClient.reload();
+                try {
+                    cliClient.reload();
+                } catch (Exception ex)  {
+                    log.error(ex);
+                    // it can happen that this fails so try again
+                    Thread.sleep(1000);
+                    cliClient.reload();
+                }
             }
         } else {
             cliClient.readAttribute(address, attributeName);
