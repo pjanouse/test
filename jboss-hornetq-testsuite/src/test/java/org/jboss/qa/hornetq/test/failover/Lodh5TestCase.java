@@ -97,7 +97,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testDb2015() throws Exception {
+    public void testDb2105() throws Exception {
         testFail(DB2105);
     }
 
@@ -797,7 +797,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+                            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
 
@@ -921,9 +921,11 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
             jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
-            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
-            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "NetworkProtocol", "Tds");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
+
         }
 
 
