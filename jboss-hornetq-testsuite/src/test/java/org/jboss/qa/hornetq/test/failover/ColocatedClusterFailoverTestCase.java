@@ -152,11 +152,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //            logger.info("########################################");
 //            stopServer(CONTAINER2);
         }
-        Thread.sleep(20000); // give some time to clients
+        Thread.sleep(200000); // give some time to clients
 
+        logger.info("########################################");
+        logger.info("Stop clients - this will stop producers");
+        logger.info("########################################");
         clients.stopClients();
 
+        logger.info("########################################");
+        logger.info("Wait for end of all clients.");
+        logger.info("########################################");
         waitForClientsToFinish(clients);
+        logger.info("########################################");
+        logger.info("All clients ended/finished.");
+        logger.info("########################################");
+
 
         Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
 
@@ -926,6 +936,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBackup(backupServerName, true);
         jmsAdminOperations.setSharedStore(backupServerName, true);
         jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);
+        jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
         jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectoryPath);
