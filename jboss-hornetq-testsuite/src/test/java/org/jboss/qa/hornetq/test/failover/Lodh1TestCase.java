@@ -266,6 +266,9 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
+        // wait for 80% of messages
+        waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8)/10, 500000, CONTAINER1);
+
         waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1);
 
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);

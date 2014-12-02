@@ -346,7 +346,7 @@ public class ReceiverTransAck extends Client {
 
             } catch (JMSException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1));
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1), ex);
             }
         }
 
@@ -454,7 +454,8 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("127.0.0.1", 6447, "jms/queue/testQueue0", 3000, 1000, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("127.0.0.1", 4447, "jms/queue/testQueue0", 15000, 1000, 10);
+        receiver.setCommitAfter(4);
 
         receiver.start();
 

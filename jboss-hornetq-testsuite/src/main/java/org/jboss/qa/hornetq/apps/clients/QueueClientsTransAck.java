@@ -149,6 +149,7 @@ public class QueueClientsTransAck implements Clients {
             if (producerThread.isAlive()) {
                 isFinished = false;
             }
+            logger.info("Producer: " + producerThread + " is still alive.");
         }
         // check receivers
         for (Thread receiverThread : receivers) {
@@ -156,6 +157,7 @@ public class QueueClientsTransAck implements Clients {
             if (receiverThread.isAlive()) {
                 isFinished = false;
             }
+            logger.info("Consumer: " + receiverThread + " is still alive.");
         }
 
         return isFinished;

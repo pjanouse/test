@@ -281,7 +281,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "netty");
 
         ops.removeAddressSettings("#");
-        ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1204);
+        ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 512 * 1204);
 
         ops.close();
     }
