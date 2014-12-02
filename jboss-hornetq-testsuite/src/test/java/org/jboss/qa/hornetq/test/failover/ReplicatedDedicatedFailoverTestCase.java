@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Failover tests just with replicated journal.
@@ -468,8 +470,15 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void prepareSimpleDedicatedTopology() throws Exception {
 
         prepareLiveServer(CONTAINER1);
+        
         prepareBackupServer(CONTAINER2);
+                
+    }
 
+    protected void prepareLiveServer(String containerName) {
+        
+        prepareLiveServer(containerName, ASYNCIO_JOURNAL_TYPE, false);
+        
     }
 
     /**
@@ -481,7 +490,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      *
      * @param containerName Name of the container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(String containerName) {
+    protected void prepareLiveServer(String containerName, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -489,10 +498,28 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingForConnector = "messaging";
+
 
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -500,7 +527,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(false);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.setBackupGroupName("firstPair");
         jmsAdminOperations.setCheckForLiveServer(true);
 
@@ -574,12 +601,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     }
 
-    /**
-     * Prepares backup server for dedicated topology.
-     *
-     * @param containerName Name of the container - defined in arquillian.xml
-     */
     protected void prepareBackupServer(String containerName) {
+        
+        prepareBackupServer(containerName, ASYNCIO_JOURNAL_TYPE, false);
+        
+    }
+
+        /**
+         * Prepares backup server for dedicated topology.
+         *
+         * @param containerName Name of the container - defined in arquillian.xml
+         */
+    protected void prepareBackupServer(String containerName, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -587,10 +620,29 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
+
 
         controller.start(containerName);
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
+
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setBackupGroupName("firstPair");
@@ -599,7 +651,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setSharedStore(false);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(journalType);
 
         jmsAdminOperations.setMaxSavedReplicatedJournals(60);
 
@@ -711,4 +763,57 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             }
         }
     }
+
+    /**
+     * Start simple failback test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
+    }
+
+    /**
+     * Start simple failback test with trans_ack on queues with shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
+    }
+    
 }

@@ -39,6 +39,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     protected static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     protected static final int BYTEMAN_PORT_1 = 9091;
 
+    protected static String NIO_JOURNAL_TYPE = "NIO";
+    protected static String ASYNCIO_JOURNAL_TYPE = "ASYNCIO";
+
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
     String divertedQueue = "divertedQueue";
@@ -1191,14 +1194,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
         prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        stopServer(CONTAINER1);
-
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2);
-        stopServer(CONTAINER2);
-
     }
 
     /**
@@ -1209,10 +1204,25 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @param journalDirectory path to journal directory
      */
     protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+        prepareLiveServer(containerName, bindingAddress, journalDirectory, "ASYNCIO", false);
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
+     * @param journalDirectory path to journal directory
+     * @param journalType       ASYNCIO, NIO
+     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     *
+     */
+    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
@@ -1234,7 +1244,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(journalType);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -1244,6 +1254,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -1256,6 +1282,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
@@ -1265,9 +1300,26 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
+     * @param journalDirectory path to journal directory
      */
     protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+
+        prepareBackupServer(containerName, bindingAddress, journalDirectory, "ASYNCIO", false);
+
+    }
+
+    /**
+     * Prepares backup server for dedicated topology.
+     *
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
+     * @param journalDirectory path to journal directory
+     * @param journalType       ASYNCIO, NIO
+     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     */
+    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1275,6 +1327,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
 
         controller.start(containerName);
 
@@ -1284,12 +1337,29 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
 
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
+
+
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(true);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(journalType);
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -1321,39 +1391,161 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
         jmsAdminOperations.close();
 
         controller.stop(containerName);
     }
 
     /**
-     * Deploys destinations to server which is currently running.
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
      *
-     * @param containerName container name
+     * @param acknowledge acknowledge type
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
      */
-    protected void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    @BMRules({
+            @BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>120",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+    public void testFailoverNoPrepare(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+
+        controller.start(CONTAINER1);
+
+        controller.start(CONTAINER2);
+
+        Thread.sleep(10000);
+
+        clients = createClients(acknowledge, topic);
+        clients.setProducedMessagesCommitAfter(2);
+        clients.setReceivedMessagesAckCommitAfter(9);
+        clients.startClients();
+
+        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        waitForProducersUntil(clients.getProducers(), 100, 300000);
+
+        if (!shutdown) {
+            logger.warn("########################################");
+            logger.warn("Kill live server");
+            logger.warn("########################################");
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_PORT_1);
+            controller.kill(CONTAINER1);
+        } else {
+            logger.warn("########################################");
+            logger.warn("Shutdown live server");
+            logger.warn("########################################");
+            stopServer(CONTAINER1);
+        }
+
+        logger.warn("Wait some time to give chance backup to come alive and clients to failover");
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        waitForClientsToFailover();
+        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+
+        if (failback) {
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again ");
+            logger.warn("########################################");
+            controller.start(CONTAINER1);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            logger.warn("########################################");
+            logger.warn("failback - Live started again ");
+            logger.warn("########################################");
+            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            // check that backup is really down
+            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+            waitForClientsToFailover();
+            Thread.sleep(5000); // give it some time
+        }
+
+        Thread.sleep(5000);
+
+        waitForClientsToFailover();
+
+        clients.stopClients();
+        // blocking call checking whether all consumers finished
+        waitForClientsToFinish(clients);
+
+        Assert.assertTrue("There are failures detected by clients. More information in log.", clients.evaluateResults());
+
+        stopServer(CONTAINER1);
+
+        stopServer(CONTAINER2);
+
     }
 
     /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName container name
-     * @param serverName    server name of the hornetq server
+     * Start simple failback test with trans_ack on queues
      */
-    protected void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
-        jmsAdminOperations.createQueue(serverName, divertedQueue, divertedQueueJndiName, true);
-
-        jmsAdminOperations.close();
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
+
+    /**
+     * Start simple failback test with trans_ack on queues with shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
+    }
+
+
 }
