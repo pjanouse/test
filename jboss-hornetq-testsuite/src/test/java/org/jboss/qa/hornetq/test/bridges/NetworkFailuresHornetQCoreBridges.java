@@ -4,13 +4,12 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -22,6 +21,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -333,10 +333,12 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
      ///////////////////// NETWORF FAILURE WITH MESSAGE GROUP TESTS //////////////////////
 
+    // TODO tests are ignored until this is fixed: https://bugzilla.redhat.com/show_bug.cgi?id=1168937
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupNetworkFailureSmallMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
         //testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
@@ -346,6 +348,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupMixMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), -1, 2, false);
     }
@@ -354,6 +357,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupSmallMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
     }
@@ -361,6 +365,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupLargeMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), -1, 2, false);
     }
@@ -368,6 +373,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupMixMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
     }
@@ -375,6 +381,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupSmallMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 1, 2);
     }
@@ -382,6 +389,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupLargeMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 1, 2);
     }
@@ -389,6 +397,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupMixMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 5, 2);
     }
@@ -396,6 +405,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupSmallMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 5, 2);
     }
@@ -403,6 +413,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupLargeMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 5, 2);
     }
@@ -410,6 +421,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testMessageGroupFailureMixMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), -1, 2, false);
     }
@@ -417,6 +429,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureSmallMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), -1, 2, false);
     }
@@ -424,6 +437,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureLargeMessages() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), -1, 2, false);
     }
@@ -431,6 +445,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureMixMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
     }
@@ -438,6 +453,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureSmallMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
     }
@@ -445,6 +461,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureLargeMessages1recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 1, 2);
     }
@@ -452,6 +469,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureMixMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 1024, "messageGroupId1"), 5, 2);
     }
@@ -459,6 +477,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureSmallMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(50, 50, "messageGroupId1"), 5, 2);
     }
@@ -466,6 +485,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Ignore
     public void testShortMessageGroupFailureLargeMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(20000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 5, 2);
     }
@@ -517,6 +537,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         // Wait to send and receive some messages
         Thread.sleep(15 * 1000);
+
 
         executeNetworkFails(timeBetweenFails, numberOfFails);
 
@@ -636,14 +657,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
             proxy2.start();
         }
 
-        if (mp12 == null) {
+        if (mp12 == null){
             mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                 discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
             mp12.setIpAddressOfInterface(getHostname(CONTAINER1));
             mp12.start();
 
         }
-        if (mp21 == null)   {
+        if (mp21 == null){
             mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                 discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
             mp21.setIpAddressOfInterface(getHostname(CONTAINER2));

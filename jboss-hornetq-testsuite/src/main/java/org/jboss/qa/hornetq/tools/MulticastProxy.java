@@ -50,8 +50,19 @@ public class MulticastProxy extends Thread {
 //            }
             NetworkInterface netowrkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddressOfInterface));
             sourceMulticastSocket.joinGroup(new InetSocketAddress(InetAddress.getByName(sourceMulticastGroup), sourceMulticastPort), netowrkInterface);
+//            ServerSocket ss= new ServerSocket(0);
+//            int port=ss.getLocalPort();
+//            ss.close();
+            DatagramSocket destSocket=null;
+            for(int i=40001; i<65000; i++){
+                try {
+                    destSocket = new DatagramSocket(i, InetAddress.getByName(ipAddressOfInterface));
+                    break; //we have correct port so we can stop
+                }catch (SocketException e){
+                    //try another port
+                }
+            }
 
-            DatagramSocket destSocket = new DatagramSocket();
             destSocket.setSoTimeout(500);
 
             log.info("Proxy from: " + sourceMulticastGroup + ":" + sourceMulticastPort
