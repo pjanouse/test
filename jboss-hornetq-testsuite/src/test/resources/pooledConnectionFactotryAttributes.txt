@@ -18,7 +18,6 @@ discovery-initial-wait-timeout = undefined
 dups-ok-batch-size = 1048576
 entries = ["java:/JmsXA"]
 failover-on-initial-connection = false
-failover-on-server-shutdown = true
 group-id = undefined
 ha = false
 initial-connect-attempts = 1

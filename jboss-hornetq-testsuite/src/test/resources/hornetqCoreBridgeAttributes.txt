@@ -1,7 +1,6 @@
 check-period = 30000
 confirmation-window-size = 1048576
 connection-ttl = 60000
-failover-on-server-shutdown = true
 filter = undefined
 forwarding-address = jms.queue.OutQueue
 ha = false

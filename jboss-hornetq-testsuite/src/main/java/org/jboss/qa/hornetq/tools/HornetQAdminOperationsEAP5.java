@@ -2140,6 +2140,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     public void setTransactionTimeout(long hornetqTransactionTimeout) {
         logger.info("This operation is not supported: " + getMethodName());
     }
+    @Override
+    public String getSocketBindingAtributes(String socketBindingName){
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
 
     public static void main(String[] args) {
 

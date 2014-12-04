@@ -1421,4 +1421,6 @@ public interface JMSOperations {
     void forceFailover();
 
     void setTransactionTimeout(long hornetqTransactionTimeout);
+
+    public String getSocketBindingAtributes(String socketBindingName);
 }
