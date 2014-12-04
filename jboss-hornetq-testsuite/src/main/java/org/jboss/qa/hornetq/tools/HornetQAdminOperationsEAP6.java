@@ -3786,6 +3786,23 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+    @Override
+    public String  getSocketBindingAtributes(String socketBindingName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
+        model.get("include-runtime").set("true");
+        model.get("recursive").set("true");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asString().substring(1,result.get("result").asString().length()-2);
+    }
 
     /**
      * Set old(true) or new failover model(false)

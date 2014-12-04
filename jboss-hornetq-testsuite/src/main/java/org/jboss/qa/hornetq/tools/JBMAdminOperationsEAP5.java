@@ -1998,5 +1998,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public String getSocketBindingAtributes(String socketBindingName){
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
+
 
 }
