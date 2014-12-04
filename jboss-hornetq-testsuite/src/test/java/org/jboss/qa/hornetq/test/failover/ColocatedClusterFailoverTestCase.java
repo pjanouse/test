@@ -48,6 +48,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
+    private String journalType = "ASYNCIO";
+
     static String inQueueName = "InQueue";
     static String inQueue = "jms/queue/" + inQueueName;
     // queue for receive messages out
@@ -57,6 +59,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(40, 200);
     //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients = null;
+
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
@@ -81,11 +84,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @Before
     @After
     public void makeSureAllClientsAreDead() throws InterruptedException {
+        journalType = "ASYNCIO";
         if (clients != null) {
             clients.stopClients();
             waitForClientsToFinish(clients, 600000);
         }
-
     }
 
     /**
@@ -695,6 +698,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
+     * Start simple failover test with client_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackClientAckQueueNIO() throws Exception {
+        setJournalType("NIO");
+        testFailover(Session.CLIENT_ACKNOWLEDGE, true);
+    }
+
+    /**
      * Start simple failover test with trans_ack on queues
      */
     @Test
@@ -704,6 +719,30 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueNIO() throws Exception {
+        setJournalType("NIO");
+        testFailover(Session.SESSION_TRANSACTED, true);
+    }
+
+    /**
+     * Start simple failover test with trans_ack on queues
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueWi() throws Exception {
+        testFailover(Session.SESSION_TRANSACTED, true);
+    }
+
 
 //    /**
 //     * Start simple failover test with auto_ack on queues
@@ -800,12 +839,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     public void prepareColocatedTopologyInCluster() {
 
-        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-        prepareColocatedBackupServer(CONTAINER1, getHostname(CONTAINER1), "backup", JOURNAL_DIRECTORY_B);
+        String journalType = getJournalType();
+        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A, journalType);
+        prepareColocatedBackupServer(CONTAINER1, getHostname(CONTAINER1), "backup", JOURNAL_DIRECTORY_B, journalType);
 
-        prepareLiveServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_B);
-        prepareColocatedBackupServer(CONTAINER2, getHostname(CONTAINER2), "backup", JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_B, journalType);
+        prepareColocatedBackupServer(CONTAINER2, getHostname(CONTAINER2), "backup", JOURNAL_DIRECTORY_A, journalType);
 
+    }
+
+    private String getJournalType() {
+
+        return journalType;
     }
 
     /**
@@ -816,6 +861,16 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param journalDirectory path to journal directory
      */
     public void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+        prepareLiveServer(containerName, bindingAddress, journalDirectory, "ASYNCIO");
+    }
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param bindingAddress   says on which ip container will be binded
+     * @param journalDirectory path to journal directory
+     */
+    public void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory, String journalType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -843,7 +898,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.setJournalType(journalType);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
@@ -913,6 +968,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     public void prepareColocatedBackupServer(String containerName, String ipAddress,
                                              String backupServerName, String journalDirectoryPath) {
+        prepareColocatedBackupServer(containerName, ipAddress, backupServerName, journalDirectoryPath, "ASYNCIO");
+    }
+
+    /**
+     * Prepares colocated backup. It creates new configuration of backup server.
+     *
+     * @param containerName        Name of the arquilian container.
+     * @param ipAddress            On which IP address to broadcast and where is containers management ip address.
+     * @param backupServerName     Name of the new HornetQ backup server.
+     * @param journalDirectoryPath Absolute or relative path to journal directory.
+     */
+    public void prepareColocatedBackupServer(String containerName, String ipAddress,
+                                             String backupServerName, String journalDirectoryPath, String journalType) {
 
         String discoveryGroupName = "dg-group-backup";
         String broadCastGroupName = "bg-group-backup";
@@ -943,7 +1011,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectoryPath);
         jmsAdminOperations.setAllowFailback(backupServerName, true);
-        jmsAdminOperations.setJournalType(backupServerName, "ASYNCIO");
+        jmsAdminOperations.setJournalType(backupServerName, journalType);
 
         jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
         jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
@@ -994,4 +1062,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         controller.stop(containerName);
     }
 
+    private void setJournalType(String journalType) {
+        this.journalType = journalType;
+    }
 }
