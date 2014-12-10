@@ -104,11 +104,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
-
-    public void testExportImportJNDI() throws Exception{
-
-    }
-
     private void prepareServer(final String container) {
         JMSOperations ops = getJMSOperations(container);
         ops.createQueue(TEST_QUEUE, TEST_QUEUE_NAME, true);
