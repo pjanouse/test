@@ -2809,6 +2809,60 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
+     * Adds settings for slow consumers to existing address settings for given mask.
+     *
+     * @param address       address specification
+     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy        what should happen with slow consumers
+     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     */
+    @Override
+    public void setSlowConsumerPolicy(String address, int threshold, SlowConsumerPolicy policy, int checkPeriod) {
+        setSlowConsumerPolicy("default", address, threshold, policy, checkPeriod);
+    }
+
+    /**
+     * Adds settings for slow consumers to existing address settings for given mask.
+     *
+     * @param serverName    hornetq server name
+     * @param address       address specification
+     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy        what should happen with slow consumers
+     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     */
+    @Override
+    public void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy,
+            int checkPeriod) {
+
+        ModelNode addressSettings = createModelNode();
+        addressSettings.get(ClientConstants.OP).set("write-attribute");
+        addressSettings.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        addressSettings.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        addressSettings.get(ClientConstants.OP_ADDR).add("address-setting", address);
+
+        ModelNode setThreshold = addressSettings.clone();
+        setThreshold.get("name").set("slow-consumer-threshold");
+        setThreshold.get("value").set(threshold);
+
+        ModelNode setPolicy = addressSettings.clone();
+        setPolicy.get("name").set("slow-consumer-policy");
+        setPolicy.get("value").set(policy.name());
+
+        ModelNode setCheckPeriod = addressSettings.clone();
+        setCheckPeriod.get("name").set("slow-consumer-check-period");
+        setCheckPeriod.get("value").set(checkPeriod);
+
+        try {
+            this.applyUpdate(setThreshold);
+            this.applyUpdate(setPolicy);
+            this.applyUpdate(setCheckPeriod);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
      * Adds address settings
      *
      * @param address             address specification

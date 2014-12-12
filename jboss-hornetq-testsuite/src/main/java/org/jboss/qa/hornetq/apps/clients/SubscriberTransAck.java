@@ -94,6 +94,8 @@ public class SubscriberTransAck extends Client {
         this.maxRetries = maxRetries;
         this.clientId = clientId;
         this.subscriberName = subscriberName;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     @Override
@@ -108,6 +110,7 @@ public class SubscriberTransAck extends Client {
             Message message = null;
 
             while ((message = receiveMessage(subscriber)) != null) {
+                Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeCommited.add(message);
 

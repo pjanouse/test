@@ -12,8 +12,6 @@ import java.util.List;
 
 /**
  * Simple JMX listener that will catch any notification on the MBean it's listening to.
- *
- * To
  */
 public class JmxNotificationListener implements NotificationListener {
 

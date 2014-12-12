@@ -285,6 +285,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy, int checkPeriod) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setSlowConsumerPolicy(String address, int threshold, SlowConsumerPolicy policy, int checkPeriod) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addBackup(boolean isBackup) {
         logger.info("This operation is not supported: " + getMethodName());
     }

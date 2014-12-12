@@ -1,22 +1,6 @@
 package org.jboss.qa.hornetq.test.journalexport;
 
 
-import static org.junit.Assert.*;
-
-import java.util.concurrent.TimeUnit;
-
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-
-import javax.naming.NamingException;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -26,6 +10,13 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * Set of journal export/import tests.
