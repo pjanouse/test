@@ -95,6 +95,7 @@ public class ReceiverTransAck extends Client {
         this.commitAfter = commitAfter;
         this.maxRetries = maxRetries;
 
+        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     @Override
@@ -128,6 +129,7 @@ public class ReceiverTransAck extends Client {
                     + " was started.");
 
             while ((message = receiveMessage(receiver)) != null) {
+                Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeCommited.add(message);
 

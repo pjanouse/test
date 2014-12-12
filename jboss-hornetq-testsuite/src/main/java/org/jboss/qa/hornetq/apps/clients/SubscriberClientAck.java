@@ -104,6 +104,8 @@ public class SubscriberClientAck extends Client {
         this.maxRetries = maxRetries;
         this.clientId = clientId;
         this.subscriberName = subscriberName;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     @Override
@@ -120,6 +122,7 @@ public class SubscriberClientAck extends Client {
             Message lastMessage = null;
 
             while ((message = receiveMessage(subscriber)) != null) {
+                Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeAcked.add(message);
 
