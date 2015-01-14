@@ -2156,6 +2156,23 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
+    @Override
+    public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions) {
+        logger.info("This operation is not supported: " + getMethodName());
+
+    }
+
+    @Override
+    public void overrideInVMSecurity(boolean b) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

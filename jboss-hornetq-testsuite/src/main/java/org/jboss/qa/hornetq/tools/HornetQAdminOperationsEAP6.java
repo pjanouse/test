@@ -271,7 +271,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        logger.info("Queue: " + queueName + " contains: " + modelNode.get(ClientConstants.RESULT).asString() + " messages.");
+
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
 
@@ -411,6 +411,51 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void overrideInVMSecurity(boolean b) {
+        final ModelNode modelNode= createModelNode();
+        modelNode.get(ClientConstants.OP).set("write-attribute");
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        modelNode.get("name").set("override-in-vm-security");
+        modelNode.get("value").set(b);
+        try {
+            this.applyUpdate(modelNode);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions){
+        rewriteLoginModule("other", "classic", loginModule, moduleOptions);
+    }
+
+
+
+    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions){
+        final ModelNode loginModuleRemove = createModelNode();
+        loginModuleRemove.get(ClientConstants.OP).set("write-attribute");
+        loginModuleRemove.get(ClientConstants.OP_ADDR).add("subsystem", "security");
+        loginModuleRemove.get(ClientConstants.OP_ADDR).add("security-domain", securityDomain);
+        loginModuleRemove.get(ClientConstants.OP_ADDR).add("authentication", authentication);
+        loginModuleRemove.get(ClientConstants.OP_ADDR).add("login-module", loginModule);
+        loginModuleRemove.get("name").set("module-options");
+        Iterator i = moduleOptions.entrySet().iterator();
+        ArrayList<ModelNode>list= new ArrayList<ModelNode>();
+        for(Map.Entry<String, String> entry : moduleOptions.entrySet()){
+            list.add(new ModelNode().setExpression(entry.getKey(),entry.getValue()));
+        }
+        //loginModuleRemove.get("value").set(new ModelNode().setExpression("password-stacking","useFirstPass"));
+        loginModuleRemove.get("value").set(list);
+        try {
+            this.applyUpdate(loginModuleRemove);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * Adds extension.

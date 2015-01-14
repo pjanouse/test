@@ -48,8 +48,8 @@ public class MulticastProxy extends Thread {
 //            if (ipAddressOfInterface != null)   {
 //                sourceMulticastSocket.setInterface(InetAddress.getByName(ipAddressOfInterface));
 //            }
-            NetworkInterface netowrkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddressOfInterface));
-            sourceMulticastSocket.joinGroup(new InetSocketAddress(InetAddress.getByName(sourceMulticastGroup), sourceMulticastPort), netowrkInterface);
+            NetworkInterface networkInterface = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddressOfInterface));
+            sourceMulticastSocket.joinGroup(new InetSocketAddress(InetAddress.getByName(sourceMulticastGroup), sourceMulticastPort), networkInterface);
 //            ServerSocket ss= new ServerSocket(0);
 //            int port=ss.getLocalPort();
 //            ss.close();

@@ -4,6 +4,7 @@
  */
 package org.jboss.qa.hornetq.tools;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -1445,4 +1446,10 @@ public interface JMSOperations {
     void setTransactionTimeout(long hornetqTransactionTimeout);
 
     public String getSocketBindingAtributes(String socketBindingName);
+
+    void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions);
+
+    void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions);
+
+    void overrideInVMSecurity(boolean b);
 }
