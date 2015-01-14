@@ -1,20 +1,21 @@
 package org.jboss.qa.hornetq.test.cluster;
 
-import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.*;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.security.*;
+import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
+import org.jboss.qa.hornetq.test.security.PermissionGroup;
+import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -22,11 +23,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
@@ -1165,6 +1162,131 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMessageGroupingRestartOfRemote() throws Exception {
+
+        String serverToKill = CONTAINER2;
+        long timeBetweenKillAndRestart = 20000;
+
+        int numberOfMessages = 10000;
+
+        prepareServers();
+
+        String name = "my-grouping-handler";
+        String address = "jms";
+        long timeout = 5000;
+
+        // set local grouping-handler on 1st node
+        addMessageGrouping(CONTAINER1, name, "LOCAL", address, timeout);
+
+        // set remote grouping-handler on others
+        addMessageGrouping(CONTAINER2, name, "REMOTE", address, timeout);
+        addMessageGrouping(CONTAINER3, name, "REMOTE", address, timeout);
+        addMessageGrouping(CONTAINER4, name, "REMOTE", address, timeout);
+
+        controller.start(CONTAINER1);
+        controller.start(CONTAINER2);
+        controller.start(CONTAINER3);
+        controller.start(CONTAINER4);
+
+        List<String> groups = new ArrayList<String>();
+
+        Context context = getContext(CONTAINER1);
+        ConnectionFactory factory = (ConnectionFactory) context.lookup(HornetQTestCaseConstants.CONNECTION_FACTORY_JNDI_EAP6);
+        Connection connection = factory.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
+        MessageProducer producer = session.createProducer(queue);
+        Message m = null;
+
+        for (int i = 0; i < 500; i++) {
+            m = session.createTextMessage();
+            String group = UUID.randomUUID().toString();
+            m.setStringProperty("JMSXGroupID", group);
+            producer.send(m);
+            if (i % 100 == 0) {
+                groups.add(group);
+            }
+        }
+
+        // start producers and consumers
+        List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>(); // create 500 groups
+        List<Client> receivers = new ArrayList<Client>();
+
+        String serverToConnect = null;
+        for (String group : groups) {
+            if (groups.lastIndexOf(group) % 4 == 0) {
+                serverToConnect = CONTAINER1;
+
+            } else if (groups.lastIndexOf(group) % 4 == 1) {
+                serverToConnect = CONTAINER2;
+            } else if (groups.lastIndexOf(group) % 4 == 2) {
+                serverToConnect = CONTAINER3;
+            } else {
+                serverToConnect = CONTAINER4;
+            }
+
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(serverToConnect),
+                    getJNDIPort(serverToConnect), inQueueJndiNameForMdb, numberOfMessages);
+            producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, group));
+            producerToInQueue1.setCommitAfter(10);
+            producerToInQueue1.start();
+            producers.add(producerToInQueue1);
+            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(serverToConnect), getJNDIPort(serverToConnect),
+                    inQueueJndiNameForMdb, 40000, 100, 10);
+            receiver.start();
+            receivers.add(receiver);
+        }
+
+        waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 300, 120000);
+
+        log.info("Kill server - " + serverToKill);
+        // kill remote 1
+        killServer(serverToKill);
+        controller.kill(serverToKill);
+        Thread.sleep(3 * 1000);
+        log.info("Killed server - " + serverToKill);
+
+        log.info("Wait for - " + timeBetweenKillAndRestart);
+        Thread.sleep(timeBetweenKillAndRestart);
+        log.info("Finished waiting for - " + timeBetweenKillAndRestart);
+
+        // start killed server
+        log.info("Start server - " + serverToKill);
+        controller.start(serverToKill);
+        log.info("Started server - " + serverToKill);
+
+        // wait timeout time to get messages redistributed to the other node
+        waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 600, 120000);
+
+        int numberOfSendMessages = 0;
+        int numberOfReceivedMessages = 0;
+
+        // stop producers
+        for (ProducerTransAck p : producers) {
+            p.stopSending();
+            p.join();
+            numberOfSendMessages += p.getListOfSentMessages().size();
+        }
+
+        // wait for consumers to finish
+        for (Client r : receivers) {
+            r.join();
+            numberOfReceivedMessages += ((ReceiverTransAck) r).getListOfReceivedMessages().size();
+        }
+
+        Assert.assertEquals("Number of send and received messages is different: ", numberOfSendMessages+500, numberOfReceivedMessages);
+
+        stopServer(CONTAINER1);
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER3);
+        stopServer(CONTAINER4);
+
+    }
+
     /**
      * This test will start two servers A and B in cluster.
      * Start producer connected to A to queue and send some messages with message grouping id1.
@@ -1276,7 +1398,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWithDivertsExclusiveSmallMessages() throws Exception {
-        clusterTestWithDiverts(true, new ClientMixMessageBuilder(1,1));
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(1, 1));
     }
 
     @Test
@@ -1284,7 +1406,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWithDivertsNotExclusiveSmallMessages() throws Exception {
-        clusterTestWithDiverts(false, new ClientMixMessageBuilder(1,1));
+        clusterTestWithDiverts(false, new ClientMixMessageBuilder(1, 1));
     }
 
     @Test
@@ -1292,7 +1414,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWithDivertsExclusiveLargeMessages() throws Exception {
-        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120,120));
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120, 120));
     }
 
     @Test
@@ -1300,7 +1422,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWithDivertsNotExclusiveLargeMessages() throws Exception {
-        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120,120));
+        clusterTestWithDiverts(true, new ClientMixMessageBuilder(120, 120));
     }
 
     /**
@@ -1341,7 +1463,7 @@ public class ClusterTestCase extends HornetQTestCase {
         receiverDivertedAddress.join(60000);
 
         // if exclusive check that messages are just in diverted address
-        if (isExclusive)    {
+        if (isExclusive) {
             Assert.assertEquals("In exclusive mode there must be messages just in diverted address only but there are messages in " +
                     "original address.", 0, receiverOriginalAddress.getListOfReceivedMessages().size());
             Assert.assertEquals("In exclusive mode there must be messages in diverted address.",
@@ -1493,7 +1615,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
 
-        jmsAdminOperations.addMessageGrouping(name, type, address, timeout);
+        jmsAdminOperations.addMessageGrouping("default", name, type, address, timeout, 500, 750);
 
         jmsAdminOperations.close();
 

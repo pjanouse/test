@@ -1017,6 +1017,41 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * Method blocks until sum of messages received is equal or greater the numberOfMessages, if timeout expires then Assert.fail
+     * <p/>
+     *
+     * @param receivers        receivers
+     * @param numberOfMessages numberOfMessages
+     * @param timeout          timeout
+     */
+    public void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        int sum = 0;
+
+        do {
+
+            sum = 0;
+
+            for (Client c : receivers) {
+                sum += c.getCount();
+            }
+
+            if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
+                Assert.fail("Clients did not receive " + numberOfMessages + " in timeout: " + timeout);
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        } while (sum <= numberOfMessages);
+    }
+
+
+    /**
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
      *
      * @param producers        receivers
