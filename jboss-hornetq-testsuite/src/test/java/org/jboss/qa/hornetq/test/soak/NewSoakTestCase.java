@@ -2,6 +2,9 @@ package org.jboss.qa.hornetq.test.soak;
 
 
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
+import org.jboss.arquillian.config.descriptor.api.ContainerDef;
+import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -29,6 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -68,8 +73,34 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     @Before
     public void startUpServers() {
-        this.controller.start(CONTAINER1);
-        this.controller.start(CONTAINER2);
+
+        this.controller.start(CONTAINER1, setMemoryForContainer(CONTAINER1, 4000));
+
+        this.controller.start(CONTAINER2, setMemoryForContainer(CONTAINER2, 4000));
+
+    }
+
+    private Map<String,String> setMemoryForContainer(String containerName, int heapSizeInMB)    {
+        Map<String,String> containerProperties = new HashMap<String,String>();
+
+        ArquillianDescriptor descriptor = getArquillianDescriptor();
+        for (GroupDef groupDef : descriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+
+                if (containerDef.getContainerName().equals(containerName)) {
+                    containerProperties = containerDef.getContainerProperties();
+                    String vmArguments = containerProperties.get("javaVmArguments");
+
+                    if (vmArguments.contains("-Xmx"))    { //just change value
+                        vmArguments = vmArguments.replaceAll("-Xmx.* ", "-Xmx" + heapSizeInMB + "m ");
+                    } else { // add it
+                        vmArguments = vmArguments.concat(" -Xmx" + heapSizeInMB + "m ");
+                    }
+                    LOG.info("vmargument are: " + vmArguments);
+                    containerProperties.put("javaVmArguments", vmArguments);
+                }
+            }}
+        return containerProperties;
     }
 
 

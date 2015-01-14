@@ -32,27 +32,27 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testPageLeaking() throws Exception {
 
-        int numberOfMessages = 1000000; // 1 M messages
+        int numberOfMessages = 10000000; // 10 M messages
         int counter = 0;
 
         prepareJmsServer(CONTAINER1);
 
         controller.start(CONTAINER1);
 
-        SubscriberTransAck fastSubscriber = new SubscriberTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, 30000, 100, 10, "fastSubscriber-connid", "fastSubscriber");
+        SubscriberTransAck fastSubscriber = new SubscriberTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
         fastSubscriber.subscribe();
         fastSubscriber.setTimeout(0);
 
         SubscriberTransAck slowSubscriber = new SubscriberTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, 30000, 1, 10, "slowSubscriber-connid", "slowSubscriber");
         slowSubscriber.subscribe();
-        slowSubscriber.setTimeout(100);
+        slowSubscriber.setTimeout(1000);
 
         PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, numberOfMessages, "publisherID");
         MessageBuilder builder = new ClientMixMessageBuilder(30, 30);
         builder.setAddDuplicatedHeader(true);
         publisher.setMessageBuilder(builder);
         publisher.setTimeout(0);
-        publisher.setCommitAfter(1000);
+        publisher.setCommitAfter(100);
         publisher.start();
 
         fastSubscriber.start();
@@ -103,7 +103,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 500 * 1024, 0, 0, 250 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 250 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");

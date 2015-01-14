@@ -69,7 +69,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-version}</version>
                 <configuration>
-                    <!--<argLine>-Xmx4096m</argLine>-->
+
                     <systemPropertyVariables>
                         <BYTEMAN_JAR>
                             ${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar
