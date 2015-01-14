@@ -1,21 +1,28 @@
 package org.jboss.qa.hornetq.test.security;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SecurityClient;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Test security permissions to queues and topic
@@ -39,9 +46,21 @@ import java.io.IOException;
 @Category(FunctionalTests.class)
 public class PermissionSecurityTestCase extends HornetQTestCase {
 
+
+    private static final String MDB_ON_QUEUE_TO_QUEUE ="queToQueueWithSecMdb";
+
     private static final Logger logger = Logger.getLogger(PermissionSecurityTestCase.class);
+
+
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
+
+   // InQueue and OutQueue for mdb
+    static String inQueueNameForMdb = "InQueue";
+    static String inQueueJndiNameForMdb = "jms/queue/" + inQueueNameForMdb;
+    static String outQueueNameForMdb = "OutQueue";
+    static String outQueueJndiNameForMdb = "jms/queue/" + outQueueNameForMdb;
+
     String jndiContextPrefix = "java:jboss/exported/";
 
     /**
@@ -233,6 +252,38 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    //TODO This test will fail on EAP 6.4.0.DR13 and older
+    public void inVmSecurityTestCase() throws Exception{
+
+        prepareServer();
+        controller.start(CONTAINER1);
+        deployer.deploy(MDB_ON_QUEUE_TO_QUEUE);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        HashMap<String,String> opts= new HashMap();
+        opts.put("password-stacking","useFirstPass");
+        jmsAdminOperations.rewriteLoginModule("Remoting",opts);
+        jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
+        jmsAdminOperations.overrideInVMSecurity(false);
+
+        controller.stop(CONTAINER1);
+        controller.start(CONTAINER1);
+        SecurityClient producer= new SecurityClient(getHostname(CONTAINER1),getJNDIPort(CONTAINER1),inQueueJndiNameForMdb,10, "user","useruser");
+        producer.initializeClient();
+        producer.send();
+        producer.join();
+
+        Thread.sleep(2000);
+
+        jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
+        Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
+    }
+
+
     public void prepareServer() throws Exception {
 
 
@@ -344,10 +395,26 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         for (
                 int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-
-//            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, false);
         }
+        jmsAdminOperations.createQueue(serverName, inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue(serverName, outQueueNameForMdb, outQueueJndiNameForMdb, true);
         jmsAdminOperations.close();
+    }
+
+
+    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_TO_QUEUE)
+    @TargetsContainer(CONTAINER1)
+    public static JavaArchive createDeploymentMdbOnQueue1Temp() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "localMdbFromQueue.jar");
+        mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+//        File target = new File("/tmp/mdbOnQueue1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
     }
 
 }
