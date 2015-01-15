@@ -35,6 +35,9 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges
      * @param proxyPortIn           proxy port for connector where to connect to proxy directing to this server,every can connect to this server through proxy on 127.0.0.1:proxyPortIn
      * @param reconnectAttempts     number of reconnects for cluster-connections
      */
+
+
+
     protected void prepareClusterServer(String containerName, int proxyPortIn, int reconnectAttempts, boolean deployJmsBridge) {
 
         String discoveryGroupName = "dg-group1";
@@ -71,11 +74,11 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges
 
         jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.createConnectionFactory(connectionFactoryName, "java:jboss/exported/jms/" + connectionFactoryName, connectorToProxy);
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, false);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, reconnectAttempts);
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
 
         jmsAdminOperations.setFactoryType(inVmConnectionFactory, "XA_GENERIC");

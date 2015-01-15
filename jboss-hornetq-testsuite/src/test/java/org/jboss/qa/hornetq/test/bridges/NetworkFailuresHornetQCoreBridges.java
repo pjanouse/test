@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.bridges;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -157,27 +157,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureMixMessages5recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 5, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureSmallMessages5recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 5, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureLargeMessages5recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testShortNetworkFailureMixMessages() throws Exception {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
     }
@@ -217,28 +196,6 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureMixMessages5recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 5, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureSmallMessages5recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), 5, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureLargeMessages5recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), 5, 2);
-    }
-
-
 
     /**
      * Implementation of the basic test scenario: 1. Start cluster A and B 2.
@@ -268,8 +225,9 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         startProxies();
 
-        controller.start(CONTAINER1); // A1
         controller.start(CONTAINER2); // B1
+        controller.start(CONTAINER1); // A1
+
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
@@ -305,10 +263,9 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
-
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
-
+        stopServer(CONTAINER2);
         if (staysDisconnected)  {
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
@@ -318,15 +275,15 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
-                    producer1.getListOfSentMessages().size(),
-                    receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+            producer1.getListOfSentMessages().size(),
+            receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
             Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
 
         stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+
 
     }
 
@@ -629,18 +586,17 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
     protected void executeNetworkFails(long timeBetweenFails, int numberOfFails)
             throws Exception {
 
-
-      startProxies();
-
         for (int i = 0; i < numberOfFails; i++) {
 
-            Thread.sleep(timeBetweenFails);
+
 
             stopProxies();
 
             Thread.sleep(timeBetweenFails);
 
             startProxies();
+
+            Thread.sleep(timeBetweenFails);
 
         }
     }
