@@ -3008,6 +3008,38 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         modelNode.get("timeout").set(timeout);
 //        modelNode.get("group-timeout").set(timeout);
 
+        try {
+            this.applyUpdate(modelNode);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    /**
+     * Adds grouping handler
+     *
+     * @param serverName hornetq server name
+     * @param name       name of grouping handler
+     * @param type       type - LOCAL, REMOTE
+     * @param address    cluster address
+     * @param timeout    timeout to have decision where the message will be routed
+     */
+    @Override
+    public void addMessageGrouping(String serverName, String name, String type, String address, long timeout,
+                                   long groupTimeout, long reaperPeriod) {
+
+        ModelNode modelNode = createModelNode();
+        modelNode.get(ClientConstants.OP).set("add");
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        modelNode.get(ClientConstants.OP_ADDR).add("grouping-handler", name);
+        modelNode.get("grouping-handler-address").set(address);
+        modelNode.get("type").set(type);
+        modelNode.get("timeout").set(timeout);
+        modelNode.get("group-timeout").set(groupTimeout);
+        modelNode.get("reaper-period").set(reaperPeriod);
 
         try {
             this.applyUpdate(modelNode);

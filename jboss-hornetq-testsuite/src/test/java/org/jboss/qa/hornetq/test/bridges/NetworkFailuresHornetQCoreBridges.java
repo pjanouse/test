@@ -780,12 +780,14 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 5000;
+        long groupTimeout = 500;
+        long reaperPeriod = 750;
 
         if (isMessageWithGrouping)  {
             if (CONTAINER1.equals(containerName)) {
-                jmsAdminOperations.addMessageGrouping(name, "LOCAL", address, timeout);
+                jmsAdminOperations.addMessageGrouping("default", name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
             } else if (CONTAINER2.equals(containerName))    {
-                jmsAdminOperations.addMessageGrouping(name, "REMOTE", address, timeout);
+                jmsAdminOperations.addMessageGrouping("default", name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
             }
         }
 
