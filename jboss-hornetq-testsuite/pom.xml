@@ -100,6 +100,7 @@
                         <MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>
                         <MANAGEMENT_PORT_4>13999</MANAGEMENT_PORT_4>
                     </systemPropertyVariables>
+                    <argLine>-javaagent:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9591 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar:${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar</argLine>
                 </configuration>
             </plugin>
             <plugin> <!-- copy security extension for eap 6 to target dir - used in SslAuthenticationTestCase -->

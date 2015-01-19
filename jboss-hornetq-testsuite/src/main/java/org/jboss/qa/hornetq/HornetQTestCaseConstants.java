@@ -31,6 +31,7 @@ public interface HornetQTestCaseConstants {
     public static int PORT_HORNETQ_BACKUP_DEFAULT = 5446;
 
     // Ports for Byteman
+    public static final int BYTEMAN_CLIENT_PORT = 9591;
     public static final int BYTEMAN_CONTAINER1_PORT = 9091;
     public static final int BYTEMAN_CONTAINER2_PORT = 9191;
     public static final int BYTEMAN_CONTAINER3_PORT = 9291;
