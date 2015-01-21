@@ -111,12 +111,17 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
 
         // IP addresses for the servers
-        CONTAINER1_IP = checkIPv6Address(getEnvProperty("MYTESTIP_1") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_1"));
-        CONTAINER2_IP = checkIPv6Address(getEnvProperty("MYTESTIP_2") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_2"));
-        CONTAINER3_IP = checkIPv6Address(getEnvProperty("MYTESTIP_3") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_3"));
-        CONTAINER4_IP = checkIPv6Address(getEnvProperty("MYTESTIP_4") == null ? DEFAULT_CONTAINER_IP : getEnvProperty("MYTESTIP_4"));
+        String tmpIpAddress = getEnvProperty("MYTESTIP_1");
+        CONTAINER1_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
+        tmpIpAddress = getEnvProperty("MYTESTIP_2");
+        CONTAINER2_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
+        tmpIpAddress = getEnvProperty("MYTESTIP_3");
+        CONTAINER3_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
+        tmpIpAddress = getEnvProperty("MYTESTIP_4");
+        CONTAINER4_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
+
         // if MCAST_ADDR is null then generate multicast address
-        String tmpMultiCastAddress = System.getProperty("MCAST_ADDR");
+        String tmpMultiCastAddress = getEnvProperty("MCAST_ADDR");
         MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
                 new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
                         .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
@@ -126,10 +131,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JBOSS_HOME_3 = verifyJbossHome(getEnvProperty("JBOSS_HOME_3"));
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
-        PORT_OFFSET_1 = Integer.valueOf(getEnvProperty("PORT_OFFSET_1") != null ? getEnvProperty("PORT_OFFSET_1") : "0");
-        PORT_OFFSET_2 = Integer.valueOf(getEnvProperty("PORT_OFFSET_2") != null ? getEnvProperty("PORT_OFFSET_2") : "0");
-        PORT_OFFSET_3 = Integer.valueOf(getEnvProperty("PORT_OFFSET_3") != null ? getEnvProperty("PORT_OFFSET_3") : "0");
-        PORT_OFFSET_4 = Integer.valueOf(getEnvProperty("PORT_OFFSET_4") != null ? getEnvProperty("PORT_OFFSET_4") : "0");
+        String tmpPortOffset = getEnvProperty("PORT_OFFSET_1");
+        PORT_OFFSET_1 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+        tmpPortOffset = getEnvProperty("PORT_OFFSET_2");
+        PORT_OFFSET_2 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+        tmpPortOffset = getEnvProperty("PORT_OFFSET_3");
+        PORT_OFFSET_3 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+        tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
+        PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
 
     }
 
@@ -180,10 +189,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Takes path to jboss home dir and tries to fix it:
      * if path does not exist then try to jboss-eap-6.1, ...6.2, ...
      *
-     * @param jbossHome jboss home
+     * @param jbossHome               jboss home
      */
     private static String verifyJbossHome(String jbossHome) {
+
         if (jbossHome == null) {
+            log.error("Environment variable for JBOSS_HOME_X is empty (see above), please setup correct JBOSS_HOME_ variable." +
+                    " Stopping test suite by throwing runtime exception.");
             throw new RuntimeException("JBossHome is null, please setup correct JBOSS_HOME");
         }
         File jbossHomeDir = new File(jbossHome);
@@ -227,11 +239,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return value of the defined property or null
      */
     private static String getEnvProperty(String name) {
-        String envProperty = null;
-        if (System.getProperty(name) != null) {
-            envProperty = System.getProperty(name);
-            log.info(String.format("export %s='%s'", name, envProperty));
-        }
+
+        String envProperty = System.getProperty(name);
+
+        log.info("export " + name + "=" + envProperty);
+
         return envProperty;
     }
 
