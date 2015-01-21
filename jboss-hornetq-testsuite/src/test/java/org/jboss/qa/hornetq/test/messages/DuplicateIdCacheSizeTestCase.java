@@ -39,8 +39,8 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testDupIdCacheSizeWithDurableQueues() throws Exception {
 
-//        prepareServer(CONTAINER1);
-//        prepareServer(CONTAINER2);
+        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER2);
 
         controller.start(CONTAINER1);
         final long numberOfMessages = 300;
