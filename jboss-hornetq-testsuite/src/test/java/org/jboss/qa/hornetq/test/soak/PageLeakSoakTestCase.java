@@ -32,7 +32,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testPageLeaking() throws Exception {
 
-        int numberOfMessages = 10000000; // 10 M messages
+        int numberOfMessages = 5000000; // 10 M messages
         int counter = 0;
 
         prepareJmsServer(CONTAINER1);
@@ -58,13 +58,13 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         fastSubscriber.start();
         slowSubscriber.start();
 
-        Thread.sleep(60 * 60 * 1000); // 1hour
+        //Thread.sleep(60 * 60 * 1000); // 1hour
 
-        publisher.stopSending();
+//        publisher.stopSending();
         publisher.join();
 
         fastSubscriber.join();
-        slowSubscriber.join();
+        slowSubscriber.join(60);
 
         stopServer(CONTAINER1);
 
@@ -103,7 +103,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 250 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 250857600, 0, 0, 25085760);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
