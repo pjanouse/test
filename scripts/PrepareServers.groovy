@@ -204,6 +204,9 @@ public class PrepareServers {
 
     }
 
+    /**
+     * Clean ups everything except server{1..x} directories
+     */
     public static void cleanUp() {
         AntBuilder ant = new AntBuilder();
         ant.delete(dir: eapDirName, failonerror: 'false')
@@ -212,9 +215,12 @@ public class PrepareServers {
         ant.delete(failonerror: 'false', includeemptydirs: 'true') {
             fileset(dir: new File(".").absolutePath) {
                 include(name: "jboss-eap-*")
+                include(name: "*.txt")
+                include(name: "*.zip")
             }
         }
     }
+
 
 /** Create server{1..4} and copy jboss-eap into them
  *
@@ -599,6 +605,7 @@ public class PrepareServers {
             p.prepareServer(eapZipUrlOld, nativesUrlOld, configurationDirUrlOld);
             p.copyServers(2)
         }
+        cleanUp();
     }
 
 }
