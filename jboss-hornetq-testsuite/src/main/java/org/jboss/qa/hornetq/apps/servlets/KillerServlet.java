@@ -83,7 +83,11 @@ public class KillerServlet extends HttpServlet {
 
         log.info("pid of the proccess is : " + pid);
 
-        Runtime.getRuntime().exec("kill -9 " + pid);
+        if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
+            Runtime.getRuntime().exec("taskkill /f /pid " + pid);
+        } else { // on all other platforms use kill -9
+            Runtime.getRuntime().exec("kill -9 " + pid);
+        }
     }
 
     private long getPid()    {
