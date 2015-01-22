@@ -61,7 +61,7 @@ public class ByteMessageBuilder implements MessageBuilder {
      * @see {@link MessageBuilder#createMessage(javax.jms.Session)}
      */
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         BytesMessage message = session.createBytesMessage();
         message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);

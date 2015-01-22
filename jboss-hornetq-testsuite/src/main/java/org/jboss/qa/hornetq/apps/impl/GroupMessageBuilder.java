@@ -23,7 +23,7 @@ public class GroupMessageBuilder implements MessageBuilder {
     }
 
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         Message m = session.createTextMessage("message");
         m.setStringProperty("JMSXGroupID", groupMessageId);
 

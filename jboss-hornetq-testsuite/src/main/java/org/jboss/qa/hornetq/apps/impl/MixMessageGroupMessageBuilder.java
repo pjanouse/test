@@ -20,7 +20,7 @@ public class MixMessageGroupMessageBuilder extends ClientMixMessageBuilder {
     }
 
 
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
 
         Message m = super.createMessage(session);
 

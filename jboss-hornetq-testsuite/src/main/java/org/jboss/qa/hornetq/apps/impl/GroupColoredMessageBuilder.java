@@ -28,7 +28,7 @@ public class GroupColoredMessageBuilder implements MessageBuilder {
     }
 
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         Message m=null;
         if(largeMessages){
            String s= new String(new char[110*1024]);

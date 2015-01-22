@@ -37,7 +37,7 @@ public class DelayedTextMessageBuilder implements MessageBuilder {
     }
 
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         Message msg = session.createTextMessage(RandomStringGenerator.generateString(textLength));
         msg.setLongProperty(SCHEDULED_DELIVER_HEADER, System.currentTimeMillis() + messageDelay);
         msg.setIntProperty(MESSAGE_COUNTER_PROPERTY, counter++);

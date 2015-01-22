@@ -71,7 +71,7 @@ public class AllHeadersClientMixMessageBuilder extends ClientMixMessageBuilder {
     }
 
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         Message msg = super.createMessage(session);
 
         msg.setJMSDeliveryMode(JMSDeliveryMode);

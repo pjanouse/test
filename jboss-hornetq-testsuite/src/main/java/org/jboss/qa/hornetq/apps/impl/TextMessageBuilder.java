@@ -58,7 +58,7 @@ public class TextMessageBuilder implements MessageBuilder {
      * @see {@link org.jboss.qa.hornetq.apps.MessageBuilder#createMessage(javax.jms.Session)}
      */
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         TextMessage message = session.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));

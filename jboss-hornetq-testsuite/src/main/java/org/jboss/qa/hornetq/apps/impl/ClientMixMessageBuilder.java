@@ -130,7 +130,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
      * @see {@link MessageBuilder#createMessage(javax.jms.Session)}
      */
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         Message message = null;
         int modulo = MessageType.values().length;
         MessageType whichProcess = MessageType.values()[counter % modulo];

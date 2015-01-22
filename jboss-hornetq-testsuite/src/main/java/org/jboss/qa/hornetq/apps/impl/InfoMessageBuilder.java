@@ -19,7 +19,7 @@ public class InfoMessageBuilder implements MessageBuilder {
     private Random r = new Random();
 
     @Override
-    public Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(Session session) throws Exception {
         long randomLong = r.nextLong();
         return session.createObjectMessage(new MessageInfo("name" + randomLong,
                 "cool-address" + randomLong));
