@@ -112,7 +112,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // IP addresses for the servers
         String tmpIpAddress = getEnvProperty("MYTESTIP_1");
-        CONTAINER1_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
+        CONTAINER1_IP = checkIPv6Address(tmpIpAddress == null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
         tmpIpAddress = getEnvProperty("MYTESTIP_2");
         CONTAINER2_IP = checkIPv6Address(tmpIpAddress== null ? DEFAULT_CONTAINER_IP : tmpIpAddress);
         tmpIpAddress = getEnvProperty("MYTESTIP_3");
@@ -122,9 +122,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // if MCAST_ADDR is null then generate multicast address
         String tmpMultiCastAddress = getEnvProperty("MCAST_ADDR");
-        MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
-                new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
-                        .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
+        MCAST_ADDRESS = checkMulticastAddress(tmpMultiCastAddress);
+//        MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
+//                new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
+//                        .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
 
         JBOSS_HOME_1 = verifyJbossHome(getEnvProperty("JBOSS_HOME_1"));
         JBOSS_HOME_2 = verifyJbossHome(getEnvProperty("JBOSS_HOME_2"));
@@ -140,6 +141,27 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
         PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
 
+    }
+
+    private static String checkMulticastAddress(String multiCastAddress) {
+        if (multiCastAddress == null) {
+            log.error("Environment variable for MCAST_ADDR is empty (see above), please setup correct MCAST_ADDR variable." +
+                    " Stopping test suite by throwing runtime exception.");
+            throw new RuntimeException("MCAST_ADDR is null, please setup correct MCAST_ADDR");
+        }
+
+        InetAddress ia = null;
+
+        try {
+            ia = InetAddress.getByName(multiCastAddress);
+            if (!ia.isMulticastAddress())   {
+                log.error("Address: " + multiCastAddress + " cannot be found. Double check your MCAST_ADDR environment variable.");
+                throw new RuntimeException("Address: " + multiCastAddress + " cannot be found. Double check your  properties whether they're correct.");
+            }
+        } catch (UnknownHostException e) {
+            log.error("Address: " + multiCastAddress + " cannot be found. Double check your properties whether they're correct.", e);
+        }
+        return multiCastAddress;
     }
 
     // composite info objects for easier passing to utility classes
