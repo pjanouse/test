@@ -256,6 +256,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             if (connection != null) {
                 connection.close();
             }
+
+            RuleInstaller.uninstallAllRules(getHostname(CONTAINER1), BYTEMAN_CLIENT_PORT);
+
             controller.stop(CONTAINER1);
 
         }
