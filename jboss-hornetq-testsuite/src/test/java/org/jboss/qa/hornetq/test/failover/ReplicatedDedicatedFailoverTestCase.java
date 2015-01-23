@@ -531,8 +531,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setBackupGroupName("firstPair");
         jmsAdminOperations.setCheckForLiveServer(true);
 
-        //This was commented because of windows malfunctioning
-        //jmsAdminOperations.setMaxSavedReplicatedJournals(60);
+        jmsAdminOperations.setMaxSavedReplicatedJournals(60);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -654,8 +653,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setJournalType(journalType);
 
-        //This was commented because of windows malfunctioning
-        //jmsAdminOperations.setMaxSavedReplicatedJournals(60);
+        jmsAdminOperations.setMaxSavedReplicatedJournals(60);
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setAllowFailback(true);
