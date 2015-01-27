@@ -148,16 +148,21 @@ public class QueueClientsTransAck implements Clients {
 
             if (producerThread.isAlive()) {
                 isFinished = false;
+                logger.info("Producer: " + producerThread + " is still alive.");
+            } else {
+                logger.info("Producer: " + producerThread + " is finished.");
             }
-            logger.info("Producer: " + producerThread + " is still alive.");
+
         }
         // check receivers
         for (Thread receiverThread : receivers) {
 
             if (receiverThread.isAlive()) {
                 isFinished = false;
+                logger.info("Producer: " + receiverThread + " is still alive.");
+            } else {
+                logger.info("Producer: " + receiverThread + " is finished.");
             }
-            logger.info("Consumer: " + receiverThread + " is still alive.");
         }
 
         return isFinished;
