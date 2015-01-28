@@ -259,7 +259,7 @@ public class RestoreConfig {
                 backupProfileDirectory = new File(pathToBackupConfigurationDirectory.toString());
 
                 if (!originalProfileDirectory.exists()) {
-                    logger.warn("Profile " + profileName + " does NOT exist. Path: " + originalProfileDirectory + " Profile cannot be restored.");
+                    logger.debug("Profile " + profileName + " does NOT exist. Path: " + originalProfileDirectory + " Profile cannot be restored.");
                     continue;
                 }
                 if (!backupProfileDirectory.exists()) {
