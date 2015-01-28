@@ -9,6 +9,9 @@ import javax.jms.Session;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 /**
@@ -93,7 +96,22 @@ public final class JMSTools {
      */
     public static boolean isIpv6Address(String ipAddress) {
 
-        return IPAddressUtil.isIPv6LiteralAddress(ipAddress);
+//        return IPAddressUtil.isIPv6LiteralAddress(ipAddress);
+        InetAddress ia;
+        try {
+
+            ia = InetAddress.getByName(ipAddress);
+
+        } catch (UnknownHostException e) {
+
+            throw new RuntimeException("Could not determine whether its IPv4 or IPv6 address for:" + ipAddress);
+        }
+
+        if (ia instanceof Inet6Address) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public static void main(String[] args)  {
@@ -101,10 +119,12 @@ public final class JMSTools {
         String isIpv6Address2 = "::1";
         String isIpv6Address3 = "2620:52:0:105f:0023:dfff:26:2434";
         String isIpv6Address4 = "10.33.22.11";
+        String isIpv6Address5 = "localhost";
         System.out.println("isIpv6Address: " + isIpv6Address1 + ":" + isIpv6Address(isIpv6Address1));
         System.out.println("isIpv6Address: " + isIpv6Address2 + ":" + isIpv6Address(isIpv6Address2));
         System.out.println("isIpv6Address: " + isIpv6Address3 + ":" + isIpv6Address(isIpv6Address3));
         System.out.println("isIpv6Address: " + isIpv6Address4 + ":" + isIpv6Address(isIpv6Address4));
+        System.out.println("isIpv6Address: " + isIpv6Address5 + ":" + isIpv6Address(isIpv6Address5));
     }
 
 }
