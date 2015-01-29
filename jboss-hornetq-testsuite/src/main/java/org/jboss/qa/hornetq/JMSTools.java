@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import sun.net.util.IPAddressUtil;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
