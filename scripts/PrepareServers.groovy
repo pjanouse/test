@@ -1,3 +1,5 @@
+import groovy.xml.XmlUtil
+
 // TODO patch version should be checked when eap_version is not specified
 // TODO add patched_eap_zip_url property - will be checked if eapZipUrl is not specified
 /**
@@ -537,7 +539,9 @@ public class PrepareServers {
 
     private static void cloneProfiles(Node profiles, Node originalProfile) {
         for (i in 1..4) {
-            def newProfile = originalProfile.clone()
+            // clone on Node is only in Groovy 2+
+            // def newProfile = originalProfile.clone()
+            def newProfile = new XmlParser().parseText(XmlUtil.serialize(originalProfile))
             newProfile.@name = "full-ha-${i}"
             profiles.append(newProfile)
         }
@@ -547,7 +551,9 @@ public class PrepareServers {
     private static void cloneSocketBindings(Node sockets) {
         def originalSockets = sockets.'socket-binding-group'.find{ it.@name == 'full-ha-sockets' }
         for (i in 1..4) {
-            def newSockets = originalSockets.clone()
+            // clone on Node is only in Groovy 2+
+            // def newSockets = originalSockets.clone()
+            def newSockets = new XmlParser().parseText(XmlUtil.serialize(originalSockets))
             newSockets.@name = "full-ha-sockets-${i}"
             sockets.append(newSockets)
         }
