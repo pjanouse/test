@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.security;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -281,8 +282,15 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations = this.getJMSOperations(CONTAINER1);
         long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
         Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
+        stopServer(CONTAINER1);
     }
 
+    @After
+    public void stopServerIfAlive()    {
+        if (checkThatServerIsReallyUp(getHostname(CONTAINER1), getPort(CONTAINER1))) {
+            controller.stop(CONTAINER1);
+        }
+    }
 
     public void prepareServer() throws Exception {
 
