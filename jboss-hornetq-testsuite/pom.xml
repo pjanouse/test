@@ -39,7 +39,7 @@
         <xalan.version>2.7.0</xalan.version>
         <httpclient.version>4.1.3</httpclient.version>
         <surefire-version>2.16</surefire-version>
-        <hornetq.surefire.jvm.options>-Xmx2G -Xms2G</hornetq.surefire.jvm.options>
+        <hornetq.surefire.jvm.options>-Xmx2G -Xms2G -javaagent:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar:${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar</hornetq.surefire.jvm.options>
     </properties>
 
     <build>
@@ -101,7 +101,7 @@
                         <MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>
                         <MANAGEMENT_PORT_4>13999</MANAGEMENT_PORT_4>
                     </systemPropertyVariables>
-                    <argLine>${hornetq.surefire.jvm.options} -javaagent:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591 -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar:${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar</argLine>
+                    <argLine>${hornetq.surefire.jvm.options}</argLine>
                 </configuration>
             </plugin>
             <plugin> <!-- copy security extension for eap 6 to target dir - used in SslAuthenticationTestCase -->
