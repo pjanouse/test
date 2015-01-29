@@ -231,11 +231,11 @@
             </exclusions>
         </dependency>
 
-        <!--<dependency>-->   <!-- candidate for removal 27.1.2015 -->
-            <!--<groupId>org.jboss.security</groupId>-->
-            <!--<artifactId>jbosssx</artifactId>-->
-            <!--<version>2.1.0.20091223</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.jboss.security</groupId>
+            <artifactId>jbosssx</artifactId>
+            <version>2.1.0.20091223</version>
+        </dependency>
 
         <dependency>
             <groupId>eap</groupId>
@@ -276,11 +276,11 @@
             </exclusions>
         </dependency>
 
-        <!--<dependency>-->    <!-- candidate for removal 27.1.2015 -->
-            <!--<groupId>org.jboss</groupId>-->
-            <!--<artifactId>jboss-dmr</artifactId>-->
-            <!--<version>1.1.1.Final</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jboss-dmr</artifactId>
+            <version>1.1.1.Final</version>
+        </dependency>
 
         <dependency>
             <groupId>org.fusesource.stompjms</groupId>
