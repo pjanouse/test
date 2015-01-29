@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
+import java.lang.IllegalStateException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.util.ArrayList;
@@ -213,7 +214,7 @@ public class ProducerTransAck extends Client {
                 logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 0) {
+                if (numberOfRetries > 2) {
                     throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
                             + " Client will terminate.", ex);
                 }
@@ -297,15 +298,14 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 200000);
-        MessageBuilder builder = new TextMessageBuilder(10);
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP6_CONTAINER.toString(), "127.0.0.1", 4447, "jms/queue/testQueue0", 2000);
+        MessageBuilder builder = new TextMessageBuilder(200 * 1024);
         producer.setMessageBuilder(builder);
         producer.setTimeout(0);
-        producer.setCommitAfter(7);
+        producer.setCommitAfter(10);
         producer.start();
         producer.join();
         System.out.println("Number of sent messages: " + producer.getListOfSentMessages().size());
-
 
     }
 }
