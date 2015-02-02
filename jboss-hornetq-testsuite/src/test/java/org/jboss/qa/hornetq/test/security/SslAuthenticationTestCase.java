@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.junit.Assume;
 
 import javax.jms.*;
 import javax.naming.Context;
@@ -373,6 +374,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @CleanUpBeforeTest
     public void testTwoWaySslOverJmsWithPkcs11() throws Exception {
 
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vendor").contains("Sun") || System.getProperty("java.vendor").contains("Oracle"));
+
         prepareSeverWithPkcs11(CONTAINER1);
 
         this.controller.start(CONTAINER1);
@@ -416,6 +419,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testTwoWaySslOverJmsWithPkcs11CfCreatedByClient() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vendor").contains("Sun") || System.getProperty("java.vendor").contains("Oracle"));
 
         prepareSeverWithPkcs11(CONTAINER1);
 
