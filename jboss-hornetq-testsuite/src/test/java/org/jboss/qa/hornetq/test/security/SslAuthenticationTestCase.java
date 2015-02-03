@@ -374,7 +374,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @CleanUpBeforeTest
     public void testTwoWaySslOverJmsWithPkcs11() throws Exception {
 
-        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vendor").contains("Sun") || System.getProperty("java.vendor").contains("Oracle"));
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
         prepareSeverWithPkcs11(CONTAINER1);
 
@@ -420,7 +420,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @CleanUpBeforeTest
     public void testTwoWaySslOverJmsWithPkcs11CfCreatedByClient() throws Exception {
 
-        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vendor").contains("Sun") || System.getProperty("java.vendor").contains("Oracle"));
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
         prepareSeverWithPkcs11(CONTAINER1);
 
