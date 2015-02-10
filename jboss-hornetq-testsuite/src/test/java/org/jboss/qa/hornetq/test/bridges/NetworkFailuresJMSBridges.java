@@ -2,8 +2,14 @@ package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
@@ -13,9 +19,81 @@ import java.util.Map;
  * @author Miroslav Novak (mnovak@redhat.com)
  */
 @RunWith(Arquillian.class)
-public class NetworkFailuresJMSBridges extends NetworkFailuresHornetQCoreBridges {
+public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
     private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridges.class);
+
+
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected)
+            throws Exception {
+
+        prepareServers(reconnectAttempts);
+
+        startProxies();
+
+        controller.start(CONTAINER2); // B1
+        controller.start(CONTAINER1); // A1
+
+
+        Thread.sleep(5000);
+        // message verifier which detects duplicated or lost messages
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+
+        // A1 producer
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer1.setMessageVerifier(messageVerifier);
+        if (messageBuilder != null) {
+            messageBuilder.setAddDuplicatedHeader(true);
+            producer1.setMessageBuilder(messageBuilder);
+        }
+        // B1 consumer
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(messageVerifier);
+
+        log.info("Start producer and receiver.");
+        producer1.start();
+        receiver1.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(15 * 1000);
+
+        executeNetworkFails(timeBetweenFails, numberOfFails);
+
+        Thread.sleep(5 * 1000);
+
+        producer1.stopSending();
+        producer1.join();
+        receiver1.setReceiveTimeOut(120000);
+        receiver1.join();
+        stopServer(CONTAINER2);
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        // Just prints lost or duplicated messages if there are any. This does not fail the test.
+        messageVerifier.verifyMessages();
+
+        if (staysDisconnected)  {
+            Assert.assertTrue("There must be more sent messages then received.",
+                    producer1.getListOfSentMessages().size() > receiver1.getCount());
+            stopServer(CONTAINER1);
+            controller.start(CONTAINER1);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
+            receiver2.start();
+            receiver2.join();
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(),
+                    receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+        } else {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        }
+
+        stopServer(CONTAINER1);
+
+
+    }
+
+
 
     /**
      * Prepare servers.

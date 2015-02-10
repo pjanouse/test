@@ -1,31 +1,22 @@
 package org.jboss.qa.hornetq.test.bridges;
 
-import org.junit.Assert;
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.MulticastProxy;
-import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.rmi.RemoteException;
 import java.util.Random;
 
 /**
@@ -56,239 +47,10 @@ import java.util.Random;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
-
-    // this is just maximum limit for producer - producer is stopped once Failure test scenario is complete
-    static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
-
-    // Logger
-    private static final Logger log = Logger.getLogger(NetworkFailuresHornetQCoreBridges.class);
-
-    protected String hornetqInQueueName = "InQueue";
-    protected String relativeJndiInQueueName = "queue/InQueue";
-
-    private String broadcastGroupAddressClusterA = "233.1.2.1";
-    private int broadcastGroupPortClusterA = 9876;
-
-    private String broadcastGroupAddressClusterB = "233.1.2.2";
-    private int broadcastGroupPortClusterB = 9876;
-
-    private String discoveryGroupAddressClusterA = "233.1.2.3";
-    private int discoveryGroupPortServerClusterA = 9876;
-
-    private String discoveryGroupAddressClusterB = "233.1.2.4";
-    private int discoveryGroupPortServerClusterB = 9876;
-
-    protected int proxy12port = 43812;
-    protected int proxy21port = 43821;
-
-    ControllableProxy proxy1;
-    ControllableProxy proxy2;
-    MulticastProxy mp12;
-    MulticastProxy mp21;
-
-    /**
-     * Stops all servers
-     */
-    @Before
-    public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
-        try {
-            if (proxy1 != null) proxy1.stop();
-        } catch (Exception ex)  {
-            log.error("Proxy1 cannot be stopped: ", ex);
-        }
-        try {
-            if (proxy2 != null) proxy2.stop();
-        } catch (Exception ex)  {
-            log.error("Proxy2 cannot be stopped: ", ex);
-        }
-            if (mp12 != null) mp12.setStop(true);
-            if (mp21 != null) mp21.setStop(true);
-
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureMixMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testNetworkFailureSmallMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureLargeMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureMixMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 1, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureSmallMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 1, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testNetworkFailureLargeMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 1, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureMixMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureSmallMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureLargeMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureMixMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureSmallMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest @RestoreConfigBeforeTest
-    public void testShortNetworkFailureLargeMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
-    }
+public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbstract{
 
 
-    /**
-     * Implementation of the basic test scenario: 1. Start cluster A and B 2.
-     * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
-     * it's random 5. Stop producers 6. Evaluate results
-     *
-     * @param messageBuilder   instance of the message builder
-     * @param timeBetweenFails time between fails
-     */
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder) throws Exception {
-        testNetworkFailure(timeBetweenFails, messageBuilder, -1, 2);
-    }
-
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails) throws Exception {
-        testNetworkFailure(timeBetweenFails, messageBuilder, reconnectAttempts, numberOfFails, true);
-    }
-
-    /**
-     * Implementation of the basic test scenario: 1. Start cluster A and B 2.
-     * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
-     * it's random 5. Stop producers 6. Evaluate results
-     */
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected)
-                throws Exception {
-
-        prepareServers(reconnectAttempts);
-
-        startProxies();
-
-        controller.start(CONTAINER2); // B1
-        controller.start(CONTAINER1); // A1
-
-
-        Thread.sleep(5000);
-        // message verifier which detects duplicated or lost messages
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-
-        // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageVerifier(messageVerifier);
-        if (messageBuilder != null) {
-            messageBuilder.setAddDuplicatedHeader(true);
-            producer1.setMessageBuilder(messageBuilder);
-        }
-        // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
-        receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
-
-        log.info("Start producer and receiver.");
-        producer1.start();
-        receiver1.start();
-
-        // Wait to send and receive some messages
-        Thread.sleep(15 * 1000);
-
-        executeNetworkFails(timeBetweenFails, numberOfFails);
-
-        Thread.sleep(5 * 1000);
-
-        producer1.stopSending();
-        producer1.join();
-        receiver1.setReceiveTimeOut(120000);
-        receiver1.join();
-
-        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
-        // Just prints lost or duplicated messages if there are any. This does not fail the test.
-        messageVerifier.verifyMessages();
-        stopServer(CONTAINER2);
-        if (staysDisconnected)  {
-            Assert.assertTrue("There must be more sent messages then received.",
-                    producer1.getListOfSentMessages().size() > receiver1.getCount());
-            stopServer(CONTAINER1);
-            controller.start(CONTAINER1);
-            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
-            receiver2.start();
-            receiver2.join();
-            Assert.assertEquals("There is different number of sent and received messages.",
-            producer1.getListOfSentMessages().size(),
-            receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
-        } else {
-            Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-        }
-
-        stopServer(CONTAINER1);
-
-
-    }
-
-
-     ///////////////////// NETWORF FAILURE WITH MESSAGE GROUP TESTS //////////////////////
+    ///////////////////// NETWORF FAILURE WITH MESSAGE GROUP TESTS //////////////////////
 
     // TODO tests are ignored until this is fixed: https://bugzilla.redhat.com/show_bug.cgi?id=1168937
     @Test
@@ -452,6 +214,86 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
         testNetworkFailureWithMessageGrouping(timeBetweenFails, messageBuilder, reconnectAttempts, numberOfFails, true);
     }
 
+
+    /**
+     * Implementation of the basic test scenario: 1. Start cluster A and B 2.
+     * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
+     * it's random 5. Stop producers 6. Evaluate results
+     */
+    @Override
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected)
+            throws Exception {
+
+        prepareServers(reconnectAttempts);
+
+        startProxies();
+        controller.start(CONTAINER2); // B1
+        controller.start(CONTAINER1); // A1
+
+
+        Thread.sleep(5000);
+        // message verifier which detects duplicated or lost messages
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+
+        // A1 producer
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer1.setMessageVerifier(messageVerifier);
+        if (messageBuilder != null) {
+            messageBuilder.setAddDuplicatedHeader(true);
+            producer1.setMessageBuilder(messageBuilder);
+        }
+        // B1 consumer
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(messageVerifier);
+
+        log.info("Start producer and receiver.");
+        producer1.start();
+        receiver1.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(15 * 1000);
+
+        executeNetworkFails(timeBetweenFails, numberOfFails);
+
+        producer1.stopSending();
+        producer1.join();
+        receiver1.setReceiveTimeOut(120000);
+        receiver1.join();
+
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        // Just prints lost or duplicated messages if there are any. This does not fail the test.
+        messageVerifier.verifyMessages();
+
+        Thread.sleep(5*60000);
+        if (staysDisconnected)  {
+            Assert.assertTrue("There must be more sent messages then received.",
+                    producer1.getListOfSentMessages().size() > receiver1.getCount());
+            stopServer(CONTAINER1);
+            controller.start(CONTAINER1);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
+            receiver2.start();
+            receiver2.join();
+            stopServer(CONTAINER1);
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(),
+                    receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+        } else {
+            Assert.assertEquals("There is different number of sent and received messages.",
+                    producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        }
+        stopServer(CONTAINER2);
+        stopServer(CONTAINER1);
+
+
+
+    }
+
+
+
+
     /**
      * Implementation of the basic test scenario:
      * 1. Start cluster - nodes A and B
@@ -560,121 +402,8 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
 
     }
 
-    private int getNumberOfNodesInCluster(String container) {
-        boolean isContainerStarted = checkThatServerIsReallyUp(getHostname(container), getHornetqPort(container));
-
-        int numberOfNodesInCluster = -1;
-        if (isContainerStarted) {
-            JMSOperations jmsAdminOperations = this.getJMSOperations(container);
-            numberOfNodesInCluster = jmsAdminOperations.getNumberOfNodesInCluster();
-            jmsAdminOperations.close();
-
-        }
-        return numberOfNodesInCluster;
-    }
-
-    /**
-     * Executes network failures.
-     * <p/>
-     * 1 = 5 short network failures (10s gap)
-     * 2 = 5 network failures (30s gap)
-     * 3 = 5 network failures (100s gap)
-     * 4 = 3 network failures (300s gap)
-     *
-     * @param timeBetweenFails time between subsequent kills (in milliseconds)
-     */
-    protected void executeNetworkFails(long timeBetweenFails, int numberOfFails)
-            throws Exception {
-
-        for (int i = 0; i < numberOfFails; i++) {
 
 
-
-            stopProxies();
-
-            Thread.sleep(timeBetweenFails);
-
-            startProxies();
-
-            Thread.sleep(timeBetweenFails);
-
-        }
-    }
-
-    protected void startProxies() throws Exception {
-
-        log.info("Start all proxies.");
-        if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), proxy12port);
-            proxy1.start();
-        }
-        if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), proxy21port);
-            proxy2.start();
-        }
-
-        if (mp12 == null){
-            mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-            mp12.setIpAddressOfInterface(getHostname(CONTAINER1));
-            mp12.start();
-
-        }
-        if (mp21 == null){
-            mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
-                discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-            mp21.setIpAddressOfInterface(getHostname(CONTAINER2));
-            mp21.start();
-        }
-        log.info("All proxies started.");
-
-    }
-
-    protected void stopProxies() throws Exception {
-        log.info("Stop all proxies.");
-        if (proxy1 != null) {
-            proxy1.stop();
-            proxy1 = null;
-        }
-        if (proxy2 != null) {
-            proxy2.stop();
-            proxy2 = null;
-        }
-
-        if (mp12 != null)   {
-            mp12.setStop(true);
-            mp12 = null;
-        }
-        if (mp21 != null)   {
-            mp21.setStop(true);
-            mp21 = null;
-        }
-        log.info("All proxies stopped.");
-    }
-
-    @After
-    public void after() {
-        if (proxy1 != null) {
-            try {
-                proxy1.stop();
-            } catch (RemoteException e) {
-                log.error("Proxy could not be stopped.", e);
-            }
-        }
-        if (proxy2 != null) {
-            try {
-                proxy2.stop();
-            } catch (RemoteException e) {
-                log.error("Proxy could not be stopped.", e);
-            }
-        }
-        if (mp21 != null) {
-            mp21.setStop(true);
-        }
-        if (mp12 != null) {
-            mp12.setStop(true);
-        }
-    }
 
     /**
      * Prepares servers.
@@ -682,6 +411,7 @@ public class NetworkFailuresHornetQCoreBridges extends HornetQTestCase {
      * Container1,3 - source servers in cluster A. Container2,4 - source servers
      * in cluster B.
      */
+    @Override
     public void prepareServers(int reconnectAttempts) {
 
         prepareClusterServer(CONTAINER1, getHostname(CONTAINER1), proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
