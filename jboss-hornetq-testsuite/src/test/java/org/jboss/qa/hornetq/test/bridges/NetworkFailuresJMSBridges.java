@@ -66,12 +66,12 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         producer1.join();
         receiver1.setReceiveTimeOut(120000);
         receiver1.join();
-
+        stopServer(CONTAINER2);
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
-        stopServer(CONTAINER2);
+
         if (staysDisconnected)  {
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
