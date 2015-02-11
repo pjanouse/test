@@ -64,19 +64,17 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         producer1.stopSending();
         producer1.join();
-        receiver1.setReceiveTimeOut(120000);
-        receiver1.join();
-        stopServer(CONTAINER2);
-        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
 
         if (staysDisconnected)  {
-            Assert.assertTrue("There must be more sent messages then received.",
-                    producer1.getListOfSentMessages().size() > receiver1.getCount());
-            stopServer(CONTAINER1);
-            controller.start(CONTAINER1);
+            stopProxies();
+            log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+            log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+            receiver1.join();
+            messageVerifier.verifyMessages();
+
+            Assert.assertTrue("There must be more sent messages then received.", producer1.getListOfSentMessages().size() > receiver1.getCount());
             ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
             receiver2.join();
@@ -84,10 +82,17 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
                     producer1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
+            log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+            log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+            receiver1.setReceiveTimeOut(120000);
+            receiver1.join();
+            messageVerifier.verifyMessages();
+
+
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
-
+        stopServer(CONTAINER2);
         stopServer(CONTAINER1);
 
 
