@@ -65,15 +65,15 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         producer1.stopSending();
         producer1.join();
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
-        messageVerifier.verifyMessages();
+      
 
         if (staysDisconnected)  {
             stopProxies();
+            receiver1.join();
+
             log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
             log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
-            receiver1.join();
             messageVerifier.verifyMessages();
-
             Assert.assertTrue("There must be more sent messages then received.", producer1.getListOfSentMessages().size() > receiver1.getCount());
             ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
@@ -82,10 +82,10 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
                     producer1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
-            log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-            log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
             receiver1.setReceiveTimeOut(120000);
             receiver1.join();
+            log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+            log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
             messageVerifier.verifyMessages();
 
 
