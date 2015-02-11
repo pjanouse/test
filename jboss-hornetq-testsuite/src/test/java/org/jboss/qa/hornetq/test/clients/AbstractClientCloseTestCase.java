@@ -155,7 +155,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
         // lower the paging threshold to force server into paging mode
         ops.removeAddressSettings("#");
-        ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 5120);
+        ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 8192);
         ops.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", 0);
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
