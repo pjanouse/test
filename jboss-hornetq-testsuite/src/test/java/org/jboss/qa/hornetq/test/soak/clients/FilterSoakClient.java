@@ -28,7 +28,7 @@ public class FilterSoakClient extends Client {
 
     private static final Logger LOG = Logger.getLogger(FilterSoakClient.class);
 
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(2);
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
@@ -82,12 +82,15 @@ public class FilterSoakClient extends Client {
                     this.numberOfMessages);
             Future<Integer> sentMessagesFuture = this.threadPool.submit(this.producerThread);
 
-            ConsumerThread consumerThread = new ConsumerThread(connection, resultQueue);
+            ConsumerThread consumerThread = new ConsumerThread(connection, resultQueue, "filterProperty = 0");
+            ConsumerThread consumerThread1 = new ConsumerThread(connection, resultQueue, "filterProperty = 1");
             Future<Integer> receivedMessagesFuture = this.threadPool.submit(consumerThread);
+            Future<Integer> receivedMessagesFuture1 = this.threadPool.submit(consumerThread1);
 
             // wait for execution finish
             this.numberOfSentMessages = sentMessagesFuture.get().intValue();
-            this.numberOfReceivedMessages = receivedMessagesFuture.get().intValue();
+            this.numberOfReceivedMessages = receivedMessagesFuture.get().intValue() + receivedMessagesFuture1.get().intValue();
+
         } catch (Exception ex) {
             LOG.error("Error while running the clients", ex);
         } finally {
@@ -212,10 +215,13 @@ public class FilterSoakClient extends Client {
 
         private int counter = 0;
 
+        private String selector = null;
 
-        public ConsumerThread(final Connection connection, final Queue queue) {
+
+        public ConsumerThread(final Connection connection, final Queue queue, String selector) {
             this.connection = connection;
             this.queue = queue;
+            this.selector = selector;
         }
 
 
@@ -224,7 +230,12 @@ public class FilterSoakClient extends Client {
             Session session = null;
             try {
                 session = this.connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-                MessageConsumer consumer = session.createConsumer(this.queue, "filterProperty = 0");
+                MessageConsumer consumer = null;
+                if (selector != null) {
+                    consumer = session.createConsumer(this.queue, selector);
+                } else {
+                    consumer = session.createConsumer(this.queue);
+                }
                 Message msg;
 
                 while ((msg = ClientUtils.receiveMessage(consumer, this.counter + 1)) != null) {
