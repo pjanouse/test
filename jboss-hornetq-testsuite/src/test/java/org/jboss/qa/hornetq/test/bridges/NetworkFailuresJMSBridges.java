@@ -74,7 +74,16 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
             log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
             log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
             messageVerifier.verifyMessages();
-            Assert.assertTrue("There must be more sent messages then received.", producer1.getListOfSentMessages().size() > receiver1.getCount());
+            JMSOperations adminOperations = getJMSOperations(CONTAINER1);
+            int preparedTransactions= adminOperations.getNumberOfPreparedTransaction();
+            adminOperations.close();
+            if(preparedTransactions>0){
+                log.info("There are unfinished transactions in journal, waiting for rollback");
+                Thread.sleep(7*60000);
+            }
+
+
+
             ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
             receiver2.join();

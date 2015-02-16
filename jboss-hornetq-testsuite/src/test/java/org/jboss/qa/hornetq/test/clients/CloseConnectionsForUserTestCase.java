@@ -1,9 +1,6 @@
 package org.jboss.qa.hornetq.test.clients;
 
 
-import java.lang.reflect.Method;
-import javax.management.MBeanServerConnection;
-import javax.management.remote.JMXConnector;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -20,6 +17,10 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+import java.lang.reflect.Method;
 
 
 @RunWith(Arquillian.class)
