@@ -230,7 +230,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         assertEquals("Number of sent and received messages in temporary queues module should be same",
                 tempQueuesClients.getNumberOfSentMessages(), tempQueuesClients.getNumberOfReceivedMessages());
 
-        int filterModuleExpected = filterClients.getNumberOfSentMessages() / 2;
+        int filterModuleExpected = filterClients.getNumberOfSentMessages();
         assertEquals("Number of messages received in filtering module should be half of sent messages",
                 filterModuleExpected, filterClients.getNumberOfReceivedMessages());
 
