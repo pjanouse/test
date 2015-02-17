@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -153,5 +154,23 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
                     ":close-connections-for-user", "user=" + username));
             return result.getResponse().asBoolean();
         }
+    }
+
+
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "who is calling interrupt",
+            targetClass = "java.lang.Thread",
+            targetMethod = "interrupt",
+            isAfter = false,
+            //targetLocation = "WRITE $channel",
+            targetLocation = "ENTRY",
+            action = "traceStack(\"called interrupt on thread \" + $0 + \" from thread \" + Thread.currentThread(), 50);")
+    public void testClientDisconnectionWithByteman() throws Exception {
+        clientForcedDisconnectTest(new JmxCloser("guest"));
+
     }
 }
