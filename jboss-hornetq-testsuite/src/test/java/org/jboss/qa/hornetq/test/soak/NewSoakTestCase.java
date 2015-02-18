@@ -136,14 +136,14 @@ public class NewSoakTestCase extends HornetQTestCase {
 
         this.restartAllServers();
 
-        // start measuring of
-        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
-
-        jmsServerMeasurement.startMeasuring();
-
-        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER2), "mdb-server");
-
-        mdbServerMeasurement.startMeasuring();
+//        // start measuring of
+//        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
+//
+//        jmsServerMeasurement.startMeasuring();
+//
+//        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER2), "mdb-server");
+//
+//        mdbServerMeasurement.startMeasuring();
 
 
         this.deployer.deploy(CONTAINER1_DEPLOYMENT);
@@ -205,9 +205,9 @@ public class NewSoakTestCase extends HornetQTestCase {
             receivedMessagesCount += consumers[i].getCount();
         }
 
-        // stop measuring
-        jmsServerMeasurement.stopMeasuringAndGenerateMeasuring();
-        mdbServerMeasurement.stopMeasuringAndGenerateMeasuring();
+//        // stop measuring
+//        jmsServerMeasurement.stopMeasuringAndGenerateMeasuring();
+//        mdbServerMeasurement.stopMeasuringAndGenerateMeasuring();
 
         // evaluate
         LOG.info("Soak test results:");
