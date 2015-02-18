@@ -1,9 +1,6 @@
 package org.jboss.qa.hornetq.test.clients;
 
 
-import java.lang.reflect.Method;
-import javax.management.MBeanServerConnection;
-import javax.management.remote.JMXConnector;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -13,6 +10,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -20,6 +18,10 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+import java.lang.reflect.Method;
 
 
 @RunWith(Arquillian.class)
@@ -152,5 +154,23 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
                     ":close-connections-for-user", "user=" + username));
             return result.getResponse().asBoolean();
         }
+    }
+
+
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @BMRule(name = "who is calling interrupt",
+            targetClass = "java.lang.Thread",
+            targetMethod = "interrupt",
+            isAfter = false,
+            //targetLocation = "WRITE $channel",
+            targetLocation = "ENTRY",
+            action = "traceStack(\"called interrupt on thread \" + $0 + \" from thread \" + Thread.currentThread(), 50);")
+    public void testClientDisconnectionWithByteman() throws Exception {
+        clientForcedDisconnectTest(new JmxCloser("guest"));
+
     }
 }

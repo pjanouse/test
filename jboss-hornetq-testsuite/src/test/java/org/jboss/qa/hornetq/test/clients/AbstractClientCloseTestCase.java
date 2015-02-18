@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 
 import javax.jms.*;
 import javax.management.MBeanServerConnection;
@@ -97,6 +98,8 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             Thread.sleep(20000);
 
             LOG.info("Force closing the clients");
+            RuleInstaller.installRule(this.getClass());
+
             boolean closeOperationSucceeded = closer.closeClients();
             clients.ensureClientThreadsClosed();
 
