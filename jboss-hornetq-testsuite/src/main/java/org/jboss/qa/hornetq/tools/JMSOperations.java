@@ -1455,4 +1455,6 @@ public interface JMSOperations {
     void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions);
 
     void overrideInVMSecurity(boolean b);
+
+    void removePooledConnectionFactory(String pooledConnectionFactoryName);
 }

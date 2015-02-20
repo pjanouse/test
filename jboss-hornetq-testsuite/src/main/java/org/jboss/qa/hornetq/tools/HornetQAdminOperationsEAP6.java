@@ -427,6 +427,23 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void removePooledConnectionFactory(String pooledConnectionFactoryName) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
+
+        System.out.println(model.toString());
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions){
         rewriteLoginModule("other", "classic", loginModule, moduleOptions);
