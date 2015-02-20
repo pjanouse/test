@@ -621,6 +621,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
         String messagingGroupSocketBindingForConnector = "messaging";
+        String pooledConnectionFactoryName = "hornetq-ra";
 
 
         controller.start(containerName);
@@ -673,6 +674,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+
+        jmsAdminOperations.removePooledConnectionFactory(pooledConnectionFactoryName);
 
         jmsAdminOperations.setSecurityEnabled(true);
 
