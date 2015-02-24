@@ -759,6 +759,9 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
         jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
 
+        jmsAdminOperations1.close();
+        jmsAdminOperations2.close();
+
         UsersSettings.forEapServer(getJbossHome(CONTAINER1)).withUser("user", "user.1234", "user").create();
         UsersSettings.forEapServer(getJbossHome(CONTAINER2)).withUser("user", "user.1234", "user").create();
 
@@ -1317,16 +1320,17 @@ public class ClusterTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER2);
         controller.start(CONTAINER1);
-
+        Thread.sleep(5000);
         // try to read them from second node
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 30000, 100, 10);
         receiver.start();
 
+
         log.info("Send messages to first server.");
-        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
         log.info("Send messages to first server - done.");
         log.info("Send messages to second server.");
-        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
         log.info("Send messages to second server - done.");
 
         // kill both of the servers
@@ -1335,7 +1339,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         // start 1st server
         controller.start(CONTAINER1);
-
+        Thread.sleep(5000);
         // send messages to 1st node
         sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
         sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
