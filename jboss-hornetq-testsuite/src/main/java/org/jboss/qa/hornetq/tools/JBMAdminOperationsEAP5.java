@@ -2034,5 +2034,10 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void removePooledConnectionFactory(String pooledConnectionFactoryName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
 }
