@@ -49,7 +49,7 @@ public class CliTestBase extends HornetQTestCase {
         CLI.Result result = cli.cmd(address + ":read-resource-description()");
 
         // grep it for attribute and access-typ
-        String resultAsString = result.getResponse().asString();
+        String resultAsString = result.getResponse().get("result").get("attributes").asString();
         if (resultAsString.contains(attribute)) {
             // get index where attribute starts
             resultAsString = resultAsString.substring(resultAsString.indexOf(attribute));
