@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
-import java.util.HashMap;
 
 /**
  * Created by okalman on 9/2/14.
@@ -39,6 +38,7 @@ public class LocalMdbFromQueueToQueueWithSelectorAndSecurity implements MessageD
     public void onMessage(Message message) {
         QueueConnection queueConnection=null;
         try{
+            log.log(Level.TRACE, message.toString());
             queueConnection = connectionFactory.createQueueConnection(username,password);
             QueueSession session = queueConnection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
             QueueSender queueSender = session.createSender(queue);

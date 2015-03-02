@@ -73,7 +73,7 @@ public class ClusterTestCase extends HornetQTestCase {
     private static final String MDB_ON_TEMPTOPIC1 = "mdbOnTempTopic1";
     private static final String MDB_ON_TEMPTOPIC2 = "mdbOnTempTopic2";
 
-    private static final String MDB_ON_QUEUE1_TEMP_QUEUE = "mdbQueue1witTempQueue";
+    private static final String MDB_ON_QUEUE1_TEMP_QUEUE = "mdbQueue1withTempQueue";
 
     private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
 
@@ -782,6 +782,7 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
+        GroupMessageVerifier verifier = new GroupMessageVerifier();
 
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -793,8 +794,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
+        receiver1.setMessageVerifier(verifier);
         ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
-
+        receiver2.setMessageVerifier(verifier);
 
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
         receiver1.start();
@@ -810,7 +812,9 @@ public class ClusterTestCase extends HornetQTestCase {
         producerRedG2.join();
         receiver1.join();
         receiver2.join();
-
+        verifier.addSendMessages(producerRedG1.getListOfSentMessages());
+        verifier.addSendMessages(producerRedG2.getListOfSentMessages());
+        verifier.verifyMessages();
         Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
         ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
@@ -1993,7 +1997,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_TEMP_QUEUE)
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createDeploymentMdbOnQueue1Temp() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1witTempQueue.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1withTempQueue.jar");
         mdbJar.addClass(LocalMdbFromQueueToTempQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
