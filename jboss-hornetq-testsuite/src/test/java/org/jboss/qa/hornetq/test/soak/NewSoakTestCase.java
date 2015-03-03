@@ -18,7 +18,7 @@ import org.jboss.qa.hornetq.test.soak.clients.FilterSoakClient;
 import org.jboss.qa.hornetq.test.soak.clients.TemporaryQueuesSoakClient;
 import org.jboss.qa.hornetq.test.soak.modules.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.MemoryCpuMeasuring;
+import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -136,15 +136,14 @@ public class NewSoakTestCase extends HornetQTestCase {
 
         this.restartAllServers();
 
-//        // start measuring of
-//        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
-//
-//        jmsServerMeasurement.startMeasuring();
-//
-//        MemoryCpuMeasuring mdbServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER2), "mdb-server");
-//
-//        mdbServerMeasurement.startMeasuring();
+//        // start memory measuring of servers
+        File jmsServerCsv = new File("jms-server-memory.csv");
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER1), String.valueOf(getPort(CONTAINER1)), jmsServerCsv);
+        jmsServerMeasurement.start();
 
+        File mdbServerCsv = new File("mdb-server-memory.csv");
+        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER2), String.valueOf(getPort(CONTAINER2)), mdbServerCsv);
+        mdbServerMeasurement.start();
 
         this.deployer.deploy(CONTAINER1_DEPLOYMENT);
         this.deployer.deploy(CONTAINER2_DEPLOYMENT);
@@ -206,8 +205,12 @@ public class NewSoakTestCase extends HornetQTestCase {
         }
 
 //        // stop measuring
-//        jmsServerMeasurement.stopMeasuringAndGenerateMeasuring();
-//        mdbServerMeasurement.stopMeasuringAndGenerateMeasuring();
+        jmsServerMeasurement.stopMeasuring();
+        mdbServerMeasurement.stopMeasuring();
+        jmsServerMeasurement.join();
+        mdbServerMeasurement.join();
+        jmsServerMeasurement.generatePng(jmsServerCsv);
+        mdbServerMeasurement.generatePng(mdbServerCsv);
 
         // evaluate
         LOG.info("Soak test results:");
