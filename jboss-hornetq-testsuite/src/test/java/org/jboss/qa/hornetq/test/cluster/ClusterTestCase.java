@@ -63,6 +63,7 @@ public class ClusterTestCase extends HornetQTestCase {
     private static final String MDB_ON_QUEUE1 = "mdbOnQueue1";
     private static final String MDB_ON_QUEUE2 = "mdbOnQueue2";
     private static final String MDB_ON_QUEUE1_SECURITY = "mdbOnQueue1Security";
+    private static final String MDB_ON_QUEUE1_SECURITY2 = "mdbOnQueue1Security2";
 
     private static final String MDB_ON_TEMPQUEUE1 = "mdbOnTempQueue1";
     private static final String MDB_ON_TEMPQUEUE2 = "mdbOnTempQueue2";
@@ -741,7 +742,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServers() throws Exception {
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGrouping() throws Exception {
         prepareServer(CONTAINER1, true);
         prepareServer(CONTAINER2, true);
         controller.start(CONTAINER1);
@@ -758,6 +759,9 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations2.setClusterUserPassword("password");
         jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
         jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
+        jmsAdminOperations1.addLoggerCategory("org.jboss","INFO");
+        jmsAdminOperations1.addLoggerCategory("org.jboss.qa.hornetq.apps.mdb","TRACE");
+        jmsAdminOperations1.seRootLoggingLevel("TRACE");
 
         jmsAdminOperations1.close();
         jmsAdminOperations2.close();
@@ -782,7 +786,10 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER1);
         controller.start(CONTAINER2);
 
-        GroupMessageVerifier verifier = new GroupMessageVerifier();
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
+
 
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -793,28 +800,35 @@ public class ClusterTestCase extends HornetQTestCase {
         producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
 
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiNameForMdb, 10000, 10, 10);
-        receiver1.setMessageVerifier(verifier);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiNameForMdb, 10000, 10, 10);
-        receiver2.setMessageVerifier(verifier);
 
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+
+
+
         receiver1.start();
         receiver2.start();
 
         producerBlueG1.start();
+        Thread.sleep(2000);
         producerRedG1.start();
         producerRedG2.start();
 
 
-        producerBlueG1.join();
+       // producerBlueG1.join();
         producerRedG1.join();
         producerRedG2.join();
         receiver1.join();
         receiver2.join();
-        verifier.addSendMessages(producerRedG1.getListOfSentMessages());
-        verifier.addSendMessages(producerRedG2.getListOfSentMessages());
-        verifier.verifyMessages();
+
+
+        jmsAdminOperations1 = getJMSOperations(CONTAINER1);
+        log.info("Number of clients on InQueue on server1: " + jmsAdminOperations1.getNumberOfConsumersOnQueue("InQueue"));
+        jmsAdminOperations2 = getJMSOperations(CONTAINER2);
+        log.info("Number of clients on InQueue server2: " + jmsAdminOperations2.getNumberOfConsumersOnQueue("InQueue"));
+
+        jmsAdminOperations1.close();
+        jmsAdminOperations2.close();
+
         Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
         ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
@@ -837,6 +851,7 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
 
+
         stopServer(CONTAINER1);
         stopServer(CONTAINER2);
     }
@@ -845,7 +860,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersToFail() throws Exception {
+    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGroupingToFail() throws Exception {
         prepareServer(CONTAINER1, true);
         prepareServer(CONTAINER2, true);
         controller.start(CONTAINER1);
@@ -1887,6 +1902,20 @@ public class ClusterTestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER1)
     public static JavaArchive createDeploymentMdbOnQueueWithSecurity() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security.jar");
+        mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        log.info(mdbJar.toString(true));
+//        File target = new File("/tmp/mdbOnQueue1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_SECURITY2)
+    @TargetsContainer(CONTAINER2)
+    public static JavaArchive createDeploymentMdbOnQueueWithSecurity2() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security2.jar");
         mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));

@@ -2039,5 +2039,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public int getNumberOfConsumersOnQueue(String queue) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return 0;
+    }
+
 
 }

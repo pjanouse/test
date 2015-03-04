@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
 
+import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
@@ -4710,6 +4711,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
 
         return result.get("result").asList().size();
+    }
+
+    public int getNumberOfConsumersOnQueue(String queue) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("list-consumers-as-json");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("jms-queue", queue);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+            String res=result.get("result").asString();
+            JSONArray array= new JSONArray(res);
+            return array.length();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+
     }
 
     @Override
