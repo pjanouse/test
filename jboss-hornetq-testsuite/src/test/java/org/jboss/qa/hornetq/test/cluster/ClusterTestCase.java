@@ -1309,16 +1309,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    /**
-     * This test will start two servers A and B in cluster.
-     * Start producer connected to A to queue and send some messages with message grouping id1.
-     * Start producer connected to B to queue and send some messages with message grouping id2.
-     * Start consumer on node B which consumes from queue
-     * Kill server with local message handler - A
-     * Start the server with local message handler
-     * Start producer connected to A to queue and send some messages with message grouping id1.
-     * Start producer connected to B to queue and send some messages with message grouping id2
-     */
+
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1340,17 +1331,26 @@ public class ClusterTestCase extends HornetQTestCase {
         controller.start(CONTAINER2);
         controller.start(CONTAINER1);
         Thread.sleep(5000);
-        // try to read them from second node
+        FinalTestMessageVerifier verifier = new TextMessageVerifier();
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), inQueueJndiNameForMdb, 30000, 100, 10);
+        receiver.setMessageVerifier(verifier);
         receiver.start();
 
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
-        log.info("Send messages to first server.");
-        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
-        log.info("Send messages to first server - done.");
-        log.info("Send messages to second server.");
-        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
-        log.info("Send messages to second server - done.");
+        ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
+
+        producerToInQueue1.start();
+        producerToInQueue2.start();
+
+
+        producerToInQueue1.join();
+        producerToInQueue2.join();
+
+
+
 
         // kill both of the servers
         killServer(CONTAINER1);
@@ -1359,11 +1359,29 @@ public class ClusterTestCase extends HornetQTestCase {
         // start 1st server
         controller.start(CONTAINER1);
         Thread.sleep(5000);
-        // send messages to 1st node
-        sendMessages(CONTAINER1, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
-        sendMessages(CONTAINER2, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id2"));
+
+
+        ProducerTransAck producerToInQueue3 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
+
+        ProducerTransAck producerToInQueue4 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2), getJNDIPort(CONTAINER2),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
+
+        producerToInQueue3.start();
+        producerToInQueue4.start();
+
+        producerToInQueue3.join();
+        producerToInQueue4.join();
 
         receiver.join();
+
+        verifier.addSendMessages(producerToInQueue1.getListOfSentMessages());
+        verifier.addSendMessages(producerToInQueue2.getListOfSentMessages());
+        verifier.addSendMessages(producerToInQueue3.getListOfSentMessages());
+        verifier.addSendMessages(producerToInQueue4.getListOfSentMessages());
+
+        verifier.verifyMessages();
+
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 4 * NUMBER_OF_MESSAGES_PER_PRODUCER
@@ -1621,7 +1639,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     private void sendMessages(String containerName, String queue, MessageBuilder messageBuilder) throws InterruptedException {
 
-        // send messages to 1st node
+
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(containerName), getJNDIPort(containerName),
                 queue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
