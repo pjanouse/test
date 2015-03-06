@@ -1043,10 +1043,12 @@ public class ClusterTestCase extends HornetQTestCase {
      * - restart remote 3
      * - chekc consumer whether it received all messages
      */
+    //TODO see this http://documentation-devel.engineering.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/6.4/html/Administration_and_Configuration_Guide/Clustered_Grouping.html
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void clusterTestWitMessageGroupingCrashRemoteWithNoConsumerLongRestart() throws Exception {
         clusterWitMessageGroupingCrashServerWithNoConsumer(CONTAINER4, 20000);
     }
@@ -1060,6 +1062,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * - restart local
      * - chekc consumer whether it received all messages
      */
+
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1354,7 +1357,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         // kill both of the servers
         killServer(CONTAINER1);
-        controller.kill(CONTAINER1);
+            controller.kill(CONTAINER1);
 
         // start 1st server
         controller.start(CONTAINER1);
