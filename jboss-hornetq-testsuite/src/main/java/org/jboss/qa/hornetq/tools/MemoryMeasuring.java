@@ -84,7 +84,8 @@ public class MemoryMeasuring extends Thread {
         try {
 
             writer = new PrintWriter(outCsvFile);
-            writer.println("Time, Young Gen, Tenured Gen, Perm Gen, Old Gen, Total");
+            //writer.println("Time, Young Gen, Tenured Gen, Perm Gen, Old Gen, Total"); // if you need to measure all
+            writer.println("Time, Total");
 
             while (!stop) {
                 performOneMemoryMeasurement();
@@ -153,15 +154,16 @@ public class MemoryMeasuring extends Thread {
         }
         Long survivorSpaceUsed = (Long) survivorSpace.get("used");
 
-        log.debug("Eden space: " + edenSpaceUsed + ", ");
-        log.debug("Old gen: " + oldGenUsed + ", ");
-        log.debug("Perm gen: " + permGenUsed + ", ");
-        log.debug("Survivor space: " + survivorSpaceUsed + ", ");
+//        log.debug("Eden space: " + edenSpaceUsed + ", ");
+//        log.debug("Old gen: " + oldGenUsed + ", ");
+//        log.debug("Perm gen: " + permGenUsed + ", ");
+//        log.debug("Survivor space: " + survivorSpaceUsed + ", ");
         Long total = edenSpaceUsed + oldGenUsed + permGenUsed + survivorSpaceUsed;
         log.debug("***************************************** Memory Measuring: " + total + " **************************");
         // Time, Young Gen, Tenured Gen, Perm Gen, Old Gen, Total
-        writer.print(System.currentTimeMillis() - startTime + ", " + edenSpaceUsed + ", "
-                + survivorSpaceUsed + ", " + permGenUsed + ", " + oldGenUsed + ", " + total + ",");
+//        writer.print(System.currentTimeMillis() - startTime + ", " + edenSpaceUsed + ", "
+//                + survivorSpaceUsed + ", " + permGenUsed + ", " + oldGenUsed + ", " + total + ",");
+        writer.print(System.currentTimeMillis() - startTime + ", " + total + ",");
         writer.println();
         writer.flush();
 

@@ -61,7 +61,7 @@ public class CSVDataSeriesReader {
         while (line != null) {
             // trim field delimiter if in the end of start of line
             line = trimFieldDelimiter(line);
-            System.out.println("Print line after trim: " + line);
+//            System.out.println("Print line after trim: " + line);
             if (lineIndex == 0) {  // first line contains column keys
                 columnKeys = extractColumnKeys(line);
                 for (String c : columnKeys) {
@@ -74,15 +74,15 @@ public class CSVDataSeriesReader {
             lineIndex++;
         }
 
-        int j = 0;
-        for (XYSeries xySeries : dataset) {
-            System.out.print("Values for column: " + columnKeys.get(j));
-            for (int i = 0; i < xySeries.getItemCount(); i++) {
-                System.out.println("x: " + xySeries.getDataItem(i).getXValue() + " y: " + xySeries.getDataItem(i).getYValue());
-            }
-            System.out.println();
-            j++;
-        }
+//        int j = 0;
+//        for (XYSeries xySeries : dataset) {
+//            System.out.print("Values for column: " + columnKeys.get(j));
+//            for (int i = 0; i < xySeries.getItemCount(); i++) {
+//                System.out.println("x: " + xySeries.getDataItem(i).getXValue() + " y: " + xySeries.getDataItem(i).getYValue());
+//            }
+//            System.out.println();
+//            j++;
+//        }
 
         return dataset;
 
@@ -112,9 +112,9 @@ public class CSVDataSeriesReader {
         while (str.hasMoreTokens()) {
             keys.add(str.nextToken());
         }
-        for (String s : keys) {
-            System.out.println("Key:" + s);
-        }
+//        for (String s : keys) {
+//            System.out.println("Key:" + s);
+//        }
         return keys;
     }
 
