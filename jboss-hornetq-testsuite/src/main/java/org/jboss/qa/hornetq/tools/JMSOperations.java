@@ -1457,4 +1457,8 @@ public interface JMSOperations {
     void overrideInVMSecurity(boolean b);
 
     void removePooledConnectionFactory(String pooledConnectionFactoryName);
+
+    int getNumberOfConsumersOnQueue(String queue);
+
+
 }

@@ -38,7 +38,7 @@ public class LocalMdbFromQueueToQueueWithSelectorAndSecurity implements MessageD
     public void onMessage(Message message) {
         QueueConnection queueConnection=null;
         try{
-            log.log(Level.TRACE, message.toString());
+            log.log(Level.TRACE,"MDB received message "+ message.getStringProperty("_HQ_DUPL_ID"));
             queueConnection = connectionFactory.createQueueConnection(username,password);
             QueueSession session = queueConnection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
             QueueSender queueSender = session.createSender(queue);
