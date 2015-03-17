@@ -6,7 +6,7 @@
     <artifactId>qa-hornetq-testsuite</artifactId>
     <name>jboss-hornetq-testsuite</name>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
 
     <properties>
@@ -22,10 +22,10 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.clients.version>6.4.0.ER3</eap6.clients.version>
-        <eap6.client>${eap6.clients.version}</eap6.client>
-        <eap6.controller.client>${eap6.clients.version}</eap6.controller.client>
-        <eap6.cli.client>${eap6.clients.version}</eap6.cli.client>
+        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.0.ER3</eap6.org.jboss.qa.hornetq.apps.clients.version>
+        <eap6.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.client>
+        <eap6.controller.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.controller.client>
+        <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <arquillian.version>1.1.1.Final</arquillian.version>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
@@ -207,7 +207,7 @@
             <version>${version.log4j}</version>
         </dependency>
 
-        <dependency>    <!-- this is necessary for tests with xa clients -->
+        <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
             <groupId>org.jboss.jbossts.jta</groupId>
             <artifactId>narayana-jta</artifactId>
             <version>4.17.23.Final</version>
@@ -329,6 +329,48 @@
     </dependencies>
 
     <profiles>
+
+        <!-- ################################################### -->
+        <!-- #################### New EAP 6 profile ############################### -->
+        <!-- ################################################### -->
+
+        <profile>
+            <id>eap6x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>eap</name>
+                    <value>6x</value>
+                </property>
+            </activation>
+            <modules>
+                <module>tooling</module>
+                <module>tooling-eap6</module>
+                <module>apps-jms11-jdk6</module>
+                <module>common-tests</module>
+                <module>tests-eap6</module>
+            </modules>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-client</artifactId>
+                    <version>${eap6.client}</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap6x.container.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <!-- ################################################### -->
+        <!-- ################################################### -->
+        <!-- ################################################### -->
+
+        <!-- ################## OLD PROFILES ################################# -->
+
         <!-- ################################################### -->
         <!-- # Standard EAP 5 - managed -->
         <!-- ################################################### -->
@@ -499,61 +541,15 @@
 
             </dependencies>
         </profile>
-        <profile>
-            <id>eap6x</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>eap</name>
-                    <value>6x</value>
-                </property>
-            </activation>
 
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire-version}</version>
-                        <configuration>
-                            <systemProperties>
-                                <property>
-                                    <name>arquillian.xml</name>
-                                    <value>arquillian-4-nodes.xml</value>
-                                </property>
-                            </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-
-            <dependencies>
-
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-client</artifactId>
-                    <version>${eap6.client}</version>
-                    <type>jar</type>
-
-                </dependency>
-
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
-                    <version>${arquillian.eap6x.container.version}</version>
-                </dependency>
-
-            </dependencies>
-        </profile>
 
         <profile>
-            <id>eap6x-xa-clients</id>
+            <id>eap6x-xa-org.jboss.qa.hornetq.apps.clients</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
                 <property>
                     <name>eap</name>
-                    <value>6x-xa-clients</value>
+                    <value>6x-xa-org.jboss.qa.hornetq.apps.clients</value>
                 </property>
             </activation>
             <build>

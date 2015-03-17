@@ -1,7 +1,7 @@
 HornetQ test suite:
 
 Change JMS client version if necessary (for example when running with different EAP version) by setting property, for example:
--Deap6.clients.version=6.4.0.ER1
+-Deap6.org.jboss.qa.hornetq.apps.clients.version=6.4.0.ER1
 
 How to make it work:
 
