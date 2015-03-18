@@ -328,7 +328,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
 
         // this create file in $WORKSPACE or working direcotry - depends whether it's defined
-        PrintJournal.printJournal(container(1).getName(), journalFile1);
+        PrintJournal.printJournal(container(1), journalFile1);
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
 

@@ -268,9 +268,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             killServer(CONTAINER1_NAME);
             controller.kill(CONTAINER1_NAME);
-            PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_kill1.txt");
+            PrintJournal.printJournal(container(1), databaseName + "journal_content_after_kill1.txt");
             controller.start(CONTAINER1_NAME);
-            PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_restart2.txt");
+            PrintJournal.printJournal(container(2), databaseName + "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
         }
@@ -283,7 +283,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             lastValue = newValue;
             Thread.sleep(5000);
         }
-        PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_recovery.txt");
+        PrintJournal.printJournal(container(1), databaseName + "journal_content_after_recovery.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();

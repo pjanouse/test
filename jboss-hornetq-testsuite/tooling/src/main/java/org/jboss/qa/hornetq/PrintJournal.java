@@ -26,12 +26,12 @@ public class PrintJournal {
     /**
      * Prints journal to output file.
      *
-     * @param container                container name
+     * @param container                container
      * @param relativePathToOutputFile relative path against $WORKSPACE
      */
-    public static void printJournal(String container, String relativePathToOutputFile) throws Exception {
+    public static void printJournal(Container container, String relativePathToOutputFile) throws Exception {
 
-        jbossHome = ContainerUtils.getInstance().getJbossHome(container);
+        jbossHome = container.getServerHome();
 
         StringBuilder messagingBindingsDirectoryBuilder = new StringBuilder(jbossHome);
         messagingBindingsDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")

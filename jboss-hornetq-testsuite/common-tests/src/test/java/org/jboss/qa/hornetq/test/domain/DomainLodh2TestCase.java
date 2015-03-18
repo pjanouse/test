@@ -678,8 +678,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
 
-        PrintJournal.printJournal(CONTAINER1_NAME, journalFile1);
-        PrintJournal.printJournal(CONTAINER3_NAME, journalFile3);
+        PrintJournal.printJournal(container(1), journalFile1);
+        PrintJournal.printJournal(container(3), journalFile3);
 
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
