@@ -14,6 +14,9 @@
     <profiles>
         <profile>
             <id>eap6x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
