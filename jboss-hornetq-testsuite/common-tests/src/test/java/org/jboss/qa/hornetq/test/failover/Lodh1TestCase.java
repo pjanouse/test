@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -126,9 +127,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLimitedPoolSize() throws Exception {
-        prepareJmsServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
+        container(1).start();
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
         jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.setAuthenticationForNullUsers(true);
@@ -178,8 +179,8 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
         jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+
+        container(1).restart();
 
         logger.info("Deploy MDBs.");
         for (int j = 2; j < 22; j++) {
@@ -188,7 +189,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start producer.");
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         TextMessageBuilder builder = new TextMessageBuilder(1);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -197,7 +198,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producer1.start();
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 20000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 20000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -215,8 +216,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         for (int j = 2; j < 22; j++) {
             deployer.undeploy("mdb" + j);
         }
-        stopServer(CONTAINER1_NAME);
-
+        container(1).stop();
     }
 
 
@@ -242,11 +242,11 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodh(boolean shutdown) throws Exception {
 
         // we use only the first server
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
+        container(1).start();
 
-        controller.start(CONTAINER1_NAME);
-
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
+                container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -256,25 +256,23 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         deployer.deploy(MDB_NAME);
 
-        List<String> killSequence = new ArrayList<String>();
-
+        List<Container> killSequence = new ArrayList<Container>();
         for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
-            killSequence.add(CONTAINER1_NAME);
+            killSequence.add(container(1));
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 300000, CONTAINER1_NAME);
-
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 300000, container(1).getName());
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         // wait for 80% of messages
-        waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8)/10, 500000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8)/10, 500000, container(1).getName());
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1_NAME);
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1).getName());
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1).getName());
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -289,8 +287,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1_NAME);
-
+        container(1).stop();
     }
 
     /**
@@ -307,13 +304,14 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareJmsServer(CONTAINER1_NAME);
-        prepareJmsServer(CONTAINER2_NAME);
+        prepareJmsServer(container(1));
+        prepareJmsServer(container(2));
 
         // cluster A
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().name(),
+                container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -324,14 +322,13 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         deployer.deploy(MDB_NAME);
 
-        waitForMessages(outQueueName, numberOfMessages / 10, 120000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, numberOfMessages / 10, 120000, container(1).getName());
+        container(1).stop();
 
-        stopServer(CONTAINER1_NAME);
-
-        String journalFile1 = CONTAINER1_NAME + "-journal_content_after_shutdown.txt";
+        String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
 
         // this create file in $WORKSPACE or working direcotry - depends whether it's defined
-        PrintJournal.printJournal(CONTAINER1_NAME, journalFile1);
+        PrintJournal.printJournal(container(1).getName(), journalFile1);
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
 
@@ -340,27 +337,23 @@ public class Lodh1TestCase extends HornetQTestCase {
                 new File(workingDirectory,journalFile1), stringToFind));
 
         // copy tx-objectStore to container 2 and check there are no unfinished arjuna transactions
-        copyDirectory(new File(getJbossHome(CONTAINER1_NAME), "standalone" + File.separator + "data" + File.separator + "tx-object-store"),
-                new File(getJbossHome(CONTAINER2_NAME), "standalone" + File.separator + "data" + File.separator + "tx-object-store"));
-        copyDirectory(new File(getJbossHome(CONTAINER1_NAME), "standalone" + File.separator + "data" + File.separator + "messagingbindings"),
-                new File(getJbossHome(CONTAINER2_NAME), "standalone" + File.separator + "data" + File.separator + "messagingbindings"));
-        copyDirectory(new File(getJbossHome(CONTAINER1_NAME), "standalone" + File.separator + "data" + File.separator + "messagingjournal"),
-                new File(getJbossHome(CONTAINER2_NAME), "standalone" + File.separator + "data" + File.separator + "messagingjournal"));
-        copyDirectory(new File(getJbossHome(CONTAINER1_NAME), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"),
-                new File(getJbossHome(CONTAINER2_NAME), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"));
-        copyDirectory(new File(getJbossHome(CONTAINER1_NAME), "standalone" + File.separator + "data" + File.separator + "messagingpaging"),
-                new File(getJbossHome(CONTAINER2_NAME), "standalone" + File.separator + "data" + File.separator + "messagingpaging/"));
+        copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "tx-object-store"),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "tx-object-store"));
+        copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingbindings"),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingbindings"));
+        copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingjournal"),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingjournal"));
+        copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"));
+        copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingpaging"),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingpaging/"));
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
-
-
-                CONTAINER2_NAME));
+                container(2).getName()));
         Assert.assertTrue("There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
-                waitForMessages(inQueueName, 1, 5000, CONTAINER2_NAME));
-
-        stopServer(CONTAINER2_NAME);
-
+                waitForMessages(inQueueName, 1, 5000, container(2).getName()));
+        container(2).stop();
     }
 
 
@@ -372,10 +365,10 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         // we use only the first server
         prepareServer();
+        container(1).start();
 
-        controller.start(CONTAINER1_NAME);
-
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
+                container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -387,7 +380,8 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(),
+                outQueue, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -399,8 +393,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1_NAME);
-
+        container(1).stop();
     }
 
     /**
@@ -409,37 +402,35 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
-    private void executeNodeFaillSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
+    private void executeNodeFaillSequence(List<Container> failSequence, long timeBetweenFails, boolean shutdown)
+            throws InterruptedException {
 
         if (shutdown) {
-            for (String containerName : failSequence) {
+            for (Container container: failSequence) {
                 Thread.sleep(timeBetweenFails);
 
                 printQueuesCount();
 
-                logger.info("Shutdown server: " + containerName);
+                logger.info("Shutdown server: " + container.getName());
 
-                controller.stop(containerName);
-                Thread.sleep(3000);
-                logger.info("Start server: " + containerName);
-                controller.start(containerName);
-                logger.info("Server: " + containerName + " -- STARTED");
+                container.stop();
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
 
                 printQueuesCount();
             }
         } else {
-            for (String containerName : failSequence) {
+            for (Container container : failSequence) {
                 Thread.sleep(timeBetweenFails);
 
                 printQueuesCount();
 
-                killServer(containerName);
-                Thread.sleep(3000);
-                controller.kill(containerName);
+                container.kill();
                 logger.info("Server container1 killed!.");
-                logger.info("Start server: " + containerName);
-                controller.start(containerName);
-                logger.info("Server: " + containerName + " -- STARTED");
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
 
                 printQueuesCount();
             }
@@ -447,7 +438,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     private void printQueuesCount() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         logger.info("=============Queues status====================");
         logger.info("Messages on [" + inQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(inQueueName));
         logger.info("Messages on [" + outQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(outQueueName));
@@ -462,8 +453,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
     }
 
@@ -473,19 +464,18 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
     }
 
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Container used in the test
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -513,7 +503,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
+        container.stop();
 
     }
 
