@@ -9,6 +9,7 @@ import org.hornetq.core.protocol.core.impl.wireformat.SessionReceiveMessage;
 import org.hornetq.core.protocol.core.impl.wireformat.SessionSendLargeMessage;
 import org.hornetq.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.hornetq.spi.core.protocol.RemotingConnection;
+import org.kohsuke.MetaInfServices;
 
 
 /**
@@ -21,6 +22,7 @@ import org.hornetq.spi.core.protocol.RemotingConnection;
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
+@MetaInfServices
 public class LargeMessagePacketInterceptorImplEAP6 implements LargeMessagePacketInterceptor {
 
     @Override

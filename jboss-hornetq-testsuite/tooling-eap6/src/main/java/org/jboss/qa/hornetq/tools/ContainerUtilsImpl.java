@@ -7,6 +7,8 @@ import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.kohsuke.MetaInfServices;
+
 
 /**
  *
@@ -14,6 +16,7 @@ import java.util.Map;
  *
  * @author mnovak@redhat.com
  */
+@MetaInfServices
 public class ContainerUtilsImpl extends ContainerUtils {
 
     Map<String,ContainerInfo> containerInfosMap = new HashMap<String, ContainerInfo>();

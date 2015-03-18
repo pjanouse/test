@@ -13,11 +13,13 @@ import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.EapVersion;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
+import org.kohsuke.MetaInfServices;
 
 
 /**
  * Utilities to work with HornetQ's journal export/import tool in EAP 6.
  */
+@MetaInfServices
 public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtils {
 
     private static final Logger LOG = Logger.getLogger(JournalExportImportUtilsImplEAP6.class);

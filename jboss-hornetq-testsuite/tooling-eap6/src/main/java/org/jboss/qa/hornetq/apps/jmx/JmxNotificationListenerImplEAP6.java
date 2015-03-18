@@ -8,11 +8,13 @@ import javax.management.NotificationListener;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import org.kohsuke.MetaInfServices;
 
 
 /**
  * Simple JMX listener that will catch any notification on the MBean it's listening to.
  */
+@MetaInfServices
 public class JmxNotificationListenerImplEAP6 implements JmxNotificationListener {
 
     private static final Logger LOG = Logger.getLogger(JmxNotificationListenerImplEAP6.class);

@@ -14,12 +14,15 @@ import org.hornetq.api.core.management.HornetQServerControl;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.hornetq.api.jms.management.JMSServerControl;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.kohsuke.MetaInfServices;
+
 
 /**
  * Utility class helping with connecting to HornetQ JMX beans.
  *
  * Remember to enable JMX beans in hornetq server - set jmx-management-enabled to true
  */
+@MetaInfServices
 public class JmxUtilsImplEAP6 implements JmxUtils {
 
     /**
