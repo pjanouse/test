@@ -17,6 +17,8 @@ import java.security.AccessController;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.kohsuke.MetaInfServices;
+
 
 /**
  * Basic administration operations for JMS subsystem
@@ -26,8 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author mnovak@redhat.com
  * @author pslavice@redhat.com
  */
-
-
+@MetaInfServices
 public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     // Logger

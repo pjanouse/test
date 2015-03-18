@@ -142,18 +142,6 @@ public class ContainerEAP6 implements Container {
 
 
     @Override
-    public void deploy(String deployment) {
-        deployer.deploy(deployment);
-    }
-
-
-    @Override
-    public void undeploy(String deployment) {
-        deployer.undeploy(deployment);
-    }
-
-
-    @Override
     public synchronized JournalExportImportUtils getExportImportUtil() {
         if (journalExportImportUtils == null) {
             ServiceLoader serviceLoader = ServiceLoader.load(JournalExportImportUtils.class);

@@ -36,10 +36,6 @@ public interface Container {
     void kill();
     void restart();
 
-    // Deployer delegates
-    void deploy(String deployment);
-    void undeploy(String deployment);
-
     JournalExportImportUtils getExportImportUtil();
     JmxUtils getJmsUtils();
     JmxNotificationListener createJmxNotificationListener();
