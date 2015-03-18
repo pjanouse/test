@@ -95,11 +95,11 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), proxy12port);
+            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), proxy12port);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), proxy21port);
+            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), proxy21port);
             proxy2.start();
         }
 
@@ -201,7 +201,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
      */
     public void prepareServers(int reconnectAttempts) {
 
-        prepareServer(CONTAINER1, proxy21port, reconnectAttempts);
-        prepareServer(CONTAINER2, proxy12port, reconnectAttempts);
+        prepareServer(CONTAINER1_NAME, proxy21port, reconnectAttempts);
+        prepareServer(CONTAINER2_NAME, proxy12port, reconnectAttempts);
     }
 }

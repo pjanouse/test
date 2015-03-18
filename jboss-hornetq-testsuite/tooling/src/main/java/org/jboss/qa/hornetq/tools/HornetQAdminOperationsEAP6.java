@@ -4316,13 +4316,13 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //
 //        String jbossHome = null;
 //        if (HornetQTestCase.CONTAINER1_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER1);
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER1_NAME);
 //        } else if (HornetQTestCase.CONTAINER2_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER2);
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER2_NAME);
 //        } else if (HornetQTestCase.CONTAINER3_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER3);
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER3_NAME);
 //        } else if (HornetQTestCase.CONTAINER4_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER4);
+//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER4_NAME);
 //        }
 //
 //        StringBuilder sb = new StringBuilder();

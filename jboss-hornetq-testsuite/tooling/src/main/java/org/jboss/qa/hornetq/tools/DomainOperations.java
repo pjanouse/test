@@ -68,7 +68,7 @@ public final class DomainOperations {
      * @return connected client
      */
     public static DomainOperations forDefaultContainer() {
-        return forContainer(ContainerUtils.getInstance().getContainerInfo(HornetQTestCaseConstants.CONTAINER1));
+        return forContainer(ContainerUtils.getInstance().getContainerInfo(HornetQTestCaseConstants.CONTAINER1_NAME));
     }
 
     /**

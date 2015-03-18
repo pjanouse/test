@@ -356,14 +356,14 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         // send lots of messages (GBs)
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
         long producerStartTime = System.currentTimeMillis();
 
-        ProducerTransAck prod1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessages);
 
         prod1.setMessageBuilder(new TextMessageBuilder(1024 * 1024)); // 1MB
 
@@ -383,7 +383,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer and consumer.");
         // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
 
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 50);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 50);
 
         MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
 
@@ -395,7 +395,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         producer.start();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 30000, 1, 100);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 30000, 1, 100);
 
         receiver.setTimeout(100);
 
@@ -404,7 +404,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         // start backup
         logger.info("Start backup server.");
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         logger.info("Backup started - synchronization with live will started now.");
 
@@ -414,7 +414,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         // during synchronization live-> backup stop backup (it takes 2 min for live disconnect backup and org.jboss.qa.hornetq.apps.clients continue to work)
         logger.info("Stop backup server - synchronization with live must be in progress now.");
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
         logger.info("Backup server stopped");
 
@@ -458,7 +458,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         receiver.join();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
 
@@ -469,9 +469,9 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1);
+        prepareLiveServer(CONTAINER1_NAME);
         
-        prepareBackupServer(CONTAINER2);
+        prepareBackupServer(CONTAINER2_NAME);
                 
     }
 
@@ -775,8 +775,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -788,8 +788,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -801,8 +801,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -814,8 +814,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
     

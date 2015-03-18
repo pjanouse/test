@@ -174,13 +174,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     // composite info objects for easier passing to utility classes
-    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1, "server-1", CONTAINER1_IP,
+    public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1_NAME, "server-1", CONTAINER1_IP,
             BYTEMAN_CONTAINER1_PORT, PORT_OFFSET_1, JBOSS_HOME_1);
-    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2, "server-2", CONTAINER2_IP,
+    public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2_NAME, "server-2", CONTAINER2_IP,
             BYTEMAN_CONTAINER2_PORT, PORT_OFFSET_2, JBOSS_HOME_2);
-    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3, "server-3", CONTAINER3_IP,
+    public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3_NAME, "server-3", CONTAINER3_IP,
             BYTEMAN_CONTAINER3_PORT, PORT_OFFSET_3, JBOSS_HOME_3);
-    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4, "server-4", CONTAINER4_IP,
+    public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4_NAME, "server-4", CONTAINER4_IP,
             BYTEMAN_CONTAINER4_PORT, PORT_OFFSET_4, JBOSS_HOME_4);
 
     /////////////////////////////////////////////////////////////////////////////
@@ -228,8 +228,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             return journalExportImportUtils;
         }
 
-        ServiceLoader serviceLoader = ServiceLoader.load(JournalExportImportUtils.class);
-
+        ServiceLoader<JournalExportImportUtils> serviceLoader = ServiceLoader.load(JournalExportImportUtils.class);
         Iterator<JournalExportImportUtils> iterator = serviceLoader.iterator();
 
         if (!iterator.hasNext()) {
@@ -248,8 +247,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     private static synchronized JmxUtils getJmxUtils()   {
 
-        ServiceLoader serviceLoader = ServiceLoader.load(JmxUtils.class);
-
+        ServiceLoader<JmxUtils> serviceLoader = ServiceLoader.load(JmxUtils.class);
         Iterator<JmxUtils> iterator = serviceLoader.iterator();
 
         if (!iterator.hasNext()) {
@@ -268,7 +266,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     protected static synchronized JmxNotificationListener getJmxNotificationListener()    {
 
-        ServiceLoader serviceLoader = ServiceLoader.load(JmxNotificationListener.class);
+        ServiceLoader<JmxNotificationListener> serviceLoader = ServiceLoader.load(JmxNotificationListener.class);
 
         Iterator<JmxNotificationListener> iterator = serviceLoader.iterator();
 
@@ -286,8 +284,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * returns LargeMessagePacketInterceptor instance
      */
     protected static LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
-        ServiceLoader serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
-
+        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
         Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
 
         if (!iterator.hasNext()) {
@@ -305,10 +302,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @After
     public void stopAllServers() {
-//        stopServer(CONTAINER1);
-//        stopServer(CONTAINER2);
-//        stopServer(CONTAINER3);
-//        stopServer(CONTAINER4);
+//        stopServer(CONTAINER1_NAME);
+//        stopServer(CONTAINER2_NAME);
+//        stopServer(CONTAINER3_NAME);
+//        stopServer(CONTAINER4_NAME);
     }
 
     /**
@@ -484,21 +481,21 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @see org.jboss.qa.hornetq.ContextProvider#getContext()
      */
     public Context getContext() throws NamingException {
-        return getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+        return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
     }
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer1()
      */
     public Context getContextContainer1() throws NamingException {
-        return getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+        return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
     }
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer2()
      */
     public Context getContextContainer2() throws NamingException {
-        return getContext(getHostname(CONTAINER2), getJNDIPort(CONTAINER2));
+        return getContext(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME));
     }
 
     /**
@@ -516,7 +513,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of the <code>JMSOperation</code>
      */
     public JMSOperations getJMSOperations() {
-        return getJMSOperations(CONTAINER1);
+        return getJMSOperations(CONTAINER1_NAME);
     }
 
     /**
@@ -620,7 +617,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return true if operation was successful, false otherwise
      */
     protected boolean deleteDataFolderForJBoss1() {
-        return deleteDataFolder(JBOSS_HOME_1, CONTAINER1);
+        return deleteDataFolder(JBOSS_HOME_1, CONTAINER1_NAME);
     }
 
     /**
@@ -630,7 +627,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return true if operation was successful, false otherwise
      */
     protected boolean deleteDataFolderForJBoss2() {
-        return deleteDataFolder(JBOSS_HOME_2, CONTAINER2);
+        return deleteDataFolder(JBOSS_HOME_2, CONTAINER2_NAME);
     }
 
     /**
@@ -666,8 +663,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         log.info("Killing server: " + containerName);
         try {
-
-            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1), getPort(CONTAINER1));
+            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME));
 
             MBeanServerConnection mbsc =
                     jmxConnector.getMBeanServerConnection();
@@ -683,7 +679,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             } else { // on all other platforms use kill -9
                 Runtime.getRuntime().exec("kill -9 " + pid);
             }
-
         } catch (Exception ex) {
             log.warn("Container " + containerName + " could not be killed. Set debug for logging to see exception stack trace.");
             log.debug(ex);
@@ -735,13 +730,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return container info class
      */
     public static ContainerInfo getContainerInfo(String containerName) {
-        if (CONTAINER1.equals(containerName)) {
+        if (CONTAINER1_NAME.equals(containerName)) {
             return CONTAINER1_INFO;
-        } else if (CONTAINER2.equals(containerName)) {
+        } else if (CONTAINER2_NAME.equals(containerName)) {
             return CONTAINER2_INFO;
-        } else if (CONTAINER3.equals(containerName)) {
+        } else if (CONTAINER3_NAME.equals(containerName)) {
             return CONTAINER3_INFO;
-        } else if (CONTAINER4.equals(containerName)) {
+        } else if (CONTAINER4_NAME.equals(containerName)) {
             return CONTAINER4_INFO;
         } else {
             throw new RuntimeException(
@@ -876,7 +871,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             deployKillerServletToStandalone(containerName);
         }
 
-//        if (CONTAINER1.equals(containerName)) {
+//        if (CONTAINER1_NAME.equals(containerName)) {
 //            try {
 //                deployer.undeploy(SERVLET_KILLER_1);
 //            } catch (Exception ex) {
@@ -887,7 +882,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 //            } catch (Exception ex) {
 //                log.debug("Ignore this exception: " + ex.getMessage());
 //            }
-//        } else if (CONTAINER2.equals(containerName)) {
+//        } else if (CONTAINER2_NAME.equals(containerName)) {
 //            try {
 //                deployer.undeploy(SERVLET_KILLER_2);
 //            } catch (Exception ex) {
@@ -898,7 +893,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 //            } catch (Exception ex) {
 //                log.debug("Ignore this exception: " + ex.getMessage());
 //            }
-//        } else if (CONTAINER3.equals(containerName)) {
+//        } else if (CONTAINER3_NAME.equals(containerName)) {
 //            try {
 //                deployer.undeploy(SERVLET_KILLER_3);
 //            } catch (Exception ex) {
@@ -909,7 +904,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 //            } catch (Exception ex) {
 //                log.debug("Ignore this exception: " + ex.getMessage());
 //            }
-//        } else if (CONTAINER4.equals(containerName)) {
+//        } else if (CONTAINER4_NAME.equals(containerName)) {
 //            try {
 //                deployer.undeploy(SERVLET_KILLER_4);
 //            } catch (Exception ex) {
@@ -941,15 +936,15 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
                 deployer.undeploy(SERVLET_KILLER_GROUP2);
                 deployer.undeploy(SERVLET_KILLER_GROUP3);
                 deployer.undeploy(SERVLET_KILLER_GROUP4);
-            } else if (CONTAINER1.equals(containerName)) {
+            } else if (CONTAINER1_NAME.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_1);
-            } else if (CONTAINER2.equals(containerName)) {
+            } else if (CONTAINER2_NAME.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_2);
 
-            } else if (CONTAINER3.equals(containerName)) {
+            } else if (CONTAINER3_NAME.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_3);
 
-            } else if (CONTAINER4.equals(containerName)) {
+            } else if (CONTAINER4_NAME.equals(containerName)) {
                 deployer.undeploy(SERVLET_KILLER_4);
             } else {
                 throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
@@ -963,13 +958,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     private void deployKillerServletToStandalone(String containerName) {
-        if (CONTAINER1.equals(containerName)) {
+        if (CONTAINER1_NAME.equals(containerName)) {
             deployKillerServletDeployment(SERVLET_KILLER_1);
-        } else if (CONTAINER2.equals(containerName)) {
+        } else if (CONTAINER2_NAME.equals(containerName)) {
             deployKillerServletDeployment(SERVLET_KILLER_2);
-        } else if (CONTAINER3.equals(containerName)) {
+        } else if (CONTAINER3_NAME.equals(containerName)) {
             deployKillerServletDeployment(SERVLET_KILLER_3);
-        } else if (CONTAINER4.equals(containerName)) {
+        } else if (CONTAINER4_NAME.equals(containerName)) {
             deployKillerServletDeployment(SERVLET_KILLER_4);
         } else {
             throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
@@ -1009,7 +1004,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception if something is wrong
      */
     @Deployment(managed = false, testable = false, name = SERVLET_KILLER_1)
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer1() throws Exception {
         return createKillerServlet("killerServlet.war");
@@ -1022,7 +1017,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception if something is wrong
      */
     @Deployment(managed = false, testable = false, name = SERVLET_KILLER_2)
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer2() throws Exception {
         return createKillerServlet("killerServlet.war");
@@ -1035,7 +1030,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception if something is wrong
      */
     @Deployment(managed = false, testable = false, name = SERVLET_KILLER_3)
-    @TargetsContainer(CONTAINER3)
+    @TargetsContainer(CONTAINER3_NAME)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer3() throws Exception {
         return createKillerServlet("killerServlet.war");
@@ -1048,7 +1043,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception if something is wrong
      */
     @Deployment(managed = false, testable = false, name = SERVLET_KILLER_4)
-    @TargetsContainer(CONTAINER4)
+    @TargetsContainer(CONTAINER4_NAME)
     @SuppressWarnings("unused")
     public static WebArchive getDeploymentKilServletContainer4() throws Exception {
         return createKillerServlet("killerServlet.war");
@@ -1719,7 +1714,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         log.info("Print mete-inf url: " + metaInfUrl);
 
         ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
-        File targetDirDeployments = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+        File targetDirDeployments = new File(getJbossHome(CONTAINER1_NAME) + File.separator + "standalone" + File.separator
                 + "deployments" + File.separator + "meta-inf.txt");
 
         FileOutputStream fos = new FileOutputStream(targetDirDeployments);
@@ -1732,7 +1727,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         URL jdbcUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4/" + jdbcFileName));
         ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
-        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1) + File.separator + "standalone" + File.separator
+        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1_NAME) + File.separator + "standalone" + File.separator
                 + "deployments" + File.separator + jdbcFileName);
         FileOutputStream fos2 = new FileOutputStream(targetDirDeploymentsForJdbc);
         fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);

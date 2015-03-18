@@ -57,21 +57,21 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     @RunAsClient
     public void causeNetworkFailureAndCheckThatClientGotDisconnected() throws Exception {
 
-        prepareServer(CONTAINER1, 0);
+        prepareServer(CONTAINER1_NAME, 0);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         // start proxy
         startProxies();
 
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, connectionId, subscriberName);
         subscriber.setMaxRetries(1);
         subscriber.subscribe();
 
         // publish some messages
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, 2000000, "testConnectionIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 2000000, "testConnectionIdPublisher");
         publisher.start();
         subscriber.start();
 
@@ -86,7 +86,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // check that client was disconnected
         // list durable active subscribers on topic
         // check there are none after 60s
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         int numberOfSubscribers = 0;
         long startTime = System.currentTimeMillis();
         do {
@@ -102,7 +102,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         Assert.assertNotNull("Subscriber must get exception when disconnected.", subscriber.getException());
 
         // try to stop server
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -115,16 +115,16 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     @RunAsClient
     public void checkServerShutdownsImmediatelyWithOpenJNDIContext() throws Exception {
 
-        prepareServer(CONTAINER1, 0);
+        prepareServer(CONTAINER1_NAME, 0);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         // start proxy
         startProxies();
 
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
         subscriber.subscribe();
         subscriber.start();
 
@@ -134,7 +134,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // check that client was disconnected
         // list durable active subscribers on topic
         // check there are none after 60s
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         int numberOfSubscribers = 0;
         long startTime = System.currentTimeMillis();
         do {
@@ -153,7 +153,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         }
 
         // try to stop server
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -162,7 +162,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), proxyPort);
+            proxy1 = new SimpleProxyServer(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), proxyPort);
             proxy1.start();
         }
         log.info("All proxies started.");
@@ -220,8 +220,8 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
     }
 
 }

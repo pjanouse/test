@@ -53,9 +53,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Before
     public void preActionPrepareServers()
     {
-    	stopServer(CONTAINER1);
+    	stopServer(CONTAINER1_NAME);
     	deleteDataFolderForJBoss1();
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
     }
     
     /**
@@ -64,7 +64,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @After
     public void postActionStopAllServers() 
     {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
         deleteDataFolderForJBoss1();
     }
     
@@ -80,13 +80,13 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         final int MESSAGES = 10;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
 
         SimpleJMSClient client = new SimpleJMSClient(
-                getHostname(CONTAINER1),
-                getJNDIPort(CONTAINER1),
+                getHostname(CONTAINER1_NAME),
+                getJNDIPort(CONTAINER1_NAME),
                 MESSAGES,
                 Session.AUTO_ACKNOWLEDGE,
                 false);
@@ -846,7 +846,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         		isFaultOnReceive, 
         		isRollbackOnly);
         
-       	JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+       	JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
        	long numMessagesOnQueue = jmsAdminOperations.getCountOfMessagesOnQueue(TEST_QUEUE);
        	jmsAdminOperations.close();
         
@@ -905,21 +905,21 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     		boolean ruleBeforeReceive, 
     		boolean rollbackOnly) 
     {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
 
-        SimpleJMSClient client = new SimpleJMSClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
             client.sendMessages(TEST_QUEUE_JNDI);
 
-            controller.kill(CONTAINER1);
-            controller.start(CONTAINER1);
+            controller.kill(CONTAINER1_NAME);
+            controller.start(CONTAINER1_NAME);
 
             try 
             {
@@ -933,13 +933,13 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(TEST_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
             
             client.receiveMessages(TEST_QUEUE_JNDI);
             
-            controller.kill(CONTAINER1);
+            controller.kill(CONTAINER1_NAME);
             
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
         }
         return client;
     }

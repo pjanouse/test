@@ -55,7 +55,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER3)
+    @TargetsContainer(CONTAINER3_NAME)
     public static Archive getDeployment1() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
@@ -107,10 +107,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // start live-backup servers
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -119,33 +119,34 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER3_NAME);
 
         logger.info("Deploying MDB to mdb server.");
 //        // start mdb server
         deployer.deploy("mdb1");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(CONTAINER1_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             logger.info("Stopping container 1.");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
             logger.info("Container 1 stopped.");
         } else {
             logger.info("Killing container 1.");
-            killServer(CONTAINER1);
+            killServer(CONTAINER1_NAME);
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 600000));
+        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(CONTAINER2_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(360000, CONTAINER2);
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER2);
+        waitUntilThereAreNoPreparedHornetQTransactions(360000, CONTAINER2_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER2_NAME);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2), getJNDIPort(CONTAINER2), outQueueJndiName, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), outQueueJndiName, 3000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -156,9 +157,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
 
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
@@ -173,10 +174,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // start live-backup servers
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
@@ -185,41 +186,42 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.join();
 
 
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER3_NAME);
 
         // start mdb server
         deployer.deploy("mdb1");
         logger.info("MDB was deployed to mdb server - container 3");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(CONTAINER1, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(CONTAINER1_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
             logger.info("Container 1 shut downed.");
         } else {
-            killServer(CONTAINER1);
-            controller.kill(CONTAINER1);
+            killServer(CONTAINER1_NAME);
+            controller.kill(CONTAINER1_NAME);
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(CONTAINER2, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(CONTAINER2_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
-        controller.start(CONTAINER1);
-        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+        controller.start(CONTAINER1_NAME);
+        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
         logger.info("Container 1 started again");
         Thread.sleep(10000);
         logger.info("Container 2 stopping...");
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
         logger.info("Container 2 stopped");
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1);
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
@@ -233,9 +235,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
     }
@@ -272,9 +274,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -284,11 +286,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-            prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
+            prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
 
-            prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
+            prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
-            prepareMdbServer(CONTAINER3, CONTAINER1, CONTAINER2);
+            prepareMdbServer(CONTAINER3_NAME, CONTAINER1_NAME, CONTAINER2_NAME);
 
             copyApplicationPropertiesFiles();
 

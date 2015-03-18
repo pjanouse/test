@@ -133,9 +133,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         Thread.sleep(10000);
 
@@ -151,17 +151,18 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_PORT_1);
-            controller.kill(CONTAINER1);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT_1);
+            controller.kill(CONTAINER1_NAME);
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         waitForClientsToFailover();
         waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -169,20 +170,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1);
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            controller.start(CONTAINER1_NAME);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, getHornetqPort(CONTAINER2_NAME), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            stopServer(CONTAINER2);
+            stopServer(CONTAINER2_NAME);
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -196,9 +197,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -252,17 +253,17 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER2);
-        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 10000);
-        addDivert(CONTAINER2, divertedQueue, isExclusive, topic);
-        stopServer(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
+        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 10000);
+        addDivert(CONTAINER2_NAME, divertedQueue, isExclusive, topic);
+        stopServer(CONTAINER2_NAME);
 
-        controller.start(CONTAINER1);
-        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 30000);
-        addDivert(CONTAINER1, divertedQueue, isExclusive, topic);
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 30000);
+        addDivert(CONTAINER1_NAME, divertedQueue, isExclusive, topic);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         Thread.sleep(10000);
 
@@ -278,17 +279,18 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            killServer(CONTAINER1);
-            controller.kill(CONTAINER1);
+            killServer(CONTAINER1_NAME);
+            controller.kill(CONTAINER1_NAME);
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         waitForClientsToFailover();
         waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -296,20 +298,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1);
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            controller.start(CONTAINER1_NAME);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, getHornetqPort(CONTAINER2_NAME), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            stopServer(CONTAINER2);
+            stopServer(CONTAINER2_NAME);
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -334,10 +336,10 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         JMSOperations jmsOperations;
         if (failback) {
-            jmsOperations = getJMSOperations(CONTAINER1);
+            jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         } else {
-            jmsOperations = getJMSOperations(CONTAINER2);
+            jmsOperations = getJMSOperations(CONTAINER2_NAME);
         }
         long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
         jmsOperations.close();
@@ -347,9 +349,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -383,8 +385,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         clients = createClients(acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
@@ -395,12 +397,13 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         // call force-failover operation
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         jmsOperations.forceFailover();
         jmsOperations.close();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         waitForClientsToFailover();
         waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -410,9 +413,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -484,9 +487,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         Thread.sleep(10000);
 
@@ -506,11 +509,11 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         logger.warn("Deploy byteman rule:");
 
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_PORT_1);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT_1);
 
-        waitForServerToBeKilled(CONTAINER1, 60000);
+        waitForServerToBeKilled(CONTAINER1_NAME, 60000);
 
-        controller.kill(CONTAINER1);
+        controller.kill(CONTAINER1_NAME);
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
 //        Thread.sleep(20000); // give some time for org.jboss.qa.hornetq.apps.clients to failover
@@ -520,13 +523,13 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1);
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            controller.start(CONTAINER1_NAME);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            stopServer(CONTAINER2);
+            stopServer(CONTAINER2_NAME);
         }
 
         Thread.sleep(10000);
@@ -537,9 +540,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -550,7 +553,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         long startTime = System.currentTimeMillis();
 
         while (isRunning && System.currentTimeMillis() - startTime < timeout) {
-            isRunning = checkThatServerIsReallyUp(getHostname(CONTAINER1), getHttpPort(container));
+            isRunning = checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHttpPort(container));
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);
         }
@@ -562,13 +565,13 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     public void testFailoverWithProducers(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         Thread.sleep(10000);
 
-        ProducerTransAck p = new ProducerTransAck(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck p = new ProducerTransAck(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
         p.setMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
@@ -586,8 +589,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         logger.warn("########################################");
         logger.warn("Shutdown live server");
         logger.warn("########################################");
-        stopServer(CONTAINER1);
-        PrintJournal.printJournal(getJbossHome(CONTAINER1), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+        stopServer(CONTAINER1_NAME);
+        PrintJournal.printJournal(getJbossHome(CONTAINER1_NAME), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                 "journalAfterShutdownAndFailoverToBackup.txt");
         logger.warn("########################################");
         logger.warn("Live server shutdowned");
@@ -595,7 +598,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         startTime = System.currentTimeMillis();
         while (p.getListOfSentMessages().size() < 300 && System.currentTimeMillis() - startTime < 120000) {
             Thread.sleep(1000);
@@ -606,19 +610,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1);
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
-            PrintJournal.printJournal(getJbossHome(CONTAINER1), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+            controller.start(CONTAINER1_NAME);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
+            PrintJournal.printJournal(getJbossHome(CONTAINER1_NAME), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                     "journalAfterStartingLiveAgain_Failback.txt");
             logger.warn("########################################");
             logger.warn("Live server started - this is failback");
             logger.warn("########################################");
-            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            stopServer(CONTAINER2);
+            stopServer(CONTAINER2_NAME);
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -630,9 +634,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         p.join(600000);
         ReceiverTransAck r;
         if (failback) {
-            r = new ReceiverTransAck(CONTAINER1, getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + 0);
+            r = new ReceiverTransAck(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + 0);
         } else {
-            r = new ReceiverTransAck(CONTAINER2, getHostname(CONTAINER2), getJNDIPort(CONTAINER2), queueJndiNamePrefix + 0);
+            r = new ReceiverTransAck(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), queueJndiNamePrefix + 0);
         }
         r.setMessageVerifier(queueTextMessageVerifier);
         r.setCommitAfter(100);
@@ -644,9 +648,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", p.getListOfSentMessages().size() == r.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
     }
 
 
@@ -692,21 +696,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -1008,9 +1012,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             waitForClientsToFinish(clients, 300000);
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
 //        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
@@ -1024,16 +1028,16 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        stopServer(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        deployDestinations(CONTAINER1_NAME);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2);
-        stopServer(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
+        deployDestinations(CONTAINER2_NAME);
+        stopServer(CONTAINER2_NAME);
 
     }
 

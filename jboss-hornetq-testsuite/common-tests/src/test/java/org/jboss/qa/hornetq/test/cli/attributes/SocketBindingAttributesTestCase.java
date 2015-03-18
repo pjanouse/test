@@ -24,23 +24,23 @@ public class SocketBindingAttributesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void bindingTest(){
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         String result=jmsOperations.getSocketBindingAtributes("messaging");
         String[]resultArr=result.split(",");
         Assert.assertTrue("Socket bound attribute is false, should be true",resultArr[0].equals("\"bound\" => true"));
-        if(getHostname(CONTAINER1).contains(":")){
+        if(getHostname(CONTAINER1_NAME).contains(":")){
             //for IPv6
-            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].contains(getHostname(CONTAINER1).substring(1,getHostname(CONTAINER1).length()-2)));
+            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].contains(getHostname(CONTAINER1_NAME).substring(1,getHostname(CONTAINER1_NAME).length()-2)));
         }else {
             //for IPv4
-            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].equals("\"bound-address\" => \"" + getHostname(CONTAINER1) + "\""));
+            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].equals("\"bound-address\" => \"" + getHostname(CONTAINER1_NAME) + "\""));
         }
 
 
         jmsOperations.close();
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 

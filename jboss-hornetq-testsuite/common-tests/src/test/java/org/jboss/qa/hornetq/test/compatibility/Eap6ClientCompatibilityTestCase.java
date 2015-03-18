@@ -38,13 +38,13 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
 
-        jmsAdminOperations.setInetAddress("public", getHostname(CONTAINER1));
-        jmsAdminOperations.setInetAddress("unsecure", getHostname(CONTAINER1));
-        jmsAdminOperations.setInetAddress("management", getHostname(CONTAINER1));
+        jmsAdminOperations.setInetAddress("public", getHostname(CONTAINER1_NAME));
+        jmsAdminOperations.setInetAddress("unsecure", getHostname(CONTAINER1_NAME));
+        jmsAdminOperations.setInetAddress("management", getHostname(CONTAINER1_NAME));
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
@@ -72,7 +72,7 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         deployDestinations();
         jmsAdminOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -81,7 +81,7 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      * Deploys destinations to server which is currently running.
      */
     private void deployDestinations() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
             jmsAdminOperations.createQueue(QUEUE_NAME_PREFIX + destinationNumber, QUEUE_JNDI_NAME_PREFIX
                     + destinationNumber, true);

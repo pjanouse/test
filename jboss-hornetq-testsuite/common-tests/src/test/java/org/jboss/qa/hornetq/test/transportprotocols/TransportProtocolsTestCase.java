@@ -52,7 +52,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1, "NIO");
+        prepareServerForTCPTransport(CONTAINER1_NAME, "NIO");
         transportProtocolTest();
     }
 
@@ -69,7 +69,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1, "ASYNCIO");
+        prepareServerForTCPTransport(CONTAINER1_NAME, "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -78,7 +78,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1, "NIO");
+        prepareServerForHTTPTransport(CONTAINER1_NAME, "NIO");
         transportProtocolTest();
     }
 
@@ -87,7 +87,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1, "ASYNCIO");
+        prepareServerForHTTPTransport(CONTAINER1_NAME, "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -96,7 +96,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1, "NIO");
+        prepareServerForSSLTransport(CONTAINER1_NAME, "NIO");
         transportProtocolTest();
     }
 
@@ -105,7 +105,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1, "ASYNCIO");
+        prepareServerForSSLTransport(CONTAINER1_NAME, "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -142,12 +142,12 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      */
     public void transportProtocolTest() throws Exception {
 
-        if (getContainerType(CONTAINER1).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
+        if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
             // configure legacy extension
 
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
 
-            JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1);
+            JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1_NAME);
 
             jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
 
@@ -157,16 +157,16 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
             jmsAdminOperations.close();
 
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
 
-            activateLegacyJnpModule(getContainerInfo(CONTAINER1));
+            activateLegacyJnpModule(getContainerInfo(CONTAINER1_NAME));
         }
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         log.info("Start producer and consumer.");
-        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1).toString() ,getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1).toString(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
+        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1_NAME).toString() ,getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1_NAME).toString(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();
@@ -179,7 +179,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 

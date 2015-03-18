@@ -105,7 +105,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     private static final String MODULE = "/subsystem=messaging/hornetq-server=default";
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -116,26 +116,26 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
     }
 
     @After
     public void stopServer() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     private void prepareServerForXATransactions() {
 
         // start server with XA connection factory
-        controller.start(CONTAINER1);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
 
         jmsAdminOperations.setFactoryType("RemoteConnectionFactory", "XA_GENERIC");
         jmsAdminOperations.createQueue(coreQueueName, queueJndiName);
 
         jmsAdminOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     private void createPreparedTransaction() {
@@ -151,7 +151,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         try {
 
-            context = getContext(CONTAINER1);
+            context = getContext(CONTAINER1_NAME);
 
             queue = (Queue) context.lookup(queueJndiName);
 
@@ -215,7 +215,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         prepareServerForXATransactions();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         for (int i = 0; i < numberOfPreparedTransactions; i++)  {
             createPreparedTransaction();
@@ -312,8 +312,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public void testForceFailover() throws Exception {
 
         prepareSimpleDedicatedTopology();
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         // invoke operation
         Result r1 = runOperation("force-failover", null);
@@ -321,7 +321,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //        CliTestUtils.assertSuccess(r1);
 
         // check that backup started
-        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
+        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
 
     }
 
@@ -332,19 +332,19 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public void testOperationsWithConnectedClients() throws Exception {
 
         // setup server
-        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER1_NAME);
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName);
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName);
         receiver.setTimeout(1000);
 
         // start org.jboss.qa.hornetq.apps.clients
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         producer.start();
@@ -496,12 +496,12 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @CleanUpBeforeTest
     public void testGettingAddressSettings() {
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         jmsOperations.removeAddressSettings("#");
         jmsOperations.addAddressSettings("#", "PAGE", 10485760, 0, 1000, 2097152);
 
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
 
         Result response = this.runOperation("get-address-settings-as-json", "address-match=#");
         assertTrue("Operation should not fail", response.isSuccess());
@@ -606,7 +606,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         Message msg = session.createTextMessage("test message");
         producer.send(msg);
 
-        JmsServerInfo serverInfo = new JmsServerInfo(containerUtils.getHostname(CONTAINER1), containerUtils.getPort(CONTAINER1), "default");
+        JmsServerInfo serverInfo = new JmsServerInfo(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME), "default");
         String[] connectionIds = serverInfo.getConnectionIds();
 
         //assertEquals("Incorrect number of client connections to server", 1, connectionIds.length);
@@ -630,7 +630,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
 
     private void prepareQueueOnServer() {
-        JMSOperations ops = this.getJMSOperations(CONTAINER1);
+        JMSOperations ops = this.getJMSOperations(CONTAINER1_NAME);
         ops.createQueue("testQueue", "jms/testQueue");
         ops.close();
     }
@@ -760,8 +760,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
     }
 

@@ -25,7 +25,7 @@ public class AddressSecuritySettings {
 
 
     public static Builder forDefaultContainer(final HornetQTestCase testCase) {
-        return forContainer(testCase, HornetQTestCaseConstants.CONTAINER1);
+        return forContainer(testCase, HornetQTestCaseConstants.CONTAINER1_NAME);
     }
 
 

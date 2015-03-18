@@ -31,8 +31,8 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     public final static String DUPLICATES_OK = "DUPLICATES_OK";
     public final static String ONCE_AND_ONLY_ONCE = "ONCE_AND_ONLY_ONCE";
 
-    public final static String OLD_SERVER = CONTAINER1;
-    public final static String NEW_SERVER = CONTAINER3;
+    public final static String OLD_SERVER = CONTAINER1_NAME;
+    public final static String NEW_SERVER = CONTAINER3_NAME;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
 

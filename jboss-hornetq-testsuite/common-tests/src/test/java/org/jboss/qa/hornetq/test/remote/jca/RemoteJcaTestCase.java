@@ -66,7 +66,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
     @Deployment(managed = false, testable = false, name = MDB1)
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeployment1() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
@@ -78,7 +78,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     @Deployment(managed = false, testable = false, name = MDB1_NON_DURABLE)
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeployment67() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB1_NON_DURABLE + ".jar");
@@ -90,7 +90,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     @Deployment(managed = false, testable = false, name = MDB2)
-    @TargetsContainer(CONTAINER4)
+    @TargetsContainer(CONTAINER4_NAME)
     public static Archive getDeployment2() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
@@ -101,7 +101,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     @Deployment(managed = false, testable = false, name = MDB1_WITH_CONNECTOR_PARAMETERS)
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeploymentMdbWithConnectorParameters() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB1_WITH_CONNECTOR_PARAMETERS + ".jar");
@@ -147,23 +147,23 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER3_NAME);
         // cluster B with mdbs
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER4);
+        controller.start(CONTAINER2_NAME);
+        controller.start(CONTAINER4_NAME);
 
         deployer.deploy(MDB1);
         deployer.deploy(MDB2);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
         producer2.start();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 10);
-        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), outQueueJndiName, 3000, 10, 10);
 
         receiver1.start();
         receiver2.start();
@@ -185,10 +185,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1);
         deployer.undeploy(MDB2);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER3_NAME);
 
     }
 
@@ -202,18 +202,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         // cluster B
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         deployer.deploy(MDB1);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 10);
 
         receiver1.start();
 
@@ -229,8 +229,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -244,25 +244,25 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         // cluster B
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         deployer.deploy(MDB1_NON_DURABLE);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        while (!checkThatServerIsReallyUp(getHostname(CONTAINER1), getHornetqPort(CONTAINER1))) {
+        while (!checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME))) {
             Thread.sleep(3000);
         }
 
         Thread.sleep(10000);
 
         // parse server.log with mdb for "HornetQException[errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"
-        StringBuilder pathToServerLogFile = new StringBuilder(getJbossHome(CONTAINER1));
+        StringBuilder pathToServerLogFile = new StringBuilder(getJbossHome(CONTAINER1_NAME));
 
         pathToServerLogFile.append(File.separator).append("standalone").append(File.separator).append("log").append(File.separator).append("server.log");
 
@@ -277,9 +277,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1_NON_DURABLE);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -297,34 +297,34 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
 
-        controller.start(CONTAINER1);//jms server
-        controller.start(CONTAINER2);// mdb server
+        controller.start(CONTAINER1_NAME);//jms server
+        controller.start(CONTAINER2_NAME);// mdb server
 
         deployer.undeploy(MDB1);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy(MDB1);
 
-        waitForNumberOfMessagesInQueue(CONTAINER1, inQueueName, numberOfMessages/10, 120000);
+        waitForNumberOfMessagesInQueue(CONTAINER1_NAME, inQueueName, numberOfMessages/10, 120000);
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
 
         // Start newer version of EAP and client with older version of EAP
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         deployer.deploy(MDB1);
-        ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, numberOfMessages);
+        ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, numberOfMessages);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
-        ReceiverTransAck receiverClientAck = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 3000, 10, 5);
+        ReceiverTransAck receiverClientAck = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
@@ -332,8 +332,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1);
 
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -342,23 +342,23 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testRAConfiguredByMdbInRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(CONTAINER1); // jms server
-        prepareMdbServer(CONTAINER2, CONTAINER1); // mdb server
-        prepareJmsServer(CONTAINER3); // jms server with mdb with cluster with container 1 and 2
+        prepareJmsServer(CONTAINER1_NAME); // jms server
+        prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME); // mdb server
+        prepareJmsServer(CONTAINER3_NAME); // jms server with mdb with cluster with container 1 and 2
 
         // cluster A
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        controller.start(CONTAINER3);
-        deployDestinations(CONTAINER3);
+        controller.start(CONTAINER1_NAME);
+        deployDestinations(CONTAINER1_NAME);
+        controller.start(CONTAINER3_NAME);
+        deployDestinations(CONTAINER3_NAME);
         // cluster B with mdbs
         String s = null;
         for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(CONTAINER2)) {
+                if (containerDef.getContainerName().equalsIgnoreCase(CONTAINER2_NAME)) {
                     if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
                         s = containerDef.getContainerProperties().get("javaVmArguments");
-                        s = s.concat(" -Dconnection.parameters=port=" + getHornetqPort(CONTAINER1) + ";host=" + getHostname(CONTAINER1));
+                        s = s.concat(" -Dconnection.parameters=port=" + getHornetqPort(CONTAINER1_NAME) + ";host=" + getHostname(CONTAINER1_NAME));
                         containerDef.getContainerProperties().put("javaVmArguments", s);
                     }
                 }
@@ -366,21 +366,21 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
         Map<String,String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        controller.start(CONTAINER2, properties);
+        controller.start(CONTAINER2_NAME, properties);
 
 
         deployer.deploy(MDB1_WITH_CONNECTOR_PARAMETERS);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer2 = new ProducerTransAck(getHostname(CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         producer1.start();
         producer2.start();
 
         //        Thread.sleep(10 * 60 * 1000); // min
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueueJndiName, 10000, 10, 10);
-        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(getHostname(CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), outQueueJndiName, 10000, 10, 10);
 
         receiver1.start();
         receiver2.start();
@@ -401,9 +401,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER3_NAME);
 
 
     }
@@ -416,10 +416,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER3_NAME);
 
     }
 
@@ -430,19 +430,19 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-            prepareJmsServer(CONTAINER1);
-            prepareMdbServer(CONTAINER2, CONTAINER1);
+            prepareJmsServer(CONTAINER1_NAME);
+            prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME);
 
-            prepareJmsServer(CONTAINER3);
-            prepareMdbServer(CONTAINER4, CONTAINER3);
+            prepareJmsServer(CONTAINER3_NAME);
+            prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME);
 
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
+            deployDestinations(CONTAINER1_NAME);
+            stopServer(CONTAINER1_NAME);
 
-            controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3);
-            stopServer(CONTAINER3);
+            controller.start(CONTAINER3_NAME);
+            deployDestinations(CONTAINER3_NAME);
+            stopServer(CONTAINER3_NAME);
 
             copyApplicationPropertiesFiles();
 

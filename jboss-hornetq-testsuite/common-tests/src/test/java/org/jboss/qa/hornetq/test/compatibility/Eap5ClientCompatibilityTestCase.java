@@ -165,14 +165,14 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         prepareContainer(CONTAINER1_INFO);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         Context ctx = null;
 
         try {
 
             // get eap 5 context even when you're connecting to eap 6 server
-            ctx = getEAP5Context(getHostname(CONTAINER1), getLegacyJNDIPort(CONTAINER1));
+            ctx = getEAP5Context(getHostname(CONTAINER1_NAME), getLegacyJNDIPort(CONTAINER1_NAME));
 
             List<String> jndiNameToLookup = new ArrayList<String>();
 
@@ -232,16 +232,16 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2, getHostname(CONTAINER2), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1);
-        deployDestinations(CONTAINER1);
-        stopServer(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        deployDestinations(CONTAINER1_NAME);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER2);
-        deployDestinations(CONTAINER2);
-        stopServer(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
+        deployDestinations(CONTAINER2_NAME);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -444,9 +444,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
         Thread.sleep(10000);
 
@@ -462,17 +462,18 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("########################################");
             LOG.warn("Kill live server");
             LOG.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
-            controller.kill(CONTAINER1);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+            controller.kill(CONTAINER1_NAME);
         } else {
             LOG.warn("########################################");
             LOG.warn("Shutdown live server");
             LOG.warn("########################################");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
         }
 
         LOG.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         waitForClientsToFailover(clients);
         waitForReceiversUntil(clients.getConsumers(), 200, 300000);
 
@@ -480,20 +481,20 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("########################################");
             LOG.warn("failback - Start live server again ");
             LOG.warn("########################################");
-            controller.start(CONTAINER1);
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 300000));
+            controller.start(CONTAINER1_NAME);
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             LOG.warn("########################################");
             LOG.warn("failback - Live started again ");
             LOG.warn("########################################");
-            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 600000);
+            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2, getHornetqPort(CONTAINER2), 60000);
+            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, getHornetqPort(CONTAINER2_NAME), 60000);
             waitForClientsToFailover(clients);
             Thread.sleep(5000); // give it some time
 //            LOG.warn("########################################");
 //            LOG.warn("failback - Stop backup server");
 //            LOG.warn("########################################");
-//            stopServer(CONTAINER2);
+//            stopServer(CONTAINER2_NAME);
 //            LOG.warn("########################################");
 //            LOG.warn("failback - Backup server stopped");
 //            LOG.warn("########################################");
@@ -509,9 +510,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -653,9 +654,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     @RestoreConfigBeforeTest
     public void testCompressLargeMessages() throws Exception {
 
-        prepareServerForCompressLargeMessages(CONTAINER1);
+        prepareServerForCompressLargeMessages(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         Thread.sleep(5000);
 
@@ -680,7 +681,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 

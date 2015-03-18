@@ -54,12 +54,12 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES = 10000;
 
-    private static final String HOSTNAME = getHostname(CONTAINER1);
-    private static final int JNDI_PORT = getJNDIPort(CONTAINER1);
+    private static final String HOSTNAME = getHostname(CONTAINER1_NAME);
+    private static final int JNDI_PORT = getJNDIPort(CONTAINER1_NAME);
 
     @After
     public void shutdownServerAfterTest() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -140,7 +140,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
                     notificationListener, null, null);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -204,14 +204,14 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
 
-            SubscriberAutoAck fastConsumer = new SubscriberAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            SubscriberAutoAck fastConsumer = new SubscriberAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-1", "test-fast-subscriber");
-            SubscriberAutoAck slowConsumer = new SubscriberAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            SubscriberAutoAck slowConsumer = new SubscriberAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-2", "test-slow-subscriber");
             slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
             slowConsumer.setMaxRetries(1);
@@ -259,14 +259,14 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
 
-            //ReceiverAutoAck fastReceiver = new ReceiverAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            //ReceiverAutoAck fastReceiver = new ReceiverAutoAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME),
             //        QUEUE_JNDI_NAME, 30000, 1);
-            ReceiverAutoAck slowReceiver = new ReceiverAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            ReceiverAutoAck slowReceiver = new ReceiverAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     QUEUE_JNDI_NAME);
             slowReceiver.setTimeout(1000); // slow consumer reads only one message per second
             slowReceiver.setMaxRetries(1);
@@ -313,7 +313,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(100); // producer only sends 10 message/second - lower than slow consumer threshold
@@ -361,7 +361,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -412,7 +412,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),
+            PublisherAutoAck producer = new PublisherAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -439,7 +439,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     }
 
     private void prepareServerForKills() throws Exception {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         JMSOperations ops = getJMSOperations();
 
         // disable clustering
@@ -458,12 +458,12 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
     }
 
     private void prepareServerForNotifications() throws Exception {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         JMSOperations ops = getJMSOperations();
 
         ops.setJmxManagementEnabled(true);
@@ -484,8 +484,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
     }
 
 }

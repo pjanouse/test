@@ -40,11 +40,11 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         int numberOfMessages = 100;
         int counter = 0;
 
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -58,7 +58,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            context = getContext(CONTAINER1);
+            context = getContext(CONTAINER1_NAME);
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI_EAP6);
             connection = connectionFactory.createConnection();
             connection.start();
@@ -97,7 +97,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         Assert.assertEquals("There must be half of the send messages.", numberOfMessages / 2, counter);
 
@@ -113,11 +113,11 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         int counter = 0;
         int counter2 = 0;
 
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -131,7 +131,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            context = getContext(CONTAINER1);
+            context = getContext(CONTAINER1_NAME);
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI_EAP6);
             connection = connectionFactory.createConnection();
             connection.start();
@@ -182,7 +182,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         Assert.assertEquals("There must be half of the send messages.", numberOfMessages / 2, counter);
 

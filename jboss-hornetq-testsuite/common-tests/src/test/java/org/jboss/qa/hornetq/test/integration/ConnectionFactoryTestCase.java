@@ -44,7 +44,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
         prepareServer(preferFactoryRef);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         String connectionFactoryName = "java:/JmsXA";
 
@@ -61,7 +61,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
                 logger.debug("HornetQTestServlet servlet was not deployed and it ");
             }
             deployer.deploy("hornetQTestServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/HornetQTestServlet/HornetQTestServlet" +
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/HornetQTestServlet/HornetQTestServlet" +
                     "?op=testConnectionFactoryType&jndiName=" + connectionFactoryName, 4, TimeUnit.SECONDS);
             logger.info("Response from server is: " + response);
             Assert.assertTrue("This should be instance of XAConnectionFactory. Response is: " + response, preferFactoryRef == Boolean.valueOf(response.trim()));
@@ -75,7 +75,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
         deployer.undeploy("hornetQTestServlet");
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @After
@@ -85,12 +85,12 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
             deployer.undeploy("hornetQTestServlet");
         } catch (Exception ignore)  {}
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
     @Deployment(testable = true, name = "hornetQTestServlet", managed = false)
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static WebArchive createHornetQTestServlet() {
         final WebArchive hornetqTestServlet = ShrinkWrap.create(WebArchive.class, "hornetQTestServlet.war");
         StringBuilder webXml = new StringBuilder();
@@ -143,7 +143,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      */
     private void prepareServer(boolean preferFactoryRef) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
 
         jmsAdminOperations.setFactoryRef(preferFactoryRef);
 

@@ -38,10 +38,10 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
     public void prepareServers(boolean createDestinations) {
 
-        prepareServer(CONTAINER1, createDestinations);
-        prepareServer(CONTAINER2, createDestinations);
-        prepareServer(CONTAINER3, createDestinations);
-        prepareServer(CONTAINER4, createDestinations);
+        prepareServer(CONTAINER1_NAME, createDestinations);
+        prepareServer(CONTAINER2_NAME, createDestinations);
+        prepareServer(CONTAINER3_NAME, createDestinations);
+        prepareServer(CONTAINER4_NAME, createDestinations);
     }
 
     /**
@@ -118,15 +118,15 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
     @Category(FunctionalTests.class)
     public void testLookupOfConnectionFactoryWithJGroupsDiscoveryGroup() throws Exception {
 
-        prepareServer(CONTAINER1, true);
+        prepareServer(CONTAINER1_NAME, true);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         Context context = null;
         Connection connection = null;
 
         try {
-            context = getContext(CONTAINER1);
+            context = getContext(CONTAINER1_NAME);
 
             Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
 
@@ -159,7 +159,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
             if (connection != null) {
                 connection.close();
             }
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
         }
     }
 }

@@ -46,11 +46,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      */
     public void prepareColocatedTopologyInCluster() {
 
-        prepareLiveServer(CONTAINER1, "firstPair", "firstPairJournalLive");
-        prepareColocatedBackupServer(CONTAINER1, "backup", "secondPair", "secondPairJournalBackup");
+        prepareLiveServer(CONTAINER1_NAME, "firstPair", "firstPairJournalLive");
+        prepareColocatedBackupServer(CONTAINER1_NAME, "backup", "secondPair", "secondPairJournalBackup");
 
-        prepareLiveServer(CONTAINER2, "secondPair", "secondPairJournalLive");
-        prepareColocatedBackupServer(CONTAINER2, "backup", "firstPair", "firstPairJournalBackup");
+        prepareLiveServer(CONTAINER2_NAME, "secondPair", "secondPairJournalLive");
+        prepareColocatedBackupServer(CONTAINER2_NAME, "backup", "firstPair", "firstPairJournalBackup");
 
     }
 
@@ -74,15 +74,15 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         prepareColocatedTopologyInCluster();
 
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         // give some time for servers to find each other
-        waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
-        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
+        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
+        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -96,22 +96,22 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         logger.info("########################################");
 
         if (shutdown)   {
-            controller.stop(CONTAINER2);
+            controller.stop(CONTAINER2_NAME);
         } else {
-            killServer(CONTAINER2);
-            controller.kill(CONTAINER2);
+            killServer(CONTAINER2_NAME);
+            controller.kill(CONTAINER2_NAME);
         }
 
 //        logger.info("########################################");
 //        logger.info("Start again - second server");
 //        logger.info("########################################");
-//        controller.start(CONTAINER2);
-//        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 300000);
+//        controller.start(CONTAINER2_NAME);
+//        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000);
 //        logger.info("########################################");
 //        logger.info("Second server started");
 //        logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 
@@ -123,8 +123,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -215,12 +215,12 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.setNodeIdentifier(containerName.hashCode());
 
-//        if (CONTAINER1.equalsIgnoreCase(containerName)) {
-//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER1_IP, 5445);
+//        if (CONTAINER1_NAME_NAME.equalsIgnoreCase(containerName)) {
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER1_NAME_IP, 5445);
 //            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER1_IP, 5446);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER1_NAME_IP, 5446);
 //            jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
-//        } else if (CONTAINER2.equalsIgnoreCase(containerName)) {
+//        } else if (CONTAINER2_NAME.equalsIgnoreCase(containerName)) {
 //            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER2_IP, 5445);
 //            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
 //            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5446);

@@ -62,8 +62,8 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 
     @After
     public void stopServer()    {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
     }
 
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
@@ -157,7 +157,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 					proxyToLive.stop();
                     proxyToBackup.stop();
 
-                    killServer(CONTAINER1);
+                    killServer(CONTAINER1_NAME);
 
 					isKillTrigered = true;
 

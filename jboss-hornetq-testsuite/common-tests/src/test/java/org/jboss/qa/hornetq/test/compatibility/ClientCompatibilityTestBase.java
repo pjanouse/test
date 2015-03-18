@@ -51,13 +51,13 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
     @Before
     public void startContainerBeforeTest() {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
     }
 
 
     @After
     public void stopContainerAfterTest() {
-        this.controller.stop(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
     }
 
 

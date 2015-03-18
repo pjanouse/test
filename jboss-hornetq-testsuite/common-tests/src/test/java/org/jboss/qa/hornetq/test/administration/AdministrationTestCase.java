@@ -35,7 +35,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
@@ -45,7 +45,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
-        configure(CONTAINER1, getHostname(CONTAINER1), JOURNAL_DIRECTORY_A);
+        configure(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
     }
 
     /**
@@ -107,7 +107,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1), getHornetqPort(CONTAINER1));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);

@@ -35,17 +35,17 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     String queueJndiName = "jms/queue/" + queueName;
 
     private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/runtime-queue=jms.queue." + queueName;
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
 
     @Before
     public void startServerBeforeTest() {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
     }
 
     @After
     public void stopServerAfterTest() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
 
@@ -64,20 +64,20 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
 
         int numberOfMessages= 100;
         int commitAfter=50;
-        controller.start(CONTAINER1);
-        JMSOperations ops = getJMSOperations(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
         ops.createQueue(queueName, queueJndiName);
         ops.close();
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),queueJndiName,numberOfMessages);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
+        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
         producer.start();
         producer.join();
 
 
 
         try {
-            context = getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+            context = getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
 
@@ -115,7 +115,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
             conn.close();
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -128,13 +128,13 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     public void listScheduledMessagesTestCase() throws Exception{
         int numberOfMessages= 10;
 
-        controller.start(CONTAINER1);
-        JMSOperations ops = getJMSOperations(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
         ops.createQueue(queueName, queueJndiName);
         ops.close();
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1),queueJndiName,numberOfMessages);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
+        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
         DelayedTextMessageBuilder delayedTextMessageBuilder= new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();
@@ -145,7 +145,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
             e.printStackTrace();
             Assert.assertTrue("Exception was caught", false);
         }
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
 
     }

@@ -6,10 +6,10 @@ package org.jboss.qa.hornetq;
 public interface HornetQTestCaseConstants {
 
     // Containers IDs
-    public static final String CONTAINER1 = "node-1";
-    public static final String CONTAINER2 = "node-2";
-    public static final String CONTAINER3 = "node-3";
-    public static final String CONTAINER4 = "node-4";
+    public static final String CONTAINER1_NAME = "node-1";
+    public static final String CONTAINER2_NAME = "node-2";
+    public static final String CONTAINER3_NAME = "node-3";
+    public static final String CONTAINER4_NAME = "node-4";
 
     // Server groups (EAP6 domain only)
     public static final String SERVER_GROUP1 = "server-group-1";

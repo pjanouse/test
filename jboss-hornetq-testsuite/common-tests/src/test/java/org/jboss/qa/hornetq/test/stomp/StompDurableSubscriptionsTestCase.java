@@ -52,7 +52,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -102,8 +102,8 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         final String ADDRESS = "#";
         final String STOMP_SOCKET_BINDING_NAME = "messaging-stomp";
 
-        controller.start(CONTAINER1);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);
@@ -118,8 +118,8 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         // Disable security on HQ
         jmsAdminOperations.setSecurityEnabled(false);
 
-        controller.stop(CONTAINER1);
-        controller.start(CONTAINER1);
+        controller.stop(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
 
         // Clients and semaphores
         HighLoadStompProducerWithSemaphores producer;
@@ -136,7 +136,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         Session session = null;
         long startTime = System.currentTimeMillis();
         try {
-            Stomp stomp = new Stomp(getHostname(CONTAINER1), STOMP_PORT);
+            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
             context = getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
@@ -174,6 +174,6 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 }

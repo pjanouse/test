@@ -40,7 +40,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -49,13 +49,13 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testCompression() throws Exception {
-        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         // Send messages into input node and read from output node
-        ProducerTransAck producer = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
-        ReceiverTransAck receiver = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 10000, 10, 10);
 
         logger.info("Start producer and consumer.");
         producer.start();
@@ -75,7 +75,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**

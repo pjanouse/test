@@ -47,7 +47,7 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(NewSoakTestCase.class);
 
-    private static final String CONTAINER1_DEPLOYMENT = "container1-deployment";
+    private static final String CONTAINER1_NAME_DEPLOYMENT = "container1-deployment";
 
     private static final String CONTAINER2_DEPLOYMENT = "container2-deployment";
 
@@ -74,9 +74,9 @@ public class NewSoakTestCase extends HornetQTestCase {
     @Before
     public void startUpServers() {
 
-        this.controller.start(CONTAINER1, setMemoryForContainer(CONTAINER1, 4000));
+        this.controller.start(CONTAINER1_NAME, setMemoryForContainer(CONTAINER1_NAME, 4000));
 
-        this.controller.start(CONTAINER2, setMemoryForContainer(CONTAINER2, 4000));
+        this.controller.start(CONTAINER2_NAME, setMemoryForContainer(CONTAINER2_NAME, 4000));
 
     }
 
@@ -106,22 +106,22 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     @After
     public void stopServers() {
-        this.controller.stop(CONTAINER2);
-        this.controller.stop(CONTAINER1);
+        this.controller.stop(CONTAINER2_NAME);
+        this.controller.stop(CONTAINER1_NAME);
     }
 
 
-    @Deployment(managed = false, testable = false, name = CONTAINER1_DEPLOYMENT)
-    @TargetsContainer(CONTAINER1)
+    @Deployment(managed = false, testable = false, name = CONTAINER1_NAME_DEPLOYMENT)
+    @TargetsContainer(CONTAINER1_NAME)
     public static Archive getDeploymentForContainer1() {
-        return createArchiveForContainer(CONTAINER1);
+        return createArchiveForContainer(CONTAINER1_NAME);
     }
 
 
     @Deployment(managed = false, testable = false, name = CONTAINER2_DEPLOYMENT)
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeploymentForContainer2() {
-        return createArchiveForContainer(CONTAINER2);
+        return createArchiveForContainer(CONTAINER2_NAME);
     }
 
 
@@ -131,21 +131,22 @@ public class NewSoakTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void soakTest() throws Exception {
         this.prepareServers();
-        this.setupJmsServer(CONTAINER1);
-        this.setupMdbServer(CONTAINER2);
+        this.setupJmsServer(CONTAINER1_NAME);
+        this.setupMdbServer(CONTAINER2_NAME);
 
         this.restartAllServers();
 
 //        // start memory measuring of servers
         File jmsServerCsv = new File("jms-server-memory.csv");
-        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER1), String.valueOf(getPort(CONTAINER1)), jmsServerCsv);
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER1_NAME), String.valueOf(getPort(CONTAINER1_NAME)), jmsServerCsv);
         jmsServerMeasurement.start();
 
         File mdbServerCsv = new File("mdb-server-memory.csv");
-        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER2), String.valueOf(getPort(CONTAINER2)), mdbServerCsv);
+        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER2_NAME), String.valueOf(getPort(
+                CONTAINER2_NAME)), mdbServerCsv);
         mdbServerMeasurement.start();
 
-        this.deployer.deploy(CONTAINER1_DEPLOYMENT);
+        this.deployer.deploy(CONTAINER1_NAME_DEPLOYMENT);
         this.deployer.deploy(CONTAINER2_DEPLOYMENT);
 
         String durationString = System.getProperty("soak.duration", String.valueOf(DEFAULT_DURATION));
@@ -159,13 +160,13 @@ public class NewSoakTestCase extends HornetQTestCase {
         LOG.info(String.format("Setting soak test duration to %dms", testDuration));
 
         // create in/out org.jboss.qa.hornetq.apps.clients
-        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1), this.getJNDIPort(CONTAINER1),
+        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), this.getJNDIPort(CONTAINER1_NAME),
                 RemoteJcaSoakModule.JCA_IN_QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new TextMessageBuilder(104));
 
         SoakReceiverClientAck[] consumers = new SoakReceiverClientAck[NUMBER_OF_CLIENTS];
         for (int i = 0; i < consumers.length; i++) {
-            consumers[i] = new SoakReceiverClientAck(getHostname(CONTAINER1), this.getJNDIPort(CONTAINER1),
+            consumers[i] = new SoakReceiverClientAck(getHostname(CONTAINER1_NAME), this.getJNDIPort(CONTAINER1_NAME),
                     DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI);
         }
         DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(CONTAINER1_INFO);

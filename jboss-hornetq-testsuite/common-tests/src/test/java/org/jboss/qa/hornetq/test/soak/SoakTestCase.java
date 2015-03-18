@@ -89,12 +89,12 @@ public class SoakTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2) + File.separator + "mdb1.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1));
-        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER1));
+        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
+        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER1_NAME));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
@@ -111,12 +111,12 @@ public class SoakTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @Deployment(managed = false, testable = false, name = "mdb2")
-    @TargetsContainer(CONTAINER4)
+    @TargetsContainer(CONTAINER4_NAME)
     public static Archive getDeployment2() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER4) + File.separator + "mdb2.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3));
-        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER3));
+        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
+        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER3_NAME));
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner2.class);
@@ -136,23 +136,24 @@ public class SoakTestCase extends HornetQTestCase {
         prepareRemoteJcaTopology();
 
         // cluster A
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER3_NAME);
         // cluster B
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER4);
+        controller.start(CONTAINER2_NAME);
+        controller.start(CONTAINER4_NAME);
 
         deployer.deploy("mdb1");
         deployer.deploy("mdb2");
 
         // start subscribers with gap
-        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(getHostname(CONTAINER2), 50, NUMBER_OF_SUBSCRIBERS, 10000);
+        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(getHostname(CONTAINER2_NAME), 50, NUMBER_OF_SUBSCRIBERS, 10000);
         for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; i++) {
             consumers[i].start();
         }
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getHostname(CONTAINER3), getJNDIPort(CONTAINER3), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getHostname(CONTAINER3_NAME), getJNDIPort(
+                CONTAINER3_NAME), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(104));
         producerToInQueue2.setMessageBuilder(new TextMessageBuilder(104));
 
@@ -205,10 +206,10 @@ public class SoakTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER3_NAME);
 
     }
 
@@ -221,10 +222,10 @@ public class SoakTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER3_NAME);
     }
 
     /**
@@ -234,19 +235,19 @@ public class SoakTestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
         if (!topologyCreated) {
-            controller.start(CONTAINER1);
-            deployDestinations(CONTAINER1);
-            stopServer(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
+            deployDestinations(CONTAINER1_NAME);
+            stopServer(CONTAINER1_NAME);
 
-            controller.start(CONTAINER3);
-            deployDestinations(CONTAINER3);
-            stopServer(CONTAINER3);
+            controller.start(CONTAINER3_NAME);
+            deployDestinations(CONTAINER3_NAME);
+            stopServer(CONTAINER3_NAME);
 
-            prepareJmsServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
-            prepareMdbServer(CONTAINER2, getHostname(CONTAINER2), CONTAINER1);
+            prepareJmsServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+            prepareMdbServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), CONTAINER1_NAME);
 
-            prepareJmsServer(CONTAINER3, getHostname(CONTAINER3), CONTAINER4);
-            prepareMdbServer(CONTAINER4, getHostname(CONTAINER4), CONTAINER3);
+            prepareJmsServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
+            prepareMdbServer(CONTAINER4_NAME, getHostname(CONTAINER4_NAME), CONTAINER3_NAME);
 
             copyApplicationPropertiesFiles();
 

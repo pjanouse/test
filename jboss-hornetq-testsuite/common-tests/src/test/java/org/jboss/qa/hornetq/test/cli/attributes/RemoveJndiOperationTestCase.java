@@ -50,9 +50,9 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void createQueueAndRemoveJndiEntry() throws Exception {
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         jmsOperations.createQueue(queueCoreName1, queueJndiNameRelative1);
         jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported2);
@@ -62,7 +62,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         checkJNDIEntriesForQueue(jmsOperations, queueCoreName1, queueJndiNameFullExported1, queueJndiNameFullExported2);
         jmsOperations.close();
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     private void checkJNDIEntriesForQueue(JMSOperations jmsOperations, String destinationCoreName, String... expectedJNDIEntries) {
@@ -108,9 +108,9 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void createTopicAndRemoveJndiEntry() throws Exception {
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         jmsOperations.createTopic(topicCoreName1, topicJndiNameRelative1);
         jmsOperations.addTopicJNDIName(topicCoreName1, topicJndiNameFullExported2);
@@ -121,7 +121,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
         checkJNDIEntriesForTopic(jmsOperations, topicCoreName1, topicJndiNameFullExported1, topicJndiNameRelative1);
 
         jmsOperations.close();
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -130,9 +130,9 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void createQueueAndRemoveJndiEntryWhichDoesNotExists() {
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         jmsOperations.createQueue(queueCoreName1, queueJndiNameRelative1);
         jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported2);
@@ -150,7 +150,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -159,9 +159,9 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void createTopicAndRemoveJndiEntryWhichDoesNotExists() {
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         jmsOperations.createQueue(topicCoreName1, topicJndiNameRelative1);
         jmsOperations.addQueueJNDIName(topicCoreName1, topicJndiNameFullExported2);
@@ -179,6 +179,6 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 }

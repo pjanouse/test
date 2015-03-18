@@ -49,7 +49,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -122,8 +122,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         final String TOPIC_JNDI = "/topic/pageTopic";
         final String ADDRESS = "jms.topic." + TOPIC;
 
-        controller.start(CONTAINER1);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);
@@ -181,6 +181,6 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 }

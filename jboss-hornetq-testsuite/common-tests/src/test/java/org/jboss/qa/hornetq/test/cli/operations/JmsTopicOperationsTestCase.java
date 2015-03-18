@@ -54,7 +54,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -72,13 +72,13 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
 
     }
 
     @After
     public void stopServer() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -88,15 +88,15 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     public void testOperationsWithConnectedClients() throws Exception {
 
         // setup server
-        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER1_NAME);
 
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
 
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, clientId, subscriberName);
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
@@ -126,7 +126,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         logger.info("Result drop-all-subscriptions: " + r22.getResponse().asString());
         CliTestUtils.assertSuccess(r22);
 
-        subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, clientId, subscriberName);
+        subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 

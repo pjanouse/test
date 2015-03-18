@@ -52,10 +52,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @Before
     public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER4_NAME);
     }
 
     /**
@@ -63,10 +63,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     @After
     public void stopAllServerAfterTest() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER4_NAME);
     }
 
     /**
@@ -93,10 +93,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void normalMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogic(new ByteMessageBuilder(30), killSequence, true);
     }
 
@@ -111,10 +111,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void largeByteMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogicLargeMessages(new ByteMessageBuilder(300 * 1024), killSequence, false);
     }
 
@@ -129,10 +129,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void largeByteMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogicLargeMessages(new ByteMessageBuilder(300 * 1024), killSequence, true);
     }
 
@@ -142,10 +142,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void mixMessagesKillTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence, false);
     }
 
@@ -155,10 +155,10 @@ public class Lodh4TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void mixMessagesShutdownTest() throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence, true);
     }
 
@@ -171,10 +171,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     private void testLogic(MessageBuilder messageBuilder) throws Exception {
         List<String> killSequence = new ArrayList<String>();
-        killSequence.add(CONTAINER2);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
-        killSequence.add(CONTAINER3);
+        killSequence.add(CONTAINER2_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
+        killSequence.add(CONTAINER3_NAME);
         testLogic(messageBuilder, killSequence, false);
     }
 
@@ -189,17 +189,17 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER4);
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER2_NAME);
+        controller.start(CONTAINER4_NAME);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER3_NAME);
 
         // give some time to server4 to really start
         Thread.sleep(3000);
 
         QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
-                getHostname(CONTAINER1),
-                getJNDIPort(CONTAINER1),
+                getHostname(CONTAINER1_NAME),
+                getJNDIPort(CONTAINER1_NAME),
                 relativeJndiInQueueName,
                 NUMBER_OF_DESTINATIONS_BRIDGES,
                 1,
@@ -208,8 +208,8 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(getHostname(CONTAINER4));
-        clientsA1.setPortForConsumers(getJNDIPort(CONTAINER4));
+        clientsA1.setHostnameForConsumers(getHostname(CONTAINER4_NAME));
+        clientsA1.setPortForConsumers(getJNDIPort(CONTAINER4_NAME));
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 
@@ -221,10 +221,10 @@ public class Lodh4TestCase extends HornetQTestCase {
             Thread.sleep(1000);
         }
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER4_NAME);
 
         assertTrue("There are problems detected by org.jboss.qa.hornetq.apps.clients. Check logs for more info. Look for: 'Print kill sequence', "
                 + "'Kill and restart server', 'Killing server', 'Evaluate results for queue org.jboss.qa.hornetq.apps.clients with client acknowledge'.", clientsA1.evaluateResults());
@@ -244,17 +244,17 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER4);
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER3);
+        controller.start(CONTAINER2_NAME);
+        controller.start(CONTAINER4_NAME);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER3_NAME);
 
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER4), getJNDIPort(CONTAINER4), relativeJndiOutQueueName + 0, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER4_NAME), getJNDIPort(CONTAINER4_NAME), relativeJndiOutQueueName + 0, 10000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -273,10 +273,10 @@ public class Lodh4TestCase extends HornetQTestCase {
                 producer1.getListOfSentMessages().size(),
                 receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER4_NAME);
 
     }
 
@@ -319,10 +319,10 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     public void prepareServers() {
 
-        prepareSourceServer(CONTAINER1, getHostname(CONTAINER1), CONTAINER2);
-        prepareSourceServer(CONTAINER3, getHostname(CONTAINER3), CONTAINER4);
-        prepareTargetServer(CONTAINER2, getHostname(CONTAINER2));
-        prepareTargetServer(CONTAINER4, getHostname(CONTAINER4));
+        prepareSourceServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+        prepareSourceServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
+        prepareTargetServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME));
+        prepareTargetServer(CONTAINER4_NAME, getHostname(CONTAINER4_NAME));
 
     }
 

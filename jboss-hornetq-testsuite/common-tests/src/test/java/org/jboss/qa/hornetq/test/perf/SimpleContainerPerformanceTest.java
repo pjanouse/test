@@ -109,7 +109,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -119,7 +119,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * @throws Exception if something is wrong
      */
     @Deployment(managed = false, testable = false, name = MDB_DEPLOY)
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createArchiveWithPerformanceMdb() throws Exception {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "performanceMdb.jar");
         mdbJar.addClass(CounterMdb.class);
@@ -187,10 +187,10 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         final String OUT_QUEUE = "OutQueue";
 
         log.info("Staring container for test ....");
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.createQueue(IN_QUEUE, IN_QUEUE);
         jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         Context context = null;
         Connection connection = null;
@@ -300,6 +300,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         jmsAdminOperations.close();
         log.info("Stopping container for test ....");
         deployer.undeploy(MDB_DEPLOY);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 }

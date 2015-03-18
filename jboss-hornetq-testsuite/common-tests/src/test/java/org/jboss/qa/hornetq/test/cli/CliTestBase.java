@@ -45,7 +45,7 @@ public class CliTestBase extends HornetQTestCase {
         boolean isWritable = false;
 
         CLI cli = CLI.newInstance();
-        cli.connect(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1).toCharArray());
+        cli.connect(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME).toCharArray());
         CLI.Result result = cli.cmd(address + ":read-resource-description()");
 
         // grep it for attribute and access-typ

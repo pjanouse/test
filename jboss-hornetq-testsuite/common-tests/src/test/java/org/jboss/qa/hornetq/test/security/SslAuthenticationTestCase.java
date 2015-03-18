@@ -101,7 +101,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     @Before
     public void stopServerBeforeReconfiguration() {
-        this.controller.stop(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
     }
 
 
@@ -109,19 +109,19 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testOneWaySslOverCore() throws Exception {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         ServerLocator locator = null;
         try {
             Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-            props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+            props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+            props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
             props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
             props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
             props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -163,18 +163,18 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testOneWaySslOverJms() throws Exception {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -220,20 +220,20 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     )
     public void testOneWaySslOverSSLv3Jms() throws Exception {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CLIENT_PORT);
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -258,9 +258,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
                 connection.close();
             }
 
-            RuleInstaller.uninstallAllRules(getHostname(CONTAINER1), BYTEMAN_CLIENT_PORT);
+            RuleInstaller.uninstallAllRules(getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
 
-            controller.stop(CONTAINER1);
+            controller.stop(CONTAINER1_NAME);
 
         }
     }
@@ -274,18 +274,18 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslOverCore() throws Exception {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
         this.createTwoWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -324,18 +324,18 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslOverJms() throws Exception {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
         this.createTwoWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -376,16 +376,16 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11(CONTAINER1);
+        prepareSeverWithPkcs11(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
 
         Context context;
 
-        if (getContainerType(CONTAINER1).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            context = getEAP5Context(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+        if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+            context = getEAP5Context(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
         } else {
-            context = getContext(getHostname(CONTAINER1), getJNDIPort(CONTAINER1));
+            context = getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
         }
 
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
@@ -410,7 +410,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         session.close();
         connection.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -422,9 +422,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11(CONTAINER1);
+        prepareSeverWithPkcs11(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
@@ -434,8 +434,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
         props.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
         props.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
 
@@ -463,15 +463,15 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         connection.close();
         cf.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
     private void prepareSeverWithPkcs11(String containerName) throws Exception {
 
-        installSecurityExtension(CONTAINER1);
+        installSecurityExtension(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
         JMSOperations ops = this.prepareServer();
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
@@ -543,7 +543,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         ops.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             activateLegacyJnpModule(getContainerInfo(containerName));

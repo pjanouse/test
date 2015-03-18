@@ -143,13 +143,13 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         DomainOperations.forDefaultContainer().reloadDomain().close();
 
         // we use only the first server
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
         logger.info("Configuration is done, starting the node again");
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         logger.info("Node is up, commencing the test");
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -165,16 +165,16 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         List<String> killSequence = new ArrayList<String>();
 
         for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
-            killSequence.add(CONTAINER1);
+            killSequence.add(CONTAINER1_NAME);
         }
 
         logger.info("Starting the kill sequence");
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 1000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 1000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -189,7 +189,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
                 receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -204,9 +204,9 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         // we use only the first server
         prepareServer();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -218,7 +218,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 300000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -230,7 +230,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -282,7 +282,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
     }
 
     private void printQueuesCount() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         jmsAdminOperations.addAddressPrefix("host", "master");
         jmsAdminOperations.addAddressPrefix("server", "server-1");
         logger.info("=============Queues status====================");
@@ -299,8 +299,8 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
 //    @Before
 //    @After
 //    public void stopAllServers() {
-//        stopServer(CONTAINER1);
-//        stopServer(CONTAINER2);
+//        stopServer(CONTAINER1_NAME_NAME);
+//        stopServer(CONTAINER2_NAME);
 //        deleteFolder(new File(JOURNAL_DIRECTORY_A));
 //    }
 
@@ -310,7 +310,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
     }
 
     /**

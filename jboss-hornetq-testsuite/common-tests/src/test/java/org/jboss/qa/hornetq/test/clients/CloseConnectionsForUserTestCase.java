@@ -30,7 +30,7 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
 
     @After
     public void shutdownServerAfterTest() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test
@@ -145,8 +145,8 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
 
         @Override
         public boolean closeClients() throws Exception {
-            CliConfiguration config = new CliConfiguration(getHostname(CONTAINER1), getPort(CONTAINER1),
-                    getUsername(CONTAINER1), getPassword(CONTAINER1));
+            CliConfiguration config = new CliConfiguration(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME),
+                    getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
             CliClient cliClient = new CliClient(config);
 
             CLI.Result result = cliClient.executeCommand(CliUtils.buildCommand(

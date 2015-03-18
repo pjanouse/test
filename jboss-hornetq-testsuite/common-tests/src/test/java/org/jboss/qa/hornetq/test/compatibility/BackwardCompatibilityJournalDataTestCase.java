@@ -79,7 +79,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     static boolean topologyCreated = false;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER2)
+    @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeployment1() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
@@ -91,7 +91,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     }
 
     @Deployment(managed = false, testable = false, name = "mdb2")
-    @TargetsContainer(CONTAINER4)
+    @TargetsContainer(CONTAINER4_NAME)
     public static Archive getDeployment2() throws Exception {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
@@ -113,36 +113,38 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
 
-        controller.start(CONTAINER1);//jms server
-        controller.start(CONTAINER2);// mdb server
+        controller.start(CONTAINER1_NAME);//jms server
+        controller.start(CONTAINER2_NAME);// mdb server
 
         deployer.undeploy("mdb1");
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
         deployer.deploy("mdb1");
         Thread.sleep(20000);
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
 
         // Start newer version of EAP and client with older version of EAP
-        controller.start(CONTAINER3);
-        controller.start(CONTAINER4);
+        controller.start(CONTAINER3_NAME);
+        controller.start(CONTAINER4_NAME);
         try {
             deployer.undeploy("mdb2");
         } catch (Exception ignore)  {
             // ignore
         }
         deployer.deploy("mdb2");
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER3), getJNDIPort(CONTAINER3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(
+                CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
-        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER3), getJNDIPort(CONTAINER3), outQueueJndiName, 10000, 10, 5);
+        SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(
+                CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), outQueueJndiName, 10000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
@@ -150,8 +152,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb2");
 
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER3_NAME);
 
 
     }
@@ -165,10 +167,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @After
     public void stopAllServers()  {
 
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER4);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER4_NAME);
+        stopServer(CONTAINER3_NAME);
     }
 
     /**
@@ -181,10 +183,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         if (!topologyCreated) {
 
-            prepareJmsServer(CONTAINER1);
-            prepareMdbServer(CONTAINER2, CONTAINER1);
-            prepareJmsServer(CONTAINER3);
-            prepareMdbServer(CONTAINER4, CONTAINER3);
+            prepareJmsServer(CONTAINER1_NAME);
+            prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME);
+            prepareJmsServer(CONTAINER3_NAME);
+            prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME);
             topologyCreated = true;
         }
     }

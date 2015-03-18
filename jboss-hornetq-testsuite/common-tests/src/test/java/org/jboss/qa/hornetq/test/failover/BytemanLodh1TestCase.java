@@ -61,7 +61,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createLodh1Deployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
         mdbJar.addClass(LocalMdbFromQueue.class);
@@ -83,7 +83,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     @Deployment(managed = false, testable = false, name = "mdb2-copy")
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createLodh1CopyDeployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1-copy");
         mdbJar.addClass(LocalCopyMdbFromQueue.class);
@@ -303,16 +303,16 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
     private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
 
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
 
         logger.info("!!!!! FIRST PASS !!!!!");
         logger.info("Sending messages to InQueue");
         this.sendMessages(msgBuilder);
 
         logger.info("Deploying MDB " + deploymentName);
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
         try {
             this.deployer.deploy(deploymentName);
         } catch (Exception e) {
@@ -321,29 +321,29 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             logger.debug("Arquillian got an exception while deploying", e);
         }
 
-        this.controller.kill(CONTAINER1);
+        this.controller.kill(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         // check that number of prepared transaction gets to 0
         logger.info("Get information about transactions from HQ:");
         long timeout = 300000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
         }
         jmsOperations.close();
         // wait for InQueue to be empty
-        waitForMessages(IN_QUEUE_NAME, 0, 300000, CONTAINER1);
+        waitForMessages(IN_QUEUE_NAME, 0, 300000, CONTAINER1_NAME);
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1);
+        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
         assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
@@ -353,7 +353,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private List<String> sendMessages(final MessageBuilder builder) throws Exception {
-        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), IN_QUEUE,
+        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);
         producer.setMessageBuilder(builder);
@@ -371,7 +371,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new ReceiverTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), OUT_QUEUE, 5000, 10, 10);
+            receiver = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), OUT_QUEUE, 5000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();
@@ -390,7 +390,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @After
     @Override
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
 

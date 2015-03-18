@@ -51,7 +51,7 @@ public class JcaTestCase extends HornetQTestCase {
     static String outQueue = "jms/queue/" + outQueueName;
 
     @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeployment() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
@@ -125,9 +125,9 @@ public class JcaTestCase extends HornetQTestCase {
         // we use only the first server
         prepareServer();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -138,7 +138,7 @@ public class JcaTestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -158,7 +158,7 @@ public class JcaTestCase extends HornetQTestCase {
 
 
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -181,8 +181,8 @@ public class JcaTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
     }
 
@@ -192,7 +192,7 @@ public class JcaTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
     }
 
     /**

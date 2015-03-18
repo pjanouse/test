@@ -165,16 +165,16 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 500);
         producer.setMessageBuilder(messageBuilder);
 
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
@@ -182,7 +182,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         producer.join();
         publisher.join();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
         receiver.start();
         subscriber.start();
 
@@ -191,22 +191,22 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(5000);
             log.info("############# Kill server 1.");
-            controller.kill(CONTAINER1);
+            controller.kill(CONTAINER1_NAME);
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
             log.info("############# Server 1 started.");
 
         } else {
 
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
             log.info("############# Server 1 started.");
         }
 
@@ -222,9 +222,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 
@@ -248,14 +248,14 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER2_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
+        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
@@ -268,29 +268,29 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(10000);
             log.info("############# Kill server 1.");
-            controller.kill(CONTAINER1);
+            controller.kill(CONTAINER1_NAME);
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
             log.info("############# Server 1 started.");
 
         } else {
 
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            stopServer(CONTAINER1);
+            stopServer(CONTAINER1_NAME);
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
             log.info("############# Server 1 started.");
         }
 
         producer.stopSending();
         publisher.stopSending();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
         receiver.start();
         receiver.join();
 
@@ -306,14 +306,14 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
 
     }
 
     public void prepareServers() {
-        prepareServer(CONTAINER1);
-        prepareServer(CONTAINER2);
+        prepareServer(CONTAINER1_NAME);
+        prepareServer(CONTAINER2_NAME);
     }
 
 
@@ -383,9 +383,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER2_NAME);
 
     }
 }

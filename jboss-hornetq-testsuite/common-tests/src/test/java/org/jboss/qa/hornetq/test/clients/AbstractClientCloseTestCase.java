@@ -123,7 +123,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
                     notifications.get(1).getType());
             assertTrue("There should be at least 2 notifications", notifications.size() >= 2);
 
-            controller.stop(CONTAINER1);
+            controller.stop(CONTAINER1_NAME);
         } finally {
             if (jmxConnector != null) {
                 jmxConnector.close();
@@ -139,15 +139,15 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
     }
 
     private void prepareServer(boolean secured) {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         JMSOperations ops = getJMSOperations();
 
         // enable JMX on hornetq for notifications (and potentially calling the management operation too)
         ops.setJmxManagementEnabled(true);
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
 
         // disable clustering
         ops.setClustered(false);
@@ -168,8 +168,8 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             copyUsersAndRolesFiles();
         }
 
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
     }
 
     private void copyUsersAndRolesFiles() {

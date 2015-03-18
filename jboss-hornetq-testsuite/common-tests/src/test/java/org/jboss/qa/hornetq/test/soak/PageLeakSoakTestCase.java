@@ -35,19 +35,19 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         int numberOfMessages = 5000000; // 10 M messages
         int counter = 0;
 
-        prepareJmsServer(CONTAINER1);
+        prepareJmsServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        SubscriberTransAck fastSubscriber = new SubscriberTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
+        SubscriberTransAck fastSubscriber = new SubscriberTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
         fastSubscriber.subscribe();
         fastSubscriber.setTimeout(0);
 
-        SubscriberTransAck slowSubscriber = new SubscriberTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, 30000, 1, 10, "slowSubscriber-connid", "slowSubscriber");
+        SubscriberTransAck slowSubscriber = new SubscriberTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inTopicJndiName, 30000, 1, 10, "slowSubscriber-connid", "slowSubscriber");
         slowSubscriber.subscribe();
         slowSubscriber.setTimeout(1000);
 
-        PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inTopicJndiName, numberOfMessages, "publisherID");
+        PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inTopicJndiName, numberOfMessages, "publisherID");
         MessageBuilder builder = new ClientMixMessageBuilder(30, 30);
         builder.setAddDuplicatedHeader(true);
         publisher.setMessageBuilder(builder);
@@ -66,10 +66,10 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         fastSubscriber.join();
         slowSubscriber.join(60);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         // start measuring of
-        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1), "jms-server");
+        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1_NAME), "jms-server");
 
         jmsServerMeasurement.startMeasuring();
 

@@ -63,7 +63,7 @@ public class Lodh5TestCase extends HornetQTestCase {
      * @return test artifact with MDBs
      */
     @Deployment(managed = false, testable = false, name = MDBTODB)
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeployment() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbToDb.jar");
         mdbJar.addClass(SimpleMdbToDb.class);
@@ -239,15 +239,15 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareJmsServer(CONTAINER1, databaseName);
+        prepareJmsServer(CONTAINER1_NAME, databaseName);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         rollbackPreparedTransactions(databaseName, properties.get("db.username"));  // if dbutilservlet can do it
         deleteRecords();
         countRecords();
 
-        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName, numberOfMessages);
+        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueRelativeJndiName, numberOfMessages);
 
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.setCommitAfter(1000);
@@ -266,11 +266,11 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         for (int i = 0; i < 1; i++) {
 
-            killServer(CONTAINER1);
-            controller.kill(CONTAINER1);
-            PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_kill1.txt");
-            controller.start(CONTAINER1);
-            PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_restart2.txt");
+            killServer(CONTAINER1_NAME);
+            controller.kill(CONTAINER1_NAME);
+            PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_kill1.txt");
+            controller.start(CONTAINER1_NAME);
+            PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
         }
@@ -283,7 +283,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             lastValue = newValue;
             Thread.sleep(5000);
         }
-        PrintJournal.printJournal(CONTAINER1, databaseName + "journal_content_after_recovery.txt");
+        PrintJournal.printJournal(CONTAINER1_NAME, databaseName + "journal_content_after_recovery.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();
@@ -302,7 +302,7 @@ public class Lodh5TestCase extends HornetQTestCase {
                 0, count);
 
         deployer.undeploy(MDBTODB);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
@@ -330,7 +330,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -472,16 +472,16 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             logger.info("!!!!! preparing server !!!!!");
 
-            prepareJmsServer(CONTAINER1, POSTGRESQLPLUS92);
+            prepareJmsServer(CONTAINER1_NAME, POSTGRESQLPLUS92);
 
-            controller.start(CONTAINER1);
+            controller.start(CONTAINER1_NAME);
 
             logger.info("!!!!! deleting data in DB !!!!!");
             deleteRecords();
             countRecords();
 
             logger.info("!!!!! sending messages !!!!!");
-            ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), inQueueRelativeJndiName,
+            ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueRelativeJndiName,
                     numberOfMessages);
 
             producer.setMessageBuilder(new InfoMessageBuilder());
@@ -489,8 +489,8 @@ public class Lodh5TestCase extends HornetQTestCase {
             producer.join();
 
             logger.info("!!!!! installing byteman rules !!!!!");
-            //HornetQCallsTracking.installTrackingRules(CONTAINER1_IP, BYTEMAN_CONTAINER1_PORT);
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), BYTEMAN_CONTAINER1_PORT);
+            //HornetQCallsTracking.installTrackingRules(CONTAINER1_NAME_IP, BYTEMAN_CONTAINER1_NAME_PORT);
+            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
 
             logger.info("!!!!! deploying MDB !!!!!");
             try {
@@ -501,11 +501,11 @@ public class Lodh5TestCase extends HornetQTestCase {
                 logger.debug("Arquillian got an exception while deploying", e);
             }
 
-            controller.kill(CONTAINER1);
+            controller.kill(CONTAINER1_NAME);
 //            PrintJournal.printJournal(CTRACEONTAINER1, "journal_content_after_kill1.txt");
             logger.info("!!!!! starting server again !!!!!");
-            controller.start(CONTAINER1);
-//            PrintJournal.printJournal(CONTAINER1, "journal_content_after_restart2.txt");
+            controller.start(CONTAINER1_NAME);
+//            PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
             // 5 min
@@ -516,7 +516,7 @@ public class Lodh5TestCase extends HornetQTestCase {
                     < howLongToWait) {
                 Thread.sleep(10000);
             }
-//        PrintJournal.printJournal(CONTAINER1, "journal_content_before_shutdown3.txt");
+//        PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_before_shutdown3.txt");
 
             logger.info("Print lost messages:");
             List<String> listOfSentMessages = new ArrayList<String>();
@@ -530,8 +530,8 @@ public class Lodh5TestCase extends HornetQTestCase {
             Assert.assertEquals(numberOfMessages, countRecords());
         } finally {
             deployer.undeploy("mdbToDb");
-            stopServer(CONTAINER1);
-//        PrintJournal.printJournal(CONTAINER1, "journal_content_after_shutdown4.txt");
+            stopServer(CONTAINER1_NAME);
+//        PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_after_shutdown4.txt");
         }
 
     }
@@ -935,7 +935,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     @Deployment(managed = false, testable = false, name = "dbUtilServlet")
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static WebArchive createDbUtilServlet() {
 
         final WebArchive dbUtilServlet = ShrinkWrap.create(WebArchive.class, "dbUtilServlet.war");
@@ -979,7 +979,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
 
             StringTokenizer st = new StringTokenizer(response, ",");
             while (st.hasMoreTokens()) {
@@ -1001,7 +1001,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
                     + "&database=" + database, 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
@@ -1032,7 +1032,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
@@ -1054,7 +1054,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1) + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
 
             logger.info("Response from delete records is: " + response);
         } finally {

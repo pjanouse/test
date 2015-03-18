@@ -47,7 +47,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), getPort(CONTAINER1), getUsername(CONTAINER1), getPassword(CONTAINER1));
+    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME), getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     private void prepareServerWithHornetQCoreBridge(String containerName, String targeServerName) {
 
@@ -92,22 +92,22 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     @Before
     public void startServer() throws InterruptedException {
 
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
-        prepareServerWithHornetQCoreBridge(CONTAINER1, CONTAINER2);
-        prepareTargetServerForHornetQCoreBridge(CONTAINER2);
+        prepareServerWithHornetQCoreBridge(CONTAINER1_NAME, CONTAINER2_NAME);
+        prepareTargetServerForHornetQCoreBridge(CONTAINER2_NAME);
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
     }
 
 
     @After
     public void stopServer() {
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
     }
 
 
@@ -117,15 +117,15 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     public void writeReadAttributeHornetqCoreBridgeTest() throws Exception {
 
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
         String address = "/subsystem=messaging/jms-bridge=" + BRIDGE_NAME;
 
         writeReadAttributeTest(address, "/hornetqJmsBridgeAttributes.txt");
 
-        String sourceServer = CONTAINER1;
-        String targetServer = CONTAINER2;
+        String sourceServer = CONTAINER1_NAME;
+        String targetServer = CONTAINER2_NAME;
         int numberOfMessages = 100;
 
         ProducerTransAck prod = new ProducerTransAck(getHostname(sourceServer), getJNDIPort(sourceServer), inQueueJndiName, numberOfMessages);

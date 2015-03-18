@@ -56,13 +56,13 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
     }
 
 
     @After
     public void stopServer() {
-        this.controller.stop(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
     }
 
 
@@ -73,8 +73,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testUncompressedNormalMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         // EAP6: 100KiB text body results in about 102550-ish bytes message
         // EAP5: 50KiB text body results in >102400 bytes message
@@ -95,8 +95,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testCompressedLargeMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         ClientMessage receivedMsg = this.sendAndReceivedMessage(this.generateMessageText(5000000));
 
@@ -115,8 +115,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testLargeMessageCompressedToNormalMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1);
-        this.controller.start(CONTAINER1);
+        this.controller.stop(CONTAINER1_NAME);
+        this.controller.start(CONTAINER1_NAME);
 
         ClientMessage receivedMsg = this.sendAndReceivedMessage(this.generateMessageText(MIN_LARGE_MESSAGE_SIZE + 200));
 
@@ -134,8 +134,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
         try {
             Map<String, Object> params = new HashMap<String, Object>();
-            params.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1));
-            params.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1));
+            params.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
+            params.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
             TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getName(), params);
 
             locator = HornetQClient.createServerLocatorWithoutHA(config);
@@ -194,7 +194,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
 
     private void prepare() {
-        JMSOperations ops = this.getJMSOperations(CONTAINER1);
+        JMSOperations ops = this.getJMSOperations(CONTAINER1_NAME);
         ops.createQueue(QUEUE_NAME, QUEUE_NAME);
         ops.close();
     }

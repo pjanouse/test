@@ -46,8 +46,8 @@ public class RecoveryManagerWrapper {
 
 //        String resourceRecoveryClass = HornetQXAResourceRecovery.class.getName();
 //            String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
-//                    "guest,guest,host=" + HornetQTestCase.getHostname(CONTAINER1) + ",port=" + HornetQTestCase.getHornetqPort(CONTAINER1) + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
-//                    + HornetQTestCase.getHostname(CONTAINER2) + " ,port=" + HornetQTestCase.getHornetqPort(CONTAINER2);
+//                    "guest,guest,host=" + HornetQTestCase.getHostname(CONTAINER1_NAME) + ",port=" + HornetQTestCase.getHornetqPort(CONTAINER1_NAME) + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
+//                    + HornetQTestCase.getHostname(CONTAINER2_NAME) + " ,port=" + HornetQTestCase.getHornetqPort(CONTAINER2_NAME);
 //        String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
 //                "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
 

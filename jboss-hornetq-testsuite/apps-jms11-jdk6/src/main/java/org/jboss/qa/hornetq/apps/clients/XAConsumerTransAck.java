@@ -448,9 +448,15 @@ public class XAConsumerTransAck extends Client {
                 String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
                 //org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost1,port=5446"
                 String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
-                        "guest,guest,host=" + ContainerUtils.getInstance().getHostname(CONTAINER1) + ",port=" + ContainerUtils.getInstance().getHornetqPort(CONTAINER1)
+                        "guest,guest,host=" + ContainerUtils.getInstance().getHostname(CONTAINER1_NAME) + ",port=" + ContainerUtils.getInstance().getHornetqPort(
+
+
+                        CONTAINER1_NAME)
                         + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
-                        + ContainerUtils.getInstance().getHostname(CONTAINER2) + " ,port=" + ContainerUtils.getInstance().getHornetqPort(CONTAINER2);
+                        + ContainerUtils.getInstance().getHostname(CONTAINER2_NAME) + " ,port=" + ContainerUtils.getInstance().getHornetqPort(
+
+
+                        CONTAINER2_NAME);
 
 //                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
 //                        "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";

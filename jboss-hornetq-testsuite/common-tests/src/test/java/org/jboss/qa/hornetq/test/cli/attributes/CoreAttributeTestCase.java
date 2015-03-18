@@ -103,16 +103,16 @@ public class CoreAttributeTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     @Before
     public void startServer() {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
     }
 
     @After
     public void stopServer() {
-        controller.stop(CONTAINER1);
+        controller.stop(CONTAINER1_NAME);
     }
 
     @Test

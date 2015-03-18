@@ -58,11 +58,11 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     @Before
     public void startServer() throws InterruptedException {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         // deploy queue
 
@@ -70,7 +70,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
         cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + queueJndiName + "\", \"java:jboss/exported/" + queueJndiName + "\"])");
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         producer.join();
@@ -80,7 +80,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
     @After
     public void stopServer() {
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @Test

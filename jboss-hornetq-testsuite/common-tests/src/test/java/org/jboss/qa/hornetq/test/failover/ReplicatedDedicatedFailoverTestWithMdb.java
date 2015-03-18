@@ -25,11 +25,11 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1);
+        prepareLiveServer(CONTAINER1_NAME);
 
-        prepareBackupServer(CONTAINER2);
+        prepareBackupServer(CONTAINER2_NAME);
 
-        prepareMdbServer(CONTAINER3, CONTAINER1, CONTAINER2);
+        prepareMdbServer(CONTAINER3_NAME, CONTAINER1_NAME, CONTAINER2_NAME);
 
         copyApplicationPropertiesFiles();
 

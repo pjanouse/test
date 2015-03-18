@@ -76,12 +76,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "0", 10, null, null);
+            guest = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 10, null, null);
             guest.initializeClient();
 
             try {
@@ -125,7 +125,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
                 guest.close();
             }
         }
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -140,12 +140,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "1", 10, "user", "useruser");
             user.initializeClient();
 
             try {
@@ -187,7 +187,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -203,13 +203,13 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         SecurityClient admin = null;
 
         try {
             // try user admin
-            admin = new SecurityClient(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
             admin.initializeClient();
 
             try {
@@ -249,7 +249,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -261,47 +261,47 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     public void inVmSecurityTestCase() throws Exception{
 
         prepareServer();
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         deployer.deploy(MDB_ON_QUEUE_TO_QUEUE);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         HashMap<String,String> opts= new HashMap();
         opts.put("password-stacking","useFirstPass");
         jmsAdminOperations.rewriteLoginModule("Remoting",opts);
         jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
         jmsAdminOperations.overrideInVMSecurity(false);
 
-        controller.stop(CONTAINER1);
-        controller.start(CONTAINER1);
-        SecurityClient producer= new SecurityClient(getHostname(CONTAINER1),getJNDIPort(CONTAINER1),inQueueJndiNameForMdb,10, "user","useruser");
+        controller.stop(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
+        SecurityClient producer= new SecurityClient(getHostname(CONTAINER1_NAME),getJNDIPort(CONTAINER1_NAME),inQueueJndiNameForMdb,10, "user","useruser");
         producer.initializeClient();
         producer.send();
         producer.join();
 
         Thread.sleep(2000);
 
-        jmsAdminOperations = this.getJMSOperations(CONTAINER1);
+        jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
         long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
         Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     @After
     public void stopServerIfAlive()    {
-        if (checkThatServerIsReallyUp(getHostname(CONTAINER1), getPort(CONTAINER1))) {
-            controller.stop(CONTAINER1);
+        if (checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME))) {
+            controller.stop(CONTAINER1_NAME);
         }
     }
 
     public void prepareServer() throws Exception {
 
 
-        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
-        deployDestinations(CONTAINER1);
+        deployDestinations(CONTAINER1_NAME);
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
 
     }
@@ -411,7 +411,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_TO_QUEUE)
-    @TargetsContainer(CONTAINER1)
+    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "localMdbFromQueue.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);

@@ -39,10 +39,10 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testDupIdCacheSizeWithDurableQueues() throws Exception {
 
-        prepareServer(CONTAINER1);
-        prepareServer(CONTAINER2);
+        prepareServer(CONTAINER1_NAME);
+        prepareServer(CONTAINER2_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
         final long numberOfMessages = 300;
         final int numberOfIterations = 300000;
 
@@ -50,7 +50,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
         Connection connection = null;
         Session session = null;
         try {
-            ctx = this.getContext(CONTAINER1);
+            ctx = this.getContext(CONTAINER1_NAME);
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
             connection = cf.createConnection();
             connection.start();
@@ -82,8 +82,8 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
                 logger.info("Iteration: " + iterations + " Commit receive " + numberOfMessages + " from temp queue.");
                 Assert.assertEquals(count, numberOfMessages);
                 consumer.close();
-//                removeQueue(CONTAINER1, inQueue);
-//                removeQueue(CONTAINER2, inQueue);
+//                removeQueue(CONTAINER1_NAME_NAME, inQueue);
+//                removeQueue(CONTAINER2_NAME, inQueue);
                 tempQueue.delete();
             }
 
@@ -101,7 +101,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
                 ctx.close();
             }
         }
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     private void prepareServer(String containerName) {

@@ -73,7 +73,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsQueueOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1)));
+    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -90,12 +90,12 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1);
+        this.controller.start(CONTAINER1_NAME);
     }
 
     @After
     public void stopServer() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
 // TODO uncomment when bz: https://bugzilla.redhat.com/show_bug.cgi?id=1155247 gets clear
@@ -109,16 +109,16 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 //    public void testDestroyWithActiveClients() {
 //
 //        // setup server
-//        prepareServer(CONTAINER1);
+//        prepareServer(CONTAINER1_NAME_NAME);
 //
 //        // send some messages to queue and receive them
-//        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+//        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //
 //        producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 //
 //        producer.start();
 //
-//        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1000, 100, 10);
+//        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME), queueJndiName, 1000, 100, 10);
 //
 //        receiverClientAck.start();
 //
@@ -138,7 +138,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 //    public void testDestroyWithoutClients() {
 //
 //        // setup server
-//        prepareServer(CONTAINER1);
+//        prepareServer(CONTAINER1_NAME_NAME);
 //
 //        Result r1 = runOperation("remove");
 //
@@ -153,10 +153,10 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
     public void testOperationsWithConnectedClients() throws Exception {
 
         // setup server
-        prepareServer(CONTAINER1);
+        prepareServer(CONTAINER1_NAME);
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         List<Client> producers = new ArrayList<Client>();
@@ -255,7 +255,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         logger.info("Result send-messages-to-dead-letter-address: " + r19.getResponse().asString());
         CliTestUtils.assertSuccess(r19);
 
-        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1000, 100, 10);
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1000, 100, 10);
         receiverClientAck.start();
 
         List<Client> receivers = new ArrayList<Client>();

@@ -42,12 +42,12 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     @Before
     public void startServerBeforeTest() {
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
     }
 
     @After
     public void stopServerAfterTest() {
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
     }
 
     /**
@@ -69,8 +69,8 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
-        controller.start(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
 
         // connect notification listeners to HornetQ MBean server
         JmxNotificationListener jmsListener = getJmxNotificationListener();
@@ -86,7 +86,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
                     null, null);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
             clients.setMessages(1);
             clients.startClients();
             while (!clients.isFinished()) {
@@ -141,9 +141,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         JMXConnector connector = null;
 
@@ -156,7 +156,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = jmxUtils.getJmsServerMBean(mbeanServer);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
 
             clients.setMessages(100000);
 
@@ -189,7 +189,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName, 1, 1, 1, 1);
+            Clients clients2 = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
 
             clients2.setMessages(100000);
 
@@ -215,7 +215,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -241,9 +241,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         JMXConnector connector = null;
 
@@ -265,7 +265,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiName+"0", 30);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName+"0", 30);
 
         producerToInQueue1.setCommitAfter(10);
 
@@ -278,7 +278,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         Assert.assertTrue("Producer must get exception.", producerToInQueue1.getException() != null);
 
         // check that queue was destroyed
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         try {
 
@@ -294,7 +294,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -320,9 +320,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         JMXConnector connector = null;
 
@@ -335,7 +335,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = jmxUtils.getJmsServerMBean(mbeanServer);
 
             // send and receive single message
-            Clients clients = new TopicClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, 1, 1, 1, 1);
+            Clients clients = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 1, 1, 1, 1);
 
             clients.setMessages(100000);
 
@@ -368,7 +368,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new TopicClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName, 1, 1, 1, 1);
+            Clients clients2 = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 1, 1, 1, 1);
 
             clients2.setMessages(100000);
 
@@ -394,7 +394,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -420,9 +420,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         JMXConnector connector = null;
 
@@ -444,7 +444,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiName+"0", 30, "publisher");
+        PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName+"0", 30, "publisher");
 
         publisher.setCommitAfter(10);
 
@@ -457,7 +457,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         Assert.assertTrue("Producer must get exception.", publisher.getException() != null);
 
         // check that queue was destroyed
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1);
+        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
 
         try {
 
@@ -473,7 +473,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 
@@ -495,9 +495,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
 
         JMXConnector connector = null;
 
@@ -532,7 +532,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
     }
 

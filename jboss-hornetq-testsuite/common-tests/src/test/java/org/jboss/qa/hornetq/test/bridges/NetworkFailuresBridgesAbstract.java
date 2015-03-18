@@ -62,10 +62,10 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
     @Before
     public void stopAllServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
-        stopServer(CONTAINER4);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
+        stopServer(CONTAINER4_NAME);
         try {
             if (proxy1 != null) proxy1.stop();
         } catch (Exception ex)  {
@@ -239,25 +239,25 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), proxy12port);
+            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), proxy12port);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), proxy21port);
+            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), proxy21port);
             proxy2.start();
         }
 
         if (mp12 == null){
             mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                     discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-            mp12.setIpAddressOfInterface(getHostname(CONTAINER1));
+            mp12.setIpAddressOfInterface(getHostname(CONTAINER1_NAME));
             mp12.start();
 
         }
         if (mp21 == null){
             mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                     discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-            mp21.setIpAddressOfInterface(getHostname(CONTAINER2));
+            mp21.setIpAddressOfInterface(getHostname(CONTAINER2_NAME));
             mp21.start();
         }
         log.info("All proxies started.");

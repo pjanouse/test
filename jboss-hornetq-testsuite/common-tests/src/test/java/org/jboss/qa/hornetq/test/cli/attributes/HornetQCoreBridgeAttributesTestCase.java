@@ -49,7 +49,7 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1), getPassword(CONTAINER1));
+    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     private void prepareServerWithHornetQCoreBridge(String containerName, String targeServerName) {
 
@@ -84,19 +84,19 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
     @Before
     public void startServer() throws InterruptedException {
 
-        controller.start(CONTAINER1);
-        controller.start(CONTAINER2);
+        controller.start(CONTAINER1_NAME);
+        controller.start(CONTAINER2_NAME);
 
-        prepareServerWithHornetQCoreBridge(CONTAINER1, CONTAINER2);
-        prepareTargetServerForHornetQCoreBridge(CONTAINER2);
+        prepareServerWithHornetQCoreBridge(CONTAINER1_NAME, CONTAINER2_NAME);
+        prepareTargetServerForHornetQCoreBridge(CONTAINER2_NAME);
     }
 
 
     @After
     public void stopServer() {
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
     }
 
 

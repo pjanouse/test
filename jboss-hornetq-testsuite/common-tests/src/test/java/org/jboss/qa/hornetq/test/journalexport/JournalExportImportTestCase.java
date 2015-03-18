@@ -45,15 +45,15 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
-        controller.start(CONTAINER1);
-        prepareServer(CONTAINER1);
+        controller.start(CONTAINER1_NAME);
+        prepareServer(CONTAINER1_NAME);
 
         Context ctx = null;
         Connection conn = null;
         Session session = null;
 
         try {
-            ctx = getContext(CONTAINER1);
+            ctx = getContext(CONTAINER1_NAME);
             ConnectionFactory factory = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
             conn = factory.createConnection();
 
@@ -69,21 +69,21 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             closeJmsConnection(ctx, conn, session);
         }
 
-        stopServer(CONTAINER1);
+        stopServer(CONTAINER1_NAME);
 
         boolean exported = journalExportImportUtils.exportHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
-        deleteDataFolder(CONTAINER1_INFO.getJbossHome(), CONTAINER1);
-        controller.start(CONTAINER1);
+        deleteDataFolder(CONTAINER1_INFO.getJbossHome(), CONTAINER1_NAME);
+        controller.start(CONTAINER1_NAME);
 
         boolean imported = journalExportImportUtils.importHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be imported successfully", imported);
 
         Message received;
         try {
-            ctx = getContext(CONTAINER1);
+            ctx = getContext(CONTAINER1_NAME);
             ConnectionFactory factory = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
             conn = factory.createConnection();
             conn.start();

@@ -83,12 +83,12 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareDedicatedTopologyInCluster();
 
-        controller.start(CONTAINER3);
-        controller.start(CONTAINER2);
-        controller.start(CONTAINER1);
+        controller.start(CONTAINER3_NAME);
+        controller.start(CONTAINER2_NAME);
+        controller.start(CONTAINER1_NAME);
 
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1), getBytemanPort(CONTAINER1));
+        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
 
         Clients clients = createClients(acknowledge, topic);
 
@@ -96,10 +96,10 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         waitForReceiversUntil(clients.getConsumers(), 50, 60000);
 
-        controller.kill(CONTAINER1);
+        controller.kill(CONTAINER1_NAME);
 
         // wait for backup to wake up
-        waitHornetQToAlive(getHostname(CONTAINER2), getHornetqPort(CONTAINER2), 60000);
+        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
 
         waitForReceiversUntil(clients.getConsumers(), 300, 60000);
 
@@ -107,17 +107,18 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
-            controller.start(CONTAINER1);
-            waitHornetQToAlive(getHostname(CONTAINER1), getHornetqPort(CONTAINER1), 60000);
+            controller.start(CONTAINER1_NAME);
+            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
             waitForReceiversUntil(clients.getConsumers(), 500, 60000);
 //            logger.info("########################################");
 //            logger.info("failback - Stop backup server");
 //            logger.info("########################################");
-//            stopServer(CONTAINER2);
+//            stopServer(CONTAINER2_NAME);
 //            Thread.sleep(5000); // give some time to org.jboss.qa.hornetq.apps.clients to do failback
 
             // check that backup is dead
-            Assert.assertFalse("Backup should deactivate after failback.", checkThatServerIsReallyUp(getHostname(CONTAINER2), getHornetqPort(CONTAINER2)));
+            Assert.assertFalse("Backup should deactivate after failback.", checkThatServerIsReallyUp(getHostname(
+                    CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME)));
         }
 
         clients.stopClients();
@@ -128,25 +129,25 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
 
     }
 
     @After
     public void stopServers() {
-        stopServer(CONTAINER1);
-        stopServer(CONTAINER2);
-        stopServer(CONTAINER3);
+        stopServer(CONTAINER1_NAME);
+        stopServer(CONTAINER2_NAME);
+        stopServer(CONTAINER3_NAME);
     }
 
     public void prepareDedicatedTopologyInCluster() {
 
-        prepareLiveServer(CONTAINER1, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
+        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
 
-        prepareLiveServer(CONTAINER3, JOURNAL_DIRECTORY_B);
+        prepareLiveServer(CONTAINER3_NAME, JOURNAL_DIRECTORY_B);
     }
 
     /**
@@ -164,21 +165,21 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(getHostname(CONTAINER1), getJNDIPort(CONTAINER1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
