@@ -30,6 +30,8 @@ public interface Container {
     int getBytemanPort();
     HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
 
+    int getHttpPort();
+
     // ContainerController delegates
     void start();
     void stop();

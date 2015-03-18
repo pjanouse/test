@@ -27,6 +27,7 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -423,7 +424,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     private void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (checkThatServerIsReallyUp(getHostname(container), port)) {
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), port)) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
@@ -553,7 +554,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         long startTime = System.currentTimeMillis();
 
         while (isRunning && System.currentTimeMillis() - startTime < timeout) {
-            isRunning = checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHttpPort(container));
+            isRunning = CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHttpPort(container));
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);
         }

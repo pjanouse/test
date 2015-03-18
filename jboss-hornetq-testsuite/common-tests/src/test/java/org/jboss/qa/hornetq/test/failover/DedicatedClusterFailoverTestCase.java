@@ -7,6 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -117,7 +118,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 //            Thread.sleep(5000); // give some time to org.jboss.qa.hornetq.apps.clients to do failback
 
             // check that backup is dead
-            Assert.assertFalse("Backup should deactivate after failback.", checkThatServerIsReallyUp(getHostname(
+            Assert.assertFalse("Backup should deactivate after failback.", CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(
                     CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME)));
         }
 

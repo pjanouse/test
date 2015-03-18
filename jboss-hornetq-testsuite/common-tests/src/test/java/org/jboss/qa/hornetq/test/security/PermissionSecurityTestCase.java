@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.security;
 
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
@@ -287,7 +288,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     @After
     public void stopServerIfAlive()    {
-        if (checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME))) {
+        if (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME))) {
             controller.stop(CONTAINER1_NAME);
         }
     }

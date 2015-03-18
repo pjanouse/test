@@ -738,8 +738,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
         try {
-            if (!(checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
-                    || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
+            if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
+                    || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
                 controller.kill(containerName); // call controller.kill to arquillian that server is really dead
                 return;
             }
@@ -758,8 +758,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
                 long startTime = System.currentTimeMillis();
                 try {
-                    while (checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
-                            || checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
+                    while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
+                            || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
                             // kill server because shutdown hangs and fail test
@@ -837,7 +837,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         long pid = -1;
 
-        if (!checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))) {
+        if (!CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))) {
             return pid;
         }
 
@@ -1114,39 +1114,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
-        while (!checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
+        while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(1000);
         }
 
-        if (!checkThatServerIsReallyUp(ipAddress, port)) {
+        if (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port)) {
             Assert.fail("Server: " + ipAddress + ":" + port + " did not start again. Time out: " + timeout);
         }
-        return checkThatServerIsReallyUp(ipAddress, port);
-    }
-
-    /**
-     * Returns true if something is listenning on server
-     *
-     * @param ipAddress ipAddress
-     * @param port      port
-     */
-    protected boolean checkThatServerIsReallyUp(String ipAddress, int port) {
-        log.debug("Check that port is open - IP address: " + ipAddress + " port: " + port);
-        Socket socket = null;
-        try {
-            socket = new Socket();
-            socket.connect(new InetSocketAddress(ipAddress, port), 100);
-            return true;
-        } catch (Exception ex) {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return false;
-        }
+        return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
     }
 
     /**

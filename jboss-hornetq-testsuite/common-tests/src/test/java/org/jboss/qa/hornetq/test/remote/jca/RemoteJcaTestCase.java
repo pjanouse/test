@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbFromNonDurableTopicWithOutQueueToContani
 import org.jboss.qa.hornetq.apps.mdb.MdbWithConnectionParameters;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -255,7 +256,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        while (!checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME))) {
+        while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME))) {
             Thread.sleep(3000);
         }
 

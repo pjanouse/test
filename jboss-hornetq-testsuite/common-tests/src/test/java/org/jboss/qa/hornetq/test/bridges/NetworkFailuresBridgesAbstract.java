@@ -6,10 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.tools.ControllableProxy;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.MulticastProxy;
-import org.jboss.qa.hornetq.tools.SimpleProxyServer;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -194,7 +191,7 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
 
     protected int getNumberOfNodesInCluster(String container) {
-        boolean isContainerStarted = checkThatServerIsReallyUp(getHostname(container), getHornetqPort(container));
+        boolean isContainerStarted = CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), getHornetqPort(container));
 
         int numberOfNodesInCluster = -1;
         if (isContainerStarted) {

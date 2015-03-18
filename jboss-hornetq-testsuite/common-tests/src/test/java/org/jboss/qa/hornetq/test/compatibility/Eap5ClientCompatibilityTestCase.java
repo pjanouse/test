@@ -6,10 +6,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.SocketBinding;
-import org.jboss.qa.hornetq.tools.XMLManipulation;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -565,7 +562,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     protected void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (checkThatServerIsReallyUp(getHostname(container), port)) {
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), port)) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);

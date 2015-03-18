@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.ServiceLoader;
@@ -18,10 +19,12 @@ import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
 
 
@@ -124,6 +127,11 @@ public class ContainerEAP6 implements Container {
         return HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
     }
 
+    @Override
+    public int getHttpPort() {
+        return 8080 + getPortOffset();
+    }
+
 
     @Override
     public void start() {
@@ -133,9 +141,78 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void stop() {
-        containerController.stop(getName());
-    }
 
+        // there is problem with calling stop on already stopped server
+        // it throws exception when server is already stopped
+        // so check whether server is still running and return if not
+        try {
+            if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                    || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
+                containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
+                return;
+            }
+        } catch (Exception ex) {
+            log.warn("Error during getting port of byteman agent.", ex);
+        }
+
+        // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
+        // we kill server when it takes too long
+        final long pid = ProcessIdUtils.getProcessId(this);
+        // timeout to wait for shutdown of server, after timeout expires the server will be killed
+        final long timeout = 120000;
+
+        Thread shutdownHook = new Thread() {
+            public void run() {
+
+                long startTime = System.currentTimeMillis();
+                try {
+                    while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                            || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
+
+                        if (System.currentTimeMillis() - startTime > timeout) {
+                            // kill server because shutdown hangs and fail test
+                            try {
+                                if (System.getProperty("os.name").contains("Windows")) {
+                                    Runtime.getRuntime().exec("taskkill /PID " + pid);
+                                } else { // it's linux or Solaris
+                                    Runtime.getRuntime().exec("kill -9 " + pid);
+                                }
+                            } catch (IOException e) {
+                                log.error("Invoking kill -9 " + pid + " failed.", e);
+                            }
+                            Assert.fail("Server: " + getName() + " did not shutdown more than: " + timeout + " and will be killed.");
+                            return;
+                        }
+
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            //ignore
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Exception occured in shutdownHook: ", e);
+                }
+            }
+        };
+        shutdownHook.start();
+        containerController.stop(getName());
+        try {
+            containerController.kill(getName());
+        } catch (Exception ex) {
+            log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
+                    "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
+                    "controller.kill() will do that.", ex);
+        }
+        try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
+            shutdownHook.join();
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
+        log.info("Server " + getName() + " was stopped. There is no from tracking ports (f.e.: 9999, 5445, 8080, ..." +
+                ") running on its IP " + getHostname());
+    }
 
     @Override
     public void kill() {
