@@ -12,6 +12,8 @@ import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.kohsuke.MetaInfServices;
 
@@ -133,6 +135,13 @@ public class ContainerEAP6 implements Container {
 
 
     @Override
+    public void restart() {
+        stop();
+        start();
+    }
+
+
+    @Override
     public void deploy(String deployment) {
         deployer.deploy(deployment);
     }
@@ -175,6 +184,16 @@ public class ContainerEAP6 implements Container {
         }
 
         return jmxUtils;
+    }
+
+
+    @Override
+    public JMSOperations getJmsOperations() {
+        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+        eap6AdmOps.setHostname(getHostname());
+        eap6AdmOps.setPort(getPort());
+        eap6AdmOps.connect();
+        return eap6AdmOps;
     }
 
 

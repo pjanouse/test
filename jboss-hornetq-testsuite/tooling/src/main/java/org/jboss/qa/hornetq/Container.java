@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 
 
@@ -33,6 +34,7 @@ public interface Container {
     void start();
     void stop();
     void kill();
+    void restart();
 
     // Deployer delegates
     void deploy(String deployment);
@@ -41,5 +43,6 @@ public interface Container {
     JournalExportImportUtils getExportImportUtil();
     JmxUtils getJmsUtils();
     JmxNotificationListener createJmxNotificationListener();
+    JMSOperations getJmsOperations();
 
 }
