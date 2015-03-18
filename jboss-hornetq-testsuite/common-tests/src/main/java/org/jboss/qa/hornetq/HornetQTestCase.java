@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
+import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -30,9 +31,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -653,50 +658,39 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Kills server using killer servlet. This just kill server and does not do
-     * anything else. It doesn't call controller.kill
+     * anything else.
      *
      * @param containerName container name which should be killed
      */
     protected void killServer(String containerName) {
+
         log.info("Killing server: " + containerName);
         try {
-            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
-                if (CONTAINER1.equals(containerName)) {
-                    killServer(CONTAINER1, SERVLET_KILLER_GROUP1, getHostname(CONTAINER1));
-                }
-                if (CONTAINER2.equals(containerName)) {
-                    killServer(CONTAINER2, SERVLET_KILLER_GROUP2, getHostname(CONTAINER2));
-                }
-                if (CONTAINER3.equals(containerName)) {
-                    killServer(CONTAINER3, SERVLET_KILLER_GROUP3, getHostname(CONTAINER3));
-                }
-                if (CONTAINER4.equals(containerName)) {
-                    killServer(CONTAINER4, SERVLET_KILLER_GROUP4, getHostname(CONTAINER4));
-                } else {
-                    throw new RuntimeException(
-                            String.format("Name of the container %s for is not known. It can't be used",
-                                    containerName));
-                }
-            } else {
-                if (CONTAINER1.equals(containerName)) {
-                    killServer(CONTAINER1, SERVLET_KILLER_1, getHostname(CONTAINER1));
-                } else if (CONTAINER2.equals(containerName)) {
-                    killServer(CONTAINER2, SERVLET_KILLER_2, CONTAINER2_IP);
-                } else if (CONTAINER3.equals(containerName)) {
-                    killServer(CONTAINER3, SERVLET_KILLER_3, getHostname(CONTAINER3));
-                } else if (CONTAINER4.equals(containerName)) {
-                    killServer(CONTAINER4, SERVLET_KILLER_4, getHostname(CONTAINER4));
-                } else {
-                    throw new RuntimeException(
-                            String.format("Name of the container %s for is not known. It can't be used",
-                                    containerName));
-                }
+
+            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1), getPort(CONTAINER1));
+
+            MBeanServerConnection mbsc =
+                    jmxConnector.getMBeanServerConnection();
+            ObjectName oname = new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME);
+
+            // form process_id@hostname (f.e. 1234@localhost)
+            String runtimeName = (String) mbsc.getAttribute(oname, "Name");
+
+            int pid = Integer.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
+
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
+                Runtime.getRuntime().exec("taskkill /f /pid " + pid);
+            } else { // on all other platforms use kill -9
+                Runtime.getRuntime().exec("kill -9 " + pid);
             }
+
         } catch (Exception ex) {
-            log.error("Using killer servlet failed: ", ex);
+            log.warn("Container " + containerName + " could not be killed. Set debug for logging to see exception stack trace.");
+            log.debug(ex);
         } finally {
             log.info("Server: " + containerName + " -- KILLED");
         }
+        controller.kill(containerName);
     }
 
     /**
