@@ -1,10 +1,16 @@
 package org.jboss.qa.hornetq;
 
 
+import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.ServiceLoader;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
 import javax.naming.Context;
 import javax.naming.NamingException;
+
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -14,12 +20,15 @@ import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.kohsuke.MetaInfServices;
 
 
 @MetaInfServices
 public class ContainerEAP6 implements Container {
+
+    private static final Logger log = Logger.getLogger(ContainerEAP6.class);
 
     private JmxUtils jmxUtils = null;
     private JournalExportImportUtils journalExportImportUtils = null;
@@ -130,9 +139,26 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void kill() {
-        containerController.kill(getName());
-    }
 
+        log.info("Killing server: " + getName());
+        try {
+
+            long pid = ProcessIdUtils.getProcessId(this);
+
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
+                Runtime.getRuntime().exec("taskkill /f /pid " + pid);
+            } else { // on all other platforms use kill -9
+                Runtime.getRuntime().exec("kill -9 " + pid);
+            }
+        } catch (Exception ex) {
+            log.warn("Container " + getName() + " could not be killed. Set debug for logging to see exception stack trace.");
+            log.debug(ex);
+        } finally {
+            log.info("Server: " + getName() + " -- KILLED");
+        }
+        containerController.kill(getName());
+
+    }
 
     @Override
     public void restart() {
@@ -168,7 +194,6 @@ public class ContainerEAP6 implements Container {
 
         return journalExportImportUtils;
     }
-
 
     @Override
     public synchronized JmxUtils getJmsUtils() {

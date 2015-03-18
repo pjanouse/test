@@ -89,17 +89,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     // Journal directory for second live/backup pair or second node in cluster
     public static final String JOURNAL_DIRECTORY_B;
 
-    // Defined deployments - killer servlet which kills server
-    // Artifact is not deployed on the server automatically, it is necessary to deploy it manually
-    protected static final String SERVLET_KILLER_1 = "killerServlet1";
-    protected static final String SERVLET_KILLER_2 = "killerServlet2";
-    protected static final String SERVLET_KILLER_3 = "killerServlet3";
-    protected static final String SERVLET_KILLER_4 = "killerServlet4";
-    protected static final String SERVLET_KILLER_GROUP1 = "killerServletGroup1";
-    protected static final String SERVLET_KILLER_GROUP2 = "killerServletGroup2";
-    protected static final String SERVLET_KILLER_GROUP3 = "killerServletGroup3";
-    protected static final String SERVLET_KILLER_GROUP4 = "killerServletGroup4";
-
     // Active server - EAP 5 or EAP 6?
     protected String currentContainerForTest;
 
@@ -687,16 +676,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         log.info("Killing server: " + containerName);
         try {
-            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME));
 
-            MBeanServerConnection mbsc =
-                    jmxConnector.getMBeanServerConnection();
-            ObjectName oname = new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME);
-
-            // form process_id@hostname (f.e. 1234@localhost)
-            String runtimeName = (String) mbsc.getAttribute(oname, "Name");
-
-            int pid = Integer.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
+            long pid = getProcessId(containerName);
 
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
                 Runtime.getRuntime().exec("taskkill /f /pid " + pid);
@@ -710,29 +691,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             log.info("Server: " + containerName + " -- KILLED");
         }
         controller.kill(containerName);
-    }
-
-    /**
-     * Kills server using killer servlet. This just kill server and does not do
-     * anything else. It doesn't call controller.kill
-     *
-     * @param container         name of the container which will be killed
-     * @param killerServletName name of the killer servlet - deployment name
-     * @param serverIP          ip address of the killed server
-     * @throws Exception if something goes wrong
-     */
-    public void killServer(String container, String killerServletName, String serverIP) throws Exception {
-        try {
-            deployer.undeploy(killerServletName);
-        } catch (Exception ex) {
-            log.debug("Killer servlet was not deployed. Deployed it.");
-        }
-        deployer.deploy(killerServletName);
-        String callingURLForKill = "http://" + serverIP + ":" + getHttpPort(container) + "/KillerServlet/KillerServlet?op=kill";
-        log.info("Calling url to kill server: " + callingURLForKill);
-        HttpRequest.get(callingURLForKill, 4, TimeUnit.SECONDS);
-        Thread.sleep(3000);
-        controller.kill(container);
     }
 
     /**
@@ -877,244 +835,28 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     public long getProcessId(String containerName) {
 
+        long pid = -1;
+
         if (!checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))) {
-            return -1;
-        }
-
-        if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
-            // try to deploy on all server groups
-            log.info("domain killer servlet 1");
-            deployKillerServletToDomain(SERVER_GROUP1);
-            log.info("domain killer servlet 2");
-            deployKillerServletToDomain(SERVER_GROUP2);
-            log.info("domain killer servlet 3");
-            deployKillerServletToDomain(SERVER_GROUP3);
-            log.info("domain killer servlet 4");
-            deployKillerServletToDomain(SERVER_GROUP4);
-        } else {
-            deployKillerServletToStandalone(containerName);
-        }
-
-//        if (CONTAINER1_NAME.equals(containerName)) {
-//            try {
-//                deployer.undeploy(SERVLET_KILLER_1);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//            try {
-//                deployer.deploy(SERVLET_KILLER_1);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//        } else if (CONTAINER2_NAME.equals(containerName)) {
-//            try {
-//                deployer.undeploy(SERVLET_KILLER_2);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//            try {
-//                deployer.deploy(SERVLET_KILLER_2);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//        } else if (CONTAINER3_NAME.equals(containerName)) {
-//            try {
-//                deployer.undeploy(SERVLET_KILLER_3);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//            try {
-//                deployer.deploy(SERVLET_KILLER_3);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//        } else if (CONTAINER4_NAME.equals(containerName)) {
-//            try {
-//                deployer.undeploy(SERVLET_KILLER_4);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//            try {
-//                deployer.deploy(SERVLET_KILLER_4);
-//            } catch (Exception ex) {
-//                log.debug("Ignore this exception: " + ex.getMessage());
-//            }
-//        } else {
-//            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
-//        }
-
-        String pid = "";
-        try {
-            log.info("Calling get pid: http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId");
-            pid = HttpRequest.get("http://" + getHostname(containerName) + ":" + getHttpPort(containerName) + "/KillerServlet/KillerServlet?op=getId", 10, TimeUnit.SECONDS);
-            log.info("Pid is :" + pid);
-        } catch (IOException e) {
-            log.error("Error when calling killer servlet for pid.", e);
-        } catch (TimeoutException e) {
-            log.error("Timeout when calling killer servlet for pid.", e);
+            return pid;
         }
 
         try {
-            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(getContainerType(containerName))) {
-                deployer.undeploy(SERVLET_KILLER_GROUP1);
-                deployer.undeploy(SERVLET_KILLER_GROUP2);
-                deployer.undeploy(SERVLET_KILLER_GROUP3);
-                deployer.undeploy(SERVLET_KILLER_GROUP4);
-            } else if (CONTAINER1_NAME.equals(containerName)) {
-                deployer.undeploy(SERVLET_KILLER_1);
-            } else if (CONTAINER2_NAME.equals(containerName)) {
-                deployer.undeploy(SERVLET_KILLER_2);
+            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME));
 
-            } else if (CONTAINER3_NAME.equals(containerName)) {
-                deployer.undeploy(SERVLET_KILLER_3);
+            MBeanServerConnection mbsc =
+                    jmxConnector.getMBeanServerConnection();
+            ObjectName oname = new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME);
 
-            } else if (CONTAINER4_NAME.equals(containerName)) {
-                deployer.undeploy(SERVLET_KILLER_4);
-            } else {
-                throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
-            }
-        } catch (Exception ex) {
-            log.debug("Killer servlet was not deployed and can't be un-deployed.");
+            // form process_id@hostname (f.e. 1234@localhost)
+            String runtimeName = (String) mbsc.getAttribute(oname, "Name");
+
+           pid = Long.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
+        } catch (Exception ex)  {
+            log.error("Getting process id failed: ", ex);
         }
 
-        log.info("Parsing PID");
-        return Long.parseLong(pid.trim());
-    }
-
-    private void deployKillerServletToStandalone(String containerName) {
-        if (CONTAINER1_NAME.equals(containerName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_1);
-        } else if (CONTAINER2_NAME.equals(containerName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_2);
-        } else if (CONTAINER3_NAME.equals(containerName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_3);
-        } else if (CONTAINER4_NAME.equals(containerName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_4);
-        } else {
-            throw new RuntimeException(String.format("Name of the container %s for is not known. It can't be used", containerName));
-        }
-    }
-
-    private void deployKillerServletToDomain(String serverGroupName) {
-        if (SERVER_GROUP1.equals(serverGroupName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_GROUP1);
-        } else if (SERVER_GROUP2.equals(serverGroupName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_GROUP2);
-        } else if (SERVER_GROUP3.equals(serverGroupName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_GROUP3);
-        } else if (SERVER_GROUP4.equals(serverGroupName)) {
-            deployKillerServletDeployment(SERVLET_KILLER_GROUP4);
-        }
-    }
-
-    private void deployKillerServletDeployment(String deploymentName) {
-        try {
-            deployer.undeploy(deploymentName);
-        } catch (Exception ex) {
-            log.debug("Ignore this exception", ex);
-        }
-
-        try {
-            deployer.deploy(deploymentName);
-        } catch (Exception ex) {
-            log.debug("Ignore this exception", ex);
-        }
-    }
-
-    /**
-     * Creates archive with the killer server
-     *
-     * @return archive
-     * @throws Exception if something is wrong
-     */
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_1)
-    @TargetsContainer(CONTAINER1_NAME)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKilServletContainer1() throws Exception {
-        return createKillerServlet("killerServlet.war");
-    }
-
-    /**
-     * Creates archive with the killer server
-     *
-     * @return archive
-     * @throws Exception if something is wrong
-     */
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_2)
-    @TargetsContainer(CONTAINER2_NAME)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKilServletContainer2() throws Exception {
-        return createKillerServlet("killerServlet.war");
-    }
-
-    /**
-     * Creates archive with the killer server
-     *
-     * @return archive
-     * @throws Exception if something is wrong
-     */
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_3)
-    @TargetsContainer(CONTAINER3_NAME)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKilServletContainer3() throws Exception {
-        return createKillerServlet("killerServlet.war");
-    }
-
-    /**
-     * Creates archive with the killer server
-     *
-     * @return archive
-     * @throws Exception if something is wrong
-     */
-    @Deployment(managed = false, testable = false, name = SERVLET_KILLER_4)
-    @TargetsContainer(CONTAINER4_NAME)
-    @SuppressWarnings("unused")
-    public static WebArchive getDeploymentKilServletContainer4() throws Exception {
-        return createKillerServlet("killerServlet.war");
-    }
-
-    /**
-     * Prepares war artifact with the killer servlet used for killing server
-     *
-     * @return web archive
-     */
-    protected static WebArchive createKillerServlet(String archiveName) {
-        final WebArchive killerServlet = ShrinkWrap.create(WebArchive.class, archiveName);
-        StringBuilder webXml = new StringBuilder();
-        webXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> ");
-        webXml.append("<web-app version=\"2.5\" xmlns=\"http://java.sun.com/xml/ns/javaee\" \n");
-        webXml.append("         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n");
-        webXml.append("         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee \n");
-        webXml.append("                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\">\n");
-        webXml.append(" <servlet>\n");
-        webXml.append("   <servlet-name>KillerServlet</servlet-name>\n");
-        webXml.append("   <servlet-class>org.jboss.qa.hornetq.apps.servlets.KillerServlet</servlet-class>\n");
-        webXml.append(" </servlet>\n");
-        webXml.append("\n");
-        webXml.append(" <servlet-mapping>\n");
-        webXml.append("   <servlet-name>KillerServlet</servlet-name>\n");
-        webXml.append("   <url-pattern>/KillerServlet</url-pattern>\n");
-        webXml.append(" </servlet-mapping>\n");
-        webXml.append("</web-app>\n");
-        webXml.append("\n");
-
-        StringBuilder jbossWebXml = new StringBuilder();
-        jbossWebXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n");
-        jbossWebXml.append("<jboss-web> \n");
-        jbossWebXml.append("  <context-root>/KillerServlet</context-root> \n");
-        jbossWebXml.append("</jboss-web> \n");
-        webXml.append("\n");
-
-        killerServlet.addClass(KillerServlet.class);
-        killerServlet.addAsWebInfResource(new StringAsset(webXml.toString()), "web.xml");
-        killerServlet.addAsWebInfResource(new StringAsset(jbossWebXml.toString()), "jboss-web.xml");
-
-        if (log.isTraceEnabled()) {
-            log.trace(webXml.toString());
-            log.trace(jbossWebXml.toString());
-            log.trace(killerServlet.toString(true));
-        }
-        return killerServlet;
+        return pid;
     }
 
     /**
