@@ -149,7 +149,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         PORT_OFFSET_3 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
         tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
         PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-
     }
 
     private static String checkMulticastAddress(String multiCastAddress) {
@@ -186,10 +185,35 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /////////////////////////////////////////////////////////////////////////////
     // Assign container dependent tooling ///////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////
-    public static final ContainerUtils containerUtils = getContainerUtils();
+    private final Map<Integer, Container> containers = new HashMap<Integer, Container>();
+//    public static final ContainerUtils containerUtils = getContainerUtils();
     public static final JournalExportImportUtils journalExportImportUtils = getJournalExportImportUtils();
     public static final JmxUtils jmxUtils = getJmxUtils();
-    public static final JmxNotificationListener jmxNotificationListener = getJmxNotificationListener();
+//    public static final JmxNotificationListener jmxNotificationListener = getJmxNotificationListener();
+
+    public Container container(int index) {
+        if (!containers.containsKey(index)) {
+            containers.put(index, createContainer("node-" + index, index));
+        }
+
+        return containers.get(index);
+    }
+
+    public Collection<Container> containerList() {
+        return Collections.unmodifiableCollection(containers.values());
+    }
+
+    private Container createContainer(String name, int index) {
+        ServiceLoader<Container> loader = ServiceLoader.load(Container.class);
+        Iterator<Container> iterator = loader.iterator();
+        if (!iterator.hasNext()) {
+            throw new RuntimeException("No implementation found for Container");
+        }
+
+        Container c = iterator.next();
+        c.init(name, index, getArquillianDescriptor(), controller, deployer);
+        return c;
+    }
 
     /**
      * Initializes ContainerUtils instance at 1st call. We do not allow any later modifications of ContainerUtils instance
@@ -197,7 +221,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return container utils instance
      */
-    private static synchronized ContainerUtils getContainerUtils()   {
+/*    private static synchronized ContainerUtils getContainerUtils()   {
 
         if (containerUtils != null) {
             return containerUtils;
@@ -214,7 +238,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         ContainerUtils cUtils = iterator.next();
 
         return cUtils.getInstance(getArquillianDescriptor(), CONTAINER1_INFO, CONTAINER2_INFO, CONTAINER3_INFO, CONTAINER4_INFO);
-    }
+    }*/
 
     /**
      * Initializes JournalExportImportUtils instance at 1st call. We do not allow any later modifications of JournalExportImportUtils instance
