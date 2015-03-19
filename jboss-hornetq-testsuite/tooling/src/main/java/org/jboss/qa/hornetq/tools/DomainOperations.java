@@ -37,10 +37,10 @@ public final class DomainOperations {
 
     private static final int TIMEOUT = 30000;
 
-    private final ModelControllerClient modelControllerClient;
+    private final ModelControllerClient modelControllerClient = null;
 
     private DomainOperations(final String hostname, final int managementPort) {
-        try {
+//        try {
             AtomicInteger executorCount = new AtomicInteger(0);
             ThreadGroup group = new ThreadGroup("management-client-thread");
             ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G "
@@ -48,12 +48,12 @@ public final class DomainOperations {
             ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<Runnable>(), threadFactory);
 
-            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname,
-                    managementPort, null, null, TIMEOUT));
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port "
-                    + managementPort, e);
-        }
+//            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname,
+//                    managementPort, null, null, TIMEOUT));
+//        } catch (UnknownHostException e) {
+//            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port "
+//                    + managementPort, e);
+//        }
 
         if (!testDomain()) {
             throw new RuntimeException("Cannot use domain operations or non-domain server launch type");

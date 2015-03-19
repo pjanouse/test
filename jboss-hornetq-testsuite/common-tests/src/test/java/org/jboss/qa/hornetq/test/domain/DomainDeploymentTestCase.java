@@ -58,8 +58,8 @@ public class DomainDeploymentTestCase extends DomainHornetQTestCase {
         domainOps.removeServer("server-1");
         domainOps.removeServer("server-2");
 
-        domainOps.createServer("server-1", "server-group-1", PORT_OFFSET_1);
-        domainOps.createServer("server-2", "server-group-1", PORT_OFFSET_2);
+        domainOps.createServer("server-1", "server-group-1", container(1).getPortOffset());
+        domainOps.createServer("server-2", "server-group-1", container(2).getPortOffset());
         domainOps.close();
 
         JMSOperations eap6AdmOps = container(1).getJmsOperations();

@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -41,4 +42,5 @@ public class ProcessIdUtils {
 
         return pid;
     }
+
 }

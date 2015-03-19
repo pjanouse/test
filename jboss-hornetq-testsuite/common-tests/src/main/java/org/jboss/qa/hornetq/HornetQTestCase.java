@@ -73,11 +73,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public final static String CONTAINER3_IP;
     public final static String CONTAINER4_IP;
 
-    // get port.offset.x properties from pom.xml
-    public final static int PORT_OFFSET_1;
-    public final static int PORT_OFFSET_2;
-    public final static int PORT_OFFSET_3;
-    public final static int PORT_OFFSET_4;
+//    // get port.offset.x properties from pom.xml
+//    public final static int PORT_OFFSET_1;
+//    public final static int PORT_OFFSET_2;
+//    public final static int PORT_OFFSET_3;
+//    public final static int PORT_OFFSET_4;
 
     // Multi-cast address
     public static final String MCAST_ADDRESS;
@@ -129,14 +129,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JBOSS_HOME_3 = verifyJbossHome(getEnvProperty("JBOSS_HOME_3"));
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
-        String tmpPortOffset = getEnvProperty("PORT_OFFSET_1");
-        PORT_OFFSET_1 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-        tmpPortOffset = getEnvProperty("PORT_OFFSET_2");
-        PORT_OFFSET_2 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-        tmpPortOffset = getEnvProperty("PORT_OFFSET_3");
-        PORT_OFFSET_3 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-        tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
-        PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+//        String tmpPortOffset = getEnvProperty("PORT_OFFSET_1");
+//        PORT_OFFSET_1 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+//        tmpPortOffset = getEnvProperty("PORT_OFFSET_2");
+//        PORT_OFFSET_2 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+//        tmpPortOffset = getEnvProperty("PORT_OFFSET_3");
+//        PORT_OFFSET_3 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
+//        tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
+//        PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
     }
 
     private static String checkMulticastAddress(String multiCastAddress) {
@@ -162,14 +162,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     // composite info objects for easier passing to utility classes
     public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1_NAME, "server-1", CONTAINER1_IP,
-            BYTEMAN_CONTAINER1_PORT, PORT_OFFSET_1, JBOSS_HOME_1);
+            BYTEMAN_CONTAINER1_PORT, 0, JBOSS_HOME_1);
     public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2_NAME, "server-2", CONTAINER2_IP,
-            BYTEMAN_CONTAINER2_PORT, PORT_OFFSET_2, JBOSS_HOME_2);
+            BYTEMAN_CONTAINER2_PORT, 0, JBOSS_HOME_2);
     public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3_NAME, "server-3", CONTAINER3_IP,
-            BYTEMAN_CONTAINER3_PORT, PORT_OFFSET_3, JBOSS_HOME_3);
+            BYTEMAN_CONTAINER3_PORT, 0, JBOSS_HOME_3);
     public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4_NAME, "server-4", CONTAINER4_IP,
-            BYTEMAN_CONTAINER4_PORT, PORT_OFFSET_4, JBOSS_HOME_4);
-
+            BYTEMAN_CONTAINER4_PORT, 0, JBOSS_HOME_4);
     /////////////////////////////////////////////////////////////////////////////
     // Assign container dependent tooling ///////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////

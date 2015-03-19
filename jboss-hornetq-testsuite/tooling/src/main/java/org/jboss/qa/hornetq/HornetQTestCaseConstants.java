@@ -32,6 +32,8 @@ public interface HornetQTestCaseConstants {
 
     // Ports for Byteman
     public static final int BYTEMAN_CLIENT_PORT = 9591;
+
+    // TODO REMOVE THOSE PORTS - ONCE YOU GET RID OF POM.XML AND DEPENDENCIES IN TS
     public static final int BYTEMAN_CONTAINER1_PORT = 9091;
     public static final int BYTEMAN_CONTAINER2_PORT = 9191;
     public static final int BYTEMAN_CONTAINER3_PORT = 9291;

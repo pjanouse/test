@@ -2,10 +2,9 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 
-import javax.management.MBeanServerConnection;
-import javax.management.MBeanServerInvocationHandler;
-import javax.management.ObjectName;
+import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -53,7 +52,7 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
      */
     @Override
     public JMXConnector getJmxConnectorForEap(final String host, final int port) throws IOException {
-        JMXServiceURL beanServerUrl = new JMXServiceURL("service:jmx:remoting-jmx://" + host + ":" + port);
+        JMXServiceURL beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://" + host + ":" + port);
         return JMXConnectorFactory.connect(beanServerUrl);
     }
 
@@ -75,5 +74,22 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
         return MBeanServerInvocationHandler.newProxyInstance(mbeanServer, mbeanName, mbeanClass, false);
     }
 
+
+
+    public static void main(String[] args) throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+        JmxUtilsImplEAP7 jmxUtilsImplEAP7 = new JmxUtilsImplEAP7();
+        JMXConnector jmxConnector = jmxUtilsImplEAP7.getJmxConnectorForEap("localhost", 9990);
+
+        MBeanServerConnection mbsc =
+                jmxConnector.getMBeanServerConnection();
+        ObjectName oname = new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME);
+
+        // form process_id@hostname (f.e. 1234@localhost)
+        String runtimeName = (String) mbsc.getAttribute(oname, "Name");
+
+        long pid = Long.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
+
+        System.out.println(pid);
+    }
 }
 

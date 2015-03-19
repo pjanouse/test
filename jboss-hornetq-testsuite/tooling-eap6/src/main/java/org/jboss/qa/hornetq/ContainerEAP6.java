@@ -1,16 +1,5 @@
 package org.jboss.qa.hornetq;
 
-
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.Iterator;
-import java.util.ServiceLoader;
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.naming.Context;
-import javax.naming.NamingException;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -27,11 +16,22 @@ import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
 
+import javax.naming.Context;
+import javax.naming.NamingException;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceLoader;
+
 
 @MetaInfServices
 public class ContainerEAP6 implements Container {
 
     private static final Logger log = Logger.getLogger(ContainerEAP6.class);
+
+    private static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
+    private static final int BYTEMAN_PORT = 9091;
+    private static int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
 
     private JmxUtils jmxUtils = null;
     private JournalExportImportUtils journalExportImportUtils = null;
@@ -71,7 +71,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getPort() {
-        return Integer.parseInt(containerDef.getContainerProperties().get("managementPort"));
+        return MANAGEMENT_PORT_DEFAULT_EAP6 + getPortOffset();
     }
 
 
@@ -83,11 +83,8 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getPortOffset() {
-        if (portOffset == null) {
-            String tmp = System.getProperty("PORT_OFFSET_" + containerIndex);
-            portOffset = (tmp == null ? 0 : Integer.valueOf(tmp));
-        }
-        return portOffset;
+
+        return (containerIndex - 1) * DEFAULT_PORT_OFFSET_INTERVAL;
     }
 
 
@@ -118,9 +115,9 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getBytemanPort() {
-        return HornetQTestCaseConstants.BYTEMAN_CONTAINER1_PORT;
-    }
 
+        return BYTEMAN_PORT + getPortOffset();
+    }
 
     @Override
     public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType() {
@@ -135,7 +132,21 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void start() {
-        containerController.start(getName());
+        // modify properties for arquillian.xml
+        // set port off set based on how it was configured here
+        // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
+        // replace 9091 for byteman port
+
+        Map<String,String> containerProperties = containerDef.getContainerProperties();
+
+        containerProperties.put("managementPort", String.valueOf(getPort()));
+
+        String javaVmArguments = containerProperties.get("javaVmArguments");
+        javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
+        javaVmArguments = javaVmArguments.replace(String.valueOf(BYTEMAN_PORT), String.valueOf(getBytemanPort()));
+        containerProperties.put("javaVmArguments", javaVmArguments);
+
+        containerController.start(getName(), containerProperties);
     }
 
 

@@ -99,15 +99,15 @@
                         <JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
                         <!-- when you redefine these - DON'T FORGET TO CHANGE "rmiPort" and "MANAGEMENT_PORT" in arquillian-4-nodes.xml -->
                         <!-- 1 and 2 are for EAP 5 server - when redefine these then change "EAP5_VMARGS" and "EAP5_VMARGS_2" in hornetq-interop profile  -->
-                        <PORT_OFFSET_1>0</PORT_OFFSET_1>
-                        <PORT_OFFSET_2>2000</PORT_OFFSET_2>
-                        <!-- 3 and 4 are for EAP 6 server -->
-                        <PORT_OFFSET_3>3000</PORT_OFFSET_3>
-                        <PORT_OFFSET_4>4000</PORT_OFFSET_4>
-                        <MANAGEMENT_PORT_1>9999</MANAGEMENT_PORT_1>
-                        <MANAGEMENT_PORT_2>11999</MANAGEMENT_PORT_2>
-                        <MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>
-                        <MANAGEMENT_PORT_4>13999</MANAGEMENT_PORT_4>
+                        <!--<PORT_OFFSET_1>0</PORT_OFFSET_1>-->
+                        <!--<PORT_OFFSET_2>2000</PORT_OFFSET_2>-->
+                        <!--&lt;!&ndash; 3 and 4 are for EAP 6 server &ndash;&gt;-->
+                        <!--<PORT_OFFSET_3>3000</PORT_OFFSET_3>-->
+                        <!--<PORT_OFFSET_4>4000</PORT_OFFSET_4>-->
+                        <!--<MANAGEMENT_PORT_1>9999</MANAGEMENT_PORT_1>-->
+                        <!--<MANAGEMENT_PORT_2>11999</MANAGEMENT_PORT_2>-->
+                        <!--<MANAGEMENT_PORT_3>12999</MANAGEMENT_PORT_3>-->
+                        <!--<MANAGEMENT_PORT_4>13999</MANAGEMENT_PORT_4>-->
                     </systemPropertyVariables>
                     <argLine>${hornetq.surefire.jvm.options}</argLine>
                 </configuration>
@@ -155,23 +155,14 @@
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
-            <version>${arquillian.version}</version>
-
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.protocol</groupId>
-            <artifactId>arquillian-protocol-servlet</artifactId>
-            <version>${arquillian.version}</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
-
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <version>${arquillian.version}</version>
         </dependency>
 
         <dependency>
@@ -245,18 +236,7 @@
             <version>2.1.0.20091223</version>
         </dependency>
 
-        <dependency>
-            <groupId>eap</groupId>
-            <artifactId>eap-jboss-as-controller-client</artifactId>
-            <version>${eap6.controller.client}</version>
-            <type>jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
 
         <dependency>
             <groupId>org.jdom</groupId>
@@ -312,18 +292,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-cli</artifactId>
-            <version>${eap6.cli.client}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>
             <artifactId>metainf-services</artifactId>
             <version>1.5</version>
@@ -351,13 +319,13 @@
 
         <profile>
             <id>eap6x</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>eap</name>
-                    <value>6x</value>
-                </property>
-            </activation>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+                <!--<property>-->
+                    <!--<name>eap</name>-->
+                    <!--<value>6x</value>-->
+                <!--</property>-->
+            <!--</activation>-->
             <modules>
                 <module>tooling</module>
                 <module>tooling-eap6</module>
@@ -374,9 +342,37 @@
                     <type>jar</type>
                 </dependency>
                 <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-as-controller-client</artifactId>
+                    <version>${eap6.controller.client}</version>
+                    <type>jar</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-cli</artifactId>
+                    <version>${eap6.cli.client}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.arquillian.protocol</groupId>
+                    <artifactId>arquillian-protocol-servlet</artifactId>
+                    <version>${arquillian.version}</version>
                 </dependency>
             </dependencies>
         </profile>

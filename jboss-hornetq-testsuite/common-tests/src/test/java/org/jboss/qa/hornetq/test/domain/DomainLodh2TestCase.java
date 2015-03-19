@@ -451,8 +451,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
                 .removeServer("server-3")
-                .createServer("server-1", "server-group-1", PORT_OFFSET_1)
-                .createServer("server-3", "server-group-1", PORT_OFFSET_3)
+                .createServer("server-1", "server-group-1", container(1).getPortOffset())
+                .createServer("server-3", "server-group-1", container(3).getPortOffset())
                 .reloadDomain()
                 .close();
 
@@ -547,8 +547,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
                 .removeServer("server-3")
-                .createServer("server-1", "server-group-1", PORT_OFFSET_1)
-                .createServer("server-3", "server-group-1", PORT_OFFSET_3)
+                .createServer("server-1", "server-group-1", container(1).getPortOffset())
+                .createServer("server-3", "server-group-1", container(3).getPortOffset())
                 .reloadDomain()
                 .close();
 
@@ -637,8 +637,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
                 .removeServer("server-3")
-                .createServer("server-1", "server-group-1", PORT_OFFSET_1)
-                .createServer("server-3", "server-group-1", PORT_OFFSET_3)
+                .createServer("server-1", "server-group-1", container(1).getPortOffset())
+                .createServer("server-3", "server-group-1", container(3).getPortOffset())
                 .reloadDomain()
                 .close();
 

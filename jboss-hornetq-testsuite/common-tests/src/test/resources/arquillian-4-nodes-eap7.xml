@@ -2,7 +2,7 @@
 <arquillian xmlns="http://jboss.com/arquillian" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://www.jboss.org/arquillian-1.0 http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
 
-    <defaultProtocol type="Servlet 3.0"/>
+    <defaultProtocol type="jmx-as7" />
     <group qualifier="cluster">
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
@@ -20,12 +20,11 @@
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true
-                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_1}
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
-                <property name="managementPort">${MANAGEMENT_PORT_1}</property>
+                <property name="managementPort">9990</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -37,21 +36,19 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR}
-                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_2}
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
-                <property name="managementPort">${MANAGEMENT_PORT_2}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -63,21 +60,19 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9291
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
                     -Djboss.default.multicast.address=${MCAST_ADDR}
-                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_3}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
-                <property name="managementPort">${MANAGEMENT_PORT_3}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>
@@ -89,20 +84,18 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9391
+                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9091
                     -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}
                     -Djboss.messaging.group.address=${MCAST_ADDR}
-                    -Djboss.socket.binding.port-offset=${PORT_OFFSET_4}
                     -Djboss.default.multicast.address=${MCAST_ADDR} -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
-                <property name="managementPort">${MANAGEMENT_PORT_4}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
             </configuration>

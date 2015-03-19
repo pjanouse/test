@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -475,6 +476,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     private void prepareJmsServer(Container container) {
 
         container.start();
+
+        logger.error("Get process id: " + ProcessIdUtils.getProcessId(container));
+
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
