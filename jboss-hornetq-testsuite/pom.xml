@@ -319,13 +319,11 @@
 
         <profile>
             <id>eap6x</id>
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-                <!--<property>-->
-                    <!--<name>eap</name>-->
-                    <!--<value>6x</value>-->
-                <!--</property>-->
-            <!--</activation>-->
+            <activation>
+                <property>
+                    <name>eap6x</name>
+                </property>
+            </activation>
             <modules>
                 <module>tooling</module>
                 <module>tooling-eap6</module>
@@ -379,6 +377,11 @@
 
         <profile>
             <id>eap7x</id>
+            <activation>
+                <property>
+                    <name>eap7x</name>
+                </property>
+            </activation>
             <modules>
                 <module>tooling</module>
                 <module>tooling-eap7</module>
