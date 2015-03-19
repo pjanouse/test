@@ -77,7 +77,7 @@ public class BasicStompTestCase extends HornetQTestCase {
 
         BlockingConnection connection = null;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
@@ -152,7 +152,7 @@ public class BasicStompTestCase extends HornetQTestCase {
 
         BlockingConnection connection = null;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Send messages via STOMP protocol
@@ -204,7 +204,7 @@ public class BasicStompTestCase extends HornetQTestCase {
 
         BlockingConnection connection = null;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Receives messages via STOMP protocol
@@ -267,7 +267,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         final int CLIENTS = 10;
         final int MESSAGES_PER_CLIENT = 1000;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(QUEUE_NAME));
         try {
@@ -319,7 +319,7 @@ public class BasicStompTestCase extends HornetQTestCase {
 
         BlockingConnection connection = null;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);

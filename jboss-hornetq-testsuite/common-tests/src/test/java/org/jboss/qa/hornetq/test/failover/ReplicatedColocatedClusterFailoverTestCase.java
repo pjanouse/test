@@ -4,6 +4,7 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -46,11 +47,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      */
     public void prepareColocatedTopologyInCluster() {
 
-        prepareLiveServer(CONTAINER1_NAME, "firstPair", "firstPairJournalLive");
-        prepareColocatedBackupServer(CONTAINER1_NAME, "backup", "secondPair", "secondPairJournalBackup");
+        prepareLiveServer(container(1), "firstPair", "firstPairJournalLive");
+        prepareColocatedBackupServer(container(1), "backup", "secondPair", "secondPairJournalBackup");
 
-        prepareLiveServer(CONTAINER2_NAME, "secondPair", "secondPairJournalLive");
-        prepareColocatedBackupServer(CONTAINER2_NAME, "backup", "firstPair", "firstPairJournalBackup");
+        prepareLiveServer(container(2), "secondPair", "secondPairJournalLive");
+        prepareColocatedBackupServer(container(2), "backup", "firstPair", "firstPairJournalBackup");
 
     }
 
@@ -132,9 +133,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    public void prepareLiveServer(String containerName, String backupGroupName, String journalDirectoryPath) {
+    public void prepareLiveServer(Container container, String backupGroupName, String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -146,9 +147,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String remoteConnectorName = "netty-remote2";
         String remoteConnectorNameBackup = "netty-remote-backup";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -213,7 +213,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-        jmsAdminOperations.setNodeIdentifier(containerName.hashCode());
+        jmsAdminOperations.setNodeIdentifier(container.getName().hashCode());
 
 //        if (CONTAINER1_NAME_NAME.equalsIgnoreCase(containerName)) {
 //            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER1_NAME_IP, 5445);
@@ -245,7 +245,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -254,7 +254,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -263,17 +263,16 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         }
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares colocated backup. It creates new configuration of backup server.
      *
-     * @param containerName        Name of the arquilian container.
+     * @param container            The arquilian container.
      * @param backupServerName     Name of the new HornetQ backup server.
      */
-    public void prepareColocatedBackupServer(String containerName, String backupServerName, String backupGroupName
+    public void prepareColocatedBackupServer(Container container, String backupServerName, String backupGroupName
                 , String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group-backup";
@@ -286,9 +285,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT;
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
@@ -350,7 +348,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.close();
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -359,7 +357,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -367,7 +365,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
             logger.error("Error during copy.", e);
         }
 
-        controller.stop(containerName);
+        container.stop();
     }
 
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {

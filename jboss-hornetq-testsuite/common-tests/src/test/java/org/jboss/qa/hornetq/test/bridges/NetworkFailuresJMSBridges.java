@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -77,7 +78,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
             log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
             log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
             messageVerifier.verifyMessages();
-            JMSOperations adminOperations = getJMSOperations(CONTAINER1_NAME);
+            JMSOperations adminOperations = container(1).getJmsOperations();
             int preparedTransactions= adminOperations.getNumberOfPreparedTransaction();
             adminOperations.close();
             if(preparedTransactions>0){
@@ -118,22 +119,19 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
      */
     public void prepareServers(int reconnectAttempts) {
 
-        prepareClusterServer(CONTAINER1_NAME, proxy12port, reconnectAttempts, true);
-        prepareClusterServer(CONTAINER2_NAME, proxy12port, reconnectAttempts, false);
+        prepareClusterServer(container(1), proxy12port, reconnectAttempts, true);
+        prepareClusterServer(container(2), proxy12port, reconnectAttempts, false);
 
     }
 
     /**
      * Prepare servers.
      *
-     * @param containerName         container name
+     * @param container             test container
      * @param proxyPortIn           proxy port for connector where to connect to proxy directing to this server,every can connect to this server through proxy on 127.0.0.1:proxyPortIn
      * @param reconnectAttempts     number of reconnects for cluster-connections
      */
-
-
-
-    protected void prepareClusterServer(String containerName, int proxyPortIn, int reconnectAttempts, boolean deployJmsBridge) {
+    protected void prepareClusterServer(Container container, int proxyPortIn, int reconnectAttempts, boolean deployJmsBridge) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -141,8 +139,8 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         String inVmConnectionFactory = "InVmConnectionFactory";
         String connectionFactoryName = "BridgeConnectionFactory";
 
-        controller.start(containerName);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -164,10 +162,9 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         jmsAdminOperations.close();
 
-        stopServer(containerName);
-        controller.start(containerName);
+        container.restart();
 
-        jmsAdminOperations = this.getJMSOperations(containerName);
+        jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.createConnectionFactory(connectionFactoryName, "java:jboss/exported/jms/" + connectionFactoryName, connectorToProxy);
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, false);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -183,14 +180,13 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         jmsAdminOperations.close();
 
         if (deployJmsBridge)    {
-            deployBridge(containerName, reconnectAttempts, "jms/" + connectionFactoryName);
+            deployBridge(container, reconnectAttempts, "jms/" + connectionFactoryName);
         }
 
-        controller.stop(containerName);
-
+        container.stop();
     }
 
-    protected void deployBridge(String containerName, int reconnetAttempts, String bridgeConnectionFactoryJndiName) {
+    protected void deployBridge(Container container, int reconnetAttempts, String bridgeConnectionFactoryJndiName) {
 
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
@@ -210,7 +206,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         long maxBatchTime = 100;
         boolean addMessageIDInHeader = true;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, null,
                 bridgeConnectionFactoryJndiName, targetDestination, targetContext, qualityOfService, failureRetryInterval, reconnetAttempts,

@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -27,7 +28,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverKillWithBridgeWitStaticConnectors() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, false);
+        deployBridge(container(3), false);
 
         testFailoverWithBridge(false, false);
     }
@@ -38,7 +39,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverKillWithBridgeWithDiscovery() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, true);
+        deployBridge(container(3), true);
 
         testFailoverWithBridge(false, false);
     }
@@ -49,7 +50,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridgeWithStaticConnectors() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, false);
+        deployBridge(container(3), false);
 
         testFailoverWithBridge(true, false);
     }
@@ -60,7 +61,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridgeWithDiscovery() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, true);
+        deployBridge(container(3), true);
 
         testFailoverWithBridge(true, false);
     }
@@ -71,7 +72,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackKillWithBridgeWitStaticConnectors() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, false);
+        deployBridge(container(3), false);
 
         testFailoverWithBridge(false, true);
     }
@@ -82,7 +83,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackKillWithBridgeWithDiscovery() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, true);
+        deployBridge(container(3), true);
 
         testFailoverWithBridge(false, true);
     }
@@ -93,7 +94,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridgeWithStaticConnectors() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, false);
+        deployBridge(container(3), false);
 
         testFailoverWithBridge(true, true);
     }
@@ -104,7 +105,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridgeWithDiscovery() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, true);
+        deployBridge(container(3), true);
 
         testFailoverWithBridge(true, true);
     }
@@ -170,7 +171,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailoverWithDiscovery() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, true);
+        deployBridge(container(3), true);
 
         testInitialFailover();
     }
@@ -181,36 +182,33 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailoverWithStaticConnectors() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, false);
+        deployBridge(container(3), false);
 
         testInitialFailover();
     }
 
 
-    protected void deployBridge(String containerName, boolean useDiscovery) {
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    protected void deployBridge(Container container, boolean useDiscovery) {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         if (useDiscovery) {
-            if (CONTAINER3_NAME.equals(containerName)) {
+            if (CONTAINER3_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
             } else {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupNameForBridges);
             }
 
         } else {
-            if (CONTAINER1_NAME.equals(containerName) || CONTAINER2_NAME.equals(containerName)) {
+            if (CONTAINER1_NAME.equals(container.getName()) || CONTAINER2_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
-            } else if (CONTAINER3_NAME.equals(containerName)) {
+            } else if (CONTAINER3_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
             }
         }
 
         jmsAdminOperations.close();
-
-        stopServer(containerName);
+        container.stop();
     }
 
 }

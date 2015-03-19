@@ -4,12 +4,12 @@ package org.jboss.qa.hornetq.test.soak.modules;
 import java.util.ArrayList;
 import java.util.List;
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.components.MessageSplliterBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 
@@ -26,22 +26,13 @@ public class DurableSubscriptionsSoakModule extends HornetQTestCase implements S
 
     public static final String DURABLE_MESSAGES_QUEUE_JNDI = "jms/queue/soak/durable/OutQueue";
 
-    private final ContainerInfo container;
-
-
-    public DurableSubscriptionsSoakModule() {
-        this(CONTAINER1_INFO);
-    }
-
-
-    public DurableSubscriptionsSoakModule(final ContainerInfo container) {
-        this.container = container;
-    }
+    private Container container;
 
 
     @Override
     public void setUpServers(ContainerController controller) {
-        this.prepareDestinations(this.container.getName());
+        this.container = container(1);
+        this.prepareDestinations(this.container);
     }
 
 
@@ -59,8 +50,8 @@ public class DurableSubscriptionsSoakModule extends HornetQTestCase implements S
     }
 
 
-    private void prepareDestinations(final String containerName) {
-        JMSOperations ops = this.getJMSOperations(containerName);
+    private void prepareDestinations(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.createTopic(DURABLE_MESSAGES_TOPIC, DURABLE_MESSAGES_TOPIC_JNDI);
         ops.createQueue(DURABLE_MESSAGES_QUEUE, DURABLE_MESSAGES_QUEUE_JNDI);
         ops.close();

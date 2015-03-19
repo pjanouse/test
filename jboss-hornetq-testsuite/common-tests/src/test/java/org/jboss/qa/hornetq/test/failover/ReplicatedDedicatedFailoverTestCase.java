@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -468,16 +469,13 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @throws Exception
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
-
-        prepareLiveServer(CONTAINER1_NAME);
-        
-        prepareBackupServer(CONTAINER2_NAME);
-                
+        prepareLiveServer(container(1));
+        prepareBackupServer(container(2));
     }
 
-    protected void prepareLiveServer(String containerName) {
+    protected void prepareLiveServer(Container container) {
         
-        prepareLiveServer(containerName, ASYNCIO_JOURNAL_TYPE, false);
+        prepareLiveServer(container, ASYNCIO_JOURNAL_TYPE, false);
         
     }
 
@@ -488,9 +486,9 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(String containerName, String journalType, boolean useNIOConnectors) {
+    protected void prepareLiveServer(Container container, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -500,10 +498,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingForConnector = "messaging";
 
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         if (useNIOConnectors)   {
             // add connector with NIO
@@ -568,7 +564,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -577,7 +573,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -596,23 +592,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
-    protected void prepareBackupServer(String containerName) {
-        
-        prepareBackupServer(containerName, ASYNCIO_JOURNAL_TYPE, false);
-        
+    protected void prepareBackupServer(Container container) {
+        prepareBackupServer(container, ASYNCIO_JOURNAL_TYPE, false);
     }
 
         /**
          * Prepares backup server for dedicated topology.
          *
-         * @param containerName Name of the container - defined in arquillian.xml
+         * @param container Test container - defined in arquillian.xml
          */
-    protected void prepareBackupServer(String containerName, String journalType, boolean useNIOConnectors) {
+    protected void prepareBackupServer(Container container, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -624,9 +616,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         String pooledConnectionFactoryName = "hornetq-ra";
 
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         if (useNIOConnectors)   {
             // add connector with NIO
@@ -697,7 +688,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         setAddressSettings(jmsAdminOperations);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -706,7 +697,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -725,8 +716,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {
@@ -775,8 +765,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -788,8 +778,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -801,8 +791,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -814,8 +804,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
     

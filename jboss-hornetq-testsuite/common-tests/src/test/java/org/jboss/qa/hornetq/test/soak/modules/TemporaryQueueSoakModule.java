@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.components.TemporaryQueueBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 
@@ -25,22 +25,13 @@ public class TemporaryQueueSoakModule extends HornetQTestCase implements SoakTes
 
     public static final String TEMP_QUEUE_PREFIX = "jms/queue/soak/temporary/TempQueue";
 
-    private final ContainerInfo container;
-
-
-    public TemporaryQueueSoakModule() {
-        this(CONTAINER1_INFO);
-    }
-
-
-    public TemporaryQueueSoakModule(final ContainerInfo container) {
-        this.container = container;
-    }
+    private Container container;
 
 
     @Override
     public void setUpServers(final ContainerController controller) {
-        JMSOperations ops = this.getJMSOperations(this.container.getName());
+        this.container = container(1);
+        JMSOperations ops = container.getJmsOperations();
         ops.createQueue(TEMP_IN_QUEUE, TEMP_IN_QUEUE_JNDI);
         ops.close();
     }

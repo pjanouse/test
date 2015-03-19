@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
 import org.jboss.dmr.ModelNode;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JmsServerInfo;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -128,7 +129,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         // start server with XA connection factory
         controller.start(CONTAINER1_NAME);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
         jmsAdminOperations.setFactoryType("RemoteConnectionFactory", "XA_GENERIC");
         jmsAdminOperations.createQueue(coreQueueName, queueJndiName);
@@ -332,7 +333,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public void testOperationsWithConnectedClients() throws Exception {
 
         // setup server
-        prepareServer(CONTAINER1_NAME);
+        prepareServer(container(1));
 
         // send some messages to it
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -456,11 +457,9 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     }
 
-    private void prepareServer(String containerName) {
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    private void prepareServer(Container container) {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
@@ -496,7 +495,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @CleanUpBeforeTest
     public void testGettingAddressSettings() {
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         jmsOperations.removeAddressSettings("#");
         jmsOperations.addAddressSettings("#", "PAGE", 10485760, 0, 1000, 2097152);
 
@@ -630,7 +629,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
 
     private void prepareQueueOnServer() {
-        JMSOperations ops = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue("testQueue", "jms/testQueue");
         ops.close();
     }
@@ -638,11 +637,11 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -651,9 +650,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -688,17 +686,15 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -707,9 +703,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
@@ -749,8 +744,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
@@ -759,10 +753,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      * @throws Exception
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
-
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
-
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
     }
 
 }

@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -251,8 +252,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         boolean shutdown = false;
         int numberOfMessagesToSend = 1000;
 
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -303,7 +304,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         long timeout = 180000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER2_NAME);
+        JMSOperations jmsOperations = container(2).getJmsOperations();
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
@@ -325,8 +326,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         int numberOfMessagesToSend = 5000;
         int numberOfConsumers = 5;
 
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -382,7 +383,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         long timeout = 180000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER2_NAME);
+        JMSOperations jmsOperations = container(2).getJmsOperations();
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
@@ -409,8 +410,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
     public void testFailFirstTransactionOnBackup() throws Exception {
         int numberOfMessagesToSend = 1000;
 
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -453,7 +454,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         logger.info("Get information about transactions from HQ after failover to backup and recovery passed.:");
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER2_NAME);
+        JMSOperations jmsOperations = container(2).getJmsOperations();
         numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
         String result = jmsOperations.listPreparedTransaction();
         jmsOperations.close();
@@ -499,10 +500,10 @@ public class XAFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String journalDirectory) {
+    protected void prepareLiveServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -511,9 +512,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -555,17 +555,15 @@ public class XAFailoverTestCase extends HornetQTestCase {
         }
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -574,9 +572,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
@@ -620,8 +617,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
 }

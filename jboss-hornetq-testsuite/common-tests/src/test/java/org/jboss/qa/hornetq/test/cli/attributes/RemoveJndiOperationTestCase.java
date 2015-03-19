@@ -52,7 +52,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         jmsOperations.createQueue(queueCoreName1, queueJndiNameRelative1);
         jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported2);
@@ -110,7 +110,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         jmsOperations.createTopic(topicCoreName1, topicJndiNameRelative1);
         jmsOperations.addTopicJNDIName(topicCoreName1, topicJndiNameFullExported2);
@@ -132,7 +132,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         jmsOperations.createQueue(queueCoreName1, queueJndiNameRelative1);
         jmsOperations.addQueueJNDIName(queueCoreName1, queueJndiNameFullExported2);
@@ -161,7 +161,7 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         jmsOperations.createQueue(topicCoreName1, topicJndiNameRelative1);
         jmsOperations.addQueueJNDIName(topicCoreName1, topicJndiNameFullExported2);

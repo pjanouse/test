@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.bridges;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -227,26 +228,26 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         prepareServers(reconnectAttempts);
 
         startProxies();
-        controller.start(CONTAINER2_NAME); // B1
-        controller.start(CONTAINER1_NAME); // A1
-
+        container(2).start(); // B1
+        container(1).start(); // A1
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(2).getContainerType().name(),
+                container(1).getHostname(), container(1).getJNDIPort(),
+                relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2_NAME), getJNDIPort(
-
-
-                CONTAINER2_NAME), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2).getContainerType().name(),
+                container(2).getHostname(), container(2).getJNDIPort(),
+                relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
 
@@ -274,12 +275,13 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         if (staysDisconnected)  {
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
-            stopServer(CONTAINER1_NAME);
-            controller.start(CONTAINER1_NAME);
-            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, 10000, 10, 10);
+            container(1).restart();
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1).getContainerType().name(),
+                    container(1).getHostname(), container(1).getJNDIPort(),
+                    relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
             receiver2.join();
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
@@ -287,11 +289,8 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
-
-
-
+        container(2).stop();
+        container(1).stop();
     }
 
 
@@ -312,16 +311,17 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         prepareServersWihtMessageGrouping(reconnectAttempts);
 
         startProxies();
-
-        controller.start(CONTAINER1_NAME); // A1
-        controller.start(CONTAINER2_NAME); // B1
+        container(1).start(); // A1
+        container(2).start(); // B1
 
         Thread.sleep(5000);
 
         GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().name(),
+                container(1).getHostname(), container(1).getJNDIPort(),
+                relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
@@ -329,8 +329,9 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         producer1.setMessageVerifier(groupMessageVerifier);
 
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2_NAME), getJNDIPort(
-                CONTAINER2_NAME), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2).getContainerType().name(),
+                container(2).getHostname(), container(2).getJNDIPort(),
+                relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(groupMessageVerifier);
 
@@ -358,18 +359,19 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
             log.info("Stop server 1.");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             log.info("Server 1 stopped.");
             stopProxies();
             log.info("Stop server 2.");
-            stopServer(CONTAINER2_NAME);
+            container(2).stop();
             log.info("Server 2 stopped.");
 
             log.info("Start server 1.");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             log.info("Server 1 started.");
 
             log.info("Start server 2.");
+            container(2).start();
             controller.start(CONTAINER2_NAME);
             log.info("Server 2 started.");
 
@@ -377,13 +379,16 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
             Thread.sleep(10000);
 
-            log.info("Container 1 have " + getNumberOfNodesInCluster(CONTAINER1_NAME) + " other node in cluster.");
-            log.info("Container 2 have " + getNumberOfNodesInCluster(CONTAINER2_NAME) + " other node in cluster.");
-            Assert.assertEquals("There shoulld be 2 nodes in cluster for container 1.", 1, getNumberOfNodesInCluster(CONTAINER1_NAME));
-            Assert.assertEquals("There shoulld be 2 nodes in cluster for container 2.", 1, getNumberOfNodesInCluster(
-                    CONTAINER2_NAME));
+            log.info("Container 1 have " + getNumberOfNodesInCluster(container(1)) + " other node in cluster.");
+            log.info("Container 2 have " + getNumberOfNodesInCluster(container(2)) + " other node in cluster.");
+            Assert.assertEquals("There shoulld be 2 nodes in cluster for container 1.",
+                    1, getNumberOfNodesInCluster(container(1)));
+            Assert.assertEquals("There shoulld be 2 nodes in cluster for container 2.",
+                    1, getNumberOfNodesInCluster(container(2)));
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1).getContainerType().name(),
+                    container(1).getHostname(), container(1).getJNDIPort(),
+                    relativeJndiInQueueName, 10000, 10, 10);
             receiver2.setMessageVerifier(groupMessageVerifier);
             receiver2.start();
             receiver2.join();
@@ -402,9 +407,8 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-
+        container(1).stop();
+        container(2).stop();
     }
 
 
@@ -419,9 +423,9 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     @Override
     public void prepareServers(int reconnectAttempts) {
 
-        prepareClusterServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+        prepareClusterServer(container(1), proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                 discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA, false);
-        prepareClusterServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+        prepareClusterServer(container(2), proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                 discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB, false);
     }
 
@@ -433,23 +437,22 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
      */
     public void prepareServersWihtMessageGrouping(int reconnectAttempts) {
 
-        prepareClusterServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
+        prepareClusterServer(container(1), proxy21port, reconnectAttempts, broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                 discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA, true);
-        prepareClusterServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
+        prepareClusterServer(container(2), proxy12port, reconnectAttempts, broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                 discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB, true);
     }
 
     /**
      * Prepare servers.
      *
-     * @param containerName         container name
-     * @param bindingAddress        bind address
+     * @param container             container
      * @param proxyPortIn           proxy port for connector where to connect to proxy directing to this server,every can connect to this server through proxy on 127.0.0.1:proxyPortIn
      * @param reconnectAttempts     number of reconnects for cluster-connections
      * @param discoveryGroupAddress discovery udp address
      * @param discoveryGroupPort    discovery udp port
      */
-    protected void prepareClusterServer(String containerName, String bindingAddress,
+    protected void prepareClusterServer(Container container,
                                       int proxyPortIn, int reconnectAttempts, String broadcastGroupAddress,
                                       int broadcastGroupPort, String discoveryGroupAddress, int discoveryGroupPort, boolean isMessageWithGrouping) {
 
@@ -459,14 +462,14 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         String connectionFactoryName = "RemoteConnectionFactory";
 
         String messagingGroupSocketBindingName = "messaging-group";
-        String messagingGroupSocketBindingNameForDiscovery = messagingGroupSocketBindingName + "-" + containerName;
+        String messagingGroupSocketBindingNameForDiscovery = messagingGroupSocketBindingName + "-" + container.getName();
 
-        controller.start(containerName);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
+        jmsAdminOperations.setInetAddress("public", container.getHostname());
+        jmsAdminOperations.setInetAddress("unsecure", container.getHostname());
+        jmsAdminOperations.setInetAddress("management", container.getHostname());
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -519,17 +522,16 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         long reaperPeriod = 750;
 
         if (isMessageWithGrouping)  {
-            if (CONTAINER1_NAME.equals(containerName)) {
+            if (CONTAINER1_NAME.equals(container.getName())) {
                 jmsAdminOperations.addMessageGrouping("default", name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
-            } else if (CONTAINER2_NAME.equals(containerName))    {
+            } else if (CONTAINER2_NAME.equals(container.getName()))    {
                 jmsAdminOperations.addMessageGrouping("default", name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
             }
         }
 
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 

@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -51,30 +52,29 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
-    private void prepareServerWithHornetQCoreBridge(String containerName, String targeServerName) {
+    private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
 
         String messagingBridgeConnectorAndSocketBindingName = "messaging-bridge";
 
-        JMSOperations jmsAdminContainer1 = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminContainer1 = container.getJmsOperations();
         jmsAdminContainer1.addRemoteSocketBinding(messagingBridgeConnectorAndSocketBindingName, getHostname(targeServerName), getHornetqPort(targeServerName));
         jmsAdminContainer1.createRemoteConnector(messagingBridgeConnectorAndSocketBindingName, messagingBridgeConnectorAndSocketBindingName, null);
         jmsAdminContainer1.createQueue(inQueueName, inQueueJndiName);
         jmsAdminContainer1.setClusterUserPassword(CLUSTER_PASSWORD);
         jmsAdminContainer1.close();
 
-        stopServer(containerName);
-        controller.start(containerName);
+        container.restart();
 
-        jmsAdminContainer1 = this.getJMSOperations(containerName);
+        jmsAdminContainer1 = container.getJmsOperations();
         jmsAdminContainer1.createCoreBridge(HORNETQ_CORE_BRIDGE_NAME, "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1,
                 messagingBridgeConnectorAndSocketBindingName);
         jmsAdminContainer1.close();
     }
 
 
-    private void prepareTargetServerForHornetQCoreBridge(String containerName) {
+    private void prepareTargetServerForHornetQCoreBridge(Container container) {
 
-        JMSOperations jmsAdminContainer1 = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminContainer1 = container.getJmsOperations();
         jmsAdminContainer1.createQueue(outQueueName, outQueueJndiName);
         jmsAdminContainer1.setClusterUserPassword(CLUSTER_PASSWORD);
         jmsAdminContainer1.close();
@@ -87,8 +87,8 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
 
-        prepareServerWithHornetQCoreBridge(CONTAINER1_NAME, CONTAINER2_NAME);
-        prepareTargetServerForHornetQCoreBridge(CONTAINER2_NAME);
+        prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
+        prepareTargetServerForHornetQCoreBridge(container(2));
     }
 
 

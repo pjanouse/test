@@ -80,7 +80,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         final int MESSAGES = 10;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
 
@@ -846,7 +846,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         		isFaultOnReceive, 
         		isRollbackOnly);
         
-       	JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+       	JMSOperations jmsAdminOperations = container(1).getJmsOperations();
        	long numMessagesOnQueue = jmsAdminOperations.getCountOfMessagesOnQueue(TEST_QUEUE);
        	jmsAdminOperations.close();
         
@@ -905,7 +905,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     		boolean ruleBeforeReceive, 
     		boolean rollbackOnly) 
     {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);

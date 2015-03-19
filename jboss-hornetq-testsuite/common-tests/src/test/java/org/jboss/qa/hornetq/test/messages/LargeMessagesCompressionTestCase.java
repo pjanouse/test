@@ -194,7 +194,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
 
     private void prepare() {
-        JMSOperations ops = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(QUEUE_NAME, QUEUE_NAME);
         ops.close();
     }

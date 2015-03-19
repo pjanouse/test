@@ -85,7 +85,7 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
         public boolean closeClients() throws Exception {
             JMSOperations ops = null;
             try {
-                ops = getJMSOperations();
+                ops = container(1).getJmsOperations();
                 return ops.closeClientsByDestinationAddress("jms.queue.#");
             } finally {
                 if (ops != null) {

@@ -8,6 +8,7 @@ import org.hornetq.jms.client.HornetQObjectMessage;
 import org.hornetq.jms.client.HornetQTextMessage;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
@@ -69,7 +70,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testRemovingScheduledMessage() throws Exception {
 
         controller.start(CONTAINER1_NAME);
-        prepareServer(CONTAINER1_NAME);
+        prepareServer(container(1));
 
         Context ctx = null;
         Connection connection = null;
@@ -106,7 +107,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
         }
         // try to remove this message
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         jmsOperations.removeMessageFromQueue(inQueue, msg.getJMSMessageID());
         long count = jmsOperations.getCountOfMessagesOnQueue(inQueue);
         jmsOperations.close();
@@ -152,7 +153,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        prepareServerWithDivert(CONTAINER1_NAME, inQueue, outQueue, isExclusive);
+        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         // send scheduled message
         Context ctx = null;
@@ -255,7 +256,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        prepareServerWithDivert(CONTAINER1_NAME, inQueue, outQueue, isExclusive);
+        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         // send scheduled message
         Context ctx = null;
@@ -353,7 +354,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
 
-        prepareServerWithDivert(CONTAINER1_NAME, inQueue, outQueue, isExclusive);
+        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         SimpleJMSClient clientOriginal = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
@@ -503,9 +504,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         return isSame;
     }
 
-    private void prepareServer(String container) {
+    private void prepareServer(Container container) {
 
-        JMSOperations jmsOperations = getJMSOperations(container);
+        JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
 
@@ -514,8 +515,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     }
 
-    private void prepareServerWithDivert(String containerName, String originalQueue, String divertedQueue, boolean isExclusive) {
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+    private void prepareServerWithDivert(Container container, String originalQueue, String divertedQueue, boolean isExclusive) {
+        JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
         jmsOperations.createQueue(outQueue, outQueueJndiName);

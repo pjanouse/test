@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 
@@ -130,9 +131,9 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
     /**
      * Prepares server for topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareServer(String containerName, int proxyPortIn, int reconnectAttempts) {
+    protected void prepareServer(Container container, int proxyPortIn, int reconnectAttempts) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -142,9 +143,8 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         String connectionFactoryName = "RemoteConnectionFactory";
         String connectionFactoryJndiName = "java:jboss/exported/jms/" + connectionFactoryName;
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -191,8 +191,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         jmsAdminOperations.createQueue(hornetqInQueueName, relativeJndiInQueueName, true);
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 
@@ -201,7 +200,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
      */
     public void prepareServers(int reconnectAttempts) {
 
-        prepareServer(CONTAINER1_NAME, proxy21port, reconnectAttempts);
-        prepareServer(CONTAINER2_NAME, proxy12port, reconnectAttempts);
+        prepareServer(container(1), proxy21port, reconnectAttempts);
+        prepareServer(container(2), proxy12port, reconnectAttempts);
     }
 }

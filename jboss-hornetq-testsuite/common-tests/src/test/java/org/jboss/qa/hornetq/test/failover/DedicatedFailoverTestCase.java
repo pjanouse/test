@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.Clients;
@@ -362,11 +363,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER1_NAME);
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000);
-        addDivert(CONTAINER1_NAME, divertedQueue, isExclusive, topic);
+        addDivert(container(1), divertedQueue, isExclusive, topic);
         stopServer(CONTAINER1_NAME);
 
         controller.start(CONTAINER2_NAME); // keep in mind that backup will not open port 5445
-        addDivert(CONTAINER2_NAME, divertedQueue, isExclusive, topic);
+        addDivert(container(2), divertedQueue, isExclusive, topic);
         stopServer(CONTAINER2_NAME);
 
         controller.start(CONTAINER1_NAME);
@@ -476,7 +477,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         // check number of messages in diverted queue
-        JMSOperations jmsOperations = failback ? getJMSOperations(CONTAINER1_NAME) : getJMSOperations(CONTAINER2_NAME);
+        JMSOperations jmsOperations = failback ? container(1).getJmsOperations() : container(2).getJmsOperations();
 
         long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
 
@@ -519,8 +520,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-    private void addDivert(String containerName, String divertedQueue, boolean isExclusive, boolean topic) {
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+    private void addDivert(Container container, String divertedQueue, boolean isExclusive, boolean topic) {
+        JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.addDivert("myDivert",
                 topic ? "jms.topic." + topicNamePrefix + "0" : "jms.queue." + queueNamePrefix + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
@@ -560,7 +561,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         // call force-failover operation
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         jmsOperations.forceFailover();
         jmsOperations.close();
 
@@ -1197,33 +1198,33 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
-        prepareLiveServer(containerName, bindingAddress, journalDirectory, "ASYNCIO", false);
+    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
+        prepareLiveServer(container, bindingAddress, journalDirectory, "ASYNCIO", false);
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      * @param journalType       ASYNCIO, NIO
      * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
      *
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1233,9 +1234,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -1299,33 +1299,32 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
 
-        prepareBackupServer(containerName, bindingAddress, journalDirectory, "ASYNCIO", false);
+        prepareBackupServer(container, bindingAddress, journalDirectory, "ASYNCIO", false);
 
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      * @param journalType       ASYNCIO, NIO
      * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1335,9 +1334,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
         String messagingGroupSocketBindingForConnector = "messaging";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -1408,7 +1406,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
@@ -1510,8 +1508,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -1523,8 +1521,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -1536,8 +1534,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -1549,8 +1547,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 

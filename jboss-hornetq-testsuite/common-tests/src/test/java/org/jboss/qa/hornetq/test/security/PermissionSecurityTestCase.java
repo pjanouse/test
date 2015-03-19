@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.security;
 
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -264,7 +265,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         prepareServer();
         controller.start(CONTAINER1_NAME);
         deployer.deploy(MDB_ON_QUEUE_TO_QUEUE);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         HashMap<String,String> opts= new HashMap();
         opts.put("password-stacking","useFirstPass");
         jmsAdminOperations.rewriteLoginModule("Remoting",opts);
@@ -280,7 +281,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         Thread.sleep(2000);
 
-        jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        jmsAdminOperations = container(1).getJmsOperations();
         long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
         Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
         stopServer(CONTAINER1_NAME);
@@ -296,11 +297,11 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     public void prepareServer() throws Exception {
 
 
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
 
         controller.start(CONTAINER1_NAME);
 
-        deployDestinations(CONTAINER1_NAME);
+        deployDestinations(container(1));
 
         stopServer(CONTAINER1_NAME);
 
@@ -310,14 +311,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String journalDirectory) throws IOException {
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    private void prepareLiveServer(Container container, String journalDirectory) throws IOException {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
@@ -377,29 +376,27 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         copyFile(applicationRolesModified, applicationRolesOriginal);
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container test container
      */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    private void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container     test container
      * @param serverName    server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    private void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (
                 int queueNumber = 0; queueNumber < 3; queueNumber++) {

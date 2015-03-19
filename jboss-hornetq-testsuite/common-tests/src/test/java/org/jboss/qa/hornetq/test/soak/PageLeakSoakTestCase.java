@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.soak;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
@@ -35,7 +36,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         int numberOfMessages = 5000000; // 10 M messages
         int counter = 0;
 
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
 
         controller.start(CONTAINER1_NAME);
 
@@ -90,13 +91,11 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    private void prepareJmsServer(Container container) {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -117,9 +116,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         jmsAdminOperations.createTopic("default", inTopic, inTopicJndiName);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 }

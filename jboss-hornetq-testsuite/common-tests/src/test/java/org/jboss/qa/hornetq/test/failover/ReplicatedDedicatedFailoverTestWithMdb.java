@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.runner.RunWith;
 
@@ -24,23 +25,18 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      * @throws Exception
      */
     public void prepareRemoteJcaTopology() throws Exception {
-
-        prepareLiveServer(CONTAINER1_NAME);
-
-        prepareBackupServer(CONTAINER2_NAME);
-
-        prepareMdbServer(CONTAINER3_NAME, CONTAINER1_NAME, CONTAINER2_NAME);
-
+        prepareLiveServer(container(1));
+        prepareBackupServer(container(2));
+        prepareMdbServer(container(3), CONTAINER1_NAME, CONTAINER2_NAME);
         copyApplicationPropertiesFiles();
-
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(String containerName) {
+    protected void prepareLiveServer(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -49,10 +45,10 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.kill(containerName);
-        controller.start(containerName);
+        container.kill();
+        container.start();
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -101,7 +97,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
 
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -110,7 +106,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -119,17 +115,15 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         }
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName) {
+    protected void prepareBackupServer(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -138,9 +132,8 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setBackupGroupName("firstPair");
@@ -190,7 +183,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         setAddressSettings(jmsAdminOperations);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
             copyFile(applicationUsersModified, applicationUsersOriginal);
@@ -199,7 +192,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         }
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(getJbossHome(containerName) + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
             copyFile(applicationRolesModified, applicationRolesOriginal);
@@ -208,8 +201,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         }
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {

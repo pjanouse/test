@@ -5,7 +5,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -60,7 +59,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         int numberOfMessages= 100;
         int commitAfter=50;
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
         stopServer(CONTAINER1_NAME);
@@ -124,7 +123,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         int numberOfMessages= 10;
 
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
         stopServer(CONTAINER1_NAME);

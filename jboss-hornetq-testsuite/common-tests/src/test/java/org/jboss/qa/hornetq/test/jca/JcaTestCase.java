@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
@@ -192,21 +193,20 @@ public class JcaTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
     }
 
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
         String connectionFactoryName = "hornetq-ra";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -236,8 +236,6 @@ public class JcaTestCase extends HornetQTestCase {
         }
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 }

@@ -4,11 +4,11 @@ package org.jboss.qa.hornetq.test.compatibility;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -66,7 +66,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testAutoAckQueue() throws Exception {
-        testClient(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, false);
+        testClient(container(1), Session.AUTO_ACKNOWLEDGE, false);
     }
 
 
@@ -75,7 +75,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testAckQueue() throws Exception {
-        testClient(CONTAINER1_INFO, Session.CLIENT_ACKNOWLEDGE, false);
+        testClient(container(1), Session.CLIENT_ACKNOWLEDGE, false);
     }
 
 
@@ -84,7 +84,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testTransAckQueue() throws Exception {
-        testClient(CONTAINER1_INFO, Session.SESSION_TRANSACTED, false);
+        testClient(container(1), Session.SESSION_TRANSACTED, false);
     }
 
 
@@ -93,7 +93,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testAutoAckTopic() throws Exception {
-        testClient(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, true);
+        testClient(container(1), Session.AUTO_ACKNOWLEDGE, true);
     }
 
 
@@ -102,7 +102,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testClientAckTopic() throws Exception {
-        testClient(CONTAINER1_INFO, Session.CLIENT_ACKNOWLEDGE, true);
+        testClient(container(1), Session.CLIENT_ACKNOWLEDGE, true);
     }
 
 
@@ -111,11 +111,11 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testTransAckTopic() throws Exception {
-        testClient(CONTAINER1_INFO, Session.SESSION_TRANSACTED, true);
+        testClient(container(1), Session.SESSION_TRANSACTED, true);
     }
 
 
-    private void testClient(final ContainerInfo container, final int acknowledgeMode, final boolean isTopic)
+    private void testClient(final Container container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
 
         this.prepareContainer(container);
@@ -137,27 +137,27 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     }
 
 
-    abstract protected void prepareContainer(final ContainerInfo container) throws Exception;
+    abstract protected void prepareContainer(final Container container) throws Exception;
 
 
-    private Clients createClients(final ContainerInfo container, final int acknowledgeMode, final boolean isTopic)
+    private Clients createClients(final Container container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
 
         Clients clients;
 
         if (isTopic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new TopicClientsAutoAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new TopicClientsClientAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new TopicClientsTransAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -168,17 +168,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new QueueClientsAutoAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new QueueClientsClientAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container.getContainerType().name(), container.getIpAddress(),
+                clients = new QueueClientsTransAck(container.getContainerType().name(), container.getHostname(),
                         this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);

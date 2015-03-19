@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.soak.modules;
 
 
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
@@ -32,9 +33,9 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
     public final static String BRIDGE_OUT_QUEUE_JNDI = "jms/queue/soak/bridge/OutQueue";
 
-    private final ContainerInfo queueContainer;
+    private Container queueContainer;
 
-    private final ContainerInfo remoteContainer;
+    private Container remoteContainer;
 
     // from InQueue to RemoteQueue, default is CORE
     private final BridgeType outboundBridgeType;
@@ -44,15 +45,11 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
 
     public BridgeSoakModule() {
-        this(CONTAINER1_INFO, CONTAINER2_INFO, BridgeType.CORE, BridgeType.JMS);
+        this(BridgeType.CORE, BridgeType.JMS);
     }
 
 
-    public BridgeSoakModule(final ContainerInfo queueContainer, final ContainerInfo remoteContainer,
-            final BridgeType outboundBridgeType, final BridgeType inboundBridgeType) {
-
-        this.queueContainer = queueContainer;
-        this.remoteContainer = remoteContainer;
+    public BridgeSoakModule(final BridgeType outboundBridgeType, final BridgeType inboundBridgeType) {
         this.outboundBridgeType = outboundBridgeType;
         this.inboundBridgeType = inboundBridgeType;
     }
@@ -60,12 +57,15 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
     @Override
     public void setUpServers(final ContainerController controller) {
-        this.prepareQueues(this.queueContainer.getName());
-        this.prepareRemoteQueues(this.remoteContainer.getName());
+        this.queueContainer = container(1);
+        this.remoteContainer = container(2);
+
+        this.prepareQueues(this.queueContainer);
+        this.prepareRemoteQueues(this.remoteContainer);
 
         // bridge from inqueue to remotequeue
-        JMSOperations ops = this.getJMSOperations(this.queueContainer.getName());
-        ops.addRemoteSocketBinding("messaging-bridge", this.remoteContainer.getIpAddress(), getHornetqPort(remoteContainer.getName()));
+        JMSOperations ops = queueContainer.getJmsOperations();
+        ops.addRemoteSocketBinding("messaging-bridge", remoteContainer.getHostname(), remoteContainer.getHornetqPort());
         ops.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         switch (this.outboundBridgeType) {
             case JMS:
@@ -73,7 +73,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + this.remoteContainer.getIpAddress() + ":" + getJNDIPort(remoteContainer.getName()));
+                        "remote://" + remoteContainer.getHostname() + ":" + remoteContainer.getJNDIPort());
 
                 ops.createJMSBridge("soak-outbound-bridge", "java:/ConnectionFactory",
                         "java:/" + BRIDGE_IN_QUEUE_JNDI, null,
@@ -90,8 +90,8 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
         ops.close();
 
         // bridge from remotequeue to outqueue
-        JMSOperations remoteOps = this.getJMSOperations(this.remoteContainer.getName());
-        remoteOps.addRemoteSocketBinding("messaging-bridge", this.queueContainer.getIpAddress(), getHornetqPort(queueContainer.getName()));
+        JMSOperations remoteOps = remoteContainer.getJmsOperations();
+        remoteOps.addRemoteSocketBinding("messaging-bridge", queueContainer.getHostname(), queueContainer.getHornetqPort());
         remoteOps.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         switch (this.inboundBridgeType) {
             case CORE:
@@ -100,7 +100,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 break;
             case JMS:
             default:
-                JMSOperations localOps = this.getJMSOperations(this.queueContainer.getName());
+                JMSOperations localOps = queueContainer.getJmsOperations();
                 localOps.setFactoryType("RemoteConnectionFactory", "XA_GENERIC");
                 localOps.close();
 
@@ -108,7 +108,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + this.queueContainer.getIpAddress() + ":" + getJNDIPort(queueContainer.getName()));
+                        "remote://" + queueContainer.getHostname() + ":" + queueContainer.getJNDIPort());
 
                 remoteOps.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
                 remoteOps.createJMSBridge("soak-inbound-bridge", "java:/ConnectionFactory",
@@ -135,16 +135,16 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
     }
 
 
-    private void prepareQueues(final String containerName) {
-        JMSOperations ops = this.getJMSOperations(containerName);
+    private void prepareQueues(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.createQueue(BRIDGE_IN_QUEUE, BRIDGE_IN_QUEUE_JNDI);
         ops.createQueue(BRIDGE_OUT_QUEUE, BRIDGE_OUT_QUEUE_JNDI);
         ops.close();
     }
 
 
-    private void prepareRemoteQueues(final String containerName) {
-        JMSOperations ops = this.getJMSOperations(containerName);
+    private void prepareRemoteQueues(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.createQueue(BRIDGE_REMOTE_QUEUE, BRIDGE_REMOTE_QUEUE_JNDI);
         ops.close();
     }

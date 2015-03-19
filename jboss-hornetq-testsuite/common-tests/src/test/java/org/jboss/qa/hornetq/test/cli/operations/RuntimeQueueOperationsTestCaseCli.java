@@ -65,7 +65,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         int numberOfMessages= 100;
         int commitAfter=50;
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
         stopServer(CONTAINER1_NAME);
@@ -129,7 +129,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         int numberOfMessages= 10;
 
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
         stopServer(CONTAINER1_NAME);

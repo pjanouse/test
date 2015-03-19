@@ -160,7 +160,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
 
 
     private void prepareServer() throws IOException {
-        JMSOperations ops = this.getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         ops.setBindingsDirectory(JOURNAL_DIRECTORY_A);
         ops.setPagingDirectory(JOURNAL_DIRECTORY_A);
         ops.setJournalDirectory(JOURNAL_DIRECTORY_A);
@@ -186,7 +186,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
 
 
     private void createTestQueues() {
-        JMSOperations ops = this.getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(TEST_QUEUE_ADDRESS, TEST_QUEUE_JNDI, false);
         ops.close();
     }

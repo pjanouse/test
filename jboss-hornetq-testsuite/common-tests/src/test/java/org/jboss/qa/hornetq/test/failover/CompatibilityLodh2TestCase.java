@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -529,11 +530,11 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME));
-        prepareMdbServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), getHostname(CONTAINER1_NAME));
+        prepareJmsServer(container(1), getHostname(CONTAINER1_NAME));
+        prepareMdbServer(container(2), getHostname(CONTAINER2_NAME), getHostname(CONTAINER1_NAME));
 
-        prepareJmsServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME));
-        prepareMdbServer(CONTAINER4_NAME, getHostname(CONTAINER4_NAME), getHostname(CONTAINER3_NAME));
+        prepareJmsServer(container(3), getHostname(CONTAINER3_NAME));
+        prepareMdbServer(container(4), getHostname(CONTAINER4_NAME), getHostname(CONTAINER3_NAME));
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -547,11 +548,11 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
      */
     public void prepareEAP6toEAP5topology() throws Exception {
 
-        prepareJmsServer(EAP5_CONTAINER, CONTAINER1_NAME, getHostname(CONTAINER1_NAME));
-        prepareJmsServer(EAP5_CONTAINER, CONTAINER2_NAME, getHostname(CONTAINER2_NAME));
+        prepareJmsServer(EAP5_CONTAINER, container(1), getHostname(CONTAINER1_NAME));
+        prepareJmsServer(EAP5_CONTAINER, container(2), getHostname(CONTAINER2_NAME));
 
-        prepareMdbServer(EAP6_CONTAINER, CONTAINER3_NAME, getHostname(CONTAINER3_NAME), getHostname(CONTAINER3_NAME));
-        prepareMdbServer(EAP6_CONTAINER, CONTAINER4_NAME, getHostname(CONTAINER4_NAME), getHostname(CONTAINER4_NAME));
+        prepareMdbServer(EAP6_CONTAINER, container(3), getHostname(CONTAINER3_NAME), getHostname(CONTAINER3_NAME));
+        prepareMdbServer(EAP6_CONTAINER, container(4), getHostname(CONTAINER4_NAME), getHostname(CONTAINER4_NAME));
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -561,20 +562,20 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container      The container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) {
-        prepareJmsServer(EAP6_CONTAINER, containerName, bindingAddress);
+    private void prepareJmsServer(Container container, String bindingAddress) {
+        prepareJmsServer(EAP6_CONTAINER, container, bindingAddress);
     }
 
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container      The container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerVersion, String containerName, String bindingAddress) {
+    private void prepareJmsServer(String containerVersion, Container container, String bindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -588,7 +589,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             int groupPort = 9876;
             long broadcastPeriod = 500;
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
@@ -605,16 +606,16 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
 
             jmsAdminOperations.close();
 
-            deployDestinations(containerName);
+            deployDestinations(container);
 
         } else {
 
 
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
+            container.start();
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setPersistenceEnabled(true);
@@ -633,19 +634,15 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
             jmsAdminOperations.close();
 
-            controller.stop(containerName);
-
-            controller.start(containerName);
-
-            jmsAdminOperations = this.getJMSOperations(containerName);
+            container.restart();
+            jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
 
             jmsAdminOperations.close();
 
-            deployDestinations(containerName);
-
-            controller.stop(containerName);
+            deployDestinations(container);
+            container.stop();
         }
 
     }
@@ -653,18 +650,18 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerBindingAddress) {
-        prepareMdbServer(EAP6_CONTAINER, containerName, bindingAddress, jmsServerBindingAddress);
+    private void prepareMdbServer(Container container, String bindingAddress, String jmsServerBindingAddress) {
+        prepareMdbServer(EAP6_CONTAINER, container, bindingAddress, jmsServerBindingAddress);
     }
 
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerVersion, String containerName, String bindingAddress, String jmsServerBindingAddress) {
+    private void prepareMdbServer(String containerVersion, Container container, String bindingAddress, String jmsServerBindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -684,7 +681,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             connectionParameters.put(getHostname(CONTAINER1_NAME), String.valueOf(getHornetqPort(CONTAINER1_NAME)));
             boolean ha = false;
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(false);
 
@@ -711,9 +708,9 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             String remoteConnectorName = "netty-remote";
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
+            container.start();
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(false);
 
@@ -735,12 +732,13 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerName), getHornetqPort(containerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(container.getName()),
+                    getHornetqPort(container.getName()));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             jmsAdminOperations.close();
-            controller.stop(containerName);
+            container.stop();
         }
     }
 
@@ -773,21 +771,21 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName containerName
+     * @param container container
      */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    private void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container container
      * @param serverName server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    private void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -75,7 +76,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         producerToInQueue1.start();
 
         // verify that some messages got to outqueue on container3
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER3_NAME);
+        JMSOperations jmsOperations = container(3).getJmsOperations();
         long startTime = System.currentTimeMillis();
         while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < NUMBER_OF_MESSAGES_PER_PRODUCER / 10) {
             Thread.sleep(1000);
@@ -216,7 +217,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         producerToInQueue1.start();
 
         // verify that some messages got to outqueue on container1
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         long startTime = System.currentTimeMillis();
         while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < NUMBER_OF_MESSAGES_PER_PRODUCER / 20) {
             Thread.sleep(1000);
@@ -310,9 +311,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    protected void prepareServerWithBridge(String containerName, String jmsLiveServerName, String jmsBackupServerName) {
+    protected void prepareServerWithBridge(Container container, String jmsLiveServerName, String jmsBackupServerName) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -323,9 +324,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         String pooledConnectionFactoryName = "hornetq-ra";
         String connectionFactoryName = "RemoteConnectionFactory";
         String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
-        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -389,18 +390,16 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
                 CONTAINER2_NAME));
         jmsAdminOperations.createRemoteConnector("bridge-connector-backup", "messaging-bridge-backup", null);
         jmsAdminOperations.close();
-
-        stopServer(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String journalDirectory) {
+    protected void prepareLiveServer(Container container, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
@@ -408,9 +407,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
-        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
@@ -455,17 +454,15 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String journalDirectory) {
 
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
@@ -474,9 +471,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         String connectionFactoryJndiName = "java:/jms/" + connectionFactoryName;
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
@@ -528,8 +524,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
@@ -584,14 +579,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareTopology() throws Exception {
-
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
-
-        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
-
-        prepareServerWithBridge(CONTAINER3_NAME, CONTAINER1_NAME, CONTAINER2_NAME);
-
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
+        prepareServerWithBridge(container(3), CONTAINER1_NAME, CONTAINER2_NAME);
         copyApplicationPropertiesFiles();
-
     }
 }

@@ -2,12 +2,12 @@ package org.jboss.qa.hornetq.test.soak.modules;
 
 
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.test.soak.components.RemoteJcaResendingBean;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -34,37 +34,30 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
 
     public final static String JCA_OUT_QUEUE_JNDI = "jms/queue/soak/jca/OutQueue";
 
-    private final ContainerInfo queuesContainer;
+    private Container queuesContainer;
 
-    private final ContainerInfo mdbContainer;
+    private Container mdbContainer;
 
     private final boolean doRollbacks;
 
 
     public RemoteJcaSoakModule() {
-        this(CONTAINER1_INFO, CONTAINER2_INFO, true);
+        this(true);
     }
 
 
-    public RemoteJcaSoakModule(final ContainerInfo queuesContainer, final ContainerInfo mdbContainer) {
-        this(queuesContainer, mdbContainer, true);
-    }
-
-
-    public RemoteJcaSoakModule(final ContainerInfo queuesContainer, final ContainerInfo mdbContainer,
-            final boolean doRollbacks) {
-
-        this.queuesContainer = queuesContainer;
-        this.mdbContainer = mdbContainer;
+    public RemoteJcaSoakModule(final boolean doRollbacks) {
         this.doRollbacks = doRollbacks;
     }
 
 
     @Override
     public void setUpServers(final ContainerController controller) {
+        this.queuesContainer = container(1);
+        this.mdbContainer = container(2);
 
-        JMSOperations ops = this.getJMSOperations(this.mdbContainer.getName());
-        ops.addRemoteSocketBinding("messaging-remote", this.queuesContainer.getIpAddress(), getHornetqPort(queuesContainer.getName()));
+        JMSOperations ops = mdbContainer.getJmsOperations();
+        ops.addRemoteSocketBinding("messaging-remote", queuesContainer.getHostname(), queuesContainer.getHornetqPort());
         ops.createRemoteConnector("netty-remote", "messaging-remote", null);
         ops.setConnectorOnPooledConnectionFactory("hornetq-ra", "netty-remote");
         ops.close();
@@ -93,7 +86,7 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
         List<FileDeploymentDefinition> assets = new ArrayList<FileDeploymentDefinition>(1);
 
         // ip in property file on n-th mdb container points to n-th queue container
-        Asset contents = new StringAsset("remote-jms-server=" + this.queuesContainer.getIpAddress() + "\n" +
+        Asset contents = new StringAsset("remote-jms-server=" + queuesContainer.getHostname() + "\n" +
             "remote-jms-jndi-port=" + getJNDIPort(queuesContainer.getName()) + "\n");
         assets.add(new FileDeploymentDefinition(contents, "remote-jca-resending-bean.properties",
                 this.mdbContainer.getName()));
@@ -101,8 +94,8 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
     }
 
 
-    private void prepareQueues(final ContainerInfo container) {
-        JMSOperations ops = this.getJMSOperations(container.getName());
+    private void prepareQueues(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.createQueue(JCA_IN_QUEUE, JCA_IN_QUEUE_JNDI);
         ops.createQueue(JCA_OUT_QUEUE, JCA_OUT_QUEUE_JNDI);
         ops.close();

@@ -93,7 +93,7 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
         public boolean closeClients() throws Exception {
             JMSOperations ops = null;
             try {
-                ops = getJMSOperations();
+                ops = container(1).getJmsOperations();
                 return ops.closeClientsByUserName(username);
             } finally {
                 if (ops != null) {

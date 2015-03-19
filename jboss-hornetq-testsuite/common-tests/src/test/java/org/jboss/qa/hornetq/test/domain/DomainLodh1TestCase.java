@@ -11,6 +11,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -143,7 +144,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         DomainOperations.forDefaultContainer().reloadDomain().close();
 
         // we use only the first server
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
         logger.info("Configuration is done, starting the node again");
 
         controller.start(CONTAINER1_NAME);
@@ -171,7 +172,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         logger.info("Starting the kill sequence");
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 1000, 100, 10);
@@ -282,7 +283,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
     }
 
     private void printQueuesCount() {
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.addAddressPrefix("host", "master");
         jmsAdminOperations.addAddressPrefix("server", "server-1");
         logger.info("=============Queues status====================");
@@ -310,19 +311,19 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
     }
 
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
         //controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addAddressPrefix("profile", "full-ha-1");
 
         jmsAdminOperations.removeBroadcastGroup("bg-group1");

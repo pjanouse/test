@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.components.JcaBridgeConnectionBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 
 
 /**
@@ -22,21 +22,12 @@ import org.jboss.qa.hornetq.tools.ContainerInfo;
  */
 public class JcaBridgeModuleConnection extends HornetQTestCase implements SoakTestModule {
 
-    private final ContainerInfo container;
-
-
-    public JcaBridgeModuleConnection() {
-        this(CONTAINER1_INFO);
-    }
-
-
-    public JcaBridgeModuleConnection(final ContainerInfo queueContainer) {
-        this.container = queueContainer;
-    }
+    private Container container;
 
 
     @Override
     public void setUpServers(final ContainerController controller) {
+        this.container = container(1);
     }
 
 

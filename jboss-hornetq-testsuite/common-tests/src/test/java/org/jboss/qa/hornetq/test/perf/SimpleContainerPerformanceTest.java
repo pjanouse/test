@@ -187,7 +187,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         final String OUT_QUEUE = "OutQueue";
 
         log.info("Staring container for test ....");
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(IN_QUEUE, IN_QUEUE);
         jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
         controller.start(CONTAINER1_NAME);

@@ -143,7 +143,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
      */
     private void prepareServer(boolean preferFactoryRef) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
         jmsAdminOperations.setFactoryRef(preferFactoryRef);
 

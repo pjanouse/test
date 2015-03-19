@@ -103,7 +103,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         final String STOMP_SOCKET_BINDING_NAME = "messaging-stomp";
 
         controller.start(CONTAINER1_NAME);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);
