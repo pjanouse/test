@@ -11,7 +11,6 @@ import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.DomainOperations;
-import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -63,10 +62,7 @@ public class DomainDeploymentTestCase extends DomainHornetQTestCase {
         domainOps.createServer("server-2", "server-group-1", PORT_OFFSET_2);
         domainOps.close();
 
-        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-        eap6AdmOps.setHostname("localhost");
-        eap6AdmOps.setPort(9999);
-        eap6AdmOps.connect();
+        JMSOperations eap6AdmOps = container(1).getJmsOperations();
 
         JMSOperations ops = eap6AdmOps;
         ops.addAddressPrefix("profile", "full-ha-1");

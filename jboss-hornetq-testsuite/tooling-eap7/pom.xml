@@ -11,4 +11,12 @@
     <artifactId>tooling-eap7</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>tooling</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>

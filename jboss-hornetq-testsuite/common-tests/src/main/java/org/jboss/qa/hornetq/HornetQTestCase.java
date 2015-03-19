@@ -1,14 +1,11 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
@@ -18,13 +15,11 @@ import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.apps.servlets.KillerServlet;
 import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
-import org.jboss.qa.hornetq.tools.*;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,15 +31,19 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.*;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Parent class for all HornetQ test cases. Provides an abstraction of used container
@@ -540,38 +539,38 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         CONTAINER_TYPE container_type = getContainerInfo(container).getContainerType();
 
-        switch (container_type) {
-            case EAP5_CONTAINER:
-                HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
-                eap5AdmOps.setHostname(getHostname(container));
-                eap5AdmOps.setProfile(getProfile(container));
-                eap5AdmOps.setRmiPort(getJNDIPort(container));
-                eap5AdmOps.setJbossHome(getJbossHome(container));
-                operations = eap5AdmOps;
-                break;
-            case EAP5_WITH_JBM_CONTAINER:
-                JBMAdminOperationsEAP5 eap5JbmAdmOps = new JBMAdminOperationsEAP5();
-                eap5JbmAdmOps.setHostname(getHostname(container));
-                eap5JbmAdmOps.setProfile(getProfile(container));
-                eap5JbmAdmOps.setRmiPort(getJNDIPort(container));
-                eap5JbmAdmOps.setJbossHome(getJbossHome(container));
-                operations = eap5JbmAdmOps;
-                break;
-            case EAP6_DOMAIN_CONTAINER:
-                HornetQAdminOperationsEAP6 eap6DomainAdmOps = new HornetQAdminOperationsEAP6();
-                eap6DomainAdmOps.setHostname("localhost");
-                eap6DomainAdmOps.setPort(9999);
-                eap6DomainAdmOps.connect();
-                operations = eap6DomainAdmOps;
-                break;
-            default:
-                HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-                eap6AdmOps.setHostname(getHostname(container));
-                eap6AdmOps.setPort(getPort(container));
-                eap6AdmOps.connect();
-                operations = eap6AdmOps;
-                break;
-        }
+//        switch (container_type) {
+//            case EAP5_CONTAINER:
+//                HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
+//                eap5AdmOps.setHostname(getHostname(container));
+//                eap5AdmOps.setProfile(getProfile(container));
+//                eap5AdmOps.setRmiPort(getJNDIPort(container));
+//                eap5AdmOps.setJbossHome(getJbossHome(container));
+//                operations = eap5AdmOps;
+//                break;
+//            case EAP5_WITH_JBM_CONTAINER:
+//                JBMAdminOperationsEAP5 eap5JbmAdmOps = new JBMAdminOperationsEAP5();
+//                eap5JbmAdmOps.setHostname(getHostname(container));
+//                eap5JbmAdmOps.setProfile(getProfile(container));
+//                eap5JbmAdmOps.setRmiPort(getJNDIPort(container));
+//                eap5JbmAdmOps.setJbossHome(getJbossHome(container));
+//                operations = eap5JbmAdmOps;
+//                break;
+//            case EAP6_DOMAIN_CONTAINER:
+//                HornetQAdminOperationsEAP6 eap6DomainAdmOps = new HornetQAdminOperationsEAP6();
+//                eap6DomainAdmOps.setHostname("localhost");
+//                eap6DomainAdmOps.setPort(9999);
+//                eap6DomainAdmOps.connect();
+//                operations = eap6DomainAdmOps;
+//                break;
+//            default:
+//                HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+//                eap6AdmOps.setHostname(getHostname(container));
+//                eap6AdmOps.setPort(getPort(container));
+//                eap6AdmOps.connect();
+//                operations = eap6AdmOps;
+//                break;
+//        }
         return operations;
     }
 
