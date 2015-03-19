@@ -7,6 +7,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -465,11 +466,11 @@ public class Lodh2TestCase extends HornetQTestCase {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/10, 120000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/10, 120000, container(1));
 
         executeFailureSequence(failureSequence, 3000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 10);
@@ -554,17 +555,16 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_2);
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000, CONTAINER1_NAME, CONTAINER2_NAME,
-                CONTAINER3_NAME, CONTAINER4_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000, container(1), container(2),
+                container(3), container(4));
 
         executeFailureSequence(failureSequence, 5000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME, CONTAINER2_NAME,
-                CONTAINER3_NAME, CONTAINER4_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+                container(3), container(4));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1_NAME);
-
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER3_NAME);
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 3000, 10, 10);
@@ -636,15 +636,14 @@ public class Lodh2TestCase extends HornetQTestCase {
         deployer.deploy(MDB_ON_QUEUE_1);
         deployer.deploy(MDB_ON_QUEUE_2);
 
-        waitForMessages(outQueueName, numberOfMessages / 100, 120000, CONTAINER1_NAME, CONTAINER3_NAME);
+        waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
 
         stopServer(CONTAINER2_NAME);
         stopServer(CONTAINER4_NAME);
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
-                        " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, CONTAINER1_NAME,
-                CONTAINER3_NAME));
+                        " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, container(1), container(3)));
 
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
@@ -668,13 +667,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         controller.start(CONTAINER4_NAME);
 
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
-
-
-                CONTAINER2_NAME));
+                container(2)));
         Assert.assertFalse("There are unfinished Arjuna transactions in node-4. Failing the test.", checkUnfinishedArjunaTransactions(
-
-
-                CONTAINER4_NAME));
+                container(4)));
 
         stopServer(CONTAINER2_NAME);
         stopServer(CONTAINER4_NAME);
@@ -817,11 +812,11 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology(String inServer, String outServer) throws Exception {
 
-        prepareJmsServer(CONTAINER1_NAME);
-        prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME, inServer, outServer);
+        prepareJmsServer(container(1));
+        prepareMdbServer(container(2), CONTAINER1_NAME, inServer, outServer);
 
-        prepareJmsServer(CONTAINER3_NAME);
-        prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME, inServer, outServer);
+        prepareJmsServer(container(3));
+        prepareMdbServer(container(4), CONTAINER3_NAME, inServer, outServer);
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -839,9 +834,9 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -856,14 +851,14 @@ public class Lodh2TestCase extends HornetQTestCase {
             long broadcastPeriod = 500;
 
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, getHostname(containerName), port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, getHostname(containerName), groupAddress, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), groupAddress, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -880,9 +875,8 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setPersistenceEnabled(true);
@@ -908,20 +902,13 @@ public class Lodh2TestCase extends HornetQTestCase {
 
             jmsAdminOperations.close();
 
-
-            controller.stop(containerName);
-
-            controller.start(containerName);
-
-            jmsAdminOperations = this.getJMSOperations(containerName);
+            container.restart();
+            jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
 
             jmsAdminOperations.close();
-
-            deployDestinations(containerName);
-
-            controller.stop(containerName);
+            container.stop();
         }
 
     }
@@ -929,9 +916,9 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerName, String inServer, String outServer) {
+    private void prepareMdbServer(Container container, String jmsServerName, String inServer, String outServer) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -951,15 +938,15 @@ public class Lodh2TestCase extends HornetQTestCase {
             connectionParameters.put(getHostname(jmsServerName), String.valueOf(getHornetqPort(jmsServerName)));
             boolean ha = false;
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, getHostname(containerName), port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), port, groupAddress, groupPort, broadcastPeriod, connectorName, null);
 
             jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, getHostname(containerName), groupAddress, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), groupAddress, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(clusterGroupName);
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -979,9 +966,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             String messagingGroupSocketBindingName = "messaging-group";
             String inVmHornetRaName = "local-hornetq-ra";
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
 
@@ -1045,9 +1031,8 @@ public class Lodh2TestCase extends HornetQTestCase {
                 jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
 
                 jmsAdminOperations.close();
-                stopServer(containerName);
-                controller.start(containerName);
-                jmsAdminOperations = this.getJMSOperations(containerName);
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
 
                 // create new in-vm pooled connection factory and configure it as default for inbound communication
                 jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/JmsXA", inVmConnectorName);
@@ -1055,7 +1040,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             }
 
             jmsAdminOperations.close();
-            stopServer(containerName);
+            container.stop();
         }
     }
 
@@ -1084,29 +1069,5 @@ public class Lodh2TestCase extends HornetQTestCase {
             copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName containerName
-     */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param containerName container name
-     * @param serverName    server name of the hornetq server
-     */
-    private void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
-        jmsAdminOperations.close();
-
-    }
-
 
 }

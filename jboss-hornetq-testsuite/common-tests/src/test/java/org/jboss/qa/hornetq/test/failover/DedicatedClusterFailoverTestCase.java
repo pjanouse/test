@@ -4,6 +4,7 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
@@ -145,10 +146,10 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     public void prepareDedicatedTopologyInCluster() {
 
-        prepareLiveServer(CONTAINER1_NAME, JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
-        prepareLiveServer(CONTAINER3_NAME, JOURNAL_DIRECTORY_B);
+        prepareLiveServer(container(3), JOURNAL_DIRECTORY_B);
     }
 
     /**
@@ -275,10 +276,10 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String journalDirectory) {
+    private void prepareLiveServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -288,9 +289,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
 
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -329,16 +329,15 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
 
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareBackupServer(String containerName, String journalDirectory) {
+    private void prepareBackupServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -347,8 +346,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setJmxDomainName("org.hornetq.backup");
         jmsAdminOperations.setBackup(true);
@@ -392,7 +391,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
 
-        controller.stop(containerName);
+        container.stop();
     }
 
 }

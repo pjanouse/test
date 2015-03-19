@@ -4,6 +4,7 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -312,8 +313,8 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     }
 
     public void prepareServers() {
-        prepareServer(CONTAINER1_NAME);
-        prepareServer(CONTAINER2_NAME);
+        prepareServer(container(1));
+        prepareServer(container(2));
     }
 
 
@@ -321,9 +322,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName) {
+    private void prepareServer(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -333,9 +334,8 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         int udpGroupPort = 9875;
         int broadcastBindingPort = 56880;
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -344,10 +344,10 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         jmsAdminOperations.setSharedStore(false);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, getHostname(containerName), broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, getHostname(containerName), MCAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), MCAST_ADDRESS, udpGroupPort, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -374,9 +374,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         }
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     @Before

@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.transportreliability;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
@@ -57,7 +58,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     @RunAsClient
     public void causeNetworkFailureAndCheckThatClientGotDisconnected() throws Exception {
 
-        prepareServer(CONTAINER1_NAME, 0);
+        prepareServer(container(1), 0);
 
         controller.start(CONTAINER1_NAME);
         // start proxy
@@ -86,7 +87,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // check that client was disconnected
         // list durable active subscribers on topic
         // check there are none after 60s
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         int numberOfSubscribers = 0;
         long startTime = System.currentTimeMillis();
         do {
@@ -115,7 +116,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     @RunAsClient
     public void checkServerShutdownsImmediatelyWithOpenJNDIContext() throws Exception {
 
-        prepareServer(CONTAINER1_NAME, 0);
+        prepareServer(container(1), 0);
 
         controller.start(CONTAINER1_NAME);
         // start proxy
@@ -134,7 +135,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // check that client was disconnected
         // list durable active subscribers on topic
         // check there are none after 60s
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         int numberOfSubscribers = 0;
         long startTime = System.currentTimeMillis();
         do {
@@ -182,18 +183,17 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName, int reconnectAttempts) {
+    private void prepareServer(Container container, int reconnectAttempts) {
 
         String connectorName = "netty";
         String socketBindingToProxyName = "messaging-proxy";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setClustered(false);
 
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -214,8 +214,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createTopic(topicName, topicJndiName);
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     @After

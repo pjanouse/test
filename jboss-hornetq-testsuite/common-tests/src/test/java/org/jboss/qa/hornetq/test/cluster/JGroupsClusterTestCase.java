@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.cluster;
 
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -38,19 +39,19 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
     public void prepareServers(boolean createDestinations) {
 
-        prepareServer(CONTAINER1_NAME, createDestinations);
-        prepareServer(CONTAINER2_NAME, createDestinations);
-        prepareServer(CONTAINER3_NAME, createDestinations);
-        prepareServer(CONTAINER4_NAME, createDestinations);
+        prepareServer(container(1), createDestinations);
+        prepareServer(container(2), createDestinations);
+        prepareServer(container(3), createDestinations);
+        prepareServer(container(4), createDestinations);
     }
 
     /**
      * Prepares server for topology.
      *
-     * @param containerName      Name of the container - defined in arquillian.xml
+     * @param container          The container - defined in arquillian.xml
      * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
-    private void prepareServer(String containerName, boolean createDestinations) {
+    private void prepareServer(Container container, boolean createDestinations) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -58,9 +59,9 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
+        controller.start(container.getName());
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -107,7 +108,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
             jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
         }
         jmsAdminOperations.close();
-        controller.stop(containerName);
+        controller.stop(container.getName());
     }
 
     // TODO un-ignore when bz https://bugzilla.redhat.com/show_bug.cgi?id=1132190 is fixed
@@ -118,7 +119,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
     @Category(FunctionalTests.class)
     public void testLookupOfConnectionFactoryWithJGroupsDiscoveryGroup() throws Exception {
 
-        prepareServer(CONTAINER1_NAME, true);
+        prepareServer(container(1), true);
 
         controller.start(CONTAINER1_NAME);
 

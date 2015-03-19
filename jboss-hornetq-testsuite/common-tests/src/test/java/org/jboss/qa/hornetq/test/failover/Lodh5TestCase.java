@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.PrintJournal;
@@ -239,7 +240,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareJmsServer(CONTAINER1_NAME, databaseName);
+        prepareJmsServer(container(1), databaseName);
 
         controller.start(CONTAINER1_NAME);
 
@@ -472,7 +473,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             logger.info("!!!!! preparing server !!!!!");
 
-            prepareJmsServer(CONTAINER1_NAME, POSTGRESQLPLUS92);
+            prepareJmsServer(container(1), POSTGRESQLPLUS92);
 
             controller.start(CONTAINER1_NAME);
 
@@ -540,19 +541,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName, String database) throws Exception {
+    private void prepareJmsServer(Container container, String database) throws Exception {
 
         String poolName = "lodhDb";
 
-        String eapVersion = getEapVersion(containerName);
+        String eapVersion = getEapVersion(container.getName());
         String jdbcDriverFileName = donwloadJdbcDriver(eapVersion, database);
         allocateDatabase(database);
 
-        controller.start(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         Random r = new Random();
@@ -930,8 +931,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     @Deployment(managed = false, testable = false, name = "dbUtilServlet")

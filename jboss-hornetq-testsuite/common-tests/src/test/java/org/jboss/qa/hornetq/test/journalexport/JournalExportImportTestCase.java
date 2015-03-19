@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.journalexport;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -46,7 +47,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
         controller.start(CONTAINER1_NAME);
-        prepareServer(CONTAINER1_NAME);
+        prepareServer(container(1));
 
         Context ctx = null;
         Connection conn = null;
@@ -104,8 +105,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
-    private void prepareServer(final String container) {
-        JMSOperations ops = getJMSOperations(container);
+    private void prepareServer(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.createQueue(TEST_QUEUE, TEST_QUEUE_NAME, true);
         ops.close();
     }

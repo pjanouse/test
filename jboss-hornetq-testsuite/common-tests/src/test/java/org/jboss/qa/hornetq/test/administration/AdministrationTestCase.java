@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.administration;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -34,9 +35,7 @@ public class AdministrationTestCase extends HornetQTestCase {
 
     @After
     public void stopAllServers() {
-
-        stopServer(CONTAINER1_NAME);
-
+        container(1).stop();
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
 
     }
@@ -45,17 +44,17 @@ public class AdministrationTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
-        configure(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        configure(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
     }
 
     /**
      * Test all possible things. Failed operation simply throw RuntimeException
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be bound
      * @param journalDirectory path to journal directory
      */
-    public void configure(String containerName, String bindingAddress, String journalDirectory) throws IOException {
+    public void configure(Container container, String bindingAddress, String journalDirectory) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -66,10 +65,9 @@ public class AdministrationTestCase extends HornetQTestCase {
         int broadcastBindingPort = 56880;
         String serverName = "default";
 
-        controller.start(containerName);
+        container.start();
 
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -162,8 +160,7 @@ public class AdministrationTestCase extends HornetQTestCase {
             jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
 
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 }

@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.paging;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -40,7 +41,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         int numberOfMessages = 100;
         int counter = 0;
 
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
 
         controller.start(CONTAINER1_NAME);
 
@@ -113,7 +114,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         int counter = 0;
         int counter2 = 0;
 
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
 
         controller.start(CONTAINER1_NAME);
 
@@ -191,13 +192,12 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -224,8 +224,6 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         }
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 }

@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.compatibility;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -61,18 +62,18 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
 
     @Override
-    protected void prepareContainer(final ContainerInfo container) throws Exception {
+    protected void prepareContainer(final Container container) throws Exception {
         final String discoveryGroupName = "dg-group1";
         final String broadCastGroupName = "bg-group1";
         final String messagingGroupSocketBindingName = "messaging-group";
         final String clusterGroupName = "my-cluster";
         final String connectorName = "netty";
 
-        JMSOperations ops = this.getJMSOperations(container.getName());
+        JMSOperations ops = container.getJmsOperations();
 
-        ops.setInetAddress("public", container.getIpAddress());
-        ops.setInetAddress("unsecure", container.getIpAddress());
-        ops.setInetAddress("management", container.getIpAddress());
+        ops.setInetAddress("public", container.getHostname());
+        ops.setInetAddress("unsecure", container.getHostname());
+        ops.setInetAddress("management", container.getHostname());
 
         ops.setBindingsDirectory(JOURNAL_DIR);
         ops.setPagingDirectory(JOURNAL_DIR);
@@ -103,7 +104,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         ops.close();
         this.controller.stop(container.getName());
         this.controller.start(container.getName());
-        ops = this.getJMSOperations(container.getName());
+        ops = container.getJmsOperations();
 
         ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
         ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
@@ -127,9 +128,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
 
-    private void activateLegacyJnpModule(final ContainerInfo container) throws Exception {
+    private void activateLegacyJnpModule(final Container container) throws Exception {
         StringBuilder pathToStandaloneXml = new StringBuilder();
-        pathToStandaloneXml = pathToStandaloneXml.append(container.getJbossHome())
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome())
                 .append(File.separator).append("standalone")
                 .append(File.separator).append("configuration")
                 .append(File.separator).append("standalone-full-ha.xml");
@@ -160,7 +161,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     @CleanUpBeforeTest
     public void testJNDILookupTroughLegacyExtension() throws Exception {
 
-        prepareContainer(CONTAINER1_INFO);
+        prepareContainer(container(1));
 
         controller.start(CONTAINER1_NAME);
 
@@ -229,27 +230,26 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
-        deployDestinations(CONTAINER1_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).start();
+        deployDestinations(container(1));
+        container(1).stop();
 
-        controller.start(CONTAINER2_NAME);
-        deployDestinations(CONTAINER2_NAME);
-        stopServer(CONTAINER2_NAME);
-
+        container(2).start();
+        deployDestinations(container(2));
+        container(2).stop();
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -258,9 +258,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -301,20 +301,18 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-        activateLegacyJnpModule(getContainerInfo(containerName));
+        activateLegacyJnpModule(container);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -323,9 +321,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -374,32 +371,31 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         jmsAdminOperations.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
 
-        activateLegacyJnpModule(getContainerInfo(containerName));
+        activateLegacyJnpModule(container);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container test container
      */
-    protected void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    protected void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container     test container
      * @param serverName    server name of the hornetq server
      */
-    protected void deployDestinations(String containerName, String serverName) {
+    protected void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -651,7 +647,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     @RestoreConfigBeforeTest
     public void testCompressLargeMessages() throws Exception {
 
-        prepareServerForCompressLargeMessages(CONTAINER1_NAME);
+        prepareServerForCompressLargeMessages(container(1));
 
         controller.start(CONTAINER1_NAME);
 
@@ -685,18 +681,18 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareServerForCompressLargeMessages(String containerName) throws Exception {
+    protected void prepareServerForCompressLargeMessages(Container container) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(containerName);
+        container.start();
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -730,9 +726,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
+        container.stop();
 
-        activateLegacyJnpModule(getContainerInfo(containerName));
+        activateLegacyJnpModule(container);
 
     }
 

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -25,12 +26,12 @@ public class AddressSecuritySettings {
 
 
     public static Builder forDefaultContainer(final HornetQTestCase testCase) {
-        return forContainer(testCase, HornetQTestCaseConstants.CONTAINER1_NAME);
+        return forContainer(testCase.container(1));
     }
 
 
-    public static Builder forContainer(final HornetQTestCase testCase, final String containerName) {
-        return new Builder(testCase.getJMSOperations(containerName));
+    public static Builder forContainer(final Container container) {
+        return new Builder(container.getJmsOperations());
     }
 
 

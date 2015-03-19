@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -126,7 +127,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         deployer.deploy("mdb1");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(CONTAINER1_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             logger.info("Stopping container 1.");
@@ -141,10 +142,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(CONTAINER2_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(360000, CONTAINER2_NAME);
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER2_NAME);
+        waitUntilThereAreNoPreparedHornetQTransactions(360000, container(2));
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), outQueueJndiName, 3000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -193,7 +194,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         logger.info("MDB was deployed to mdb server - container 3");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(CONTAINER1_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(container(1), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             stopServer(CONTAINER1_NAME);
@@ -207,7 +208,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(CONTAINER2_NAME, outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         controller.start(CONTAINER1_NAME);
@@ -218,8 +219,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         stopServer(CONTAINER2_NAME);
         logger.info("Container 2 stopped");
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, CONTAINER1_NAME);
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 100, 10);
         receiver1.setTimeout(0);
@@ -245,16 +246,16 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     /**
      * Return true if numberOfMessages is in queue in the given timeout. Otherwise false.
      *
-     * @param containerName container name
+     * @param container test container
      * @param queueName queue name (not jndi name)
      * @param numberOfMessages number of messages
      * @param timeout time out
      * @return returns true if numberOfMessages is in queue in the given timeout. Otherwise false.
      * @throws Exception
      */
-    private boolean waitForMessagesOnOneNode(String containerName, String queueName, int numberOfMessages, long timeout) throws Exception{
+    private boolean waitForMessagesOnOneNode(Container container, String queueName, int numberOfMessages, long timeout) throws Exception{
         long startTime = System.currentTimeMillis();
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+        JMSOperations jmsOperations = container.getJmsOperations();
         while (numberOfMessages > (jmsOperations.getCountOfMessagesOnQueue(queueName)))   {
             if (System.currentTimeMillis() - startTime > timeout)  {
                 return false;
@@ -285,23 +286,18 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareRemoteJcaTopology() throws Exception {
-
-            prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-
-            prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
-
-            prepareMdbServer(CONTAINER3_NAME, CONTAINER1_NAME, CONTAINER2_NAME);
-
+            prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+            prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+            prepareMdbServer(container(3), CONTAINER1_NAME, CONTAINER2_NAME);
             copyApplicationPropertiesFiles();
-
     }
 
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareMdbServer(String containerName, String containerLive, String containerBackup) {
+    protected void prepareMdbServer(Container container, String containerLive, String containerBackup) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -310,9 +306,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String remoteConnectorName = "netty-remote";
         String remoteConnectorNameBackup = "netty-remote-backup";
         String pooledConnectionFactoryName = "hornetq-ra";
-        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -361,17 +357,17 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setNodeIdentifier(123);
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        Test container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    private void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -380,10 +376,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.kill(containerName);
-        controller.start(containerName);
+        container.kill();
+        container.start();
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -424,17 +420,15 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    private void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -443,9 +437,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -489,8 +482,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**

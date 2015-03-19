@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -110,8 +111,8 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     @RunAsClient
     public void testOnlySimpleInVMJcaInCluster() throws Exception {
 
-        prepareMdbServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-        prepareJmsServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME));
+        prepareMdbServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+        prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
 
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -197,10 +198,10 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     public void testRemoteJcaInCluster() throws Exception {
         // jms server are 2 and 3
         // mdb server is 1 = > 2
-        prepareMdbServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+        prepareMdbServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
 
-        prepareJmsServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME));
-        prepareJmsServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME));
+        prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
+        prepareJmsServer(container(3), getHostname(CONTAINER3_NAME));
 
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -317,10 +318,10 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container      test container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareJmsServer(String containerName, String bindingAddress) {
+    private void prepareJmsServer(Container container, String bindingAddress) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -333,7 +334,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
 //        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -353,9 +354,9 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerName) {
+    private void prepareMdbServer(Container container, String bindingAddress, String jmsServerName) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -373,7 +374,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
 //        controller.start(containerName);
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -393,7 +394,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
         jmsAdminOperations.setRA(connectorClassName, connectionParameters, ha);
         jmsAdminOperations.close();
-        stopServer(containerName);
+        container.stop();
     }
 
 

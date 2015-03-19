@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
@@ -153,7 +154,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
     public void testOperationsWithConnectedClients() throws Exception {
 
         // setup server
-        prepareServer(CONTAINER1_NAME);
+        prepareServer(container(1));
 
         // send some messages to it
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -276,9 +277,9 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         return this.cli.executeCommand(cmd);
     }
 
-    private void prepareServer(String containerName) {
+    private void prepareServer(Container container) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");

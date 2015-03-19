@@ -26,7 +26,7 @@ public class SocketBindingAttributesTestCase extends HornetQTestCase {
     public void bindingTest(){
         controller.start(CONTAINER1_NAME);
 
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         String result=jmsOperations.getSocketBindingAtributes("messaging");
         String[]resultArr=result.split(",");
         Assert.assertTrue("Socket bound attribute is false, should be true",resultArr[0].equals("\"bound\" => true"));

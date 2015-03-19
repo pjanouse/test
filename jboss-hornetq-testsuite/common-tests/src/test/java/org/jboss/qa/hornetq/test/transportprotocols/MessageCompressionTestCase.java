@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
@@ -49,7 +50,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testCompression() throws Exception {
-        prepareServer(CONTAINER1_NAME);
+        prepareServer(container(1));
 
         controller.start(CONTAINER1_NAME);
         // Send messages into input node and read from output node
@@ -81,16 +82,15 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     /**
      * Test all possible things. Failed operation simply throw RuntimeException
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    public void prepareServer(String containerName) throws IOException {
+    public void prepareServer(Container container) throws IOException {
 
         String connectionFactoryName = "RemoteConnectionFactory";
         String serverName = "default";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setJournalType("NIO");
@@ -103,9 +103,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 5000 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.createQueue(serverName, queueName, queueJndiName, true);
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 }

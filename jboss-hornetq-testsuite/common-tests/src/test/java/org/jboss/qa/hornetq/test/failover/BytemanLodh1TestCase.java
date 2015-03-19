@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
@@ -303,7 +304,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
     private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
 
-        prepareJmsServer(CONTAINER1_NAME);
+        prepareJmsServer(container(1));
 
         this.controller.start(CONTAINER1_NAME);
 
@@ -330,16 +331,16 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         long timeout = 300000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
         }
         jmsOperations.close();
         // wait for InQueue to be empty
-        waitForMessages(IN_QUEUE_NAME, 0, 300000, CONTAINER1_NAME);
+        waitForMessages(IN_QUEUE_NAME, 0, 300000, container(1));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
@@ -398,13 +399,11 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
-
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    private void prepareJmsServer(Container container) {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
 
@@ -435,9 +434,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         }
         jmsAdminOperations.createQueue("default", OUT_QUEUE_NAME, OUT_QUEUE, true);
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 

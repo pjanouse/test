@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
 
+import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -469,7 +470,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             deployer.deploy("mdb2");
         }
 
-        waitForMessages(OUT_QUEUE_NAME, numberOfMessages/20, 300000, CONTAINER1_NAME, CONTAINER3_NAME);
+        waitForMessages(OUT_QUEUE_NAME, numberOfMessages/20, 300000, container(1), container(3));
 
         if (waitForProducer) {
             executeFailureSequence(failureSequence, 15000);
@@ -477,7 +478,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             executeFailureSequence(failureSequence, 30000);
         }
 
-        waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, CONTAINER1_NAME, CONTAINER3_NAME);
+        waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, container(1), container(3));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER3_NAME),
                 getJNDIPort(CONTAINER3_NAME), OUT_QUEUE, 10000, 100, 10);
@@ -577,11 +578,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(CONTAINER1_NAME);
-        prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME);
+        prepareJmsServer(container(1));
+        prepareMdbServer(container(2), container(1));
 
-        prepareJmsServer(CONTAINER3_NAME);
-        prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME);
+        prepareJmsServer(container(3));
+        prepareMdbServer(container(4), container(3));
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -591,9 +592,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
         if (isEAP5()) {
 
@@ -602,15 +603,15 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             long broadcastPeriod = 500;
 
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(containerName), port, GROUP_ADDRESS, groupPort,
+            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(container.getName()), port, GROUP_ADDRESS, groupPort,
                     broadcastPeriod, CONNECTOR_NAME, null);
 
             jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(containerName), GROUP_ADDRESS, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(container.getName()), GROUP_ADDRESS, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
             jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000,
@@ -621,14 +622,14 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
             jmsAdminOperations.close();
 
-            deployDestinations(containerName);
+            deployDestinations(container);
 
         } else {
 
 
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
+            container.start();
 
             /*JmsServerSettings
              .forContainer(ContainerType.EAP6_WITH_HORNETQ, containerName, this.getArquillianDescriptor())
@@ -640,7 +641,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
             // .clusteredWith()
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setPersistenceEnabled(true);
@@ -661,19 +662,16 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
             jmsAdminOperations.close();
 
-            controller.stop(containerName);
+            container.restart();
 
-            controller.start(containerName);
-
-            jmsAdminOperations = this.getJMSOperations(containerName);
+            jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
 
             jmsAdminOperations.close();
 
-            deployDestinations(containerName);
-
-            controller.stop(containerName);
+            deployDestinations(container);
+            container.stop();
         }
 
     }
@@ -681,9 +679,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerContainerName) {
+    private void prepareMdbServer(Container container, Container jmsServerContainer) {
         if (isEAP5()) {
 
             int port = 9876;
@@ -693,19 +691,19 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
             String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
             Map<String, String> connectionParameters = new HashMap<String, String>();
-            connectionParameters.put(getHostname(containerName), String.valueOf(getHornetqPort(containerName)));
+            connectionParameters.put(getHostname(container.getName()), String.valueOf(getHornetqPort(container.getName())));
             boolean ha = false;
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(false);
 
             jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(containerName), port, GROUP_ADDRESS, groupPort,
+            jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, getHostname(container.getName()), port, GROUP_ADDRESS, groupPort,
                     broadcastPeriod, CONNECTOR_NAME, null);
 
             jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(containerName), GROUP_ADDRESS, groupPort, 10000);
+            jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, getHostname(container.getName()), GROUP_ADDRESS, groupPort, 10000);
 
             jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
             jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000,
@@ -725,9 +723,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             String remoteConnectorName = "netty-remote";
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
+            container.start();
 
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(false);
 
@@ -751,12 +749,13 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerContainerName), getHornetqPort(jmsServerContainerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerContainer.getName()),
+                    getHornetqPort(jmsServerContainer.getName()));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             jmsAdminOperations.close();
-            controller.stop(containerName);
+            container.stop();
         }
     }
 
@@ -793,21 +792,21 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName containerName
+     * @param container container
      */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    private void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container     container
      * @param serverName    server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    private void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, QUEUE_NAME_PREFIX + queueNumber, QUEUE_JNDI_PREFIX + queueNumber,

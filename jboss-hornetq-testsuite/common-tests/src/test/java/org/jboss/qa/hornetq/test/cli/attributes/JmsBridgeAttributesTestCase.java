@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -49,7 +50,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME), getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
-    private void prepareServerWithHornetQCoreBridge(String containerName, String targeServerName) {
+    private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
         String bridgeConnectionFactoryJndiName = "java:/jms/RemoteConnectionFactory";
@@ -66,7 +67,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         long maxBatchTime = 100;
         boolean addMessageIDInHeader = true;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.createQueue(inQueueName, inQueueJndiName);
         jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
@@ -78,11 +79,11 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     }
 
 
-    private void prepareTargetServerForHornetQCoreBridge(String containerName) {
+    private void prepareTargetServerForHornetQCoreBridge(Container container) {
 
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        JMSOperations jmsAdminContainer1 = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminContainer1 = container.getJmsOperations();
         jmsAdminContainer1.createQueue(outQueueName, outQueueJndiName);
         jmsAdminContainer1.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminContainer1.close();
@@ -95,8 +96,8 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
 
-        prepareServerWithHornetQCoreBridge(CONTAINER1_NAME, CONTAINER2_NAME);
-        prepareTargetServerForHornetQCoreBridge(CONTAINER2_NAME);
+        prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
+        prepareTargetServerForHornetQCoreBridge(container(2));
 
         stopServer(CONTAINER1_NAME);
         stopServer(CONTAINER2_NAME);

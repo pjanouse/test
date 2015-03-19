@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.bridges;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -190,12 +191,13 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
 
 
-    protected int getNumberOfNodesInCluster(String container) {
-        boolean isContainerStarted = CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), getHornetqPort(container));
+    protected int getNumberOfNodesInCluster(Container container) {
+        boolean isContainerStarted = CheckServerAvailableUtils.checkThatServerIsReallyUp(
+                container.getHostname(), container.getHornetqPort());
 
         int numberOfNodesInCluster = -1;
         if (isContainerStarted) {
-            JMSOperations jmsAdminOperations = this.getJMSOperations(container);
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
             numberOfNodesInCluster = jmsAdminOperations.getNumberOfNodesInCluster();
             jmsAdminOperations.close();
 

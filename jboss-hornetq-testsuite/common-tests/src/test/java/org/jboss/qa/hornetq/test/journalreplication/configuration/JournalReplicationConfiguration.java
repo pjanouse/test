@@ -12,6 +12,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.journalreplication.JournalReplicationAbstract;
@@ -77,7 +78,7 @@ public class JournalReplicationConfiguration
 		this.controller = controller;
 	}
 
-	public void prepareLive(JournalReplicationAbstract journalReplicationAbstractTestCase)
+	public void prepareLive(Container liveServer, JournalReplicationAbstract journalReplicationAbstractTestCase)
 	{
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -86,7 +87,7 @@ public class JournalReplicationConfiguration
 
 		controller.start(SERVER_LIVE);
 
-		JMSOperations adminLive = getJMSOperations(SERVER_LIVE);
+		JMSOperations adminLive = liveServer.getJmsOperations();
 
 		adminLive.setJournalType(journalReplicationAbstractTestCase.getJournalType().name());
 		
@@ -196,7 +197,7 @@ public class JournalReplicationConfiguration
 	    copyFile(applicationRolesModified, applicationRolesOriginal);
 	}
 	
-	public void prepareBackup()
+	public void prepareBackup(Container backupServer)
 	{
 
         String broadCastGroupName = "bg-group1";
@@ -206,7 +207,7 @@ public class JournalReplicationConfiguration
 
 		controller.start(SERVER_BACKUP);
 
-		JMSOperations adminBackup = getJMSOperations(SERVER_BACKUP);
+		JMSOperations adminBackup = backupServer.getJmsOperations();
 
 		adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
 		adminBackup.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
@@ -386,9 +387,9 @@ public class JournalReplicationConfiguration
                 MESSAGING_TO_BACKUP_PROXY_PORT);
     }
 	
-	private JMSOperations getJMSOperations(String container)
+	private JMSOperations getJMSOperations(Container container)
 	{
-		return new HornetQTestCase().getJMSOperations(container);
+        return container.getJmsOperations();
 	}
 	
 	private int getJNDIPort()

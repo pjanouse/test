@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
@@ -183,10 +184,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         if (!topologyCreated) {
 
-            prepareJmsServer(CONTAINER1_NAME);
-            prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME);
-            prepareJmsServer(CONTAINER3_NAME);
-            prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME);
+            prepareJmsServer(container(1));
+            prepareMdbServer(container(2), CONTAINER1_NAME);
+            prepareJmsServer(container(3));
+            prepareMdbServer(container(4), CONTAINER3_NAME);
             topologyCreated = true;
         }
     }
@@ -196,10 +197,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * <p/>
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      *
      */
-    private void prepareJmsServer(String containerName) {
+    private void prepareJmsServer(Container container) {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -213,9 +214,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             int groupPort = 9876;
             long broadcastPeriod = 500;
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setJournalDirectory(JOURNAL_DIRECTORY_A);
             jmsAdminOperations.setBindingsDirectory(JOURNAL_DIRECTORY_A);
@@ -240,15 +240,13 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
 
             jmsAdminOperations.close();
-
-            stopServer(containerName);
+            container.stop();
         } else {
             // prepare jms for eap 6
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setJournalDirectory(JOURNAL_DIRECTORY_A);
@@ -275,7 +273,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
             jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
             jmsAdminOperations.close();
-            controller.stop(containerName);
+            container.stop();
         }
 
     }
@@ -285,9 +283,9 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
      * <p/>
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String jmsServerName) {
+    private void prepareMdbServer(Container container, String jmsServerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -304,12 +302,11 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
             String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
             Map<String, String> connectionParameters = new HashMap<String, String>();
-            connectionParameters.put(getHostname(containerName), String.valueOf(getHornetqPort(containerName)));
+            connectionParameters.put(container.getHostname(), String.valueOf(container.getHornetqPort()));
             boolean ha = false;
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
 
@@ -329,17 +326,15 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
             jmsAdminOperations.setRA(connectorClassName, connectionParameters, ha);
             jmsAdminOperations.close();
-
-            stopServer(containerName);
+            container.stop();
         } else {
 
             // prepare eap 6
             String remoteConnectorName = "netty-remote";
             String messagingGroupSocketBindingName = "messaging-group";
 
-            controller.start(containerName);
-
-            JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+            container.start();
+            JMSOperations jmsAdminOperations = container.getJmsOperations();
 
             jmsAdminOperations.setClustered(true);
 
@@ -359,12 +354,12 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
             jmsAdminOperations.removeAddressSettings("#");
             jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName),
+                    getHornetqPort(jmsServerName));
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.close();
-            controller.stop(containerName);
-
+            container.stop();
         }
 
     }

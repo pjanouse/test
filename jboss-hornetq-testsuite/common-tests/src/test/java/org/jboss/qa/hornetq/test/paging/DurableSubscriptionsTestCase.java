@@ -123,7 +123,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         final String ADDRESS = "jms.topic." + TOPIC;
 
         controller.start(CONTAINER1_NAME);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);

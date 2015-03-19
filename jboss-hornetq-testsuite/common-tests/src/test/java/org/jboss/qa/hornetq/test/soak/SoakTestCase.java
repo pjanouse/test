@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -236,18 +237,18 @@ public class SoakTestCase extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
         if (!topologyCreated) {
             controller.start(CONTAINER1_NAME);
-            deployDestinations(CONTAINER1_NAME);
+            deployDestinations(container(1));
             stopServer(CONTAINER1_NAME);
 
             controller.start(CONTAINER3_NAME);
-            deployDestinations(CONTAINER3_NAME);
+            deployDestinations(container(3));
             stopServer(CONTAINER3_NAME);
 
-            prepareJmsServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-            prepareMdbServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), CONTAINER1_NAME);
+            prepareJmsServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+            prepareMdbServer(container(2), getHostname(CONTAINER2_NAME), CONTAINER1_NAME);
 
-            prepareJmsServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
-            prepareMdbServer(CONTAINER4_NAME, getHostname(CONTAINER4_NAME), CONTAINER3_NAME);
+            prepareJmsServer(container(3), getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
+            prepareMdbServer(container(4), getHostname(CONTAINER4_NAME), CONTAINER3_NAME);
 
             copyApplicationPropertiesFiles();
 
@@ -259,19 +260,18 @@ public class SoakTestCase extends HornetQTestCase {
     /**
      * Prepares jms server for remote jca topology.
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container      test container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be bind
      */
-    private void prepareJmsServer(String containerName, String bindingAddress, String targetServerName) {
+    private void prepareJmsServer(Container container, String bindingAddress, String targetServerName) {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -297,16 +297,15 @@ public class SoakTestCase extends HornetQTestCase {
         jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + OUT_QUEUE_NAME, "jms.topic." + BRIDGE_OUT_TOPIC, -1, "bridge-connector");
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(String containerName, String bindingAddress, String jmsServerName) {
+    private void prepareMdbServer(Container container, String bindingAddress, String jmsServerName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -315,9 +314,8 @@ public class SoakTestCase extends HornetQTestCase {
         String remoteConnectorName = "netty-remote";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
 
@@ -344,8 +342,7 @@ public class SoakTestCase extends HornetQTestCase {
         jmsAdminOperations.createTopic(BRIDGE_OUT_TOPIC, BRIDGE_OUT_TOPIC_JNDI_NAME);
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
@@ -377,21 +374,21 @@ public class SoakTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container container
      */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    private void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container  test container
      * @param serverName server name of the HornetQ server
      */
-    private void deployDestinations(String containerName, String serverName) {
+    private void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

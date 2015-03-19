@@ -63,7 +63,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String queueName = "testQueue";
         String queueJndiName = "jms/queue/" + queueName;
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         ops.setJmxManagementEnabled(true);
         ops.createQueue(queueName + "0", queueJndiName + "0");
         ops.close();
@@ -132,7 +132,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String queueJndiName = "jms/queue/" + queueName;
 
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
 
@@ -232,7 +232,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String queueJndiName = "jms/queue/" + queueName;
 
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
 
@@ -278,7 +278,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         Assert.assertTrue("Producer must get exception.", producerToInQueue1.getException() != null);
 
         // check that queue was destroyed
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         try {
 
@@ -311,7 +311,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String topicJndiName = "jms/topic/" + topicName;
 
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
 
@@ -411,7 +411,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String topicJndiName     = "jms/topic/" + topicName;
 
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
 
@@ -457,7 +457,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         Assert.assertTrue("Producer must get exception.", publisher.getException() != null);
 
         // check that queue was destroyed
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
 
         try {
 
@@ -487,7 +487,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         String queueJndiName = "jms/queue/" + queueName;
 
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
         ops.createQueue(queueJndiName, queueName, true);

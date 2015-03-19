@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -231,7 +232,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
 
         // when 1/3 is processed then kill/shut down 2nd server
-        waitForMessages(outQueueName, numberOfMessages/10, 300000, CONTAINER1_NAME, CONTAINER2_NAME);
+        waitForMessages(outQueueName, numberOfMessages/10, 300000, container(1), container(2));
 
         logger.info("########################################");
         logger.info("kill - second server");
@@ -245,7 +246,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         // when 1/2 is processed then start 2nd server
-        waitForMessages(outQueueName, numberOfMessages/2, 120000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, numberOfMessages/2, 120000, container(1));
 
         Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqBackupPort(CONTAINER1_NAME), 300000));
         Thread.sleep(10000);
@@ -260,13 +261,13 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("Live server 2 is not up again - failback failed.", waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
-        waitForMessages(outQueueName, numberOfMessages, 120000, CONTAINER1_NAME, CONTAINER2_NAME);
+        waitForMessages(outQueueName, numberOfMessages, 120000, container(1), container(2));
 
         logger.info("Get information about transactions from HQ:");
         long timeout = 300000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
@@ -275,7 +276,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         logger.info("Get information about transactions from HQ:");
         numberOfPreparedTransaction = 100;
-        jmsOperations = getJMSOperations(CONTAINER2_NAME);
+        jmsOperations = container(2).getJmsOperations();
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
             Thread.sleep(1000);
@@ -336,8 +337,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareLiveServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B);
 
         controller.start(CONTAINER2_NAME);
         controller.start(CONTAINER1_NAME);
@@ -379,8 +380,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(100);
-        printQueueStatus(CONTAINER1_NAME, inQueueName);
-        printQueueStatus(CONTAINER2_NAME, inQueueName);
+        printQueueStatus(container(1), inQueueName);
+        printQueueStatus(container(2), inQueueName);
 
         receiver1.start();
         receiver1.join();
@@ -481,9 +482,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         controller.start(CONTAINER2_NAME);
 
-        JMSOperations jmsAdminOperationsC1 = this.getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsAdminOperationsC1 = container(1).getJmsOperations();
 
-        JMSOperations jmsAdminOperationsC2 = this.getJMSOperations(CONTAINER2_NAME);
+        JMSOperations jmsAdminOperationsC2 = container(1).getJmsOperations();
 
         jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
 
@@ -557,14 +558,14 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
 
-    public void printQueueStatus(String containerName, String queueCoreName) {
+    public void printQueueStatus(Container container, String queueCoreName) {
 
-        JMSOperations jmsOperations1 = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations1 = container.getJmsOperations();
 
         long count = jmsOperations1.getCountOfMessagesOnQueue(queueCoreName);
 
         logger.info("########################################");
-        logger.info("Status of queue - " + queueCoreName + " - on node " + containerName + " is: " + count);
+        logger.info("Status of queue - " + queueCoreName + " - on node " + container.getName() + " is: " + count);
         logger.info("########################################");
 
         jmsOperations1.close();
@@ -845,11 +846,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     public void prepareColocatedTopologyInCluster() {
 
         String journalType = getJournalType();
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, journalType);
-        prepareColocatedBackupServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), "backup", JOURNAL_DIRECTORY_B, journalType);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, journalType);
+        prepareColocatedBackupServer(container(1), getHostname(CONTAINER1_NAME), "backup", JOURNAL_DIRECTORY_B, journalType);
 
-        prepareLiveServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B, journalType);
-        prepareColocatedBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), "backup", JOURNAL_DIRECTORY_A, journalType);
+        prepareLiveServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B, journalType);
+        prepareColocatedBackupServer(container(2), getHostname(CONTAINER2_NAME), "backup", JOURNAL_DIRECTORY_A, journalType);
 
     }
 
@@ -861,21 +862,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    public void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
-        prepareLiveServer(containerName, bindingAddress, journalDirectory, "ASYNCIO");
+    public void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
+        prepareLiveServer(container, bindingAddress, journalDirectory, "ASYNCIO");
     }
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        test container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    public void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory, String journalType) {
+    public void prepareLiveServer(Container container, String bindingAddress, String journalDirectory, String journalType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -885,10 +886,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
 
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -959,32 +959,31 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
 
         jmsAdminOperations.close();
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepares colocated backup. It creates new configuration of backup server.
      *
-     * @param containerName        Name of the arquilian container.
+     * @param container            The arquilian container.
      * @param ipAddress            On which IP address to broadcast and where is containers management ip address.
      * @param backupServerName     Name of the new HornetQ backup server.
      * @param journalDirectoryPath Absolute or relative path to journal directory.
      */
-    public void prepareColocatedBackupServer(String containerName, String ipAddress,
+    public void prepareColocatedBackupServer(Container container, String ipAddress,
                                              String backupServerName, String journalDirectoryPath) {
-        prepareColocatedBackupServer(containerName, ipAddress, backupServerName, journalDirectoryPath, "ASYNCIO");
+        prepareColocatedBackupServer(container, ipAddress, backupServerName, journalDirectoryPath, "ASYNCIO");
     }
 
     /**
      * Prepares colocated backup. It creates new configuration of backup server.
      *
-     * @param containerName        Name of the arquilian container.
+     * @param container            The arquilian container.
      * @param ipAddress            On which IP address to broadcast and where is containers management ip address.
      * @param backupServerName     Name of the new HornetQ backup server.
      * @param journalDirectoryPath Absolute or relative path to journal directory.
      */
-    public void prepareColocatedBackupServer(String containerName, String ipAddress,
+    public void prepareColocatedBackupServer(Container container, String ipAddress,
                                              String backupServerName, String journalDirectoryPath, String journalType) {
 
         String discoveryGroupName = "dg-group-backup";
@@ -998,8 +997,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "hornetq-ra";
 
-        controller.start(containerName);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setClustered(backupServerName, true);
@@ -1063,8 +1062,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //      jmsAdminOperations.createQueue(backupServerName, outQueueName, outQueue, true);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
+        container.stop();
     }
 
     private void setJournalType(String journalType) {

@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
@@ -60,7 +61,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1_NAME, "NIO");
+        prepareServerForTCPTransport(container(1), "NIO");
         transportProtocolTest();
     }
 
@@ -69,7 +70,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOTCPTransportTest() throws Exception {
-        prepareServerForTCPTransport(CONTAINER1_NAME, "ASYNCIO");
+        prepareServerForTCPTransport(container(1), "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -78,7 +79,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1_NAME, "NIO");
+        prepareServerForHTTPTransport(container(1), "NIO");
         transportProtocolTest();
     }
 
@@ -87,7 +88,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOHTTPTransportTest() throws Exception {
-        prepareServerForHTTPTransport(CONTAINER1_NAME, "ASYNCIO");
+        prepareServerForHTTPTransport(container(1), "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -96,7 +97,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void NIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1_NAME, "NIO");
+        prepareServerForSSLTransport(container(1), "NIO");
         transportProtocolTest();
     }
 
@@ -105,7 +106,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void AIOSSLTransportTest() throws Exception {
-        prepareServerForSSLTransport(CONTAINER1_NAME, "ASYNCIO");
+        prepareServerForSSLTransport(container(1), "ASYNCIO");
         transportProtocolTest();
     }
 
@@ -147,7 +148,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
             controller.start(CONTAINER1_NAME);
 
-            JMSOperations jmsAdminOperations = getJMSOperations(CONTAINER1_NAME);
+            JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
             jmsAdminOperations.addExtension("org.jboss.legacy.jnp");
 
@@ -187,33 +188,32 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for TCP transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container     Test container - defined in arquillian.xml
      * @param journalType   Type of journal
      */
-    private void prepareServerForTCPTransport(String containerName, String journalType) {
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+    private void prepareServerForTCPTransport(Container container, String journalType) {
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
      * Configuration of server for HTTP transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container     Test container - defined in arquillian.xml
      * @param journalType   Type of journal
      */
-    private void prepareServerForHTTPTransport(String containerName, String journalType) {
-        controller.start(containerName);
+    private void prepareServerForHTTPTransport(Container container, String journalType) {
+        container.start();
         String socketBindingName = "messaging-http";
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("http-enabled", "true");
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.createSocketBinding(socketBindingName, 7080);
@@ -223,19 +223,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteAcceptor("netty", socketBindingName, params);
         jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
-        controller.stop(containerName);
+        container.stop();
     }
 
     /**
      * Configuration of server for SSL transport
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container     Test container - defined in arquillian.xml
      * @param journalType   Type of journal
      * @throws IOException
      */
-    private void prepareServerForSSLTransport(String containerName, String journalType) throws IOException {
-
-        controller.start(containerName);
+    private void prepareServerForSSLTransport(Container container, String journalType) throws IOException {
+        container.start();
 
         AdministrationTestCase fileOperation = new AdministrationTestCase();
         File keyStore = new File("src/test/resources/org/jboss/qa/hornetq/test/transportprotocols/hornetq.example.keystore");
@@ -265,7 +264,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         acceptorParams.put("trust-store-path", trustStoreNew.getAbsolutePath());
         acceptorParams.put("trust-store-password", "hornetqexample");
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.removeRemoteConnector("netty");
@@ -274,6 +273,6 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteAcceptor("netty", socketBindingName, acceptorParams);
         jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
 
-        controller.stop(containerName);
+        container.stop();
     }
 }

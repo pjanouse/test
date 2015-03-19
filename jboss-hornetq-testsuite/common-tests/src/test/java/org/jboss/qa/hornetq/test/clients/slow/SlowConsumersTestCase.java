@@ -24,7 +24,6 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
@@ -97,7 +96,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
             Thread.sleep(70000);
 
-            JMSOperations ops = getJMSOperations();
+            JMSOperations ops = container(1).getJmsOperations();
             int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
             ops.close();
 
@@ -158,7 +157,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
             Thread.sleep(15000);
 
-            JMSOperations ops = getJMSOperations();
+            JMSOperations ops = container(1).getJmsOperations();
             int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
             ops.close();
 
@@ -223,7 +222,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
             Thread.sleep(70000);
 
-            JMSOperations ops = getJMSOperations();
+            JMSOperations ops = container(1).getJmsOperations();
             int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
             ops.close();
 
@@ -440,7 +439,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private void prepareServerForKills() throws Exception {
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         // disable clustering
         ops.setClustered(false);
@@ -464,7 +463,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private void prepareServerForNotifications() throws Exception {
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
 

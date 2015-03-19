@@ -9,6 +9,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
@@ -131,8 +132,8 @@ public class NewSoakTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void soakTest() throws Exception {
         this.prepareServers();
-        this.setupJmsServer(CONTAINER1_NAME);
-        this.setupMdbServer(CONTAINER2_NAME);
+        this.setupJmsServer(container(1));
+        this.setupMdbServer(container(2));
 
         this.restartAllServers();
 
@@ -297,8 +298,8 @@ public class NewSoakTestCase extends HornetQTestCase {
     }
 
 
-    private void setupJmsServer(final String containerName) {
-        JMSOperations ops = this.getJMSOperations(containerName);
+    private void setupJmsServer(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.setClustered(true);
         ops.setJournalType("NIO");
         ops.setPersistenceEnabled(true);
@@ -322,8 +323,8 @@ public class NewSoakTestCase extends HornetQTestCase {
     }
 
 
-    private void setupMdbServer(final String containerName) {
-        JMSOperations ops = this.getJMSOperations(containerName);
+    private void setupMdbServer(final Container container) {
+        JMSOperations ops = container.getJmsOperations();
         ops.setClustered(true);
         ops.setJournalType("NIO");
         ops.setPersistenceEnabled(true);

@@ -55,9 +55,9 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	{
 		preparator = new JournalReplicationConfiguration(controller);
 		
-		preparator.prepareLive(this);
+		preparator.prepareLive(container(1), this);
 		
-		preparator.prepareBackup();
+		preparator.prepareBackup(container(2));
 	}
 
     @After

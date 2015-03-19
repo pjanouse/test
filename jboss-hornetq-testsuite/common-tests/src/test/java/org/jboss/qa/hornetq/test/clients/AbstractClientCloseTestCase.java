@@ -140,7 +140,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
     private void prepareServer(boolean secured) {
         controller.start(CONTAINER1_NAME);
-        JMSOperations ops = getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
 
         // enable JMX on hornetq for notifications (and potentially calling the management operation too)
         ops.setJmxManagementEnabled(true);

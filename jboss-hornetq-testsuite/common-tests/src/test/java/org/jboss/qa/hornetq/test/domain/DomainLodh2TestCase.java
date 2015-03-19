@@ -13,6 +13,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -482,11 +483,11 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/10, 120000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/10, 120000, container(1));
 
         executeFailureSequence(failureSequence, 3000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 10);
@@ -579,13 +580,13 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_2);
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000, CONTAINER1_NAME, CONTAINER2_NAME,
-                CONTAINER3_NAME, CONTAINER4_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 120000, container(1), container(2),
+                container(3), container(4));
 
         executeFailureSequence(failureSequence, 5000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, CONTAINER1_NAME, CONTAINER2_NAME,
-                CONTAINER3_NAME, CONTAINER4_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+                container(3), container(4));
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(outServer), getJNDIPort(outServer), outQueueJndiName, 3000, 10, 10);
@@ -665,15 +666,15 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         deployer.deploy(MDB_ON_QUEUE_1);
         deployer.deploy(MDB_ON_QUEUE_2);
 
-        waitForMessages(outQueueName, numberOfMessages / 100, 120000, CONTAINER1_NAME, CONTAINER3_NAME);
+        waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
 
         stopServer(CONTAINER2_NAME);
         stopServer(CONTAINER4_NAME);
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
-                        " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, CONTAINER1_NAME,
-                CONTAINER3_NAME));
+                        " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, container(1),
+                container(3)));
 
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
@@ -697,13 +698,9 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         controller.start(CONTAINER4_NAME);
 
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
-
-
-                CONTAINER2_NAME));
+                container(2)));
         Assert.assertFalse("There are unfinished Arjuna transactions in node-4. Failing the test.", checkUnfinishedArjunaTransactions(
-
-
-                CONTAINER4_NAME));
+                container(4)));
 
         stopServer(CONTAINER2_NAME);
         stopServer(CONTAINER4_NAME);
@@ -764,8 +761,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 //        prepareJmsServer(CONTAINER3_NAME);
         prepareJmsServer("full-ha-1"); // use common profile for both node-1 and node-3
 
-        prepareMdbServer(CONTAINER2_NAME, CONTAINER1_NAME, inServer, outServer, "full-ha-2");
-        prepareMdbServer(CONTAINER4_NAME, CONTAINER3_NAME, inServer, outServer, "full-ha-4");
+        prepareMdbServer(container(2), CONTAINER1_NAME, inServer, outServer, "full-ha-2");
+        prepareMdbServer(container(4), CONTAINER3_NAME, inServer, outServer, "full-ha-4");
 
         copyApplicationPropertiesFiles();
     }
@@ -793,7 +790,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
         String messagingGroupSocketBindingName = "messaging-group";
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations();
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.addAddressPrefix("profile", profileName);
 
         jmsAdminOperations.setClustered(true);
@@ -821,7 +818,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         jmsAdminOperations.close();
 
 
-        jmsAdminOperations = this.getJMSOperations();
+        jmsAdminOperations = container(1).getJmsOperations();
 
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
 
@@ -833,10 +830,10 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     /**
      * Prepares mdb server for remote jca topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      * @param profileName Name of the server domain profile
      */
-    private void prepareMdbServer(String containerName, String jmsServerName, String inServer, String outServer,
+    private void prepareMdbServer(Container container, String jmsServerName, String inServer, String outServer,
             String profileName) {
 
         String discoveryGroupName = "dg-group1";
@@ -850,7 +847,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
         String inVmHornetRaName = "local-hornetq-ra";
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addAddressPrefix("profile", profileName);
 
         jmsAdminOperations.setClustered(true);
@@ -957,24 +954,21 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName containerName
+     * @param container test container
      */
-    private void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    private void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container     test container
      * @param serverName    server name of the hornetq server
      */
-    private void deployDestinations(String containerName, String serverName) {
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
-
+    private void deployDestinations(Container container, String serverName) {
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.close();
-
     }
 
 

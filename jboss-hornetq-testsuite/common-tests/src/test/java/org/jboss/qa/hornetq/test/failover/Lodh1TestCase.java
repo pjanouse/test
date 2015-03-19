@@ -262,15 +262,15 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(container(1));
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 300000, container(1).getName());
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/100, 300000, container(1));
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         // wait for 80% of messages
-        waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8)/10, 500000, container(1).getName());
+        waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8)/10, 500000, container(1));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1).getName());
+        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1).getName());
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 5000, 100, 10);
@@ -323,7 +323,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         deployer.deploy(MDB_NAME);
 
-        waitForMessages(outQueueName, numberOfMessages / 10, 120000, container(1).getName());
+        waitForMessages(outQueueName, numberOfMessages / 10, 120000, container(1));
         container(1).stop();
 
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
@@ -351,9 +351,9 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         container(2).start();
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
-                container(2).getName()));
+                container(2)));
         Assert.assertTrue("There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
-                waitForMessages(inQueueName, 1, 5000, container(2).getName()));
+                waitForMessages(inQueueName, 1, 5000, container(2)));
         container(2).stop();
     }
 

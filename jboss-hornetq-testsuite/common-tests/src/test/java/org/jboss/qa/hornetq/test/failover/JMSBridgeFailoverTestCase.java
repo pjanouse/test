@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -37,7 +38,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         int numberOfMessages = 20000;
 
-        deployBridge(CONTAINER1_NAME, ONCE_AND_ONLY_ONCE, -1);
+        deployBridge(container(1), ONCE_AND_ONLY_ONCE, -1);
 
         controller.start(CONTAINER1_NAME);
 
@@ -55,7 +56,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         controller.start(CONTAINER3_NAME);
 
         // check that some messages got to OutQueue on server 3 and shutdown server1
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, CONTAINER3_NAME);
+        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
 
         for (int i = 0; i < 5; i++) {
 
@@ -86,7 +87,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, AT_MOST_ONCE, 5);
+        deployBridge(container(3), AT_MOST_ONCE, 5);
 
         testInitialFailover();
     }
@@ -97,7 +98,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, DUPLICATES_OK, 5);
+        deployBridge(container(3), DUPLICATES_OK, 5);
 
         testInitialFailover();
     }
@@ -108,7 +109,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testInitialFailover_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, ONCE_AND_ONLY_ONCE, 5);
+        deployBridge(container(3), ONCE_AND_ONLY_ONCE, 5);
 
         testInitialFailover();
     }
@@ -120,7 +121,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverKillWithBridge_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, AT_MOST_ONCE);
+        deployBridge(container(3), AT_MOST_ONCE);
 
         testFailoverWithBridge(false, false, AT_MOST_ONCE);
     }
@@ -131,7 +132,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverKillWithBridge_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, DUPLICATES_OK);
+        deployBridge(container(3), DUPLICATES_OK);
 
         testFailoverWithBridge(false, false, DUPLICATES_OK);
     }
@@ -142,7 +143,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverKillWithBridge_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, ONCE_AND_ONLY_ONCE);
+        deployBridge(container(3), ONCE_AND_ONLY_ONCE);
 
         testFailoverWithBridge(false, false, ONCE_AND_ONLY_ONCE);
     }
@@ -153,7 +154,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridge_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, AT_MOST_ONCE);
+        deployBridge(container(3), AT_MOST_ONCE);
 
         testFailoverWithBridge(true, false, AT_MOST_ONCE);
     }
@@ -164,7 +165,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridge_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, DUPLICATES_OK);
+        deployBridge(container(3), DUPLICATES_OK);
 
         testFailoverWithBridge(true, false, DUPLICATES_OK);
     }
@@ -175,7 +176,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridge_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, ONCE_AND_ONLY_ONCE);
+        deployBridge(container(3), ONCE_AND_ONLY_ONCE);
 
         testFailoverWithBridge(true, false, ONCE_AND_ONLY_ONCE);
     }
@@ -188,7 +189,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackKillWithBridge_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, AT_MOST_ONCE);
+        deployBridge(container(3), AT_MOST_ONCE);
 
         testFailoverWithBridge(false, true, AT_MOST_ONCE);
     }
@@ -199,7 +200,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackKillWithBridge_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, DUPLICATES_OK);
+        deployBridge(container(3), DUPLICATES_OK);
 
         testFailoverWithBridge(false, true, DUPLICATES_OK);
     }
@@ -210,7 +211,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackKillWithBridge_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, ONCE_AND_ONLY_ONCE);
+        deployBridge(container(3), ONCE_AND_ONLY_ONCE);
 
         testFailoverWithBridge(false, true, ONCE_AND_ONLY_ONCE);
     }
@@ -221,7 +222,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridge_AT_MOST_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, AT_MOST_ONCE);
+        deployBridge(container(3), AT_MOST_ONCE);
 
         testFailoverWithBridge(true, true, AT_MOST_ONCE);
     }
@@ -232,7 +233,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridge_DUPLICATES_OK() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, DUPLICATES_OK);
+        deployBridge(container(3), DUPLICATES_OK);
 
         testFailoverWithBridge(true, true, DUPLICATES_OK);
     }
@@ -243,7 +244,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridge_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        deployBridge(CONTAINER3_NAME, ONCE_AND_ONLY_ONCE);
+        deployBridge(container(3), ONCE_AND_ONLY_ONCE);
 
         testFailoverWithBridge(true, true, ONCE_AND_ONLY_ONCE);
     }
@@ -342,11 +343,11 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     //////////////////////////////////////////////////////////////////////////////////
 
-    protected void deployBridge(String containerName, String qualityOfService) {
-        deployBridge(containerName, qualityOfService, -1);
+    protected void deployBridge(Container container, String qualityOfService) {
+        deployBridge(container, qualityOfService, -1);
     }
 
-    protected void deployBridge(String containerName, String qualityOfService, int maxRetries) {
+    protected void deployBridge(Container container, String qualityOfService, int maxRetries) {
 
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
@@ -361,15 +362,15 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         String targetDestination = outQueueJndiName;
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        if (CONTAINER1_NAME.equalsIgnoreCase(containerName)) { // if deployed to container 1 then target is container 3
+        if (CONTAINER1_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 1 then target is container 3
             targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3_NAME) + ":" + getJNDIPort(
 
 
                     CONTAINER3_NAME));
-        } else if (CONTAINER2_NAME.equalsIgnoreCase(containerName)) { // if deployed to container 2 then target is container 3
+        } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is container 3
             targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3_NAME) + ":" + getJNDIPort(
                     CONTAINER3_NAME));
-        } else if (CONTAINER3_NAME.equalsIgnoreCase(containerName)) { // if deployed to container 3 then target is container 1 and 2
+        } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is container 1 and 2
             targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER1_NAME) + ":" + getJNDIPort(CONTAINER1_NAME) +
                     ",remote://" + getHostname(CONTAINER2_NAME) + ":" + getJNDIPort(CONTAINER2_NAME));
 //            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_NAME_IP + ":4447");
@@ -385,9 +386,8 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         long maxBatchTime = 100;
         boolean addMessageIDInHeader = true;
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         // set XA on sourceConnectionFactory
         jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
@@ -397,8 +397,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
                 maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
         jmsAdminOperations.close();
-
-        stopServer(containerName);
+        container.stop();
     }
 
 }

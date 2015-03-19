@@ -519,61 +519,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
-     * Returns instance of the {@link JMSOperations} for the configured container
-     *
-     * @return instance of the <code>JMSOperation</code>
-     */
-    public JMSOperations getJMSOperations() {
-        return getJMSOperations(CONTAINER1_NAME);
-    }
-
-    /**
-     * Returns instance of the {@link JMSOperations} for the configured container
-     *
-     * @param container target container name
-     * @return instance of the <code>JMSOperation</code>
-     */
-    public JMSOperations getJMSOperations(String container) {
-        JMSOperations operations = null;
-
-        CONTAINER_TYPE container_type = getContainerInfo(container).getContainerType();
-
-//        switch (container_type) {
-//            case EAP5_CONTAINER:
-//                HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();
-//                eap5AdmOps.setHostname(getHostname(container));
-//                eap5AdmOps.setProfile(getProfile(container));
-//                eap5AdmOps.setRmiPort(getJNDIPort(container));
-//                eap5AdmOps.setJbossHome(getJbossHome(container));
-//                operations = eap5AdmOps;
-//                break;
-//            case EAP5_WITH_JBM_CONTAINER:
-//                JBMAdminOperationsEAP5 eap5JbmAdmOps = new JBMAdminOperationsEAP5();
-//                eap5JbmAdmOps.setHostname(getHostname(container));
-//                eap5JbmAdmOps.setProfile(getProfile(container));
-//                eap5JbmAdmOps.setRmiPort(getJNDIPort(container));
-//                eap5JbmAdmOps.setJbossHome(getJbossHome(container));
-//                operations = eap5JbmAdmOps;
-//                break;
-//            case EAP6_DOMAIN_CONTAINER:
-//                HornetQAdminOperationsEAP6 eap6DomainAdmOps = new HornetQAdminOperationsEAP6();
-//                eap6DomainAdmOps.setHostname("localhost");
-//                eap6DomainAdmOps.setPort(9999);
-//                eap6DomainAdmOps.connect();
-//                operations = eap6DomainAdmOps;
-//                break;
-//            default:
-//                HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
-//                eap6AdmOps.setHostname(getHostname(container));
-//                eap6AdmOps.setPort(getPort(container));
-//                eap6AdmOps.connect();
-//                operations = eap6AdmOps;
-//                break;
-//        }
-        return operations;
-    }
-
-    /**
      * Return true if container is EAP 5 with JBM.
      *
      * @return true if EAP 5 with JBM
@@ -1218,16 +1163,17 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      *
-     * @param containerName            name of the container
+     * @param container                container
      * @param queueCoreName            queue name
      * @param expectedNumberOfMessages number of messages
      * @param timeout                  timeout
      * @return Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      * @throws Exception
      */
-    public boolean waitForNumberOfMessagesInQueue(String containerName, String queueCoreName, int expectedNumberOfMessages, long timeout) throws Exception {
+    public boolean waitForNumberOfMessagesInQueue(Container container, String queueCoreName,
+            int expectedNumberOfMessages, long timeout) throws Exception {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         long startTime = System.currentTimeMillis();
 
@@ -1250,17 +1196,23 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param queueName        queue name
      * @param numberOfMessages number of messages
      * @param timeout          time out
-     * @param containerNames   container name
+     * @param containers       container list
      * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
      * @throws Exception
      */
-    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, String... containerNames) throws Exception {
+    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, Container... containers) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
         long count = 0;
-        while ((count = countMessages(queueName, containerNames)) < numberOfMessages) {
-            log.info("Total number of messages in queue: " + queueName + " on node " + Arrays.toString(containerNames) + " is " + count);
+        while ((count = countMessages(queueName, containers)) < numberOfMessages) {
+            List<String> containerNames = new ArrayList<String>(containers.length);
+            for (Container c: containers) {
+                containerNames.add(c.getName());
+            }
+
+            log.info("Total number of messages in queue: " + queueName + " on node "
+                    + Arrays.toString(containerNames.toArray()) + " is " + count);
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {
                 return false;
@@ -1302,13 +1254,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return false;
     }
 
-    public boolean checkUnfinishedArjunaTransactions(String containerName) {
+    public boolean checkUnfinishedArjunaTransactions(Container container) {
 
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+        JMSOperations jmsOperations = container.getJmsOperations();
         boolean unfinishedTransactions2 = jmsOperations.areThereUnfinishedArjunaTransactions();
         jmsOperations.close();
 
-        log.info("Checking arjuna transactions on node: " + containerName + ". Are there unfinished transactions?: " + unfinishedTransactions2);
+        log.info("Checking arjuna transactions on node: " + container.getName()
+                + ". Are there unfinished transactions?: " + unfinishedTransactions2);
         return unfinishedTransactions2;
 
     }
@@ -1317,21 +1270,21 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Returns total number of messages in queue on given nodes
      *
      * @param queueName      queue name
-     * @param containerNames container name
+     * @param containers     container list
      * @return total number of messages in queue on given nodes
      */
-    public long countMessages(String queueName, String... containerNames) {
+    public long countMessages(String queueName, Container... containers) {
         long sum = 0;
-        for (String containerName : containerNames) {
-            JMSOperations jmsOperations = getJMSOperations(containerName);
+        for (Container container : containers) {
+            JMSOperations jmsOperations = container.getJmsOperations();
 
-            ContainerInfo ci = getContainerInfo(containerName);
+            ContainerInfo ci = getContainerInfo(container.getName());
             if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(ci.getContainerType())) {
                 jmsOperations.addAddressPrefix("host", "master");
                 jmsOperations.addAddressPrefix("server", ci.getDomainName());
             }
             long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
-            log.info("Number of messages on node : " + containerName + " is: " + count);
+            log.info("Number of messages on node : " + container + " is: " + count);
             sum += count;
             jmsOperations.close();
         }
@@ -1484,10 +1437,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Wait for given time-out for no xa transactions in prepared state.
      *
      * @param timeout
-     * @param containerName
+     * @param container
      * @throws Exception
      */
-    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, String containerName) throws Exception {
+    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, Container container) throws Exception {
 
         // check that number of prepared transaction gets to 0
         log.info("Get information about transactions from HQ:");
@@ -1496,7 +1449,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         int numberOfPreparedTransaction = 100;
 
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+        JMSOperations jmsOperations = container.getJmsOperations();
 
         while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
 

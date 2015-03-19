@@ -10,6 +10,7 @@ import javax.jms.Session;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.Clients;
@@ -256,12 +257,12 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         controller.start(CONTAINER2_NAME);
         waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 10000);
-        addDivert(CONTAINER2_NAME, divertedQueue, isExclusive, topic);
+        addDivert(container(2), divertedQueue, isExclusive, topic);
         stopServer(CONTAINER2_NAME);
 
         controller.start(CONTAINER1_NAME);
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 30000);
-        addDivert(CONTAINER1_NAME, divertedQueue, isExclusive, topic);
+        addDivert(container(1), divertedQueue, isExclusive, topic);
         stopServer(CONTAINER1_NAME);
         controller.start(CONTAINER1_NAME);
         controller.start(CONTAINER2_NAME);
@@ -337,10 +338,10 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         JMSOperations jmsOperations;
         if (failback) {
-            jmsOperations = getJMSOperations(CONTAINER1_NAME);
+            jmsOperations = container(1).getJmsOperations();
 
         } else {
-            jmsOperations = getJMSOperations(CONTAINER2_NAME);
+            jmsOperations = container(2).getJmsOperations();
         }
         long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
         jmsOperations.close();
@@ -356,8 +357,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
     }
 
-    private void addDivert(String containerName, String divertedQueue, boolean isExclusive, boolean topic) {
-        JMSOperations jmsOperations = getJMSOperations(containerName);
+    private void addDivert(Container container, String divertedQueue, boolean isExclusive, boolean topic) {
+        JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.addDivert("myDivert",
                 topic ? "jms.topic." + topicNamePrefix + "0" : "jms.queue." + queueNamePrefix + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
@@ -398,7 +399,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         // call force-failover operation
-        JMSOperations jmsOperations = getJMSOperations(CONTAINER1_NAME);
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         jmsOperations.forceFailover();
         jmsOperations.close();
 
@@ -1029,27 +1030,26 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
-        deployDestinations(CONTAINER1_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).start();
+        deployDestinations(container(1));
+        container(1).stop();
 
-        controller.start(CONTAINER2_NAME);
-        deployDestinations(CONTAINER2_NAME);
-        stopServer(CONTAINER2_NAME);
-
+        container(2).start();
+        deployDestinations(container(2));
+        container(2).stop();
     }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param containerName    Name of the container - defined in arquillian.xml
+     * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1058,7 +1058,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addAddressPrefix("profile", "full-ha-1");
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -1104,9 +1104,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(String containerName, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1115,7 +1115,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addAddressPrefix("profile", "full-ha-2");
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
@@ -1165,21 +1165,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container container
      */
-    protected void deployDestinations(String containerName) {
-        deployDestinations(containerName, "default");
+    protected void deployDestinations(Container container) {
+        deployDestinations(container, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param containerName container name
+     * @param container     container
      * @param serverName    server name of the hornetq server
      */
-    protected void deployDestinations(String containerName, String serverName) {
+    protected void deployDestinations(Container container, String serverName) {
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

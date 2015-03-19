@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
@@ -75,8 +76,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
 
         long networkFailure = 60000;
 
-        prepareServer(CONTAINER1_NAME, gosshipAddress, gosshipPort, true);
-        prepareServer(CONTAINER2_NAME, gosshipAddress, gosshipPort, false);
+        prepareServer(container(1), gosshipAddress, gosshipPort, true);
+        prepareServer(container(2), gosshipAddress, gosshipPort, false);
 
         // java -cp jgroups.jar:/home/jbossqa/tmp/jboss-eap-5.2/jboss-as/client/* org.jgroups.stack.GossipRouter -port 12001 -bindaddress 192.168.40.1
         Process router = null;
@@ -279,9 +280,9 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
      * change to tcp to start servers
      *
      *
-     * @param containerName Name of the container - defined in arquillian.xml
+     * @param container Test container - defined in arquillian.xml
      */
-    private void prepareServer(String containerName, String gossipRouterHostname, int gossipRouterPort, boolean directToDbThroughProxy) {
+    private void prepareServer(Container container, String gossipRouterHostname, int gossipRouterPort, boolean directToDbThroughProxy) {
 
         boolean keepOldFailover = false;
         long nodeStateRefreshInterval = 20000;
@@ -291,7 +292,7 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
 //        long retryInterval = 1000;
 //        int maxRetry = -1;
 
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setKeepOldFailoverModel(keepOldFailover, nodeStateRefreshInterval);

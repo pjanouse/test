@@ -672,7 +672,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
 
     private JMSOperations prepareServer() throws IOException {
-        JMSOperations ops = this.getJMSOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         ops.setPersistenceEnabled(true);
 
         AddressSecuritySettings.forDefaultContainer(this)

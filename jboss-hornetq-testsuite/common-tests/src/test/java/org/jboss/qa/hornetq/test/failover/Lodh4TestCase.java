@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
@@ -319,21 +320,21 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     public void prepareServers() {
 
-        prepareSourceServer(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-        prepareSourceServer(CONTAINER3_NAME, getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
-        prepareTargetServer(CONTAINER2_NAME, getHostname(CONTAINER2_NAME));
-        prepareTargetServer(CONTAINER4_NAME, getHostname(CONTAINER4_NAME));
+        prepareSourceServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+        prepareSourceServer(container(3), getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
+        prepareTargetServer(container(2), getHostname(CONTAINER2_NAME));
+        prepareTargetServer(container(4), getHostname(CONTAINER4_NAME));
 
     }
 
     /**
      * Prepares source server for bridge.
      *
-     * @param containerName         Name of the container - defined in arquillian.xml
+     * @param container             test container - defined in arquillian.xml
      * @param bindingAddress        says on which ip container will be binded
      * @param targetServerName name of the target server
      */
-    private void prepareSourceServer(String containerName, String bindingAddress,
+    private void prepareSourceServer(Container container, String bindingAddress,
                                      String targetServerName) {
 
         String discoveryGroupName = "dg-group1";
@@ -345,8 +346,8 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         String udpGroupAddress = "231.43.21.36";
 
-        controller.start(containerName);
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -381,10 +382,9 @@ public class Lodh4TestCase extends HornetQTestCase {
             // ignore
         }
         jmsAdminOperations.close();
-        stopServer(containerName);
-        controller.start(containerName);
+        container.restart();
 
-        jmsAdminOperations = this.getJMSOperations(containerName);
+        jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(targetServerName), getHornetqPort(targetServerName));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
@@ -393,28 +393,25 @@ public class Lodh4TestCase extends HornetQTestCase {
             jmsAdminOperations.createQueue("default", hornetqInQueueName + queueNumber, relativeJndiInQueueName + queueNumber, true);                 }
         jmsAdminOperations.close();
 
-        controller.stop(containerName);
-        controller.start(containerName);
+        container.restart();
 
-        jmsAdminOperations = this.getJMSOperations(containerName);
+        jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
         for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
             jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
         }
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
     /**
      * Prepare target server for bridge
      *
-     * @param containerName  Name of the container - defined in arquillian.xml
+     * @param container      test container - defined in arquillian.xml
      * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareTargetServer(String containerName, String bindingAddress) {
+    private void prepareTargetServer(Container container, String bindingAddress) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -423,9 +420,8 @@ public class Lodh4TestCase extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(containerName);
-
-        JMSOperations jmsAdminOperations = this.getJMSOperations(containerName);
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -459,9 +455,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         jmsAdminOperations.close();
-
-        controller.stop(containerName);
-
+        container.stop();
     }
 
 }
