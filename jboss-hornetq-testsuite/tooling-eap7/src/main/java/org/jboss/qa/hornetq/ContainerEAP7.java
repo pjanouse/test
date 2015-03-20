@@ -80,7 +80,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getJNDIPort() {
-        return 4447 + getPortOffset();
+        return 9990 + getPortOffset();
     }
 
 

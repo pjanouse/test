@@ -1,23 +1,18 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.activemq.core.remoting.impl.netty.TransportConstants;
 import org.apache.log4j.Logger;
 
 import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.threads.JBossThreadFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.AccessController;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.kohsuke.MetaInfServices;
@@ -4363,11 +4358,35 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void reload() {
+
+        long timeout = 30000;
+
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
 
         try {
             this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        model = new ModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get("name").set("server-state");
+
+        try {
+
+            long startTime = System.currentTimeMillis();
+            Thread.sleep(1000);
+            logger.warn(this.applyUpdate(model).get("result"));
+            while(!this.applyUpdate(model).get("result").toString().equalsIgnoreCase("running"))   {
+                Thread.sleep(1000);
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    break;
+                }
+            }
+            logger.warn("we should be running now: " + this.applyUpdate(model).get("result"));
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
