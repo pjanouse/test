@@ -195,8 +195,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killJmsLocalRemote() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, false, false, CONTAINER2_NAME, CONTAINER1_NAME);
     }
     /**
@@ -207,8 +207,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killMdbLocalRemote() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, false, false, CONTAINER2_NAME, CONTAINER1_NAME);
     }
     /**
@@ -219,8 +219,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2ShutdownMdbLocalRemote() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, true, false, CONTAINER2_NAME, CONTAINER1_NAME);
     }
     /**
@@ -231,8 +231,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2ShutdownJmsLocalRemote() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, true, false, CONTAINER2_NAME, CONTAINER1_NAME);
     }
     /**
@@ -243,8 +243,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killLocalRemote() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, false, false, CONTAINER2_NAME, CONTAINER1_NAME);
     }
     /////////////////////////////// END - Local -> Remote
@@ -258,8 +258,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killJmsRemoteLocal() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, false, false, CONTAINER1_NAME, CONTAINER2_NAME);
     }
     @Test
@@ -267,8 +267,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killMdbRemoteLocal() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, false, false, CONTAINER1_NAME, CONTAINER2_NAME);
     }
     @Test
@@ -276,8 +276,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2ShutdownJmsRemoteLocal() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, true, false, CONTAINER1_NAME, CONTAINER2_NAME);
     }
     @Test
@@ -285,8 +285,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2ShutdownMdbRemoteLocal() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, true, false, CONTAINER1_NAME, CONTAINER2_NAME);
     }
     /////////////////////////////// START - Remote -> Local
@@ -300,8 +300,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2kill() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -313,8 +313,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh2killWithFilters() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -326,8 +326,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh3kill() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -339,8 +339,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testSimpleLodh3Shutdown() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, true);
     }
 
@@ -352,12 +352,12 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh2kill() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -369,8 +369,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh2killWithTempTopic() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaWithTopic(failureSequence, false, false);
 
     }
@@ -383,12 +383,12 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh2shutdown() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
         testRemoteJcaInCluster(failureSequence, true);
     }
 
@@ -400,9 +400,9 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testShutdownOfJmsServers() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, true);
     }
 
@@ -414,12 +414,12 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh3kill() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
@@ -431,23 +431,23 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testLodh3shutdown() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, false);
     }
 
-    public void testRemoteJcaWithTopic(List<String> failureSequence, boolean isShutdown, boolean isDurable) throws Exception {
+    public void testRemoteJcaWithTopic(List<Container> failureSequence, boolean isShutdown, boolean isDurable) throws Exception {
         testRemoteJcaWithTopic(failureSequence, isShutdown, isDurable, CONTAINER1_NAME, CONTAINER3_NAME);
     }
 
     /**
      * @throws Exception
      */
-    public void testRemoteJcaWithTopic(List<String> failureSequence, boolean isShutdown, boolean isDurable, String inServer, String outServer) throws Exception {
+    public void testRemoteJcaWithTopic(List<Container> failureSequence, boolean isShutdown, boolean isDurable, String inServer, String outServer) throws Exception {
 
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
@@ -459,10 +459,10 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
         prepareRemoteJcaTopology(inServer, outServer);
         // jms server
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // mdb server
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         if (!isDurable) {
             deployer.deploy(MDB_ON_NON_DURABLE_TOPIC);
@@ -519,12 +519,12 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         }
 
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
     }
 
-    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown) throws Exception {
+    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown) throws Exception {
         testRemoteJcaInCluster(failureSequence, isShutdown, false);
     }
 
@@ -535,7 +535,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
      * @param isShutdown
      * @param isFiltered
      */
-    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown, boolean isFiltered) throws Exception {
+    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown, boolean isFiltered) throws Exception {
         testRemoteJcaInCluster(failureSequence, isShutdown, isFiltered, CONTAINER1_NAME, CONTAINER3_NAME);
     }
 
@@ -543,7 +543,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     /**
      * @throws Exception
      */
-    public void testRemoteJcaInCluster(List<String> failureSequence, boolean isShutdown, boolean isFiltered, String inServer, String outServer) throws Exception {
+    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown, boolean isFiltered, String inServer, String outServer) throws Exception {
 
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
@@ -555,11 +555,11 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
         prepareRemoteJcaTopology(inServer, outServer);
         // cluster A
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(3).start();
         // cluster B
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
@@ -614,10 +614,10 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             deployer.undeploy(MDB_ON_QUEUE_2);
         }
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     /**
@@ -648,11 +648,11 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         prepareRemoteJcaTopology(inServer, outServer);
 
         // cluster A
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(3).start();
         // cluster B
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(inServer), getJNDIPort(inServer), inQueueJndiName, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
@@ -668,8 +668,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
         waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(2).stop();
+        container(4).stop();
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
@@ -691,19 +691,19 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         Assert.assertFalse("There are unfinished HornetQ transactions in node-3. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
                 new File(workingDirectory, journalFile3), stringToFind));
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(1).stop();
+        container(3).stop();
 
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
                 container(2)));
         Assert.assertFalse("There are unfinished Arjuna transactions in node-4. Failing the test.", checkUnfinishedArjunaTransactions(
                 container(4)));
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(2).stop();
+        container(4).stop();
     }
 
     /**
@@ -712,26 +712,25 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
      * @param failureSequence  list of container names
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
-    private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {
+    private void executeFailureSequence(List<Container> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {
 
         if (isShutdown) {
-            for (String containerName : failureSequence) {
+            for (Container container : failureSequence) {
                 Thread.sleep(timeBetweenKills);
-                stopServer(containerName);
+                container.stop();
                 Thread.sleep(3000);
-                logger.info("Start server: " + containerName);
-                controller.start(containerName);
-                logger.info("Server: " + containerName + " -- STARTED");
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
             }
         } else {
-            for (String containerName : failureSequence) {
+            for (Container container : failureSequence) {
                 Thread.sleep(timeBetweenKills);
-                killServer(containerName);
+                container.kill();
                 Thread.sleep(3000);
-                controller.kill(containerName);
-                logger.info("Start server: " + containerName);
-                controller.start(containerName);
-                logger.info("Server: " + containerName + " -- STARTED");
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
             }
         }
     }
@@ -744,10 +743,10 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     /**

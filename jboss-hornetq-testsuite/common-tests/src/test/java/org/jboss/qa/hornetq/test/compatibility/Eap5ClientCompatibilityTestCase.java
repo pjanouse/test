@@ -102,8 +102,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         ops.addExtension("org.jboss.legacy.jnp");
 
         ops.close();
-        this.controller.stop(container.getName());
-        this.controller.start(container.getName());
+        container.restart();
         ops = container.getJmsOperations();
 
         ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
@@ -114,7 +113,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         ops.close();
 
         this.activateLegacyJnpModule(container);
-        controller.stop(container.getName());
+        container.stop();
     }
 
 
@@ -163,7 +162,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         prepareContainer(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Context ctx = null;
 
@@ -437,9 +436,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -456,12 +455,12 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("Kill live server");
             LOG.warn("########################################");
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             LOG.warn("########################################");
             LOG.warn("Shutdown live server");
             LOG.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         LOG.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -474,7 +473,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("########################################");
             LOG.warn("failback - Start live server again ");
             LOG.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             LOG.warn("########################################");
             LOG.warn("failback - Live started again ");
@@ -503,9 +502,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -649,7 +648,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         prepareServerForCompressLargeMessages(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Thread.sleep(5000);
 
@@ -674,7 +673,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

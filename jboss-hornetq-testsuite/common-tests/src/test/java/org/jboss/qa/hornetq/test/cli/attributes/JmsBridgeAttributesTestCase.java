@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.cli.attributes;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
@@ -14,6 +13,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,23 +92,21 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
-
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
         prepareTargetServerForHornetQCoreBridge(container(2));
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 
     @After
     public void stopServer() {
-
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 
@@ -117,9 +115,8 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void writeReadAttributeHornetqCoreBridgeTest() throws Exception {
-
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         String address = "/subsystem=messaging/jms-bridge=" + BRIDGE_NAME;
 

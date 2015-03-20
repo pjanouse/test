@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -15,6 +14,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -41,7 +41,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -52,7 +52,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     public void testCompression() throws Exception {
         prepareServer(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         // Send messages into input node and read from output node
         ProducerTransAck producer = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
@@ -76,7 +76,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**

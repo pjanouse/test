@@ -38,7 +38,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
 
         prepareJmsServer(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         SubscriberTransAck fastSubscriber = new SubscriberTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
         fastSubscriber.subscribe();
@@ -67,7 +67,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         fastSubscriber.join();
         slowSubscriber.join(60);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         // start measuring of
         MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1_NAME), "jms-server");

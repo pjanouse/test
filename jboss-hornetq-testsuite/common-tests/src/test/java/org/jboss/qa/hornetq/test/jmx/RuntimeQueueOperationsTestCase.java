@@ -35,12 +35,12 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
 
     @Before
     public void startServerBeforeTest() {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
     @After
     public void stopServerAfterTest() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test
@@ -58,12 +58,12 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
 
         int numberOfMessages= 100;
         int commitAfter=50;
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
         ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
         producer.start();
         producer.join();
@@ -110,7 +110,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
 
 
         }
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -122,12 +122,12 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
     public void listScheduledMessagesTestCase() throws Exception{
         int numberOfMessages= 10;
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
         ops.close();
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
         ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
         DelayedTextMessageBuilder delayedTextMessageBuilder= new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
@@ -139,7 +139,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
             e.printStackTrace();
             Assert.assertTrue("Exception was caught", false);
         }
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
 
     }

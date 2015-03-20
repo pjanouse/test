@@ -177,8 +177,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testSimpleLodh2KillOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
     }
 
@@ -192,8 +192,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "prepare",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testSimpleLodh2KillOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
     }
 
@@ -207,8 +207,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testSimpleLodh2KillWithFiltersOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
     }
 
@@ -222,8 +222,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "prepare",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testSimpleLodh2KillWithFiltersOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
     }
 
@@ -238,8 +238,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             isInterface = true,
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testSimpleLodh3KillOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, true);
     }
 
@@ -254,8 +254,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             isInterface = true,
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testSimpleLodh3KillOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
         testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, true);
     }
 
@@ -269,9 +269,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testLodh2KillOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
         testRemoteJcaInCluster(failureSequence, LODH2_NUMBER_OF_MESSAGES, false);
     }
 
@@ -285,9 +285,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "prepare",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testLodh2KillOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
-        failureSequence.add(CONTAINER4_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
         testRemoteJcaInCluster(failureSequence, LODH2_NUMBER_OF_MESSAGES, false);
     }
 
@@ -301,8 +301,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testLodh2KillWithTempTopicOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaWithTopic(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
 
     }
@@ -317,8 +317,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             targetMethod = "prepare",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     public void testLodh2KillWithTempTopicOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER2_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
         testRemoteJcaWithTopic(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
 
     }
@@ -334,9 +334,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             isInterface = true,
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testLodh3KillOnTransactionCommit() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
         testRemoteJcaInCluster(failureSequence, LODH3_NUMBER_OF_MESSAGES, true);
     }
 
@@ -351,22 +351,22 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             isInterface = true,
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testLodh3KillOnTransactionPrepare() throws Exception {
-        List<String> failureSequence = new ArrayList<String>();
-        failureSequence.add(CONTAINER1_NAME);
-        failureSequence.add(CONTAINER3_NAME);
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
         testRemoteJcaInCluster(failureSequence, LODH3_NUMBER_OF_MESSAGES, true);
     }
 
     /** @throws Exception  */
-    public void testRemoteJcaWithTopic(final List<String> failureSequence, final int numberOfMessages,
+    public void testRemoteJcaWithTopic(final List<Container> failureSequence, final int numberOfMessages,
             final boolean isDurable) throws Exception {
 
         prepareRemoteJcaTopology();
 
         // jms server
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         // mdb server
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         if (!isDurable) {
             deployer.deploy("nonDurableMdbOnTopic");
@@ -422,28 +422,28 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
 
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
     }
 
-    public void testRemoteJcaInCluster(final List<String> failureSequence, final int numberOfMessages,
+    public void testRemoteJcaInCluster(final List<Container> failureSequence, final int numberOfMessages,
             final boolean waitForProducer) throws Exception {
 
         testRemoteJcaInCluster(failureSequence, numberOfMessages, waitForProducer, false);
     }
 
     /** @throws Exception  */
-    public void testRemoteJcaInCluster(final List<String> failureSequence, final int numberOfMessages,
+    public void testRemoteJcaInCluster(final List<Container> failureSequence, final int numberOfMessages,
             final boolean waitForProducer, final boolean isFiltered) throws Exception {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(3).start();
         // cluster B
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME),
                 getJNDIPort(CONTAINER1_NAME), IN_QUEUE, numberOfMessages);
@@ -509,10 +509,10 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             deployer.undeploy("mdb2");
         }
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
@@ -540,19 +540,19 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
      * @param failureSequence  map Contanier -> ContainerIP
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
-    private void executeFailureSequence(List<String> failureSequence, long timeBetweenKills)
+    private void executeFailureSequence(List<Container> failureSequence, long timeBetweenKills)
             throws Exception {
 
-        for (String containerName : failureSequence) {
+        for (Container container: failureSequence) {
 
             //String containerHostname = CONTAINER_BYTEMAN_MAP.get(containerName).containerHostname;
             //int bytemanPort = CONTAINER_BYTEMAN_MAP.get(containerName).bytemanPort;
             //HornetQCallsTracking.installTrackingRules(containerHostname, bytemanPort);
-            RuleInstaller.installRule(this.getClass(), getHostname(containerName), getBytemanPort(containerName));
-            this.controller.kill(containerName);
-            logger.info("Starting server: " + containerName);
-            this.controller.start(containerName);
-            logger.info("Server " + containerName + " -- STARTED");
+            RuleInstaller.installRule(this.getClass(), container.getHostname(), container.getBytemanPort());
+            container.kill();
+            logger.info("Starting server: " + container.getName());
+            container.start();
+            logger.info("Server " + container.getName() + " -- STARTED");
             Thread.sleep(timeBetweenKills);
         }
     }
@@ -565,10 +565,10 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @After
     @Override
     public void stopAllServers() {
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     /**

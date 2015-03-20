@@ -107,12 +107,12 @@ public class CoreAttributeTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
     @After
     public void stopServer() {
-        controller.stop(CONTAINER1_NAME);
+        container(1).start();
     }
 
     @Test

@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -15,6 +14,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,9 +85,9 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareDedicatedTopologyInCluster();
 
-        controller.start(CONTAINER3_NAME);
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(3).start();
+        container(2).start();
+        container(1).start();
 
         // install rule to first server
         RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
@@ -98,7 +98,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         waitForReceiversUntil(clients.getConsumers(), 50, 60000);
 
-        controller.kill(CONTAINER1_NAME);
+        container(1).kill();
 
         // wait for backup to wake up
         waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
@@ -109,7 +109,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
             waitForReceiversUntil(clients.getConsumers(), 500, 60000);
 //            logger.info("########################################");
@@ -131,17 +131,17 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
 
     }
 
     @After
     public void stopServers() {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
     }
 
     public void prepareDedicatedTopologyInCluster() {

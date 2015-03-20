@@ -92,7 +92,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     protected String currentContainerForTest;
 
     @ArquillianResource
-    protected ContainerController controller;
+    private ContainerController controller;
 
     @ArquillianResource
     protected Deployer deployer;
@@ -610,33 +610,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
-     * Kills server using killer servlet. This just kill server and does not do
-     * anything else.
-     *
-     * @param containerName container name which should be killed
-     */
-    protected void killServer(String containerName) {
-
-        log.info("Killing server: " + containerName);
-        try {
-
-            long pid = getProcessId(containerName);
-
-            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
-                Runtime.getRuntime().exec("taskkill /f /pid " + pid);
-            } else { // on all other platforms use kill -9
-                Runtime.getRuntime().exec("kill -9 " + pid);
-            }
-        } catch (Exception ex) {
-            log.warn("Container " + containerName + " could not be killed. Set debug for logging to see exception stack trace.");
-            log.debug(ex);
-        } finally {
-            log.info("Server: " + containerName + " -- KILLED");
-        }
-        controller.kill(containerName);
-    }
-
-    /**
      * Returns 8080 + portOffset.
      * <p/>
      * Port offset is specified in pom.xml - PORT_OFFSET_X property.
@@ -667,86 +640,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             throw new RuntimeException(
                     String.format("Name of the container %s is not known. It can't be used", containerName));
         }
-    }
-
-    /**
-     * This is wrapper method for controller.stop() method. Problem is that in EAP 5 this method throws exception
-     * when server is not running. We'll swallow this exception.
-     *
-     * @param containerName name of the container
-     */
-    public void stopServer(final String containerName) {
-
-        // there is problem with calling stop on already stopped server
-        // it throws exception when server is already stopped
-        // so check whether server is still running and return if not
-        try {
-            if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
-                    || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName)))) {
-                controller.kill(containerName); // call controller.kill to arquillian that server is really dead
-                return;
-            }
-        } catch (Exception ex) {
-            log.warn("Error during getting port of byteman agent.", ex);
-        }
-
-        // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
-        // we kill server when it takes too long
-        final long pid = getProcessId(containerName);
-        // timeout to wait for shutdown of server, after timeout expires the server will be killed
-        final long timeout = 120000;
-
-        Thread shutdownHook = new Thread() {
-            public void run() {
-
-                long startTime = System.currentTimeMillis();
-                try {
-                    while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getHttpPort(containerName))
-                            || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(containerName), getBytemanPort(containerName))) {
-
-                        if (System.currentTimeMillis() - startTime > timeout) {
-                            // kill server because shutdown hangs and fail test
-                            try {
-                                if (System.getProperty("os.name").contains("Windows")) {
-                                    Runtime.getRuntime().exec("taskkill /PID " + pid);
-                                } else { // it's linux or Solaris
-                                    Runtime.getRuntime().exec("kill -9 " + pid);
-                                }
-                            } catch (IOException e) {
-                                log.error("Invoking kill -9 " + pid + " failed.", e);
-                            }
-                            Assert.fail("Server: " + containerName + " did not shutdown more than: " + timeout + " and will be killed.");
-                            return;
-                        }
-
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            //ignore
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Exception occured in shutdownHook: ", e);
-                }
-            }
-        };
-        shutdownHook.start();
-        controller.stop(containerName);
-        try {
-            controller.kill(containerName);
-        } catch (Exception ex) {
-            log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
-                    "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
-                    "controller.kill() will do that.", ex);
-        }
-        try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
-            shutdownHook.join();
-        } catch (InterruptedException e) {
-            // ignore
-        }
-
-        log.info("Server " + containerName + " was stopped. There is no from tracking ports (f.e.: 9999, 5445, 8080, ..." +
-                ") running on its IP " + getHostname(containerName));
     }
 
     public int getBytemanPort(String containerName) throws Exception {

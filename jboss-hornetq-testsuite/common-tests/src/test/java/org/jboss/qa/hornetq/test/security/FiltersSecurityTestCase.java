@@ -38,13 +38,13 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
 
     @Before
     public void startupTestContainer() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
 
     @After
     public void stopTestContainer() {
-        this.controller.stop(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 
@@ -63,8 +63,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
                 .giveUserAllPermissions(User.USER.getUserName())
                 .create();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         this.sendTestMessagesAsUser();
     }
@@ -85,8 +84,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
                 .giveUserAllPermissions(User.USER.getUserName())
                 .create();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         this.sendTestMessagesAsUser();
     }
@@ -107,8 +105,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
                 .giveUserAllPermissions(User.USER.getUserName())
                 .create();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         this.sendTestMessagesAsUser();
     }
@@ -137,8 +134,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
                 .giveUserAllPermissions(User.USER.getUserName())
                 .create();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         this.sendTestMessagesAsUser();
     }
@@ -147,7 +143,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     private void sendTestMessagesAsUser() throws Exception {
         SecurityClient client = null;
         try {
-            client = new SecurityClient(getHostname(CONTAINER1_NAME), this.getJNDIPort(CONTAINER1_NAME), TEST_QUEUE_JNDI, 10,
+            client = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), TEST_QUEUE_JNDI, 10,
                     User.USER.getUserName(), User.USER.getPassword());
             client.initializeClient();
             client.sendAndReceive();

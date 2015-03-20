@@ -78,7 +78,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         SecurityClient guest = null;
         try {
@@ -127,7 +127,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
                 guest.close();
             }
         }
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -142,7 +142,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         SecurityClient user = null;
 
@@ -189,7 +189,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -205,7 +205,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareServer();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         SecurityClient admin = null;
 
@@ -251,7 +251,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -263,17 +263,16 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     public void inVmSecurityTestCase() throws Exception{
 
         prepareServer();
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployer.deploy(MDB_ON_QUEUE_TO_QUEUE);
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        HashMap<String,String> opts= new HashMap();
+        HashMap<String,String> opts= new HashMap<String, String>();
         opts.put("password-stacking","useFirstPass");
         jmsAdminOperations.rewriteLoginModule("Remoting",opts);
         jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
         jmsAdminOperations.overrideInVMSecurity(false);
 
-        controller.stop(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).restart();
         SecurityClient producer= new SecurityClient(getHostname(CONTAINER1_NAME),getJNDIPort(CONTAINER1_NAME),inQueueJndiNameForMdb,10, "user","useruser");
         producer.initializeClient();
         producer.send();
@@ -284,13 +283,13 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations = container(1).getJmsOperations();
         long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
         Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @After
     public void stopServerIfAlive()    {
         if (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME))) {
-            controller.stop(CONTAINER1_NAME);
+            container(1).stop();
         }
     }
 
@@ -299,11 +298,11 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         deployDestinations(container(1));
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
 
     }

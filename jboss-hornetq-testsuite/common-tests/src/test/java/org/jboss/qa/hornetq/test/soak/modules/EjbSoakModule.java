@@ -35,7 +35,7 @@ public class EjbSoakModule extends HornetQTestCase implements SoakTestModule {
 
 
     @Override
-    public void setUpServers(ContainerController controller) {
+    public void setUpServers() {
         this.container = container(1);
         JMSOperations ops = container.getJmsOperations();
         ops.createQueue(EJB_IN_QUEUE, EJB_IN_QUEUE_JNDI);

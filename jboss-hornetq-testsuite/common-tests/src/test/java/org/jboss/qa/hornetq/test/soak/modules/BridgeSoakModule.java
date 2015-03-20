@@ -56,7 +56,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
 
     @Override
-    public void setUpServers(final ContainerController controller) {
+    public void setUpServers() {
         this.queueContainer = container(1);
         this.remoteContainer = container(2);
 

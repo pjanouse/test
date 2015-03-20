@@ -52,7 +52,7 @@ public class RemoteJcaSoakModule extends HornetQTestCase implements SoakTestModu
 
 
     @Override
-    public void setUpServers(final ContainerController controller) {
+    public void setUpServers() {
         this.queuesContainer = container(1);
         this.mdbContainer = container(2);
 

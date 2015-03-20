@@ -306,7 +306,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         prepareJmsServer(container(1));
 
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         logger.info("!!!!! FIRST PASS !!!!!");
         logger.info("Sending messages to InQueue");
@@ -322,9 +322,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             logger.debug("Arquillian got an exception while deploying", e);
         }
 
-        this.controller.kill(CONTAINER1_NAME);
-
-        controller.start(CONTAINER1_NAME);
+        container(1).kill();
+        container(1).start();
 
         // check that number of prepared transaction gets to 0
         logger.info("Get information about transactions from HQ:");
@@ -344,7 +343,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
         assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
@@ -391,7 +390,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @After
     @Override
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 

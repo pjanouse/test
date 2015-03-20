@@ -149,11 +149,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(3).start();
         // cluster B with mdbs
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         deployer.deploy(MDB1);
         deployer.deploy(MDB2);
@@ -187,10 +187,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1);
         deployer.undeploy(MDB2);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
 
     }
 
@@ -204,10 +204,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // cluster B
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         deployer.deploy(MDB1);
 
@@ -231,8 +231,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
     }
 
@@ -246,16 +246,16 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // cluster A
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // cluster B
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         deployer.deploy(MDB1_NON_DURABLE);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME))) {
             Thread.sleep(3000);
@@ -279,9 +279,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1_NON_DURABLE);
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -299,8 +299,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
 
-        controller.start(CONTAINER1_NAME);//jms server
-        controller.start(CONTAINER2_NAME);// mdb server
+        container(1).start();//jms server
+        container(2).start();// mdb server
 
         deployer.undeploy(MDB1);
 
@@ -313,12 +313,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         waitForNumberOfMessagesInQueue(container(1), inQueueName, numberOfMessages/10, 120000);
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
         // Start newer version of EAP and client with older version of EAP
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         deployer.deploy(MDB1);
         ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerId(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, numberOfMessages);
@@ -334,8 +334,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB1);
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
     }
 
@@ -349,9 +349,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         prepareJmsServer(container(3)); // jms server with mdb with cluster with container 1 and 2
 
         // cluster A
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployDestinations(container(1));
-        controller.start(CONTAINER3_NAME);
+        container(3).start();
         deployDestinations(container(3));
         // cluster B with mdbs
         String s = null;
@@ -368,7 +368,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
         Map<String,String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        controller.start(CONTAINER2_NAME, properties);
+        container(2).start();
 
 
         deployer.deploy(MDB1_WITH_CONNECTOR_PARAMETERS);
@@ -403,9 +403,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB1);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
 
 
     }
@@ -418,10 +418,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
 
     }
 
@@ -438,13 +438,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             prepareJmsServer(container(3));
             prepareMdbServer(container(4), CONTAINER3_NAME);
 
-            controller.start(CONTAINER1_NAME);
+        container(1).start();
             deployDestinations(container(1));
-            stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-            controller.start(CONTAINER3_NAME);
+        container(3).start();
             deployDestinations(container(3));
-            stopServer(CONTAINER3_NAME);
+        container(3).stop();
 
             copyApplicationPropertiesFiles();
 

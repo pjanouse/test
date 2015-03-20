@@ -108,8 +108,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // start live-backup servers
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
@@ -120,7 +120,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        controller.start(CONTAINER3_NAME);
+        container(3).start();
 
         logger.info("Deploying MDB to mdb server.");
 //        // start mdb server
@@ -131,11 +131,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         if (shutdown) {
             logger.info("Stopping container 1.");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             logger.info("Container 1 stopped.");
         } else {
             logger.info("Killing container 1.");
-            killServer(CONTAINER1_NAME);
+            container(1).kill();
             logger.info("Container 1 killed.");
         }
 
@@ -158,9 +158,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
 
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(3).stop();
+        container(2).stop();
+        container(1).stop();
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
@@ -175,8 +175,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
         // start live-backup servers
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -187,7 +187,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.join();
 
 
-        controller.start(CONTAINER3_NAME);
+        container(3).start();
 
         // start mdb server
         deployer.deploy("mdb1");
@@ -197,11 +197,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
                 waitForMessagesOnOneNode(container(1), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             logger.info("Container 1 shut downed.");
         } else {
-            killServer(CONTAINER1_NAME);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
             logger.info("Container 1 killed.");
         }
 
@@ -211,12 +210,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
         logger.info("Container 1 started again");
         Thread.sleep(10000);
         logger.info("Container 2 stopping...");
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
         logger.info("Container 2 stopped");
 
         waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
@@ -236,9 +235,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(3).stop();
+        container(2).stop();
+        container(1).stop();
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
     }
@@ -275,9 +274,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(3).stop();
+        container(2).stop();
+        container(1).stop();
     }
 
     /**

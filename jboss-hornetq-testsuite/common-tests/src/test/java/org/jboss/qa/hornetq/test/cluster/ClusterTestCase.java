@@ -110,9 +110,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Clients queueClients = createClients(Session.SESSION_TRANSACTED, false);
         Clients topicClients = createClients(Session.SESSION_TRANSACTED, true);
@@ -126,9 +126,9 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", queueClients.evaluateResults());
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", topicClients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -145,8 +145,8 @@ public class ClusterTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
         waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
@@ -169,14 +169,13 @@ public class ClusterTestCase extends HornetQTestCase {
 //        if (shutdown)   {
 //            controller.stop(CONTAINER2_NAME);
 //        } else {
-        killServer(CONTAINER2_NAME);
-        controller.kill(CONTAINER2_NAME);
+        container(2).kill();
 //        }
 
         log.info("########################################");
         log.info("Start again - second server");
         log.info("########################################");
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
         waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000);
         log.info("########################################");
         log.info("Second server started");
@@ -198,8 +197,8 @@ public class ClusterTestCase extends HornetQTestCase {
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -254,9 +253,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // send messages without dup id -> load-balance to node 2
         ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -319,8 +318,8 @@ public class ClusterTestCase extends HornetQTestCase {
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 NUMBER_OF_MESSAGES_PER_PRODUCER, receiver2.getListOfReceivedMessages().size());
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -338,9 +337,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         deployer.deploy(MDB_ON_QUEUE1);
 
@@ -373,9 +372,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         deployer.undeploy(MDB_ON_QUEUE2);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -392,9 +391,9 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         prepareServers(false);
         int numberOfMessages = 30;
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         deployer.deploy(MDB_ON_TEMPQUEUE1);
 
@@ -420,9 +419,9 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.undeploy(MDB_ON_TEMPQUEUE2);
 
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -439,7 +438,7 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         boolean passed = false;
         prepareServers(true);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         try {
             deployer.deploy(MDB_ON_TEMPTOPIC1);
             passed = true;
@@ -450,7 +449,7 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertFalse("Deployment of already existing topic didn't failed", passed);
 
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -466,7 +465,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployer.deploy(MDB_ON_TEMPTOPIC1);
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         SubscriberAutoAck subscriber = new SubscriberAutoAck(CONTAINER1_NAME, getHostname(CONTAINER1_NAME), 4447, inTopicJndiNameForMdb, "subscriber1", "subscription1");
@@ -477,7 +476,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         Assert.assertEquals("Number of subscriptions is not 0", 0, jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -494,8 +493,8 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         prepareServer(container(1), false);
         prepareServer(container(2), false);
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
         deployer.deploy(MDB_ON_TEMPTOPIC1);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
@@ -510,8 +509,8 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
     /**
@@ -528,8 +527,8 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         prepareServer(container(1), true);
         prepareServer(container(2), false);
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
@@ -545,8 +544,8 @@ public class ClusterTestCase extends HornetQTestCase {
         deployer.undeploy(MDB_ON_TEMPTOPIC2);
         deployer.deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 
@@ -556,8 +555,8 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestTempQueueonOtherNodes() throws Exception {
         prepareServers(true);
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(2).start();
+        container(1).start();
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
@@ -582,7 +581,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestPagingAfterFailOverTempQueue() throws Exception {
         prepareServers(true);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         String pagingPath = null;
         int counter = 0;
         ArrayList<File> pagingFilesPath = new ArrayList<File>();
@@ -600,9 +599,8 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size() == 0);
-        killServer(CONTAINER1_NAME);
-        controller.kill(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).kill();
+        container(1).start();
         //  Thread.sleep(80000);
         for (File f : getAllPagingFiles(pagingPath)) {
             log.error("FILE: " + f.getName());
@@ -619,7 +617,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestPagingAfterFailOverNonDurableQueue() throws Exception {
         prepareServer(container(1), false);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         String pagingPath = null;
         int counter = 0;
         ArrayList<File> pagingFilesPath = new ArrayList<File>();
@@ -639,9 +637,8 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         Assert.assertEquals("No paging files was found", false, getAllPagingFiles(pagingPath).size() == 0);
-        killServer(CONTAINER1_NAME);
-        controller.kill(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).kill();
+        container(1).start();
         Assert.assertEquals("Too many paging files was found", 0, getAllPagingFiles(pagingPath).size());
 
 
@@ -657,7 +654,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestReadMessageFromDifferentConnection() throws Exception {
         prepareServers(true);
         boolean failed = false;
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         try {
             Context context = getContext(CONTAINER1_NAME);
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
@@ -686,7 +683,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestTemQueueMessageExpiration() throws Exception {
         prepareServers(true);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
@@ -707,7 +704,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestTemQueueMessageExpirationLM() throws Exception {
         prepareServers(true);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
@@ -729,7 +726,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestWithMdbHqXmlOnQueueRedeploy() throws Exception {
         prepareServer(container(1), false);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         deployer.deploy(MDB_ON_TEMPQUEUE1);
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiNameForMdb, 10000, 10, 10);
@@ -739,7 +736,7 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver.start();
         receiver.join();
         Assert.assertEquals("Number of messages does not match", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 
@@ -750,8 +747,8 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGrouping() throws Exception {
         prepareServer(container(1), true);
         prepareServer(container(2), true);
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
 
@@ -800,13 +797,11 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         //restart servers to changes take effect
-        stopServer(CONTAINER1_NAME);
-        controller.kill(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        controller.kill(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiNameForMdb, 10000, 10, 10);
@@ -874,9 +869,8 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
 
-
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
     @Test
@@ -886,8 +880,8 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGroupingToFail() throws Exception {
         prepareServer(container(1), true);
         prepareServer(container(2), true);
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
 
@@ -911,11 +905,11 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         //restart servers to changes take effect
-        stopServer(CONTAINER1_NAME);
-        controller.kill(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        controller.kill(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).kill();
+        container(2).stop();
+        container(2).kill();
+        container(1).start();
         deployer.deploy(MDB_ON_QUEUE1_SECURITY);
 
         //setup producers and receivers
@@ -932,8 +926,8 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
         Assert.assertEquals("Number of received messages does not match on receiver2", 0, receiver2.getListOfReceivedMessages().size());
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 
@@ -967,9 +961,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         if (mdbsWithDifferentSubscriptions) {
 
@@ -1034,9 +1028,9 @@ public class ClusterTestCase extends HornetQTestCase {
             deployer.undeploy(MDB_ON_TOPIC2);
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -1073,7 +1067,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Ignore
     public void clusterTestWitMessageGroupingCrashRemoteWithNoConsumerLongRestart() throws Exception {
-        clusterWitMessageGroupingCrashServerWithNoConsumer(CONTAINER4_NAME, 20000);
+        clusterWitMessageGroupingCrashServerWithNoConsumer(container(4), 20000);
     }
 
     /**
@@ -1091,15 +1085,15 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWitMessageGroupingCrashLocalWithNoConsumer() throws Exception {
-        clusterWitMessageGroupingCrashServerWithNoConsumer(CONTAINER1_NAME, 20000);
+        clusterWitMessageGroupingCrashServerWithNoConsumer(container(1), 20000);
     }
 
 
-    public void clusterWitMessageGroupingCrashServerWithNoConsumer(String serverToKill, long timeBetweenKillAndRestart) throws Exception {
+    public void clusterWitMessageGroupingCrashServerWithNoConsumer(Container serverToKill, long timeBetweenKillAndRestart) throws Exception {
         testMessageGrouping(serverToKill, timeBetweenKillAndRestart, CONTAINER3_NAME);
     }
 
-    public void testMessageGrouping(String serverToKill, long timeBetweenKillAndRestart, String serverWithConsumer) throws Exception {
+    public void testMessageGrouping(Container serverToKill, long timeBetweenKillAndRestart, String serverWithConsumer) throws Exception {
 
         int numberOfMessages = 10000;
 
@@ -1117,10 +1111,10 @@ public class ClusterTestCase extends HornetQTestCase {
         addMessageGrouping(container(3), name, "REMOTE", address, timeout);
         addMessageGrouping(container(4), name, "REMOTE", address, timeout);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER3_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
 
         List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>();
 
@@ -1153,8 +1147,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         log.info("Kill server - " + serverToKill);
         // kill remote 3
-        killServer(serverToKill);
-        controller.kill(serverToKill);
+        serverToKill.kill();
 
         Thread.sleep(3 * 1000);
 
@@ -1176,7 +1169,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         // start killed server
         log.info("Start server - " + serverToKill);
-        controller.start(serverToKill);
+        serverToKill.start();
         log.info("Started server - " + serverToKill);
 
         // wait timeout time to get messages redistributed to the other node
@@ -1205,10 +1198,10 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages: ",
                 messageVerifier.getSentMessages().size(), messageVerifier.getReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
 
     }
 
@@ -1218,7 +1211,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testMessageGroupingRestartOfRemote() throws Exception {
 
-        String serverToKill = CONTAINER2_NAME;
+        Container serverToKill = container(2);
         long timeBetweenKillAndRestart = 20000;
 
         int numberOfMessages = 10000;
@@ -1237,10 +1230,10 @@ public class ClusterTestCase extends HornetQTestCase {
         addMessageGrouping(container(3), name, "REMOTE", address, timeout);
         addMessageGrouping(container(4), name, "REMOTE", address, timeout);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER3_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
 
         List<String> groups = new ArrayList<String>();
 
@@ -1295,8 +1288,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         log.info("Kill server - " + serverToKill);
         // kill remote 1
-        killServer(serverToKill);
-        controller.kill(serverToKill);
+        serverToKill.kill();
         Thread.sleep(3 * 1000);
         log.info("Killed server - " + serverToKill);
 
@@ -1306,7 +1298,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         // start killed server
         log.info("Start server - " + serverToKill);
-        controller.start(serverToKill);
+        serverToKill.start();
         log.info("Started server - " + serverToKill);
 
         // wait timeout time to get messages redistributed to the other node
@@ -1330,10 +1322,10 @@ public class ClusterTestCase extends HornetQTestCase {
 
         Assert.assertEquals("Number of send and received messages is different: ", numberOfSendMessages+500, numberOfReceivedMessages);
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
 
     }
 
@@ -1356,8 +1348,8 @@ public class ClusterTestCase extends HornetQTestCase {
         // set remote grouping-handler on 2nd node
         addMessageGrouping(container(2), name, "REMOTE", address, timeout);
 
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(2).start();
+        container(1).start();
         Thread.sleep(5000);
         FinalTestMessageVerifier verifier = new TextMessageVerifier();
         ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), inQueueJndiNameForMdb, 30000, 100, 10);
@@ -1378,15 +1370,11 @@ public class ClusterTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         producerToInQueue2.join();
 
-
-
-
         // kill both of the servers
-        killServer(CONTAINER1_NAME);
-            controller.kill(CONTAINER1_NAME);
+        container(1).kill();
 
         // start 1st server
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         Thread.sleep(5000);
 
 
@@ -1419,8 +1407,8 @@ public class ClusterTestCase extends HornetQTestCase {
                 receiver.getListOfReceivedMessages().size()
         );
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -1442,8 +1430,8 @@ public class ClusterTestCase extends HornetQTestCase {
         // set remote grouping-handler on 2nd node
         addMessageGrouping(container(2), name, "REMOTE", address, timeout);
 
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(2).start();
+        container(1).start();
 
         log.info("Send messages to first server.");
         sendMessages(CONTAINER1_NAME, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
@@ -1459,8 +1447,8 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertTrue("Number received messages must be 0 as producer was not up in parallel with consumer. There should be 0"
                 + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size() == 0);
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -1514,8 +1502,8 @@ public class ClusterTestCase extends HornetQTestCase {
         createDivert(container(1), divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
         createDivert(container(2), divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // start client
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiNameForMdb, numberOfMessages);
@@ -1548,15 +1536,15 @@ public class ClusterTestCase extends HornetQTestCase {
                     numberOfMessages, receiverDivertedAddress.getListOfReceivedMessages().size());
         }
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
     private void createDivert(Container container, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
                               String filter, String routingName, String transformerClassName) {
 
-        controller.start(container.getName());
+        container.start();
         JMSOperations jmsOperations = container.getJmsOperations();
         jmsOperations.addDivert(divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName,
                 transformerClassName);
@@ -1575,7 +1563,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterTestWitMessageGroupingTestSingleLocalServer() throws Exception {
-        clusterTestWitMessageGroupingTestSingleServer(CONTAINER1_NAME);
+        clusterTestWitMessageGroupingTestSingleServer(container(1));
     }
 
 //    /**
@@ -1590,7 +1578,7 @@ public class ClusterTestCase extends HornetQTestCase {
 //        clusterTestWitMessageGroupingTestSingleServer(CONTAINER2_NAME);
 //    }
 
-    public void clusterTestWitMessageGroupingTestSingleServer(String nameOfTestedContainerName) throws Exception {
+    public void clusterTestWitMessageGroupingTestSingleServer(Container testedContainer) throws Exception {
 
         int numberOfMessages = 10;
 
@@ -1609,14 +1597,15 @@ public class ClusterTestCase extends HornetQTestCase {
         addMessageGrouping(serverWithRemoteHandler, name, "REMOTE", address, timeout);
 
         // first try just local
-        controller.start(nameOfTestedContainerName);
+        testedContainer.start();
 
         List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>();
         List<ReceiverTransAck> receivers = new ArrayList<ReceiverTransAck>();
         List<FinalTestMessageVerifier> groupMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(nameOfTestedContainerName), getJNDIPort(nameOfTestedContainerName), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(testedContainer.getHostname(),
+                    testedContainer.getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
@@ -1625,7 +1614,8 @@ public class ClusterTestCase extends HornetQTestCase {
         for (int i = 0; i < 2; i++) {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
             groupMessageVerifiers.add(groupMessageVerifier);
-            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(nameOfTestedContainerName), getJNDIPort(nameOfTestedContainerName), inQueueJndiNameForMdb, 10000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(testedContainer.getHostname(),
+                    testedContainer.getJNDIPort(), inQueueJndiNameForMdb, 10000, 100, 10);
             receiver.setMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
@@ -1650,14 +1640,13 @@ public class ClusterTestCase extends HornetQTestCase {
             verifier.verifyMessages();
         }
 
-        if (serverWithLocalHandler.getName().equals(nameOfTestedContainerName)) {
+        if (serverWithLocalHandler.getName().equals(testedContainer)) {
             Assert.assertEquals("There is different number of sent and recevied messages.", numberOfSentMessages, numberOfReceivedMessages);
-        } else if (serverWithRemoteHandler.getName().equals((nameOfTestedContainerName))) {
+        } else if (serverWithRemoteHandler.getName().equals((testedContainer))) {
             Assert.assertEquals("There must be 0 messages recevied.", 0, numberOfReceivedMessages);
         }
 
-        stopServer(nameOfTestedContainerName);
-
+        testedContainer.stop();
     }
 
 
@@ -1683,15 +1672,10 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     private void addMessageGrouping(Container container, String name, String type, String address, long timeout) {
-
-        controller.start(container.getName());
-
+        container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
         jmsAdminOperations.addMessageGrouping("default", name, type, address, timeout, 500, 750);
-
         jmsAdminOperations.close();
-
         container.stop();
     }
 
@@ -1798,7 +1782,7 @@ public class ClusterTestCase extends HornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        controller.start(container.getName());
+        container.start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
@@ -1850,10 +1834,10 @@ public class ClusterTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
 
     }
 

@@ -51,13 +51,13 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
     @Before
     public void startContainerBeforeTest() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
 
     @After
     public void stopContainerAfterTest() {
-        this.controller.stop(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 
@@ -119,7 +119,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
             throws Exception {
 
         this.prepareContainer(container);
-        controller.start(container.getName());
+        container.start();
 
         Clients client = createClients(container, acknowledgeMode, isTopic);
         client.startClients();
@@ -131,7 +131,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
             Thread.sleep(1500);
         }
 
-        stopServer(container.getName());
+        container.stop();
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", client.evaluateResults());
     }

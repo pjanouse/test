@@ -372,7 +372,6 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
             log.info("Start server 2.");
             container(2).start();
-            controller.start(CONTAINER2_NAME);
             log.info("Server 2 started.");
 
             startProxies();

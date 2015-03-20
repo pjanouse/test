@@ -110,9 +110,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareColocatedTopologyInCluster();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // give some time for servers to find each other
         Thread.sleep(10000);
@@ -133,12 +133,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("kill - first server");
         logger.info("########################################");
         if (shutdown) {
-            controller.stop(CONTAINER1_NAME);
+            container(1).stop();
         } else {
             // install rule to first server
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT);
 //            killServer(CONTAINER1_NAME_NAME);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         }
 
         waitForReceiversUntil(clients.getConsumers(), 500, 300000);
@@ -149,7 +149,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("########################################");
             logger.info("failback - Start first server again ");
             logger.info("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
 //            Thread.sleep(10000);
 //            logger.info("########################################");
@@ -175,9 +175,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -209,9 +209,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareColocatedTopologyInCluster();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // give some time for servers to find each other
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
@@ -239,10 +239,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         if (shutdown) {
-            controller.stop(CONTAINER2_NAME);
+            container(2).stop();
         } else {
-            killServer(CONTAINER2_NAME);
-            controller.kill(CONTAINER2_NAME);
+            container(2).kill();
         }
 
         // when 1/2 is processed then start 2nd server
@@ -254,7 +253,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
         logger.info("Start again - second server");
         logger.info("########################################");
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
         logger.info("########################################");
         logger.info("Second server started");
         logger.info("########################################");
@@ -296,8 +295,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         deployer.undeploy("mdb1");
         deployer.undeploy("mdb2");
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -340,8 +339,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
         prepareLiveServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B);
 
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(2).start();
+        container(1).start();
 
         // give some time for servers to find each other
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
@@ -362,16 +361,15 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         if (shutdown) {
-            controller.stop(CONTAINER2_NAME);
+            container(2).stop();
         } else {
-            killServer(CONTAINER2_NAME);
-            controller.kill(CONTAINER2_NAME);
+            container(2).kill();
         }
 
         logger.info("########################################");
         logger.info("Start again - second server");
         logger.info("########################################");
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
         waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000);
         logger.info("########################################");
         logger.info("Second server started");
@@ -391,8 +389,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -402,7 +400,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testGroupingFailoverNodeOneDown() throws Exception {
-        testGroupingFailover(CONTAINER1_NAME, false, true);
+        testGroupingFailover(container(1), false, true);
     }
 
     @Test
@@ -410,7 +408,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testGroupingFailoverNodeOneDownLM() throws Exception {
-        testGroupingFailover(CONTAINER1_NAME, true, true);
+        testGroupingFailover(container(1), true, true);
     }
 
     @Test
@@ -418,7 +416,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testGroupingFailoverNodeOneDownSd() throws Exception {
-        testGroupingFailover(CONTAINER1_NAME, false, false);
+        testGroupingFailover(container(1), false, false);
     }
 
     @Test
@@ -426,7 +424,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testGroupingFailoverNodeOneDownSdLM() throws Exception {
-        testGroupingFailover(CONTAINER1_NAME, true, false);
+        testGroupingFailover(container(1), true, false);
     }
 
     @Test
@@ -435,7 +433,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Ignore
     public void testGroupingFailoverNodeTwoDown() throws Exception {
-        testGroupingFailover(CONTAINER2_NAME, false, true);
+        testGroupingFailover(container(2), false, true);
     }
 
     @Test
@@ -444,7 +442,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Ignore
     public void testGroupingFailoverNodeTwoDownLM() throws Exception {
-        testGroupingFailover(CONTAINER2_NAME, true, true);
+        testGroupingFailover(container(2), true, true);
     }
 
     @Test
@@ -453,7 +451,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Ignore
     public void testGroupingFailoverNodeTwoDownSd() throws Exception {
-        testGroupingFailover(CONTAINER2_NAME, false, false);
+        testGroupingFailover(container(2), false, false);
     }
 
     @Test
@@ -462,11 +460,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Ignore
     public void testGroupingFailoverNodeTwoDownSdLM() throws Exception {
-        testGroupingFailover(CONTAINER2_NAME, true, false);
+        testGroupingFailover(container(2), true, false);
     }
 
 
-    public void testGroupingFailover(String containerToKill, boolean largeMessages, boolean useKill) throws Exception {
+    public void testGroupingFailover(Container containerToKill, boolean largeMessages, boolean useKill) throws Exception {
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 50000;
@@ -478,9 +476,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         prepareColocatedTopologyInCluster();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         JMSOperations jmsAdminOperationsC1 = container(1).getJmsOperations();
 
@@ -494,13 +492,13 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         logger.info("@@@@@@@@@@@@@@@ SERVERS RUNNING @@@@@@@@@@@");
 
@@ -534,13 +532,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         Thread.sleep(8000);
 
         if (useKill) {
-
-            killServer(containerToKill);
-
+            containerToKill.kill();
         } else {
-
-            stopServer(containerToKill);
-
+            containerToKill.stop();
         }
 
         producerRedG1.join();
@@ -834,9 +828,9 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 

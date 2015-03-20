@@ -75,9 +75,9 @@ public class NewSoakTestCase extends HornetQTestCase {
     @Before
     public void startUpServers() {
 
-        this.controller.start(CONTAINER1_NAME, setMemoryForContainer(CONTAINER1_NAME, 4000));
+        container(1).start();
 
-        this.controller.start(CONTAINER2_NAME, setMemoryForContainer(CONTAINER2_NAME, 4000));
+        container(2).start();
 
     }
 
@@ -107,8 +107,8 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     @After
     public void stopServers() {
-        this.controller.stop(CONTAINER2_NAME);
-        this.controller.stop(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
     }
 
 
@@ -287,7 +287,7 @@ public class NewSoakTestCase extends HornetQTestCase {
      */
     private void prepareServers() {
         for (SoakTestModule module : MODULES) {
-            module.setUpServers(this.controller);
+            module.setUpServers();
         }
     }
 

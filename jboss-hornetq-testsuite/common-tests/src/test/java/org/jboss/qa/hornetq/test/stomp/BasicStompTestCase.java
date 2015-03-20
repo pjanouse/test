@@ -58,7 +58,7 @@ public class BasicStompTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -133,7 +133,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
         }
         jmsAdminOperations.removeQueue(QUEUE_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -186,7 +186,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
         }
         jmsAdminOperations.removeQueue(QUEUE_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -249,7 +249,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         }
         jmsAdminOperations.removeQueue(QUEUE_NAME);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -289,7 +289,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverClientAck.getCount());
 
             jmsAdminOperations.removeQueue(QUEUE_NAME);
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         } catch (Exception e) {
             log.error(e);
             fail(e.getMessage());
@@ -382,7 +382,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         }
         jmsAdminOperations.removeQueue(QUEUE_NAME);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -394,7 +394,7 @@ public class BasicStompTestCase extends HornetQTestCase {
      */
 
     protected void startAndPrepareServerForStompTest(String queueName, String queueJNDI, JMSOperations jmsOperations, boolean disableSecurity) {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // Create queue
         jmsOperations.addSocketBinding("messaging-stomp", STOMP_PORT);
@@ -410,8 +410,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             jmsOperations.setSecurityEnabled(false);
         }
 
-        controller.stop(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).restart();
     }
 
 }

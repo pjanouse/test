@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.jca;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -21,6 +20,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -126,7 +126,7 @@ public class JcaTestCase extends HornetQTestCase {
         // we use only the first server
         prepareServer();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
@@ -159,7 +159,7 @@ public class JcaTestCase extends HornetQTestCase {
 
 
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -182,8 +182,8 @@ public class JcaTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
         deleteFolder(new File(JOURNAL_DIRECTORY_A));
     }
 

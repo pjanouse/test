@@ -14,7 +14,6 @@ import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -42,12 +41,12 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     @Before
     public void startServerBeforeTest() {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
     @After
     public void stopServerAfterTest() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -69,8 +68,8 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
 
         // connect notification listeners to HornetQ MBean server
         JmxNotificationListener jmsListener = getJmxNotificationListener();
@@ -141,9 +140,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMXConnector connector = null;
 
@@ -215,7 +214,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -241,9 +240,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMXConnector connector = null;
 
@@ -294,7 +293,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -320,9 +319,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMXConnector connector = null;
 
@@ -394,7 +393,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -420,9 +419,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMXConnector connector = null;
 
@@ -473,7 +472,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -495,9 +494,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         ops.close();
 
         // we have to restart server for JMX to activate after config change
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMXConnector connector = null;
 
@@ -532,7 +531,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

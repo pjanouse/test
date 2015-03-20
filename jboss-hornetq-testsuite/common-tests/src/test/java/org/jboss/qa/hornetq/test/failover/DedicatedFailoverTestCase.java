@@ -120,9 +120,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -139,12 +139,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT_1);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -157,7 +157,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
@@ -186,9 +186,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -227,9 +227,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -253,15 +253,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 logger.warn("########################################");
                 logger.warn("Kill live server - number of failovers: " + numberOfFailovers);
                 logger.warn("########################################");
-                killServer(CONTAINER1_NAME);
-                controller.kill(CONTAINER1_NAME);
+                container(1).kill();
 
             } else {
 
                 logger.warn("########################################");
                 logger.warn("Shutdown live server - number of failovers: " + numberOfFailovers);
                 logger.warn("########################################");
-                stopServer(CONTAINER1_NAME);
+                container(1).stop();
             }
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -276,7 +275,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
 
             Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
 
@@ -307,9 +306,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -361,17 +360,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000);
         addDivert(container(1), divertedQueue, isExclusive, topic);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        controller.start(CONTAINER2_NAME); // keep in mind that backup will not open port 5445
+        container(2).start(); // keep in mind that backup will not open port 5445
         addDivert(container(2), divertedQueue, isExclusive, topic);
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -387,13 +386,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            killServer(CONTAINER1_NAME);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -406,7 +404,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
@@ -514,9 +512,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -549,8 +547,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         clients = createClients(acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
@@ -577,9 +575,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -653,9 +651,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Thread.sleep(10000);
 
@@ -679,7 +677,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         waitForServerToBeKilled(CONTAINER1_NAME, 60000);
 
-        controller.kill(CONTAINER1_NAME);
+        container(1).kill();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
 //        Thread.sleep(20000); // give some time for org.jboss.qa.hornetq.apps.clients to failover
@@ -689,7 +687,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             waitHornetQBackupToBecomePassive(CONTAINER2_NAME, getHornetqPort(CONTAINER2_NAME), 300000);
             Thread.sleep(5000); // give it some time
@@ -710,9 +708,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -735,9 +733,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithProducers(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -759,7 +757,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.warn("########################################");
         logger.warn("Shutdown live server");
         logger.warn("########################################");
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
         PrintJournal.printJournal(getJbossHome(CONTAINER1_NAME), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                 "journalAfterShutdownAndFailoverToBackup.txt");
         logger.warn("########################################");
@@ -780,7 +778,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             PrintJournal.printJournal(getJbossHome(CONTAINER1_NAME), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                     "journalAfterStartingLiveAgain_Failback.txt");
@@ -792,7 +790,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            stopServer(CONTAINER2_NAME);
+            container(2).stop();
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -818,9 +816,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", p.getListOfSentMessages().size() == r.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
     }
 
 
@@ -1182,9 +1180,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             waitForClientsToFinish(clients, 300000);
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
 //        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
@@ -1435,9 +1433,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailoverNoPrepare(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         Thread.sleep(10000);
 
@@ -1454,12 +1452,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT_1);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -1472,7 +1470,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
@@ -1494,9 +1492,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 

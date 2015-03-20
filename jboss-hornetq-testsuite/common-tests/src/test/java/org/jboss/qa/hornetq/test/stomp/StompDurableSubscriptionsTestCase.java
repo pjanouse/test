@@ -52,7 +52,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -102,7 +102,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         final String ADDRESS = "#";
         final String STOMP_SOCKET_BINDING_NAME = "messaging-stomp";
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.cleanupTopic(TOPIC);
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
@@ -118,8 +118,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         // Disable security on HQ
         jmsAdminOperations.setSecurityEnabled(false);
 
-        controller.stop(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         // Clients and semaphores
         HighLoadStompProducerWithSemaphores producer;
@@ -174,6 +173,6 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 }

@@ -43,7 +43,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
         prepareServer(container(1));
         prepareServer(container(2));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         final long numberOfMessages = 300;
         final int numberOfIterations = 300000;
 
@@ -102,7 +102,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
                 ctx.close();
             }
         }
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     private void prepareServer(Container container) {

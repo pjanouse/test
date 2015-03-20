@@ -101,7 +101,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     @Before
     public void stopServerBeforeReconfiguration() {
-        this.controller.stop(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 
@@ -109,13 +109,12 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testOneWaySslOverCore() throws Exception {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         ServerLocator locator = null;
         try {
@@ -163,14 +162,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testOneWaySslOverJms() throws Exception {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
@@ -220,14 +218,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     )
     public void testOneWaySslOverSSLv3Jms() throws Exception {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createOneWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
 
@@ -260,8 +257,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
             RuleInstaller.uninstallAllRules(getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
 
-            controller.stop(CONTAINER1_NAME);
-
+            container(1).stop();
         }
     }
 
@@ -274,14 +270,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslOverCore() throws Exception {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createTwoWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
@@ -324,14 +319,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslOverJms() throws Exception {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createTwoWaySslAcceptor(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
@@ -378,7 +372,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs11(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Context context;
 
@@ -410,7 +404,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         session.close();
         connection.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -424,7 +418,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs11(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
@@ -463,7 +457,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         connection.close();
         cf.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -471,7 +465,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         installSecurityExtension(CONTAINER1_NAME);
 
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = this.prepareServer();
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
@@ -543,7 +537,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         ops.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             activateLegacyJnpModule(getContainerInfo(containerName));

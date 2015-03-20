@@ -30,7 +30,7 @@ public class DurableSubscriptionsSoakModule extends HornetQTestCase implements S
 
 
     @Override
-    public void setUpServers(ContainerController controller) {
+    public void setUpServers() {
         this.container = container(1);
         this.prepareDestinations(this.container);
     }

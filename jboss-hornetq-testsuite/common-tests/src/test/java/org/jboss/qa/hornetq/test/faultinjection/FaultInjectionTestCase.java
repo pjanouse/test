@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * Test case covers basic fault injection tests for standalone node.
@@ -53,9 +53,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Before
     public void preActionPrepareServers()
     {
-    	stopServer(CONTAINER1_NAME);
+        container(1).stop();
     	deleteDataFolderForJBoss1();
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
     
     /**
@@ -64,7 +64,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @After
     public void postActionStopAllServers() 
     {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
         deleteDataFolderForJBoss1();
     }
     
@@ -918,8 +918,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
             client.sendMessages(TEST_QUEUE_JNDI);
 
-            controller.kill(CONTAINER1_NAME);
-            controller.start(CONTAINER1_NAME);
+            container(1).kill();
+            container(1).start();
 
             try 
             {
@@ -936,10 +936,10 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
             
             client.receiveMessages(TEST_QUEUE_JNDI);
-            
-            controller.kill(CONTAINER1_NAME);
-            
-            controller.start(CONTAINER1_NAME);
+
+            container(1).kill();
+
+            container(1).start();
         }
         return client;
     }

@@ -32,9 +32,8 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         startProxies();
 
-        controller.start(CONTAINER2_NAME); // B1
-        controller.start(CONTAINER1_NAME); // A1
-
+        container(2).start(); // B1
+        container(1).start(); // A1
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
@@ -105,10 +104,9 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
 
-
+        container(2).stop();
+        container(1).stop();
     }
 
 

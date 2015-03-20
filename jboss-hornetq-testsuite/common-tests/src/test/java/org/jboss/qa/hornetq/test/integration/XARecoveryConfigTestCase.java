@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.integration;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -15,6 +14,7 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,7 +53,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     @RunAsClient
     public void testOnlySimpleInVMJca() throws Exception {
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
@@ -89,7 +89,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // stop server
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -114,8 +114,8 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         prepareMdbServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
         prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
@@ -151,8 +151,8 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // stop server
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 //    @Test
@@ -203,9 +203,9 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
         prepareJmsServer(container(3), getHostname(CONTAINER3_NAME));
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(2).start();
+        container(3).start();
 
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
@@ -263,7 +263,7 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // stop 3. server to see whether xa recovery config for this node disappears
-        stopServer(CONTAINER3_NAME);
+        container(3).stop();
 
         // wait until tx manager call getXAResources
         Thread.sleep(300000);
@@ -310,9 +310,9 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
 
         }
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
     }
 
     /**

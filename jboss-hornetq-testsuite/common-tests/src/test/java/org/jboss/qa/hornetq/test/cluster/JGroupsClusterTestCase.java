@@ -59,7 +59,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        controller.start(container.getName());
+        container.start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
@@ -108,7 +108,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
             jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
         }
         jmsAdminOperations.close();
-        controller.stop(container.getName());
+        container.stop();
     }
 
     // TODO un-ignore when bz https://bugzilla.redhat.com/show_bug.cgi?id=1132190 is fixed
@@ -121,7 +121,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
         prepareServer(container(1), true);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Context context = null;
         Connection connection = null;
@@ -160,7 +160,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
             if (connection != null) {
                 connection.close();
             }
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
     }
 }

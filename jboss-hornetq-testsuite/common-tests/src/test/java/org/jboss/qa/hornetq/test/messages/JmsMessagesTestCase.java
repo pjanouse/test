@@ -54,13 +54,13 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     @Before
     public void startTestContainer() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
 
     @After
     public void stopTestContainer() {
-        this.controller.stop(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test
@@ -69,7 +69,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testRemovingScheduledMessage() throws Exception {
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         prepareServer(container(1));
 
         Context ctx = null;
@@ -113,7 +113,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         jmsOperations.close();
 
         Assert.assertEquals("There must be 0 messages in queue.", 0, count);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -151,7 +151,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     private void testThatDivertedMessagesIsAlsoScheduled(boolean isExclusive, boolean isLargeMessage) throws Exception {
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
@@ -213,7 +213,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -254,7 +254,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         long expireTime = 1000;
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
@@ -311,7 +311,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -352,7 +352,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         int numberOfMessages = 100;
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
@@ -410,7 +410,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

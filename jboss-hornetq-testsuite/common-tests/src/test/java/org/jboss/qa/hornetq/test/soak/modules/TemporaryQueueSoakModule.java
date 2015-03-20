@@ -29,7 +29,7 @@ public class TemporaryQueueSoakModule extends HornetQTestCase implements SoakTes
 
 
     @Override
-    public void setUpServers(final ContainerController controller) {
+    public void setUpServers() {
         this.container = container(1);
         JMSOperations ops = container.getJmsOperations();
         ops.createQueue(TEMP_IN_QUEUE, TEMP_IN_QUEUE_JNDI);

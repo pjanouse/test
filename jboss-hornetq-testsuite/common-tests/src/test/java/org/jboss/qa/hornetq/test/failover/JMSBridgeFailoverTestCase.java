@@ -40,7 +40,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         deployBridge(container(1), ONCE_AND_ONLY_ONCE, -1);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
 
@@ -53,7 +53,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         producerToInQueue1.join();
 
         // start target server for the bridge with queue OutQueue
-        controller.start(CONTAINER3_NAME);
+        container(3).start();
 
         // check that some messages got to OutQueue on server 3 and shutdown server1
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
@@ -61,7 +61,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         for (int i = 0; i < 5; i++) {
 
             // shutdown server 3
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
 
             // check HornetQ journal that there are no unfinished transactions
             String outputJournalFile = CONTAINER1_NAME + "-hornetq_journal_content_after_shutdown_of_JMS_bridge.txt";
@@ -74,10 +74,10 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
             Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
                     new File(outputJournalFile), stringToFind));
 
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
         }
 
-        stopServer(CONTAINER3_NAME);
+        container(3).stop();
     }
 
     /////////////////// Test Initial Failover /////////////////

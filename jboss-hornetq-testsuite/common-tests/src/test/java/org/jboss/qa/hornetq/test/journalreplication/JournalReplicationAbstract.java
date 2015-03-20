@@ -53,7 +53,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	@Before
 	public void beforeEachTest()
 	{
-		preparator = new JournalReplicationConfiguration(controller);
+		preparator = new JournalReplicationConfiguration();
 		
 		preparator.prepareLive(container(1), this);
 		
@@ -62,8 +62,8 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 
     @After
     public void stopServer()    {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
@@ -157,7 +157,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 					proxyToLive.stop();
                     proxyToBackup.stop();
 
-                    killServer(CONTAINER1_NAME);
+                    container(1).kill();
 
 					isKillTrigered = true;
 
@@ -181,12 +181,12 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 
 	private void startLiveServer()
 	{
-		ServerUtil.startServer(controller, preparator.getLiveServerID());
+        container(1).start();
 	}
 	
 	private void startBackupServer()
 	{
-		ServerUtil.startServer(controller, preparator.getBackupServerID());
+        container(2).start();
 	}
 
 

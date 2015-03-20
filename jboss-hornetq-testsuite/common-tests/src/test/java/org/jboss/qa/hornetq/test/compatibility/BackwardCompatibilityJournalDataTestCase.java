@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.compatibility;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -21,6 +20,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -114,8 +114,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         prepareRemoteJcaTopology();
 
-        controller.start(CONTAINER1_NAME);//jms server
-        controller.start(CONTAINER2_NAME);// mdb server
+        container(1).start();//jms server
+        container(2).start();// mdb server
 
         deployer.undeploy("mdb1");
 
@@ -126,12 +126,12 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
         Thread.sleep(20000);
         deployer.undeploy("mdb1");
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(2).stop();
+        container(1).stop();
 
         // Start newer version of EAP and client with older version of EAP
-        controller.start(CONTAINER3_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(3).start();
+        container(4).start();
         try {
             deployer.undeploy("mdb2");
         } catch (Exception ignore)  {
@@ -153,8 +153,8 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb2");
 
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(4).stop();
+        container(3).stop();
 
 
     }
@@ -168,10 +168,10 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
     @After
     public void stopAllServers()  {
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(1).stop();
+        container(4).stop();
+        container(3).stop();
     }
 
     /**

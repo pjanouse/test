@@ -56,9 +56,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @After
     public void stopServers()   {
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
     }
 
     //////////////////// TESTS WITH MULTIPLE CONSUMERS ///////////////////////////
@@ -255,8 +255,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
         prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
         ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
@@ -283,12 +283,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -314,9 +314,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
         Assert.assertEquals("Number of send and received messages is different.", numberOfMessagesToSend, c.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of prepared transactions must be 0", 0, numberOfPreparedTransaction);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -329,8 +329,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
         prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
         ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
@@ -359,12 +359,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
@@ -393,9 +393,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
         Assert.assertTrue("Verification of received messages failed. Check logs for more details.", isMessageVerificationOk);
         Assert.assertEquals("Number of prepared transactions must be 0", 0, numberOfPreparedTransaction);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -413,8 +413,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
         prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
         ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
@@ -440,7 +440,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         logger.warn("Kill live server");
         logger.warn("########################################");
         RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
-        controller.kill(CONTAINER1_NAME);
+        container(1).kill();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
@@ -468,9 +468,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
                 "consumer then after failover there can be max 1 transaction in prepared state. List of prepared transactions after failover: " + result
                 , 2 < numberOfPreparedTransaction);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
     }
 
     private void waitForClientsToFinish(List<Client> listOfReceivers, long timeout) throws InterruptedException {

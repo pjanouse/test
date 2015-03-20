@@ -357,7 +357,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         prepareSimpleDedicatedTopology();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // send lots of messages (GBs)
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
@@ -405,7 +405,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         // start backup
         logger.info("Start backup server.");
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
         logger.info("Backup started - synchronization with live will started now.");
 
@@ -415,7 +415,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         // during synchronization live-> backup stop backup (it takes 2 min for live disconnect backup and org.jboss.qa.hornetq.apps.clients continue to work)
         logger.info("Stop backup server - synchronization with live must be in progress now.");
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
         logger.info("Backup server stopped");
 
@@ -459,7 +459,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         receiver.join();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 

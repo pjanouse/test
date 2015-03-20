@@ -70,14 +70,6 @@ public class JournalReplicationConfiguration
 	int port = -1;
     String host = "localhost";
 
-	private ContainerController controller;
-	
-	public JournalReplicationConfiguration(ContainerController controller)
-	{
-		System.out.println("controller=" + controller);
-		this.controller = controller;
-	}
-
 	public void prepareLive(Container liveServer, JournalReplicationAbstract journalReplicationAbstractTestCase)
 	{
         String broadCastGroupName = "bg-group1";
@@ -85,7 +77,7 @@ public class JournalReplicationConfiguration
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
 
-		controller.start(SERVER_LIVE);
+        liveServer.start();
 
 		JMSOperations adminLive = liveServer.getJmsOperations();
 
@@ -156,8 +148,8 @@ public class JournalReplicationConfiguration
 
 		adminLive.close();
 
-		controller.stop(SERVER_LIVE);
-		
+        liveServer.stop();
+
 	    File applicationUsersModified = new File(
 	    		"src" + File.separator +
 	    		"test" + File.separator +
@@ -205,7 +197,7 @@ public class JournalReplicationConfiguration
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
 
-		controller.start(SERVER_BACKUP);
+        backupServer.start();
 
 		JMSOperations adminBackup = backupServer.getJmsOperations();
 
@@ -264,8 +256,8 @@ public class JournalReplicationConfiguration
 
 		adminBackup.close();
 
-		controller.stop(SERVER_BACKUP);
-		
+        backupServer.stop();
+
 	    File applicationUsersModified = new File(
 	    		"src" + File.separator +
 	    		"test" + File.separator +

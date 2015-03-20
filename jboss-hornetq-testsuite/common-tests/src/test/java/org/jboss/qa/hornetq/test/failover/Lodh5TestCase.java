@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -27,6 +26,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -242,7 +242,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         prepareJmsServer(container(1), databaseName);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         rollbackPreparedTransactions(databaseName, properties.get("db.username"));  // if dbutilservlet can do it
         deleteRecords();
@@ -267,10 +267,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         for (int i = 0; i < 1; i++) {
 
-            killServer(CONTAINER1_NAME);
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
             PrintJournal.printJournal(container(1), databaseName + "journal_content_after_kill1.txt");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             PrintJournal.printJournal(container(2), databaseName + "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
@@ -303,7 +302,7 @@ public class Lodh5TestCase extends HornetQTestCase {
                 0, count);
 
         deployer.undeploy(MDBTODB);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
@@ -331,7 +330,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -475,7 +474,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             prepareJmsServer(container(1), POSTGRESQLPLUS92);
 
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
 
             logger.info("!!!!! deleting data in DB !!!!!");
             deleteRecords();
@@ -502,10 +501,10 @@ public class Lodh5TestCase extends HornetQTestCase {
                 logger.debug("Arquillian got an exception while deploying", e);
             }
 
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
 //            PrintJournal.printJournal(CTRACEONTAINER1, "journal_content_after_kill1.txt");
             logger.info("!!!!! starting server again !!!!!");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
 //            PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
@@ -531,7 +530,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             Assert.assertEquals(numberOfMessages, countRecords());
         } finally {
             deployer.undeploy("mdbToDb");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
 //        PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_after_shutdown4.txt");
         }
 

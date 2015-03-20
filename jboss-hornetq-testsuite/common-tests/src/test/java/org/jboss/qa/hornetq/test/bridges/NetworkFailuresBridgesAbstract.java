@@ -60,10 +60,10 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
     @Before
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER3_NAME);
-        stopServer(CONTAINER4_NAME);
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
         try {
             if (proxy1 != null) proxy1.stop();
         } catch (Exception ex)  {

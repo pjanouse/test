@@ -38,7 +38,7 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
@@ -72,7 +72,7 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         deployDestinations();
         jmsAdminOperations.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

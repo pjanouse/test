@@ -4,8 +4,6 @@ package org.jboss.qa.hornetq.test.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -28,6 +26,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -147,7 +146,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         prepareJmsServer(container(1));
         logger.info("Configuration is done, starting the node again");
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         logger.info("Node is up, commencing the test");
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -163,10 +162,10 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         deployer.deploy(MDB_NAME);
         logger.info("The MDB is deployed");
 
-        List<String> killSequence = new ArrayList<String>();
+        List<Container> killSequence = new ArrayList<Container>();
 
         for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
-            killSequence.add(CONTAINER1_NAME);
+            killSequence.add(container(1));
         }
 
         logger.info("Starting the kill sequence");
@@ -190,7 +189,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
                 receiver1.getListOfReceivedMessages().size());
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -205,7 +204,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         // we use only the first server
         prepareServer();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -231,7 +230,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
         deployer.undeploy(MDB_NAME);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -241,41 +240,41 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
      * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
-    private void executeNodeFaillSequence(List<String> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
+    private void executeNodeFaillSequence(List<Container> failSequence, long timeBetweenFails, boolean shutdown) throws InterruptedException {
 
         if (shutdown) {
-            for (String containerName : failSequence) {
+            for (Container container : failSequence) {
                 Thread.sleep(timeBetweenFails);
 
                 printQueuesCount();
 
-                logger.info("Shutdown server: " + containerName);
+                logger.info("Shutdown server: " + container.getName());
 
-                controller.stop(containerName);
+                container.stop();
                 Thread.sleep(3000);
-                logger.info("Start server: " + containerName);
-                controller.start(containerName);
-                logger.info("Server: " + containerName + " -- STARTED");
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
 
                 printQueuesCount();
             }
         } else {
-            for (String containerName : failSequence) {
+            for (Container container : failSequence) {
                 Thread.sleep(timeBetweenFails);
 
                 printQueuesCount();
 
-                logger.info("Killing server " + containerName);
-                killServer(containerName);
+                logger.info("Killing server " + container.getName());
+                container.kill();
                 Thread.sleep(3000);
                 //controller.kill(containerName);
                 logger.info("Server container1 killed!.");
-                logger.info("Start server: " + containerName);
+                logger.info("Start server: " + container.getName());
                 //controller.start(containerName);
                 // controller.start cannot be used on individual domain nodes
                 DomainOperations.forDefaultContainer().startNode("server-1").close();
                 Thread.sleep(5000);
-                logger.info("Server: " + containerName + " -- STARTED");
+                logger.info("Server: " + container.getName() + " -- STARTED");
 
                 printQueuesCount();
             }

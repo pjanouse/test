@@ -28,7 +28,7 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
 
     @After
     public void shutdownServerAfterTest() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test

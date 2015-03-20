@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -14,6 +13,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -75,8 +75,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         prepareColocatedTopologyInCluster();
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // give some time for servers to find each other
         waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
@@ -97,10 +97,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         logger.info("########################################");
 
         if (shutdown)   {
-            controller.stop(CONTAINER2_NAME);
+            container(2).stop();
         } else {
-            killServer(CONTAINER2_NAME);
-            controller.kill(CONTAINER2_NAME);
+            container(2).kill();
         }
 
 //        logger.info("########################################");
@@ -124,8 +123,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 

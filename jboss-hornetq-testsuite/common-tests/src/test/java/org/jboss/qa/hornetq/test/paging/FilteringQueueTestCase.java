@@ -43,7 +43,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         prepareJmsServer(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
@@ -98,7 +98,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         Assert.assertEquals("There must be half of the send messages.", numberOfMessages / 2, counter);
 
@@ -116,7 +116,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         prepareJmsServer(container(1));
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
@@ -183,7 +183,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         Assert.assertEquals("There must be half of the send messages.", numberOfMessages / 2, counter);
 

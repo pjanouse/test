@@ -24,7 +24,7 @@ public class SocketBindingAttributesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void bindingTest(){
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         JMSOperations jmsOperations = container(1).getJmsOperations();
         String result=jmsOperations.getSocketBindingAtributes("messaging");
@@ -40,7 +40,7 @@ public class SocketBindingAttributesTestCase extends HornetQTestCase {
 
 
         jmsOperations.close();
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

@@ -58,7 +58,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     @After
     public void shutdownServerAfterTest() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test
@@ -438,7 +438,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     }
 
     private void prepareServerForKills() throws Exception {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
 
         // disable clustering
@@ -457,12 +457,12 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
     }
 
     private void prepareServerForNotifications() throws Exception {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
 
         ops.setJmxManagementEnabled(true);
@@ -483,8 +483,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
     }
 
 }

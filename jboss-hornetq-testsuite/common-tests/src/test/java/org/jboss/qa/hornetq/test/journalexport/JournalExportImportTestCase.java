@@ -46,7 +46,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         prepareServer(container(1));
 
         Context ctx = null;
@@ -70,14 +70,14 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             closeJmsConnection(ctx, conn, session);
         }
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
         boolean exported = journalExportImportUtils.exportHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
         deleteDataFolder(CONTAINER1_INFO.getJbossHome(), CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         boolean imported = journalExportImportUtils.importHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be imported successfully", imported);

@@ -78,10 +78,8 @@ public class DomainDeploymentTestCase extends DomainHornetQTestCase {
 //        deployer.undeploy("server-deployment");
         deployer.undeploy("server-group-deployment");
 
-//        controller.stop("node-2");
-//        controller.stop("node-1");
-        stopServer("node-2");
-        stopServer("node-1");
+        controller.stop("node-2");
+        controller.stop("node-1");
 
 //        Thread.sleep(60000);
     }

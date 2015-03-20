@@ -26,7 +26,7 @@ public class JcaBridgeModuleConnection extends HornetQTestCase implements SoakTe
 
 
     @Override
-    public void setUpServers(final ContainerController controller) {
+    public void setUpServers() {
         this.container = container(1);
     }
 

@@ -60,7 +60,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
         prepareServer(container(1), 0);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         // start proxy
         startProxies();
 
@@ -103,7 +103,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         Assert.assertNotNull("Subscriber must get exception when disconnected.", subscriber.getException());
 
         // try to stop server
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -118,7 +118,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
         prepareServer(container(1), 0);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         // start proxy
         startProxies();
 
@@ -154,7 +154,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         }
 
         // try to stop server
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 
@@ -219,8 +219,8 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 }

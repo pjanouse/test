@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.integration;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -15,6 +14,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,7 +44,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
         prepareServer(preferFactoryRef);
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         String connectionFactoryName = "java:/JmsXA";
 
@@ -75,7 +75,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
 
         deployer.undeploy("hornetQTestServlet");
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @After
@@ -85,7 +85,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
             deployer.undeploy("hornetQTestServlet");
         } catch (Exception ignore)  {}
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

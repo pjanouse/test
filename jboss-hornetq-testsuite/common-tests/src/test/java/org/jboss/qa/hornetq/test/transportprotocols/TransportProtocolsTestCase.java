@@ -53,7 +53,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test
@@ -146,7 +146,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
             // configure legacy extension
 
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
 
             JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
@@ -158,12 +158,12 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
             jmsAdminOperations.close();
 
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
 
             activateLegacyJnpModule(getContainerInfo(CONTAINER1_NAME));
         }
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         log.info("Start producer and consumer.");
         ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1_NAME).toString() ,getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -180,7 +180,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
     }
 

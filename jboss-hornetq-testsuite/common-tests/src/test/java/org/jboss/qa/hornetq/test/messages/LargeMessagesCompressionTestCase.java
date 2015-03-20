@@ -56,13 +56,13 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
 
     @After
     public void stopServer() {
-        this.controller.stop(CONTAINER1_NAME);
+        container(1).stop();
     }
 
 
@@ -73,8 +73,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testUncompressedNormalMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         // EAP6: 100KiB text body results in about 102550-ish bytes message
         // EAP5: 50KiB text body results in >102400 bytes message
@@ -95,8 +94,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testCompressedLargeMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         ClientMessage receivedMsg = this.sendAndReceivedMessage(this.generateMessageText(5000000));
 
@@ -115,8 +113,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     public void testLargeMessageCompressedToNormalMessage() throws Exception {
         this.prepare();
 
-        this.controller.stop(CONTAINER1_NAME);
-        this.controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         ClientMessage receivedMsg = this.sendAndReceivedMessage(this.generateMessageText(MIN_LARGE_MESSAGE_SIZE + 200));
 

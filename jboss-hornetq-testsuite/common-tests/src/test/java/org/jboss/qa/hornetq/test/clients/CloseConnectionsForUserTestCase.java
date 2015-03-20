@@ -30,7 +30,7 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
 
     @After
     public void shutdownServerAfterTest() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test

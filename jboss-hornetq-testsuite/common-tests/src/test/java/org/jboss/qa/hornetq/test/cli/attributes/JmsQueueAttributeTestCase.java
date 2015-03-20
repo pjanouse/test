@@ -62,7 +62,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // deploy queue
 
@@ -79,8 +79,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
 
     @After
     public void stopServer() {
-
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test

@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.cli.operations;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.hornetq.core.transaction.impl.XidImpl;
 import org.hornetq.utils.UUIDGenerator;
@@ -24,6 +23,7 @@ import org.jboss.qa.management.cli.CliUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -117,18 +117,18 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
     }
 
     @After
     public void stopServer() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     private void prepareServerForXATransactions() {
 
         // start server with XA connection factory
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
         jmsAdminOperations.setFactoryType("RemoteConnectionFactory", "XA_GENERIC");
@@ -136,7 +136,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         jmsAdminOperations.close();
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     private void createPreparedTransaction() {
@@ -216,7 +216,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         prepareServerForXATransactions();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         for (int i = 0; i < numberOfPreparedTransactions; i++)  {
             createPreparedTransaction();
@@ -313,8 +313,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public void testForceFailover() throws Exception {
 
         prepareSimpleDedicatedTopology();
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // invoke operation
         Result r1 = runOperation("force-failover", null);
@@ -499,8 +499,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsOperations.removeAddressSettings("#");
         jmsOperations.addAddressSettings("#", "PAGE", 10485760, 0, 1000, 2097152);
 
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).stop();
+        container(1).start();
 
         Result response = this.runOperation("get-address-settings-as-json", "address-match=#");
         assertTrue("Operation should not fail", response.isSuccess());

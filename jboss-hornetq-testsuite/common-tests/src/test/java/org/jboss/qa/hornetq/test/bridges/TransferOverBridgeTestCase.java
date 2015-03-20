@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.bridges;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
@@ -34,8 +35,8 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Basic tests for transfer messages over core-bridge. Here is tested whether all messages
@@ -221,7 +222,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER1_NAME, getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, null);
+        testLogicForTestWithByteman(10, container(1), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, null);
     }
 
     /**
@@ -251,7 +252,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER2_NAME, getHostname(CONTAINER2_NAME), BYTEMAN_CONTAINER2_PORT, null);
+        testLogicForTestWithByteman(10, container(2), getHostname(CONTAINER2_NAME), BYTEMAN_CONTAINER2_PORT, null);
     }
 
 
@@ -283,7 +284,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER1_NAME, getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(1), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -314,7 +315,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, CONTAINER2_NAME, getHostname(CONTAINER2_NAME), getBytemanPort(CONTAINER2_NAME), new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(2), getHostname(CONTAINER2_NAME), getBytemanPort(CONTAINER2_NAME), new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     //============================================================================================================
@@ -506,12 +507,12 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Implementation of the basic test scenario with Byteman and restarting of the container
      *
      * @param messages           number of messages used for the test
-     * @param restartedContainer name of the container which will be restarted
+     * @param restartedContainer the container which will be restarted
      * @param bytemanTargetHost  ip address with the container where will be Byteman rules installed
      * @param bytemanPort        target port
      * @param messageBuilder     instance of the message builder
      */
-    private void testLogicForTestWithByteman(int messages, String restartedContainer,
+    private void testLogicForTestWithByteman(int messages, Container restartedContainer,
                                              final String bytemanTargetHost, final int bytemanPort,
                                              MessageBuilder messageBuilder) throws Exception {
         final String TEST_QUEUE = "dummyQueue";
@@ -536,8 +537,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
 
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         jmsAdminContainer1 = container(1).getJmsOperations();
 
@@ -570,8 +570,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.close();
 
         // Server will be killed by Byteman and restarted
-        controller.kill(restartedContainer);
-        controller.start(restartedContainer);
+        restartedContainer.kill();
+        restartedContainer.start();
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -598,8 +598,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 //        assertEquals(0, jmsAdminContainer1.getCountOfMessagesOnQueue(TEST_QUEUE));
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
         jmsAdminContainer2.close();
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
     /**
@@ -615,8 +615,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final int messages = 100;
 
         // Start servers
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // Create administration objects
         JMSOperations jmsAdminContainer1 = container(1).getJmsOperations();
@@ -639,8 +639,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         client1.sendMessages(sourceQueueJndiName);
         jmsAdminContainer1.close();
 
-        stopServer(CONTAINER1_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(1).restart();
 
         jmsAdminContainer1 = container(1).getJmsOperations();
         jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + sourceQueue, "jms.queue." + targetQueue, -1, "bridge-connector");
@@ -658,8 +657,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(targetQueue));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
     /**
@@ -673,8 +672,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final int messages = 50;
 
         // Start servers
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         // Create administration objects
         JMSOperations jmsAdminContainer1 = container(1).getJmsOperations();
@@ -690,10 +689,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // Send messages into input node
         SimpleJMSClient client1 = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
@@ -708,7 +707,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         } catch (InterruptedException e) {
             // Ignore it
         }
-        controller.start(CONTAINER2_NAME);
+
+        container(2).start();
         try {
             Thread.sleep(1 * 60 * 1000);
         } catch (InterruptedException e) {
@@ -723,8 +723,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE));
         jmsAdminContainer1.close();
         jmsAdminContainer2.close();
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 

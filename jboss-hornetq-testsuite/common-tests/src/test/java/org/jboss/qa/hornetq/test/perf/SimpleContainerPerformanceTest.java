@@ -109,7 +109,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     /**
@@ -190,7 +190,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(IN_QUEUE, IN_QUEUE);
         jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         Context context = null;
         Connection connection = null;
@@ -300,6 +300,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         jmsAdminOperations.close();
         log.info("Stopping container for test ....");
         deployer.undeploy(MDB_DEPLOY);
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 }

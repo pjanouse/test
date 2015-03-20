@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.soak;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -21,6 +20,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -137,11 +137,11 @@ public class SoakTestCase extends HornetQTestCase {
         prepareRemoteJcaTopology();
 
         // cluster A
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER3_NAME);
+        container(1).start();
+        container(3).start();
         // cluster B
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER4_NAME);
+        container(2).start();
+        container(4).start();
 
         deployer.deploy("mdb1");
         deployer.deploy("mdb2");
@@ -207,10 +207,10 @@ public class SoakTestCase extends HornetQTestCase {
             }
         }
 
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
 
     }
 
@@ -223,10 +223,10 @@ public class SoakTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        stopServer(CONTAINER2_NAME);
-        stopServer(CONTAINER4_NAME);
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER3_NAME);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     /**
@@ -236,13 +236,13 @@ public class SoakTestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
         if (!topologyCreated) {
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             deployDestinations(container(1));
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
 
-            controller.start(CONTAINER3_NAME);
+            container(3).start();
             deployDestinations(container(3));
-            stopServer(CONTAINER3_NAME);
+            container(3).stop();
 
             prepareJmsServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
             prepareMdbServer(container(2), getHostname(CONTAINER2_NAME), CONTAINER1_NAME);

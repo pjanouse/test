@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.transportreliability;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -20,6 +19,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -166,9 +166,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 500);
         producer.setMessageBuilder(messageBuilder);
@@ -192,22 +192,22 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(5000);
             log.info("############# Kill server 1.");
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             log.info("############# Server 1 started.");
 
         } else {
 
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             log.info("############# Server 1 started.");
         }
 
@@ -223,9 +223,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 
@@ -249,9 +249,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         prepareServers();
 
-        controller.start(CONTAINER2_NAME);
+        container(2).start();
 
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
         SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
@@ -269,22 +269,22 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(10000);
             log.info("############# Kill server 1.");
-            controller.kill(CONTAINER1_NAME);
+            container(1).kill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             log.info("############# Server 1 started.");
 
         } else {
 
             Thread.sleep(10000);
             log.info("############# Stopping server 1.");
-            stopServer(CONTAINER1_NAME);
+            container(1).stop();
             log.info("############# Server 1 stopped.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
-            controller.start(CONTAINER1_NAME);
+            container(1).start();
             log.info("############# Server 1 started.");
         }
 
@@ -307,8 +307,8 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 
@@ -381,9 +381,9 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
 
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
 
-        stopServer(CONTAINER2_NAME);
+        container(2).stop();
 
     }
 }

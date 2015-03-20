@@ -1,6 +1,5 @@
 package org.jboss.qa.jbm.cluster.disconnection;
 
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -23,6 +22,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -90,8 +90,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
             proxyToDb = new SimpleProxyServer(databaseHostname, databasePort, proxyPort);
             proxyToDb.start();
 
-            controller.start(CONTAINER1_NAME);
-            controller.start(CONTAINER2_NAME);
+            container(1).start();
+            container(2).start();
             log.info("servers started");
 
             deployer.undeploy("mdbOnTopic1");
@@ -155,8 +155,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
 
 //            deployer.undeploy("mdbOnTopic1");
 //            deployer.undeploy("mdbOnTopic2");
-            stopServer(CONTAINER1_NAME);
-            stopServer(CONTAINER2_NAME);
+            container(1).stop();
+            container(2).stop();
 
             if (router != null) {
                 router.destroy();
@@ -222,8 +222,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
 
 //        prepareServers();
 
-        controller.start(CONTAINER2_NAME);
-        controller.start(CONTAINER1_NAME);
+        container(2).start();
+        container(1).start();
 
         deployer.deploy("mdbOnQueue1");
 
@@ -251,8 +251,8 @@ public class DatabaseAndClusterDisconnectionTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
 
     }
 

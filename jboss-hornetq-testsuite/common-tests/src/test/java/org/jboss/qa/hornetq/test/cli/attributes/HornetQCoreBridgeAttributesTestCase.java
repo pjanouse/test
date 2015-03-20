@@ -84,8 +84,8 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
     @Before
     public void startServer() throws InterruptedException {
 
-        controller.start(CONTAINER1_NAME);
-        controller.start(CONTAINER2_NAME);
+        container(1).start();
+        container(2).start();
 
         prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
         prepareTargetServerForHornetQCoreBridge(container(2));
@@ -94,9 +94,8 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
 
     @After
     public void stopServer() {
-
-        stopServer(CONTAINER1_NAME);
-        stopServer(CONTAINER2_NAME);
+        container(1).stop();
+        container(2).stop();
     }
 
 

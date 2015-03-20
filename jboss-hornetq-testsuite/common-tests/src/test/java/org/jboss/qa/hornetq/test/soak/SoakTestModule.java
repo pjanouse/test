@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.test.soak;
 
 
 import java.util.List;
-import org.jboss.arquillian.container.test.api.ContainerController;
 
 
 /**
@@ -10,7 +9,7 @@ import org.jboss.arquillian.container.test.api.ContainerController;
  */
 public interface SoakTestModule {
 
-    void setUpServers(final ContainerController controller);
+    void setUpServers();
 
 
     List<ClassDeploymentDefinition> getRequiredClasses();

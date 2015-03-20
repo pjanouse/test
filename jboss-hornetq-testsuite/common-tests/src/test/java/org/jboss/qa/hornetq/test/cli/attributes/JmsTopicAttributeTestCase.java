@@ -63,7 +63,7 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
-        controller.start(CONTAINER1_NAME);
+        container(1).start();
 
         // deploy queue
         CliClient cliClient = new CliClient(cliConf);
@@ -82,8 +82,7 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
     @After
     public void stopServer() {
-
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test

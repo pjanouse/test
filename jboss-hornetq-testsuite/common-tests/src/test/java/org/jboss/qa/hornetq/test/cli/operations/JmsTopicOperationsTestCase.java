@@ -73,13 +73,13 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
-        this.controller.start(CONTAINER1_NAME);
+        container(1).start();
 
     }
 
     @After
     public void stopServer() {
-        stopServer(CONTAINER1_NAME);
+        container(1).stop();
     }
 
     @Test
