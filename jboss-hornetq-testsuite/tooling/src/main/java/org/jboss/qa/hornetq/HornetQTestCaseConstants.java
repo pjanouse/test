@@ -45,12 +45,13 @@ public interface HornetQTestCaseConstants {
     // IDs for the active container definition
     public static final String EAP5_CONTAINER = "EAP5_CONTAINER";
     public static final String EAP6_CONTAINER = "EAP6_CONTAINER";
+    public static final String EAP7_CONTAINER = "EAP7_CONTAINER";
     public static final String EAP6_LEGACY_CONTAINER = "EAP6_LEGACY_CONTAINER";
     public static final String EAP6_DOMAIN_CONTAINER = "EAP6_DOMAIN_CONTAINER";
     public static final String EAP5_WITH_JBM_CONTAINER = "EAP5_WITH_JBM_CONTAINER";
 
     public enum CONTAINER_TYPE {
-        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER, EAP6_DOMAIN_CONTAINER
+        EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER, EAP6_DOMAIN_CONTAINER, EAP7_CONTAINER;
     }
 
     // Timeout for CLI tests

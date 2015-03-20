@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
+import org.apache.activemq.core.remoting.impl.netty.TransportConstants;
 import org.apache.log4j.Logger;
 
 import org.hornetq.utils.json.JSONArray;
@@ -33,6 +34,10 @@ import org.kohsuke.MetaInfServices;
 @MetaInfServices
 public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
+    private static String NAME_OF_MESSAGING_SUBSYSTEM = "messaging-activemq";
+    private static String NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER = "server"; // it's "server" in "server=default"
+    private static String NAME_OF_MESSAGING_DEFAULT_SERVER = "default";
+    
     // Logger
     private static final Logger logger = Logger.getLogger(ActiveMQAdminOperationsEAP7.class);
 
@@ -124,7 +129,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createQueue(String queueName, String jndiName, boolean durable) {
-        createQueue("default", queueName, jndiName, durable);
+        createQueue(NAME_OF_MESSAGING_DEFAULT_SERVER, queueName, jndiName, durable);
     }
 
     /**
@@ -148,7 +153,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createTopic(String topicName, String jndiName) {
-        createTopic("default", topicName, jndiName);
+        createTopic(NAME_OF_MESSAGING_DEFAULT_SERVER, topicName, jndiName);
     }
 
     /**
@@ -267,8 +272,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public long getCountOfMessagesOnQueue(String queueName) {
         final ModelNode countMessages = createModelNode();
         countMessages.get(ClientConstants.OP).set("count-messages");
-        countMessages.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        countMessages.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        countMessages.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        countMessages.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         countMessages.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         ModelNode modelNode;
         try {
@@ -290,8 +295,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public long removeMessagesFromQueue(String queueName) {
         final ModelNode removeMessagesFromQueue = createModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-messages");
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         ModelNode modelNode;
         try {
@@ -309,7 +314,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setClusterUserPassword(String password) {
-        setClusterUserPassword("default", password);
+        setClusterUserPassword(NAME_OF_MESSAGING_DEFAULT_SERVER, password);
     }
 
     /**
@@ -322,8 +327,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setClusterUserPassword(String serverName, String password) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("cluster-password");
         model.get("value").set(password);
         try {
@@ -339,7 +344,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void disableSecurity() {
-        disableSecurity("default");
+        disableSecurity(NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     /**
@@ -351,8 +356,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void disableSecurity(String serverName) {
         final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        disableSecurity.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         disableSecurity.get("name").set("security-enabled");
         disableSecurity.get("value").set(Boolean.FALSE);
         try {
@@ -365,8 +370,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("write-attribute");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        disableSecurity.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         disableSecurity.get("name").set("security-enabled");
         disableSecurity.get("value").set(value);
         try {
@@ -383,7 +388,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setSecurityEnabled(boolean value) {
-        setSecurityEnabled("default", value);
+        setSecurityEnabled(NAME_OF_MESSAGING_DEFAULT_SERVER, value);
     }
 
     /**
@@ -393,7 +398,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addSecurityEnabled(boolean value) {
-        addSecurityEnabled("default", value);
+        addSecurityEnabled(NAME_OF_MESSAGING_DEFAULT_SERVER, value);
     }
 
     /**
@@ -406,8 +411,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addSecurityEnabled(String serverName, boolean value) {
         final ModelNode disableSecurity = createModelNode();
         disableSecurity.get(ClientConstants.OP).set("add");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        disableSecurity.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        disableSecurity.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        disableSecurity.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         disableSecurity.get("security-enabled").set(value);
 
         try {
@@ -421,8 +426,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void overrideInVMSecurity(boolean b) {
         final ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("write-attribute");
-        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        modelNode.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         modelNode.get("name").set("override-in-vm-security");
         modelNode.get("value").set(b);
         try {
@@ -436,8 +441,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removePooledConnectionFactory(String pooledConnectionFactoryName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
 
         System.out.println(model.toString());
@@ -521,15 +526,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode undefineConnector = createModelNode();
         undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
-        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        undefineConnector.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         undefineConnector.get("name").set("connector");
 
         ModelNode setDiscoveryGroup = createModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         setDiscoveryGroup.get("name").set("discovery-group-name");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
@@ -548,8 +553,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         model.get("entries").clear();
         model.get("name").set("entries");
@@ -579,7 +584,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
-        setPermissionToRoleToSecuritySettings("default", address, role, permission, value);
+        setPermissionToRoleToSecuritySettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address, role, permission, value);
     }
 
     /**
@@ -596,8 +601,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("security-setting", address);
         model.get(ClientConstants.OP_ADDR).add("role", role);
         model.get("name").set(permission);
@@ -621,8 +626,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
@@ -650,8 +655,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void createPooledConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("transaction").set("xa");
@@ -683,8 +688,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("entries").add(jndiName);
@@ -712,8 +717,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removeConnectionFactory(String connectionFactoryName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         System.out.println(model.toString());
@@ -736,8 +741,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
@@ -769,15 +774,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addRoleToSecuritySettings(String address, String role) {
-        addRoleToSecuritySettings("default", address, role);
+        addRoleToSecuritySettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address, role);
     }
 
     public void addRoleToSecuritySettings(String serverName, String address, String role) {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("security-setting", address);
         model.get(ClientConstants.OP_ADDR).add("role", role);
 
@@ -789,7 +794,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     public void addSecuritySetting(String s) {
-        addSecuritySetting("default", s);
+        addSecuritySetting(NAME_OF_MESSAGING_DEFAULT_SERVER, s);
     }
 
     @Override
@@ -797,8 +802,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("security-setting", s);
 
         try {
@@ -812,8 +817,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removeSecuritySettings(String serverName, String addressMask) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
-        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("security-settings", addressMask);
 
         try {
@@ -833,8 +838,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = createModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("add-jndi");
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         addJmsJNDIName.get("jndi-binding").set(jndiName);
         try {
@@ -855,8 +860,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private void removeDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("remove-jndi");
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         addJmsJNDIName.get("jndi-binding").set(jndiName);
         try {
@@ -878,8 +883,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
         ModelNode createJmsQueueOperation = createModelNode();
         createJmsQueueOperation.get(ClientConstants.OP).set(ClientConstants.ADD);
-        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        createJmsQueueOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         createJmsQueueOperation.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         createJmsQueueOperation.get("entries").add(jndiName);
         createJmsQueueOperation.get("entries").add("java:jboss/exported" + externalSuffix + jndiName);
@@ -900,8 +905,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private void removeJmsDestination(String destinationType, String destinationName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove-messages");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         try {
             this.applyUpdate(model);
@@ -911,8 +916,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("remove");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeJmsQueue.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         try {
             this.applyUpdate(removeJmsQueue);
@@ -975,13 +980,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setPersistenceEnabled(boolean persistenceEnabled) {
-        setPersistenceEnabled("default", persistenceEnabled);
+        setPersistenceEnabled(NAME_OF_MESSAGING_DEFAULT_SERVER, persistenceEnabled);
     }
 
     @Override
     public void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
                           String filter, String routingName, String transformerClassName) {
-        addDivert("default", divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName, transformerClassName);
+        addDivert(NAME_OF_MESSAGING_DEFAULT_SERVER, divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName, transformerClassName);
     }
 
     /**
@@ -995,8 +1000,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                           String filter, String routingName, String transformerClassName) {
         final ModelNode addDivert = new ModelNode();
         addDivert.get(ClientConstants.OP).set(ClientConstants.ADD);
-        addDivert.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        addDivert.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        addDivert.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        addDivert.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         addDivert.get(ClientConstants.OP_ADDR).add("divert", divertName);
         addDivert.get("divert-address").set(divertAddress);
         addDivert.get("forwarding-address").set(forwardingAddress);
@@ -1028,10 +1033,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         removeJmsQueue.get("name").set("persistence-enabled");
         removeJmsQueue.get("value").set(persistenceEnabled);
+
         try {
             this.applyUpdate(removeJmsQueue);
         } catch (Exception e) {
@@ -1046,7 +1052,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setIdCacheSize(long numberOfIds) {
-        setIdCacheSize("default", numberOfIds);
+        setIdCacheSize(NAME_OF_MESSAGING_DEFAULT_SERVER, numberOfIds);
     }
 
     /**
@@ -1059,8 +1065,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setIdCacheSize(String serverName, long numberOfIds) {
         final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("write-attribute");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         removeJmsQueue.get("name").set("id-cache-size");
         removeJmsQueue.get("value").set(numberOfIds);
         try {
@@ -1077,7 +1083,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addPersistenceEnabled(boolean persistenceEnabled) {
-        setPersistenceEnabled("default", persistenceEnabled);
+        setPersistenceEnabled(NAME_OF_MESSAGING_DEFAULT_SERVER, persistenceEnabled);
     }
 
     /**
@@ -1090,8 +1096,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addPersistenceEnabled(String serverName, boolean persistenceEnabled) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("persistence-enabled").set(persistenceEnabled);
 
         try {
@@ -1108,7 +1114,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setClustered(boolean clustered) {
-        setClustered("default", clustered);
+        setClustered(NAME_OF_MESSAGING_DEFAULT_SERVER, clustered);
     }
 
     /**
@@ -1121,8 +1127,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setClustered(String serverName, boolean clustered) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("clustered");
         model.get("value").set(clustered);
         try {
@@ -1139,7 +1145,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addClustered(boolean clustered) {
-        setClustered("default", clustered);
+        setClustered(NAME_OF_MESSAGING_DEFAULT_SERVER, clustered);
     }
 
     /**
@@ -1152,8 +1158,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addClustered(String serverName, boolean clustered) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("clustered").set(clustered);
 
         try {
@@ -1171,7 +1177,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setSharedStore(boolean sharedStore) {
-        setSharedStore("default", sharedStore);
+        setSharedStore(NAME_OF_MESSAGING_DEFAULT_SERVER, sharedStore);
     }
 
     /**
@@ -1185,8 +1191,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("shared-store");
         model.get("value").set(sharedStore);
 
@@ -1204,7 +1210,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addSharedStore(boolean sharedStore) {
-        addSharedStore("default", sharedStore);
+        addSharedStore(NAME_OF_MESSAGING_DEFAULT_SERVER, sharedStore);
     }
 
     /**
@@ -1217,8 +1223,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addSharedStore(String serverName, boolean sharedStore) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("shared-store").set(sharedStore);
 
         try {
@@ -1235,7 +1241,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setAllowFailback(boolean allowFailback) {
-        setAllowFailback("default", allowFailback);
+        setAllowFailback(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback);
     }
 
     /**
@@ -1248,8 +1254,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setAllowFailback(String serverName, boolean allowFailback) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("allow-failback");
         model.get("value").set(allowFailback);
 
@@ -1267,7 +1273,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setJournalType(String journalType) {
-        setJournalType("default", journalType);
+        setJournalType(NAME_OF_MESSAGING_DEFAULT_SERVER, journalType);
     }
 
     /**
@@ -1280,8 +1286,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setJournalType(String serverName, String journalType) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("journal-type");
         model.get("value").set(journalType);
 
@@ -1299,7 +1305,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addJournalType(String journalType) {
-        addJournalType("default", journalType);
+        addJournalType(NAME_OF_MESSAGING_DEFAULT_SERVER, journalType);
     }
 
     /**
@@ -1312,8 +1318,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addJournalType(String serverName, String journalType) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("journal-type").set(journalType);
 
         try {
@@ -1330,7 +1336,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setJournalDirectory(String path) {
-        setJournalDirectory("default", path);
+        setJournalDirectory(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
     }
 
     /**
@@ -1346,8 +1352,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
         model.get("path").set(path + File.separator + "journal");
         try {
@@ -1364,7 +1370,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setPagingDirectory(String path) {
-        setPagingDirectory("default", path);
+        setPagingDirectory(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
     }
 
     /**
@@ -1380,8 +1386,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
         model.get("path").set(path + File.separator + "paging");
         try {
@@ -1398,7 +1404,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setLargeMessagesDirectory(String path) {
-        setLargeMessagesDirectory("default", path);
+        setLargeMessagesDirectory(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
     }
 
     /**
@@ -1414,8 +1420,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
         model.get("path").set(path + File.separator + "large-messages");
 
@@ -1433,7 +1439,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setBindingsDirectory(String path) {
-        setBindingsDirectory("default", path);
+        setBindingsDirectory(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
     }
 
     /**
@@ -1449,8 +1455,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
         model.get("path").set(path + File.separator + "bindings");
 
@@ -1465,8 +1471,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", attributeName);
 
         try {
@@ -1632,7 +1638,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
                                   String groupAddress, int groupPort, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
-        setBroadCastGroup("default", name, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod, connectorName, backupConnectorName);
+        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod, connectorName, backupConnectorName);
     }
 
     /**
@@ -1662,8 +1668,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(localBindAddress)) {
@@ -1716,7 +1722,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
                                   String connectorName, String backupConnectorName) {
-        setBroadCastGroup("default", name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
+        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
     }
 
     /**
@@ -1740,8 +1746,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(messagingGroupSocketBindingName)) {
@@ -1781,8 +1787,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -1823,7 +1829,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void setDiscoveryGroup(String name, String localBindAddress,
                                   String groupAddress, int groupPort, long refreshTimeout) {
-        setDiscoveryGroup("default", name, localBindAddress, groupAddress, groupPort, refreshTimeout);
+        setDiscoveryGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, localBindAddress, groupAddress, groupPort, refreshTimeout);
     }
 
     /**
@@ -1846,8 +1852,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                   String groupAddress, int groupPort, long refreshTimeout) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(localBindAddress)) {
@@ -1886,7 +1892,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
-        setDiscoveryGroup("default", name, messagingGroupSocketBindingName, refreshTimeout);
+        setDiscoveryGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, messagingGroupSocketBindingName, refreshTimeout);
     }
 
     /**
@@ -1905,8 +1911,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(messagingGroupSocketBindingName)) {
@@ -1940,8 +1946,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -1982,13 +1988,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setClusterConnections(String name, String address,
                                       String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
                                       long retryInterval, boolean useDuplicateDetection, String connectorName) {
-        setClusterConnections("default", name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
+        setClusterConnections(NAME_OF_MESSAGING_DEFAULT_SERVER, name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
     }
 
 
     @Override
     public int getNumberOfPreparedTransaction() {
-        return getNumberOfPreparedTransaction("default");
+        return getNumberOfPreparedTransaction(NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     /**
@@ -2001,8 +2007,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             ModelNode model = new ModelNode();
             model.get(ClientConstants.OP).set("list-prepared-transactions");
-            model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-            model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+            model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
 
             ModelNode result;
             try {
@@ -2022,7 +2028,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public String listPreparedTransaction() {
-        return listPreparedTransaction("default");
+        return listPreparedTransaction(NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     @Override
@@ -2033,8 +2039,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             ModelNode model = new ModelNode();
             model.get(ClientConstants.OP).set("list-prepared-transactions");
-            model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-            model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+            model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
 
 
             try {
@@ -2097,8 +2103,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
@@ -2132,8 +2138,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
 
         model.get("name").set("reconnect-attempts");
@@ -2157,8 +2163,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
 
         model.get("name").set("connection-ttl-override");
         model.get("value").set(valueInMillis);
@@ -2190,8 +2196,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
@@ -2261,7 +2267,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setJournalFileSize(long sizeInBytes) {
-        setJournalFileSize("default", sizeInBytes);
+        setJournalFileSize(NAME_OF_MESSAGING_DEFAULT_SERVER, sizeInBytes);
     }
 
     /**
@@ -2275,8 +2281,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("journal-file-size");
         model.get("value").set(sizeInBytes);
         try {
@@ -2296,8 +2302,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setRedistributionDelay(long delay) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
         model.get("name").set("redistribution-delay");
         model.get("value").set(delay);
@@ -2319,8 +2325,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add-jndi");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("jndi-binding").set(newConnectionFactoryJndiName);
 
@@ -2342,8 +2348,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("ha");
         model.get("value").set(value);
@@ -2361,8 +2367,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
@@ -2383,8 +2389,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("min-pool-size");
         model.get("value").set(size);
@@ -2400,8 +2406,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("max-pool-size");
         model.get("value").set(size);
@@ -2425,8 +2431,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("failover-on-server-shutdown");
         model.get("value").set(value);
@@ -2449,8 +2455,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("ha");
         model.get("value").set(value);
@@ -2473,8 +2479,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("failover-on-server-shutdown");
         model.get("value").set(value);
@@ -2493,7 +2499,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdown(boolean value) {
-        setFailoverOnShutdown(true, "default");
+        setFailoverOnShutdown(true, NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     /**
@@ -2506,8 +2512,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("failover-on-shutdown");
         model.get("value").set(value);
 
@@ -2529,8 +2535,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
@@ -2550,8 +2556,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
@@ -2571,8 +2577,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval");
         model.get("value").set(value);
@@ -2591,8 +2597,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval");
         model.get("value").set(value);
@@ -2611,8 +2617,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
@@ -2632,8 +2638,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
@@ -2654,8 +2660,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("name").set("reconnect-attempts");
@@ -2676,8 +2682,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("reconnect-attempts");
@@ -2695,8 +2701,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setJmxDomainName(String jmxDomainName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get("name").set("jmx-domain");
         model.get("value").set(jmxDomainName);
         try {
@@ -2708,15 +2714,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setJmxManagementEnabled(boolean enable) {
-        setJmxManagementEnabled("default", enable);
+        setJmxManagementEnabled(NAME_OF_MESSAGING_DEFAULT_SERVER, enable);
     }
 
     @Override
     public void setJmxManagementEnabled(String serverName, boolean enable) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("jmx-management-enabled");
         model.get("value").set(enable);
         try {
@@ -2733,7 +2739,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setBackup(boolean isBackup) {
-        setBackup("default", isBackup);
+        setBackup(NAME_OF_MESSAGING_DEFAULT_SERVER, isBackup);
     }
 
     /**
@@ -2746,8 +2752,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setBackup(String serverName, boolean isBackup) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("backup");
         model.get("value").set(isBackup);
 
@@ -2765,7 +2771,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addBackup(boolean isBackup) {
-        setBackup("default", isBackup);
+        setBackup(NAME_OF_MESSAGING_DEFAULT_SERVER, isBackup);
     }
 
     /**
@@ -2778,8 +2784,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void addBackup(String serverName, boolean isBackup) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("backup").set(isBackup);
 
         try {
@@ -2795,7 +2801,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @param address address specification
      */
     public void removeAddressSettings(String address) {
-        removeAddressSettings("default", address);
+        removeAddressSettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address);
     }
 
     /**
@@ -2809,8 +2815,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             ModelNode setAddressAttributes = createModelNode();
             setAddressAttributes.get(ClientConstants.OP).set("remove");
-            setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-            setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+            setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
             setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
             try {
                 this.applyUpdate(setAddressAttributes);
@@ -2837,7 +2843,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                                    long redistributionDelay, long pageSizeBytes) {
-        addAddressSettings("default", address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
+        addAddressSettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
     }
 
     /**
@@ -2857,8 +2863,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                    long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, containerName);
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
         setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
         setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
@@ -2884,7 +2890,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setSlowConsumerPolicy(String address, int threshold, SlowConsumerPolicy policy, int checkPeriod) {
-        setSlowConsumerPolicy("default", address, threshold, policy, checkPeriod);
+        setSlowConsumerPolicy(NAME_OF_MESSAGING_DEFAULT_SERVER, address, threshold, policy, checkPeriod);
     }
 
     /**
@@ -2902,8 +2908,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode addressSettings = createModelNode();
         addressSettings.get(ClientConstants.OP).set("write-attribute");
-        addressSettings.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        addressSettings.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        addressSettings.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        addressSettings.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         addressSettings.get(ClientConstants.OP_ADDR).add("address-setting", address);
 
         ModelNode setThreshold = addressSettings.clone();
@@ -2947,8 +2953,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                    long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, containerName);
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
         setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
         setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
@@ -2974,8 +2980,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, containerName);
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
         setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
         setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
@@ -3004,7 +3010,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addMessageGrouping(String name, String type, String address, long timeout) {
-        addMessageGrouping("default", name, type, address, timeout);
+        addMessageGrouping(NAME_OF_MESSAGING_DEFAULT_SERVER, name, type, address, timeout);
 
     }
 
@@ -3021,8 +3027,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("add");
-        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        modelNode.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         modelNode.get(ClientConstants.OP_ADDR).add("grouping-handler", name);
         modelNode.get("grouping-handler-address").set(address);
         modelNode.get("type").set(type);
@@ -3053,8 +3059,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("add");
-        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        modelNode.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        modelNode.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         modelNode.get(ClientConstants.OP_ADDR).add("grouping-handler", name);
         modelNode.get("grouping-handler-address").set(address);
         modelNode.get("type").set(type);
@@ -3150,7 +3156,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setMaxSavedReplicatedJournals(int numberOfReplicatedJournals) {
-        setMaxSavedReplicatedJournals("default", numberOfReplicatedJournals);
+        setMaxSavedReplicatedJournals(NAME_OF_MESSAGING_DEFAULT_SERVER, numberOfReplicatedJournals);
     }
 
     @Override
@@ -3158,8 +3164,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("max-saved-replicated-journal-size");
         model.get("value").set(numberOfReplicatedJournals);
 
@@ -3172,7 +3178,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setBackupGroupName(String nameOfBackupGroup) {
-        setBackupGroupName(nameOfBackupGroup, "default");
+        setBackupGroupName(nameOfBackupGroup, NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     @Override
@@ -3180,8 +3186,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("backup-group-name");
         model.get("value").set(nameOfBackupGroup);
 
@@ -3194,15 +3200,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setCheckForLiveServer(boolean b) {
-        setCheckForLiveServer(b, "default");
+        setCheckForLiveServer(b, NAME_OF_MESSAGING_DEFAULT_SERVER);
     }
 
     @Override
     public void setCheckForLiveServer(boolean b, String serverName) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("check-for-live-server");
         model.get("value").set(b);
 
@@ -3285,14 +3291,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", nameOfTheBroadcastGroup);
 
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.warn("Broadcast group " + nameOfTheBroadcastGroup + " could not be removed. Reason: ", e);
         }
     }
 
@@ -3306,14 +3312,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", dggroup);
 
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.warn("Dicovery group " + dggroup + " could not be removed. Reason: ", e);
         }
 
     }
@@ -3328,14 +3334,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
 
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.warn("Cluster connection " + clusterGroupName + " could not be removed. Reason:", e);
         }
     }
 
@@ -3432,8 +3438,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removeBridge(String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("bridge", name);
         try {
             this.applyUpdate(model);
@@ -3445,7 +3451,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
                                  String... staticConnector) {
-        createCoreBridge("default", name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
+        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
     }
 
     /**
@@ -3462,8 +3468,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                  String... staticConnector) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("bridge", name);
         model.get("queue-name").set(queueName);
         if (forwardingAddress != null) {
@@ -3492,7 +3498,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
         model.get("source-connection-factory").set(sourceConnectionFactory);
         model.get("ha").set(true);
@@ -3529,8 +3535,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setFactoryType(String serverName, String connectionFactoryName, String factoryType) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("factory-type");
         model.get("value").set(factoryType);
@@ -3543,7 +3549,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setFactoryType(String connectionFactoryName, String factoryType) {
-        setFactoryType("default", connectionFactoryName, factoryType);
+        setFactoryType(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, factoryType);
     }
 
     @Override
@@ -3621,7 +3627,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
                                  String discoveryGroupName) {
-        createCoreBridge("default", name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
+        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
     }
 
     /**
@@ -3639,8 +3645,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                  String discoveryGroupName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("bridge", name);
         model.get("queue-name").set(queueName);
         if (forwardingAddress != null) {
@@ -3662,8 +3668,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private void removeRemoteConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
         try {
             this.applyUpdate(model);
@@ -3679,7 +3685,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void removeRemoteConnector(String name) {
-        removeRemoteConnector("default", name);
+        removeRemoteConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
     /**
@@ -3691,7 +3697,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
-        createRemoteConnector("default", name, socketBinding, params);
+        createRemoteConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params);
     }
 
     @Override
@@ -3719,8 +3725,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-connector", name);
         model.get("socket-binding").set(socketBinding);
         if (params != null) {
@@ -3924,8 +3930,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("compress-large-messages");
         model.get("value").set(value);
@@ -4009,18 +4015,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createInVmConnector(String name, int serverId, Map<String, String> params) {
-        createInVmConnector("default", name, serverId, params);
+        createInVmConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, serverId, params);
     }
 
     private void removeInVmConnector(String name) {
-        removeInVmConnector("default", name);
+        removeInVmConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
     private void removeInVmConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("in-vm-connector", name);
 
         try {
@@ -4048,8 +4054,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("in-vm-connector", name);
         model.get("server-id").set(serverId);
         if (params != null) {
@@ -4073,7 +4079,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
-        createRemoteAcceptor("default", name, socketBinding, params);
+        createRemoteAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params);
     }
 
     /**
@@ -4093,8 +4099,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
         model.get("socket-binding").set(socketBinding);
         if (params != null) {
@@ -4111,7 +4117,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void removeRemoteAcceptor(String name) {
-        removeRemoteAcceptor("default", name);
+        removeRemoteAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
     /**
@@ -4122,8 +4128,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private void removeRemoteAcceptor(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
         try {
             this.applyUpdate(model);
@@ -4141,7 +4147,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createInVmAcceptor(String name, int serverId, Map<String, String> params) {
-        createInVmAcceptor("default", name, serverId, params);
+        createInVmAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name, serverId, params);
     }
 
     /**
@@ -4156,8 +4162,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("in-vm-acceptor", name);
         model.get("server-id").set(serverId);
         if (params != null) {
@@ -4296,8 +4302,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
 
         try {
             this.applyUpdate(model);
@@ -4340,7 +4346,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 //            Node node = (Node) xpathInstance.evaluate("//hornetq-server", doc, XPathConstants.NODE);
 //            Node parent = node.getParentNode();
 //
-//            Element e = doc.createElement("hornetq-server");
+//            Element e = doc.createElement(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER);
 //            e.setAttribute("name", serverName);
 //
 //            parent.appendChild(e);
@@ -4483,8 +4489,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("get-nodes");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterName);
 
         ModelNode result;
@@ -4504,8 +4510,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         int counter = 0;
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         ModelNode result;
         try {
             result = this.applyUpdate(model);
@@ -4529,8 +4535,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         int counter = 0;
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         ModelNode result;
         try {
             result = this.applyUpdate(model);
@@ -4553,8 +4559,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public String getPagingDirectoryPath() {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("resolve-path");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
         ModelNode result;
         try {
@@ -4600,8 +4606,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public boolean closeClientsByDestinationAddress(String address) {
         ModelNode closeOperation = createModelNode();
         closeOperation.get(ClientConstants.OP).set("close-consumer-connections-for-address");
-        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        closeOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         closeOperation.get("address-match").set(address);
 
         ModelNode result;
@@ -4618,8 +4624,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public boolean closeClientsByUserName(String username) {
         ModelNode closeOperation = createModelNode();
         closeOperation.get(ClientConstants.OP).set("close-connections-for-user");
-        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        closeOperation.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         closeOperation.get("user").set(username);
 
         ModelNode result;
@@ -4641,8 +4647,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add(destinationType, destinationCoreName);
         model.get("name").set("entries");
 
@@ -4675,15 +4681,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode undefineConnector = new ModelNode();
         undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
-        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        undefineConnector.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         undefineConnector.get("name").set("connector");
 
         ModelNode setDiscoveryGroup = new ModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         setDiscoveryGroup.get("name").set("discovery-group-name");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
@@ -4702,8 +4708,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("list-connection-ids");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
 
         ModelNode result;
         try {
@@ -4719,8 +4725,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("list-consumers-as-json");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("jms-queue", queue);
 
         ModelNode result;
@@ -4740,8 +4746,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         removeMessagesFromQueue.get("message-id").set(jmsMessageID);
 
@@ -4756,8 +4762,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void forceFailover() {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("force-failover");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
 
         try {
             this.applyUpdate(model);
@@ -4771,8 +4777,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get("name").set("transaction-timeout");
         model.get("value").set(hornetqTransactionTimeout);
 
@@ -4788,8 +4794,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ActiveMQAdminOperationsEAP7 jmsAdminOperations = new ActiveMQAdminOperationsEAP7();
         try {
             jmsAdminOperations.setHostname("127.0.0.1");
-            jmsAdminOperations.setPort(9999);
+            jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
+            jmsAdminOperations.setPersistenceEnabled(true);
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+            jmsAdminOperations.removeClusteringGroup("my-cluster");
+            jmsAdminOperations.removeBroadcastGroup("bg-group1");
+            jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+            jmsAdminOperations.setNodeIdentifier(1234567);
+
 //            Map<String, String> params = new HashMap<String, String>();
 //            params.put("java.naming.provider.url", "jnp://localhost:5599");
 //            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
@@ -4798,14 +4812,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 //            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
-            String jmsServerBindingAddress = "192.168.40.1";
+//            String jmsServerBindingAddress = "192.168.40.1";
 //            String inVmConnectorName = "in-vm";
 //            String remoteConnectorName = "netty-remote";
 //            String messagingGroupSocketBindingName = "messaging-group";
 //            String inVmHornetRaName = "local-hornetq-ra";
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
 //            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
 //            jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
 //            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
@@ -4834,8 +4848,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 //            props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
 //            props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.keystore"));
 //            props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
-//
-//            eap6AdmOps.createRemoteConnector("netty2", "messaging2", props2);
+////
+//            jmsAdminOperations.createRemoteConnector("netty2", "messaging2", props2);
 
             jmsAdminOperations.close();
         } finally {

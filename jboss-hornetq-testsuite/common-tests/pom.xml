@@ -17,7 +17,7 @@
 
             <activation>
                 <property>
-                    <name>eap6x</name>
+                    <name>!eap</name>
                 </property>
             </activation>
 
@@ -52,7 +52,8 @@
             <id>eap7x</id>
             <activation>
                 <property>
-                    <name>eap7x</name>
+                    <name>eap</name>
+                    <value>7x</value>
                 </property>
             </activation>
             <build>

@@ -128,7 +128,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLimitedPoolSize() throws Exception {
-        prepareJmsServer(container(1));
+        prepareJmsServerEAP6(container(1));
         container(1).start();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
 
@@ -243,7 +243,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodh(boolean shutdown) throws Exception {
 
         // we use only the first server
-        prepareJmsServer(container(1));
+        prepareJmsServerEAP6(container(1));
         container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
@@ -305,8 +305,8 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareJmsServer(container(1));
-        prepareJmsServer(container(2));
+        prepareJmsServerEAP6(container(1));
+        prepareJmsServerEAP6(container(2));
 
         // cluster A
         container(1).start();
@@ -369,7 +369,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
-                container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                container(1).getHostname(), container(1).getJNDIPort(), inQueue, 10);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -465,7 +465,45 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer() throws Exception {
-        prepareJmsServer(container(1));
+
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareJmsServerEAP6(container(1));
+        } else if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER))   {
+            prepareJmsServerEAP7(container(1));
+        }
+    }
+
+    private void prepareJmsServerEAP7(Container container) {
+
+        container.start();
+
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+        jmsAdminOperations.removeClusteringGroup("my-cluster");
+        jmsAdminOperations.removeBroadcastGroup("bg-group1");
+        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+        jmsAdminOperations.setNodeIdentifier(1234567);
+
+        try {
+            jmsAdminOperations.removeQueue(inQueueName);
+        } catch (Exception e) {
+            // Ignore it
+        }
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+
+        try {
+            jmsAdminOperations.removeQueue(outQueueName);
+        } catch (Exception e) {
+            // Ignore it
+        }
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+        jmsAdminOperations.close();
+
+        container.stop();
     }
 
     /**
@@ -473,11 +511,9 @@ public class Lodh1TestCase extends HornetQTestCase {
      *
      * @param container Container used in the test
      */
-    private void prepareJmsServer(Container container) {
+    private void prepareJmsServerEAP6(Container container) {
 
         container.start();
-
-        logger.error("Get process id: " + ProcessIdUtils.getProcessId(container));
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 

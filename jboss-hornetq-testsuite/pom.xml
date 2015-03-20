@@ -321,7 +321,7 @@
             <id>eap6x</id>
             <activation>
                 <property>
-                    <name>eap6x</name>
+                    <name>!eap</name>
                 </property>
             </activation>
             <modules>
@@ -379,7 +379,8 @@
             <id>eap7x</id>
             <activation>
                 <property>
-                    <name>eap7x</name>
+                    <name>eap</name>
+                    <value>7x</value>
                 </property>
             </activation>
             <modules>

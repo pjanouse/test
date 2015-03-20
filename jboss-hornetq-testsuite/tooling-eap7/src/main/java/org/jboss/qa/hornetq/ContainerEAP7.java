@@ -126,7 +126,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType() {
-        return HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
+        return HornetQTestCaseConstants.CONTAINER_TYPE.EAP7_CONTAINER;
     }
 
     @Override
