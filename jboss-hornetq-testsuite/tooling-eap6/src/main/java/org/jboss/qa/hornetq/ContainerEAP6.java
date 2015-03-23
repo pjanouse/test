@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq;
 
-import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -15,11 +14,13 @@ import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -135,6 +136,7 @@ public class ContainerEAP6 implements Container {
     public void deleteDataFolder() throws IOException {
         FileUtils.deleteDirectory(new File(getServerHome(), "standalone/data"));
     }
+
 
     @Override
     public void start() {
@@ -293,6 +295,41 @@ public class ContainerEAP6 implements Container {
         return jmxUtils;
     }
 
+    public void deploy(Archive archive) {
+
+        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+        try {
+
+            eap6AdmOps.setHostname(getHostname());
+            eap6AdmOps.setPort(getPort());
+            eap6AdmOps.connect();
+            eap6AdmOps.deploy(archive);
+
+        } catch (Exception ex)  {
+            log.error("Could not deploy archive " + archive.getName(), ex);
+        } finally {
+            eap6AdmOps.close();
+        }
+    }
+
+    @Override
+    public void undeploy(String archiveName) {
+
+        HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
+        try {
+
+            eap6AdmOps.setHostname(getHostname());
+            eap6AdmOps.setPort(getPort());
+            eap6AdmOps.connect();
+            eap6AdmOps.undeploy(archiveName);
+
+        } catch (Exception ex)  {
+            log.error("Could not undeploy archive " + archiveName, ex);
+        } finally {
+            eap6AdmOps.close();
+        }
+
+    }
 
     @Override
     public JMSOperations getJmsOperations() {

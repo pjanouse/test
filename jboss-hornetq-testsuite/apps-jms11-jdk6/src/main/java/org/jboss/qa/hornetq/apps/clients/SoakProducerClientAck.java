@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
@@ -60,6 +61,10 @@ public class SoakProducerClientAck extends Client {
         this.port = port;
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
+    }
+
+    public SoakProducerClientAck(Container container, String queueNameJndi, int messages) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getHornetqPort(), queueNameJndi, messages);
     }
 
     /**

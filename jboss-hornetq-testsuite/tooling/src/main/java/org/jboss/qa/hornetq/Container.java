@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.jboss.shrinkwrap.api.Archive;
 
 
 public interface Container {
@@ -41,6 +42,8 @@ public interface Container {
     void stop();
     void kill();
     void restart();
+    void deploy(Archive archive);
+    void undeploy(String archiveName);
 
     JournalExportImportUtils getExportImportUtil();
     JmxUtils getJmsUtils();

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.ServiceLoader;
 import javax.naming.Context;
 import javax.naming.NamingException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -21,6 +23,7 @@ import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
 import org.omg.CORBA.DomainManagerOperations;
@@ -265,6 +268,42 @@ public class ContainerEAP7 implements Container {
         start();
     }
 
+    @Override
+    public void deploy(Archive archive) {
+
+        ActiveMQAdminOperationsEAP7 eap7AdmOps = new ActiveMQAdminOperationsEAP7();
+        try {
+
+            eap7AdmOps.setHostname(getHostname());
+            eap7AdmOps.setPort(getPort());
+            eap7AdmOps.connect();
+            eap7AdmOps.deploy(archive);
+
+        } catch (Exception ex)  {
+            log.error("Could not deploy archive " + archive.getName(), ex);
+        } finally {
+            eap7AdmOps.close();
+        }
+    }
+
+    @Override
+    public void undeploy(String archiveName) {
+
+        ActiveMQAdminOperationsEAP7 eap7AdmOps = new ActiveMQAdminOperationsEAP7();
+        try {
+
+            eap7AdmOps.setHostname(getHostname());
+            eap7AdmOps.setPort(getPort());
+            eap7AdmOps.connect();
+            eap7AdmOps.undeploy(archiveName);
+
+        } catch (Exception ex)  {
+            log.error("Could not undeploy archive " + archiveName, ex);
+        } finally {
+            eap7AdmOps.close();
+        }
+
+    }
 
     @Override
     public synchronized JournalExportImportUtils getExportImportUtil() {

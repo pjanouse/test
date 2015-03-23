@@ -199,8 +199,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         Thread.sleep(3000);
 
         QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
-                getHostname(CONTAINER1_NAME),
-                getJNDIPort(CONTAINER1_NAME),
+                container(1),
                 relativeJndiInQueueName,
                 NUMBER_OF_DESTINATIONS_BRIDGES,
                 1,
@@ -209,8 +208,8 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(getHostname(CONTAINER4_NAME));
-        clientsA1.setPortForConsumers(getJNDIPort(CONTAINER4_NAME));
+        clientsA1.setHostnameForConsumers(container(4).getHostname());
+        clientsA1.setPortForConsumers(container(4).getJNDIPort());
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 
@@ -253,9 +252,9 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getHostname(CONTAINER4_NAME), getJNDIPort(CONTAINER4_NAME), relativeJndiOutQueueName + 0, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4).getHostname(), container(4).getJNDIPort(), relativeJndiOutQueueName + 0, 10000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -319,22 +318,20 @@ public class Lodh4TestCase extends HornetQTestCase {
      */
     public void prepareServers() {
 
-        prepareSourceServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-        prepareSourceServer(container(3), getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
-        prepareTargetServer(container(2), getHostname(CONTAINER2_NAME));
-        prepareTargetServer(container(4), getHostname(CONTAINER4_NAME));
+        prepareSourceServer(container(1), container(2));
+        prepareSourceServer(container(3), container(4));
+        prepareTargetServer(container(2));
+        prepareTargetServer(container(4));
 
     }
 
     /**
      * Prepares source server for bridge.
-     *
-     * @param container             test container - defined in arquillian.xml
-     * @param bindingAddress        says on which ip container will be binded
-     * @param targetServerName name of the target server
+     *  @param container             test container - defined in arquillian.xml
+     * @param targetServer target container
      */
-    private void prepareSourceServer(Container container, String bindingAddress,
-                                     String targetServerName) {
+    private void prepareSourceServer(Container container,
+                                     Container targetServer) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -347,10 +344,6 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -384,7 +377,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         container.restart();
 
         jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(targetServerName), getHornetqPort(targetServerName));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
@@ -408,9 +401,8 @@ public class Lodh4TestCase extends HornetQTestCase {
      * Prepare target server for bridge
      *
      * @param container      test container - defined in arquillian.xml
-     * @param bindingAddress says on which ip container will be binded
      */
-    private void prepareTargetServer(Container container, String bindingAddress) {
+    private void prepareTargetServer(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -421,10 +413,6 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 
 import javax.jms.*;
 import javax.naming.Context;
@@ -74,6 +75,12 @@ public class SoakReceiverClientAck extends Client {
         this.receiveTimeOut = receiveTimeOut;
         this.ackAfter = ackAfter;
         this.maxRetries = maxRetries;
+
+    }
+
+    public SoakReceiverClientAck(Container container, String queueJndiName, long receiveTimeOut,
+                                 int ackAfter, int maxRetries) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName, receiveTimeOut, ackAfter, maxRetries);
 
     }
 

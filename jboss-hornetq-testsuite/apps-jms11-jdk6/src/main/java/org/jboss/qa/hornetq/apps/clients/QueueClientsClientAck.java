@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -63,6 +64,12 @@ public class QueueClientsClientAck implements Clients {
                                  int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu,
                     numberOfMessages);
+    }
+
+    public QueueClientsClientAck(Container container, String queueJndiNamePrefix, int numberOfQueues,
+                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiNamePrefix, numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu,
+                numberOfMessages);
     }
 
     public QueueClientsClientAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,

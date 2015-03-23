@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
@@ -56,9 +57,14 @@ public class SoakPublisherClientAck extends Client {
         this.clientId = clientId;
     }
 
-    /**
-     * Starts end messages to server. This should be started as Thread - publisher.start();
-     */
+    public SoakPublisherClientAck(Container container, String topicNameJndi, int messages, String clientId) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, messages, clientId);
+    }
+
+
+        /**
+         * Starts end messages to server. This should be started as Thread - publisher.start();
+         */
     public void run() {
 
         Context context = null;

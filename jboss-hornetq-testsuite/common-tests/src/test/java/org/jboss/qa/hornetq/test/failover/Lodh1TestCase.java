@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
+import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -122,6 +123,29 @@ public class Lodh1TestCase extends HornetQTestCase {
         return mdbJar;
 
     }
+
+
+    public JavaArchive createLodh1TestDeployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
+
+        mdbJar.addClass(LocalMdbFromQueue.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh1")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
 
     @RunAsClient
     @Test

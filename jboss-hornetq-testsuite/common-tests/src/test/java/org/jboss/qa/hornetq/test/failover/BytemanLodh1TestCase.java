@@ -313,7 +313,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.sendMessages(msgBuilder);
 
         logger.info("Deploying MDB " + deploymentName);
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+        RuleInstaller.installRule(this.getClass(), container(1));
         try {
             this.deployer.deploy(deploymentName);
         } catch (Exception e) {
@@ -353,7 +353,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private List<String> sendMessages(final MessageBuilder builder) throws Exception {
-        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE,
+        SoakProducerClientAck producer = new SoakProducerClientAck(container(1), IN_QUEUE,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);
         producer.setMessageBuilder(builder);
@@ -371,7 +371,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new ReceiverTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), OUT_QUEUE, 5000, 10, 10);
+            receiver = new ReceiverTransAck(container(1), OUT_QUEUE, 5000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();
@@ -481,7 +481,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private boolean isLargeMessagesDirEmpty() {
-        String path = JBOSS_HOME_1 + File.separator
+        String path = container(1).getServerHome() + File.separator
                 + "standalone" + File.separator
                 + "data" + File.separator
                 + "messaginglargemessages";

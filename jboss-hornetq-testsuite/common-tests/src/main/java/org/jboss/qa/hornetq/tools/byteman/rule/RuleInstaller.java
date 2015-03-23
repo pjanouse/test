@@ -19,6 +19,7 @@ package org.jboss.qa.hornetq.tools.byteman.rule;
 
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
 
 import java.lang.reflect.Method;
@@ -51,9 +52,20 @@ public class RuleInstaller {
      * This will install rule which is described in annotation of caller method.
      *
      * @param testClass class with test
+     * @param container container to deploy the rule
+     */
+    public static void installRule(Class testClass, Container container)  {
+        installRule(testClass, container.getHostname(), container.getBytemanPort());
+    }
+
+    /**
+     * This will install rule which is described in annotation of caller method.
+     *
+     * @param testClass class with test
      * @param host      hostname where byteman listen to
      * @param port      port where byteman listen to
      */
+    @Deprecated
     public static void installRule(Class testClass, String host, int port)  {
 
         SubmitUtil.host = host;

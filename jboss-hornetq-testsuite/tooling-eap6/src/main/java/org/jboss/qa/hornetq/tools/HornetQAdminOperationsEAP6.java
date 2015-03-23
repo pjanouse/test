@@ -5,13 +5,17 @@ import org.apache.log4j.Logger;
 import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.threads.JBossThreadFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.*;
@@ -4400,6 +4404,19 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public void deploy(Archive archive) throws Exception {
+
+        ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
+        final InputStream input = archive.as(ZipExporter.class).exportAsInputStream();
+        server.deploy(archive.getName(), input);
+
+    }
+
+    public void undeploy(String archiveName) throws Exception {
+        ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
+        server.undeploy(archiveName);
     }
 
     /**

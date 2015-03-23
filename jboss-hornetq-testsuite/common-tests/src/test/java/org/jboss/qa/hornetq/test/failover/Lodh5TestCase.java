@@ -248,7 +248,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         deleteRecords();
         countRecords();
 
-        ProducerTransAck producer = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueRelativeJndiName, numberOfMessages);
+        ProducerTransAck producer = new ProducerTransAck(container(1), inQueueRelativeJndiName, numberOfMessages);
 
         producer.setMessageBuilder(new InfoMessageBuilder());
         producer.setCommitAfter(1000);
@@ -481,7 +481,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             countRecords();
 
             logger.info("!!!!! sending messages !!!!!");
-            ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueRelativeJndiName,
+            ProducerClientAck producer = new ProducerClientAck(container(1), inQueueRelativeJndiName,
                     numberOfMessages);
 
             producer.setMessageBuilder(new InfoMessageBuilder());
@@ -490,7 +490,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             logger.info("!!!!! installing byteman rules !!!!!");
             //HornetQCallsTracking.installTrackingRules(CONTAINER1_NAME_IP, BYTEMAN_CONTAINER1_NAME_PORT);
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1));
 
             logger.info("!!!!! deploying MDB !!!!!");
             try {
@@ -978,7 +978,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
 
             StringTokenizer st = new StringTokenizer(response, ",");
             while (st.hasMoreTokens()) {
@@ -1000,7 +1000,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
+            String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
                     + "&database=" + database, 30, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
@@ -1031,7 +1031,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             deployer.deploy("dbUtilServlet");
 
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
             deployer.undeploy("dbUtilServlet");
 
             logger.info("Response is: " + response);
@@ -1053,7 +1053,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void deleteRecords() throws Exception {
         try {
             deployer.deploy("dbUtilServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
+            String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
 
             logger.info("Response from delete records is: " + response);
         } finally {
