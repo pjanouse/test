@@ -369,7 +369,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
-                container(1).getHostname(), container(1).getJNDIPort(), inQueue, 10);
+                container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
