@@ -2189,6 +2189,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         return 0;
     }
 
+    @Override
+    public void reload(boolean isAdminOnlyMode) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

@@ -32,7 +32,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private static String NAME_OF_MESSAGING_SUBSYSTEM = "messaging-activemq";
     private static String NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER = "server"; // it's "server" in "server=default"
     private static String NAME_OF_MESSAGING_DEFAULT_SERVER = "default";
-    
+
     // Logger
     private static final Logger logger = Logger.getLogger(ActiveMQAdminOperationsEAP7.class);
 
@@ -4353,16 +4353,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 //        }
 //    }
 
-    /**
-     *
-     */
-    @Override
-    public void reload() {
 
+    @Override
+    public void reload(boolean isAdminOnlyMode) {
         long timeout = 30000;
 
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
+
+        if ("ADMIN_ONLY".equals(isAdminOnlyMode)) {
+            model.get("admin-only").set("true");
+        } else {
+            model.get("admin-only").set("false");
+        }
+
 
         try {
             this.applyUpdate(model);
@@ -4379,7 +4383,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             long startTime = System.currentTimeMillis();
             Thread.sleep(1000);
             logger.warn(this.applyUpdate(model).get("result"));
-            while(!this.applyUpdate(model).get("result").toString().equalsIgnoreCase("running"))   {
+            while (!this.applyUpdate(model).get("result").toString().equalsIgnoreCase("running")) {
                 Thread.sleep(1000);
                 if (System.currentTimeMillis() - startTime > timeout) {
                     break;
@@ -4390,6 +4394,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void reload() {
+
+        reload(false);
     }
 
     /**
@@ -4760,6 +4773,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
 
     }
+
 
     @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {

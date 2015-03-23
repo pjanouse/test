@@ -4737,6 +4737,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void reload(boolean isAdminOnlyMode) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");

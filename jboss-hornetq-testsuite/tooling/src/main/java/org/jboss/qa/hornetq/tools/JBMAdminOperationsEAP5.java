@@ -2045,5 +2045,10 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return 0;
     }
 
+    @Override
+    public void reload(boolean isAdminOnlyMode) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
 }

@@ -1461,4 +1461,9 @@ public interface JMSOperations {
     int getNumberOfConsumersOnQueue(String queue);
 
 
+    /**
+     *
+     * @param isAdminOnlyMode
+     */
+    void reload(boolean isAdminOnlyMode);
 }
