@@ -348,6 +348,17 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
+    public void update(ContainerController controller, Deployer deployer) {
+        if (containerController == null) {
+            this.containerController = controller;
+        }
+
+        if (deployer == null)   {
+            this.deployer = deployer;
+        }
+    }
+
+    @Override
     public synchronized JmxNotificationListener createJmxNotificationListener() {
         // always create new instance
         ServiceLoader serviceLoader = ServiceLoader.load(JmxNotificationListener.class);

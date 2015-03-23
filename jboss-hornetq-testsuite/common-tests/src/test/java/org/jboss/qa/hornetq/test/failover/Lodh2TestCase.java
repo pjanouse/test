@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -52,8 +53,8 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
-    public static final String MDB_ON_QUEUE_1 = "mdb1";
-    public static final String MDB_ON_QUEUE_2 = "mdb2";
+    public final Archive MDB_ON_QUEUE_1 = getDeployment1();
+    public final Archive MDB_ON_QUEUE_2 = getDeployment2();
     public static final String MDB_ON_QUEUE_WITH_FILTER_1 = "mdb1WithFilter";
     public static final String MDB_ON_QUEUE_WITH_FILTER_2 = "mdb2WithFilter";
     public static final String MDB_ON_NON_DURABLE_TOPIC = "nonDurableMdbOnTopic";
@@ -71,12 +72,16 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
+
+    public Archive getDeployment1() {
+        File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            logger.error("Problem during creating PrintWriter: ", e);
+        }
+        writer.println("remote-jms-server=" + container(1).getHostname());
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
@@ -84,6 +89,23 @@ public class Lodh2TestCase extends HornetQTestCase {
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
+    }
+
+    public Archive getDeployment2() {
+        File propertyFile = new File(container(4).getServerHome() + File.separator + "mdb2.properties");
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            logger.error("Problem during creating PrintWriter: ", e);
+        }
+        writer.println("remote-jms-server=" + container(3).getHostname());
+        writer.close();
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
     }
 
     @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_MAPPED_NAME)
@@ -123,22 +145,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         return mdbJar;
 
     }
-
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_2)
-    @TargetsContainer(CONTAINER4_NAME)
-    public static Archive getDeployment2() throws Exception {
-
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
-        writer.close();
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
-        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        logger.info(mdbJar.toString(true));
-        return mdbJar;
-    }
-
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_WITH_FILTER_1)
     @TargetsContainer(CONTAINER2_NAME)
@@ -556,8 +562,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_1);
             deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_2);
         } else {
-            deployer.deploy(MDB_ON_QUEUE_1);
-            deployer.deploy(MDB_ON_QUEUE_2);
+            container(2).deploy(getDeployment1());
+            container(4).deploy(getDeployment2());
         }
 
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
@@ -593,8 +599,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_1);
             deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_2);
         } else {
-            deployer.undeploy(MDB_ON_QUEUE_1);
-            deployer.undeploy(MDB_ON_QUEUE_2);
+            container(2).undeploy(getDeployment1().getName());
+            container(4).undeploy(getDeployment2().getName());
         }
 
         container(2).stop();
@@ -638,8 +644,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         producer1.start();
         producer1.join();
 
-        deployer.deploy(MDB_ON_QUEUE_1);
-        deployer.deploy(MDB_ON_QUEUE_2);
+        container(2).deploy(getDeployment1());
+        container(4).deploy(getDeployment2());
 
         waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
 
@@ -803,10 +809,10 @@ public class Lodh2TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-        container(2).stop();
-        container(4).stop();
-        container(1).stop();
-        container(3).stop();
+//        container(2).stop();
+//        container(4).stop();
+//        container(1).stop();
+//        container(3).stop();
     }
 
     /**

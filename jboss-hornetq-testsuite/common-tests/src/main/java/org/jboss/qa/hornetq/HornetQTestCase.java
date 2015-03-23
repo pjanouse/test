@@ -82,12 +82,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @Deprecated
     public final static String CONTAINER4_IP;
 
-//    // get port.offset.x properties from pom.xml
-//    public final static int PORT_OFFSET_1;
-//    public final static int PORT_OFFSET_2;
-//    public final static int PORT_OFFSET_3;
-//    public final static int PORT_OFFSET_4;
-
     // Multi-cast address
     public static final String MCAST_ADDRESS;
 
@@ -139,14 +133,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JBOSS_HOME_3 = verifyJbossHome(getEnvProperty("JBOSS_HOME_3"));
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
-//        String tmpPortOffset = getEnvProperty("PORT_OFFSET_1");
-//        PORT_OFFSET_1 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-//        tmpPortOffset = getEnvProperty("PORT_OFFSET_2");
-//        PORT_OFFSET_2 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-//        tmpPortOffset = getEnvProperty("PORT_OFFSET_3");
-//        PORT_OFFSET_3 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
-//        tmpPortOffset = getEnvProperty("PORT_OFFSET_4");
-//        PORT_OFFSET_4 = Integer.valueOf((tmpPortOffset) != null ? tmpPortOffset : "0");
     }
 
     private static String checkMulticastAddress(String multiCastAddress) {
@@ -197,7 +183,11 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             containers.put(index, createContainer("node-" + index, index));
         }
 
-        return containers.get(index);
+        Container container = containers.get(index);
+
+        container.update(controller, deployer);
+
+        return container;
     }
 
     public Collection<Container> containerList() {

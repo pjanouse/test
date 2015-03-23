@@ -46,7 +46,6 @@ public class ContainerEAP6 implements Container {
 
     private Integer portOffset = null;
 
-
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
             ContainerController containerController, Deployer deployer) {
@@ -171,7 +170,7 @@ public class ContainerEAP6 implements Container {
                 return;
             }
         } catch (Exception ex) {
-            log.warn("Error during getting port of byteman agent.", ex);
+            log.warn("Error during stop() of container. It was not possible to check whether server is running.", ex);
         }
 
         // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
@@ -338,6 +337,17 @@ public class ContainerEAP6 implements Container {
         eap6AdmOps.setPort(getPort());
         eap6AdmOps.connect();
         return eap6AdmOps;
+    }
+
+    @Override
+    public void update(ContainerController controller, Deployer deployer) {
+        if (containerController == null) {
+            this.containerController = controller;
+        }
+
+        if (deployer == null)   {
+            this.deployer = deployer;
+        }
     }
 
 
