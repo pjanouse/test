@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 
+import java.io.IOException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -31,6 +32,9 @@ public interface Container {
     HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
 
     int getHttpPort();
+
+    // cleanup operations
+    void deleteDataFolder() throws IOException;
 
     // ContainerController delegates
     void start();

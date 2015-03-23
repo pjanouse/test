@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq;
 
+import java.io.File;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -129,6 +131,10 @@ public class ContainerEAP6 implements Container {
         return 8080 + getPortOffset();
     }
 
+    @Override
+    public void deleteDataFolder() throws IOException {
+        FileUtils.deleteDirectory(new File(getServerHome(), "standalone/data"));
+    }
 
     @Override
     public void start() {

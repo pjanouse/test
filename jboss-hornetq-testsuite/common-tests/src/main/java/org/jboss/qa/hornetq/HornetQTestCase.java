@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -61,16 +62,24 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     // JBOSS_HOME properties
+    @Deprecated
     public final static String JBOSS_HOME_1;
+    @Deprecated
     public final static String JBOSS_HOME_2;
+    @Deprecated
     public final static String JBOSS_HOME_3;
+    @Deprecated
     public final static String JBOSS_HOME_4;
 
     // IP address for containers
     public final static String DEFAULT_CONTAINER_IP = "127.0.0.1";
+    @Deprecated
     public final static String CONTAINER1_IP;
+    @Deprecated
     public final static String CONTAINER2_IP;
+    @Deprecated
     public final static String CONTAINER3_IP;
+    @Deprecated
     public final static String CONTAINER4_IP;
 
 //    // get port.offset.x properties from pom.xml
@@ -89,6 +98,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public static final String JOURNAL_DIRECTORY_B;
 
     // Active server - EAP 5 or EAP 6?
+    @Deprecated
     protected String currentContainerForTest;
 
     @ArquillianResource
@@ -161,12 +171,16 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     // composite info objects for easier passing to utility classes
+    @Deprecated
     public static final ContainerInfo CONTAINER1_INFO = new ContainerInfo(CONTAINER1_NAME, "server-1", CONTAINER1_IP,
             BYTEMAN_CONTAINER1_PORT, 0, JBOSS_HOME_1);
+    @Deprecated
     public static final ContainerInfo CONTAINER2_INFO = new ContainerInfo(CONTAINER2_NAME, "server-2", CONTAINER2_IP,
             BYTEMAN_CONTAINER2_PORT, 0, JBOSS_HOME_2);
+    @Deprecated
     public static final ContainerInfo CONTAINER3_INFO = new ContainerInfo(CONTAINER3_NAME, "server-3", CONTAINER3_IP,
             BYTEMAN_CONTAINER3_PORT, 0, JBOSS_HOME_3);
+    @Deprecated
     public static final ContainerInfo CONTAINER4_INFO = new ContainerInfo(CONTAINER4_NAME, "server-4", CONTAINER4_IP,
             BYTEMAN_CONTAINER4_PORT, 0, JBOSS_HOME_4);
     /////////////////////////////////////////////////////////////////////////////
@@ -233,6 +247,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return JournalExportImportUtils instance
      */
+    @Deprecated
     private static synchronized JournalExportImportUtils getJournalExportImportUtils()   {
 
         if (journalExportImportUtils != null) {
@@ -256,6 +271,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return jmx utils instance
      */
+    @Deprecated
     private static synchronized JmxUtils getJmxUtils()   {
 
         ServiceLoader<JmxUtils> serviceLoader = ServiceLoader.load(JmxUtils.class);
@@ -275,6 +291,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return JmxNotificationListener instance
      */
+    @Deprecated
     protected static synchronized JmxNotificationListener getJmxNotificationListener()    {
 
         ServiceLoader<JmxNotificationListener> serviceLoader = ServiceLoader.load(JmxNotificationListener.class);
@@ -294,6 +311,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * returns LargeMessagePacketInterceptor instance
      */
+    @Deprecated
     protected static LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
         ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
         Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
@@ -313,10 +331,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @After
     public void stopAllServers() {
-//        stopServer(CONTAINER1_NAME);
-//        stopServer(CONTAINER2_NAME);
-//        stopServer(CONTAINER3_NAME);
-//        stopServer(CONTAINER4_NAME);
+        for (Container c : containerList()) {
+            c.stop();
+        }
     }
 
     /**
@@ -415,6 +432,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
      */
+    @Deprecated
     public Context getContext(String hostName, int port) throws NamingException {
         Context ctx = null;
         if (isEAP5()) {
@@ -435,6 +453,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
+    @Deprecated
     protected Context getEAP6Context(String hostName, int port) throws NamingException {
         return JMSTools.getEAP6Context(hostName, port);
     }
@@ -447,6 +466,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
+    @Deprecated
     protected Context getEAP5Context(String hostName, int port) throws NamingException {
         return JMSTools.getEAP5Context(hostName, port);
     }
@@ -456,6 +476,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return returns default port for JNDI service
      */
+    @Deprecated
     public int getJNDIPort() {
         int port = 0;
         if (isEAP5() || isEAP5WithJBM()) {
@@ -471,6 +492,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return returns default port for JNDI service
      */
+    @Deprecated
     public static int getJNDIPort(String containerName) {
 
         if (getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_CONTAINER
@@ -482,6 +504,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    @Deprecated
     public static int getLegacyJNDIPort(String containerName) {
 
         return 1099 + getContainerInfo(containerName).getPortOffset();
@@ -491,6 +514,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContext()
      */
+    @Deprecated
     public Context getContext() throws NamingException {
         return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
     }
@@ -498,6 +522,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer1()
      */
+    @Deprecated
     public Context getContextContainer1() throws NamingException {
         return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
     }
@@ -505,6 +530,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer2()
      */
+    @Deprecated
     public Context getContextContainer2() throws NamingException {
         return getContext(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME));
     }
@@ -523,6 +549,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return true if EAP 5 with JBM
      */
+    @Deprecated
     private boolean isEAP5WithJBM() {
         return (this.getCurrentContainerForTest() != null) && EAP5_WITH_JBM_CONTAINER.equals(this.getCurrentContainerForTest());
     }
@@ -532,7 +559,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param path folder which should be deleted
      * @return true if operation was successful, false otherwise
+     *
+     * @deprecated Use {@link FileUtils#deleteDirectory(File)} instead.
      */
+    @Deprecated
     protected static boolean deleteFolder(File path) {
         if (log.isDebugEnabled()) {
             log.debug(String.format("Removing folder '%s'", path));
@@ -555,7 +585,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param jbossHome     JBoss home folder
      * @param containerName name of the target container
      * @return true if operation was successful, false otherwise
+     *
+     * @deprecated Use {@link Container#deleteDataFolder()} instead.
      */
+    @Deprecated
     protected boolean deleteDataFolder(String jbossHome, String containerName) {
         boolean result = false;
         if (isEAP5()) {
@@ -571,7 +604,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * removes standalone data folder for standalone profile.
      *
      * @return true if operation was successful, false otherwise
+     *
+     * @deprecated Use {@link Container#deleteDataFolder()} instead.
      */
+    @Deprecated
     protected boolean deleteDataFolderForJBoss1() {
         return deleteDataFolder(JBOSS_HOME_1, CONTAINER1_NAME);
     }
@@ -581,7 +617,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * removes standalone data folder for standalone profile.
      *
      * @return true if operation was successful, false otherwise
+     *
+     * @deprecated Use {@link Container#deleteDataFolder()} instead.
      */
+    @Deprecated
     protected boolean deleteDataFolderForJBoss2() {
         return deleteDataFolder(JBOSS_HOME_2, CONTAINER2_NAME);
     }
@@ -606,7 +645,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     public void describeTestStop(@Observes org.jboss.arquillian.test.spi.event.suite.After event) {
-        log.info("Stop test -------------------------------- " + event.getTestClass().getName() + "." + event.getTestMethod().getName());
+        log.info("Stop test -------------------------------- " + event.getTestClass().getName() + "." + event
+                .getTestMethod().getName());
     }
 
     /**
@@ -642,12 +682,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    @Deprecated
     public int getBytemanPort(String containerName) throws Exception {
 
         return getContainerInfo(containerName).getBytemanPort();
 
     }
 
+    @Deprecated
     public static int getHornetqPort(String containerName) {
         return PORT_HORNETQ_DEFAULT + getContainerInfo(containerName).getPortOffset();
     }
@@ -658,6 +700,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return port of collocated backup
      */
+    @Deprecated
     public static int getHornetqBackupPort(String containerName) {
         return PORT_HORNETQ_BACKUP_DEFAULT + getContainerInfo(containerName).getPortOffset();
     }
@@ -669,6 +712,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName container name
      * @return pid of the server
      */
+    @Deprecated
     public long getProcessId(String containerName) {
 
         long pid = -1;
@@ -700,6 +744,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return true for EAP 5 container
      */
+    @Deprecated
     public boolean isEAP5() {
         return ((this.getCurrentContainerForTest() != null) && EAP5_CONTAINER.equals(this.getCurrentContainerForTest()));
     }
@@ -709,6 +754,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return true for EAP 6 container
      */
+    @Deprecated
     public boolean isEAP6() {
         return (this.getCurrentContainerForTest() != null) && EAP6_CONTAINER.equals(this.getCurrentContainerForTest());
     }
@@ -718,6 +764,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return container id
      */
+    @Deprecated
     public static String getCurrentContainerId() {
         String containerId = EAP6_CONTAINER;
         String arqConfigurationFile = System.getProperty("arquillian.xml");
@@ -821,6 +868,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    @Deprecated
     public static CONTAINER_TYPE getContainerType(String containerName) {
         return getContainerInfo(containerName).getContainerType();
     }
@@ -851,6 +899,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return JBOSS_HOME as specified in arquillian.xml or null
      */
+    @Deprecated
     public static String getJbossHome(String containerName) {
 
 //        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
@@ -871,6 +920,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return hostname of "localhost" when no specified
      */
+    @Deprecated
     public static String getHostname(String containerName) {
 //        for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
 //            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
@@ -966,6 +1016,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return managementPort or rmiPort or 9999 when not set
      */
+    @Deprecated
     public static int getPort(String containerName) {
 
         for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
@@ -1030,6 +1081,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return name
      */
+    @Deprecated
     public String getCurrentContainerForTest() {
         return currentContainerForTest;
     }
@@ -1039,6 +1091,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param currentContainerForTest container
      */
+    @Deprecated
     public void setCurrentContainerForTest(String currentContainerForTest) {
         this.currentContainerForTest = currentContainerForTest;
     }

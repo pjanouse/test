@@ -136,6 +136,11 @@ public class ContainerEAP7 implements Container {
 
 
     @Override
+    public void deleteDataFolder() throws IOException {
+        FileUtils.deleteDirectory(new File(getServerHome(), "standalone/data"));
+    }
+
+    @Override
     public void start() {
 
         // modify properties for arquillian.xml
