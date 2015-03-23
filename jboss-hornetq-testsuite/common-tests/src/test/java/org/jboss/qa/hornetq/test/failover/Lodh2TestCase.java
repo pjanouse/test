@@ -69,10 +69,6 @@ public class Lodh2TestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    String queueNamePrefix = "testQueue";
-
-    String queueJndiNamePrefix = "jms/queue/testQueue";
-
     FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
