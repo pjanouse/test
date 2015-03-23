@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
@@ -41,6 +42,18 @@ public class ReceiverClientAck extends Client {
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
 
         this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 10, 30);
+
+    }
+
+    /**
+     * Creates a receiver to queue with auto acknowledge.
+     *
+     * @param container container to which to connect
+     * @param queueJndiName jndi name of the queue
+     */
+    public ReceiverClientAck(Container container, String queueJndiName) {
+
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName);
 
     }
 

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
@@ -62,6 +63,19 @@ public class SubscriberAutoAck extends Client {
     public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
         this(container, hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
+
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container      container to which to connect
+     * @param topicNameJndi  jndi name of the topic
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberAutoAck(Container container, String topicNameJndi, String clientId, String subscriberName) {
+
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, 30000, 30, clientId, subscriberName);
 
     }
 

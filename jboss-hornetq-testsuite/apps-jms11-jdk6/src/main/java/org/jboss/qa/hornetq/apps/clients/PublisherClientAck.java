@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -42,6 +43,15 @@ public class PublisherClientAck extends Client {
      */
     public PublisherClientAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this(EAP6_CONTAINER,hostname, port, topicNameJndi, messages, clientId);
+    }
+
+    /**
+     * @param container      container instance
+     * @param messages       number of messages to send
+     * @param topicNameJndi  set jndi name of the topic to send messages
+     */
+    public PublisherClientAck(Container container, String topicNameJndi, int messages, String clientId) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, messages, clientId);
     }
 
     /**

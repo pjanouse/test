@@ -6,6 +6,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
@@ -69,6 +70,21 @@ public class SubscriberTransAck extends Client {
     public SubscriberTransAck(String hostname, int port, String topicJndiName, long receiveTimeOut,
                               int commitAfter, int maxRetries, String clientId, String subscriberName) {
         this(EAP6_CONTAINER, hostname, port, topicJndiName, receiveTimeOut, commitAfter, maxRetries, clientId, subscriberName);
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container container to connect to
+     * @param topicJndiName  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param commitAfter    send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public SubscriberTransAck(Container container, String topicJndiName, long receiveTimeOut,
+                              int commitAfter, int maxRetries, String clientId, String subscriberName) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(),
+                topicJndiName, receiveTimeOut, commitAfter, maxRetries, clientId, subscriberName);
     }
 
     /**
