@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.annotations.TestPlan;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
@@ -38,7 +39,12 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author mnovak@redhat.com
  * @author msvehla@redhat.com
+ * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
+ * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-xa-transactions
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional
  */
+@TestPlan
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class BytemanLodh1TestCase extends HornetQTestCase {
@@ -104,7 +110,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server before XA transaction start in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server before XA transaction start in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -117,7 +137,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server after XA transaction start in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server after XA transaction start in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -131,7 +165,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server before XA transaction end in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server before XA transaction end in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -144,7 +192,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server after XA transaction end in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server after XA transaction end in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -158,7 +220,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server before XA transaction prepare in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server before XA transaction prepare in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -171,7 +247,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server after XA transaction prepare in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server after XA transaction prepare in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -185,7 +275,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server before XA transaction commit in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server before XA transaction commit in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -198,7 +302,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server after XA transaction commit in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server after XA transaction commit in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -212,7 +330,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send large messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill the server before XA transaction commit in RA
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends large messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server before XA transaction commit in RA</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -225,7 +357,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send large messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill server when creating large message during XA transaction
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends large messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server when creating large message during XA transaction</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -238,7 +384,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send large messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill server when sending large message during XA transaction
+     * and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends large messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server when sending large message during XA transaction</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -255,7 +415,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send large messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill server when creating a new file for a large message
+     * during XA transaction and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends large messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server when creating a new file for a large message during XA transaction</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -268,7 +442,21 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send large messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Kill server when deleting a large message file
+     * during XA transaction and restart it. Read messages from OutQueue
+     * @tpInfo  For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends large messages to InQueue</li>
+     *     <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>kill the server when deleting a large message file during XA transaction</li>
+     *     <li>restart the server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest

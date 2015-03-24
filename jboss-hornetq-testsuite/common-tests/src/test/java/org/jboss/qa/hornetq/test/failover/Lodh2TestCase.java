@@ -16,14 +16,19 @@ import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
-import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.apps.mdb.MdbListenningOnNonDurableTopic;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementProperties;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -35,15 +40,23 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 
 /**
  * This is modified lodh 2 (kill/shutdown mdb servers) test case which is
  * testing remote jca in cluster and have remote inqueue and outqueue.
- * <p/>
  * This test can work with EAP 5.
  *
  * @author mnovak@redhat.com
+ * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
+ * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest

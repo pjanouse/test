@@ -263,7 +263,6 @@ public class Lodh1TestCase extends HornetQTestCase {
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
-     * @throws Exception
      */
     @RunAsClient
     @Test
