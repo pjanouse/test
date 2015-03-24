@@ -83,6 +83,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     public final static String CONTAINER4_IP;
 
     // Multi-cast address
+    @Deprecated
     public static final String MCAST_ADDRESS;
 
     // Journal directory for first live/backup pair or first node in cluster
@@ -123,10 +124,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         // if MCAST_ADDR is null then generate multicast address
         String tmpMultiCastAddress = getEnvProperty("MCAST_ADDR");
+        tmpMultiCastAddress = tmpMultiCastAddress != null ? tmpMultiCastAddress :
+                new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
+                        .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
         MCAST_ADDRESS = checkMulticastAddress(tmpMultiCastAddress);
-//        MCAST_ADDRESS = tmpMultiCastAddress != null ? tmpMultiCastAddress :
-//                new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
-//                        .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
 
         JBOSS_HOME_1 = verifyJbossHome(getEnvProperty("JBOSS_HOME_1"));
         JBOSS_HOME_2 = verifyJbossHome(getEnvProperty("JBOSS_HOME_2"));
@@ -135,6 +136,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     }
 
+    @Deprecated
     private static String checkMulticastAddress(String multiCastAddress) {
         if (multiCastAddress == null) {
             log.error("Environment variable for MCAST_ADDR is empty (see above), please setup correct MCAST_ADDR variable." +
@@ -336,6 +338,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return Integer between min and max, inclusive.
      * @see java.util.Random#nextInt(int)
      */
+    @Deprecated
     public static int randInt(int min, int max) {
 
         // Usually this can be a field rather than a method variable

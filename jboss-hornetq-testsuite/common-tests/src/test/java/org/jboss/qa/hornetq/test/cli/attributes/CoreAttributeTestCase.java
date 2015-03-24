@@ -103,7 +103,7 @@ public class CoreAttributeTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
     @Before
     public void startServer() {
@@ -112,7 +112,7 @@ public class CoreAttributeTestCase extends CliTestBase {
 
     @After
     public void stopServer() {
-        container(1).start();
+        container(1).stop();
     }
 
     @Test

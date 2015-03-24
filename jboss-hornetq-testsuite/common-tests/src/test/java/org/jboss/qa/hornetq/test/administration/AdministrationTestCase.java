@@ -36,25 +36,22 @@ public class AdministrationTestCase extends HornetQTestCase {
     @After
     public void stopAllServers() {
         container(1).stop();
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
-
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
-        configure(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
+        configure(container(1), JOURNAL_DIRECTORY_A);
     }
 
     /**
      * Test all possible things. Failed operation simply throw RuntimeException
      *
      * @param container        The container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be bound
      * @param journalDirectory path to journal directory
      */
-    public void configure(Container container, String bindingAddress, String journalDirectory) throws IOException {
+    public void configure(Container container, String journalDirectory) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -68,10 +65,6 @@ public class AdministrationTestCase extends HornetQTestCase {
         container.start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
-
 
         jmsAdminOperations.setClustered(true);
 
@@ -94,10 +87,10 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteAcceptor("remote-acceptor", "messaging", null);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, bindingAddress, broadcastBindingPort, MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, container.MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, bindingAddress, MCAST_ADDRESS, udpGroupPort, 10000);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), container.MCAST_ADDRESS, udpGroupPort, 10000);
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -105,7 +98,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", container.getHostname(), container.getHornetqPort());
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);

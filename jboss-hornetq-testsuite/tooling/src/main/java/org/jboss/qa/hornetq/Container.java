@@ -10,11 +10,15 @@ import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.MulticastAddressUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
 
 
 public interface Container {
+
+    // multicast address is shared across all containers
+    public static String MCAST_ADDRESS = MulticastAddressUtils.getMulticastAddress();
 
     void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
             ContainerController containerController, Deployer deployer);
@@ -33,6 +37,10 @@ public interface Container {
     HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
 
     int getHttpPort();
+
+    String getUsername();
+
+    String getPassword();
 
     // cleanup operations
     void deleteDataFolder() throws IOException;

@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -92,38 +93,50 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     private static final String GROUP_ADDRESS = "233.6.88.5";
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
+    public static final String MDB_1_WITH_FILTER = "mdb1WithFilter";
+    public static final String MDB_2_WITH_FILTER = "mdb2WithFilter";
+    public static final String NON_DURABLE_MDB_ON_TOPIC = "nonDurableMdbOnTopic";
+
+    public final Archive MDB_ON_QUEUE_1 = getDeployment1();
+    public final Archive MDB_ON_QUEUE_2 = getDeployment2();
+
+    public Archive getDeployment1() {
+        File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            logger.error("Problem during creating PrintWriter: ", e);
+        }
+        writer.println("remote-jms-server=" + container(1).getHostname());
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
-                "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
     }
 
-    @Deployment(managed = false, testable = false, name = "mdb2")
-    @TargetsContainer(CONTAINER4_NAME)
-    public static Archive getDeployment2() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
+    public Archive getDeployment2() {
+        File propertyFile = new File(container(4).getServerHome() + File.separator + "mdb2.properties");
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            logger.error("Problem during creating PrintWriter: ", e);
+        }
+        writer.println("remote-jms-server=" + container(3).getHostname());
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
-                "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = "mdb1WithFilter")
+
+    @Deployment(managed = false, testable = false, name = MDB_1_WITH_FILTER)
     @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeploymentWithFilter1() throws Exception {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
@@ -135,7 +148,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = "mdb2WithFilter")
+    @Deployment(managed = false, testable = false, name = MDB_2_WITH_FILTER)
     @TargetsContainer(CONTAINER4_NAME)
     public static Archive getDeploymentWithFilter2() throws Exception {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
@@ -146,7 +159,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = "nonDurableMdbOnTopic")
+    @Deployment(managed = false, testable = false, name = NON_DURABLE_MDB_ON_TOPIC)
     @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
@@ -385,7 +398,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         container(2).start();
 
         if (!isDurable) {
-            deployer.deploy("nonDurableMdbOnTopic");
+            deployer.deploy(NON_DURABLE_MDB_ON_TOPIC);
             Thread.sleep(5000);
         }
 
@@ -432,7 +445,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                     producer1.getMessages() > receiver1.getCount());
             Assert.assertTrue("Receivers did not get any messages.",
                     receiver1.getCount() > 0);
-            deployer.undeploy("nonDurableMdbOnTopic");
+            deployer.undeploy(NON_DURABLE_MDB_ON_TOPIC);
         }
 
 
@@ -478,11 +491,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
         // deploy mdbs
         if (isFiltered) {
-            deployer.deploy("mdb1WithFilter");
-            deployer.deploy("mdb2WithFilter");
+            deployer.deploy(MDB_1_WITH_FILTER);
+            deployer.deploy(MDB_2_WITH_FILTER);
         } else {
-            deployer.deploy("mdb1");
-            deployer.deploy("mdb2");
+            container(2).deploy(MDB_ON_QUEUE_1);
+            container(4).deploy(MDB_ON_QUEUE_2);
         }
 
         waitForMessages(OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
@@ -516,11 +529,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                 receiver1.getCount() > 0);
 
         if (isFiltered) {
-            deployer.undeploy("mdb1WithFilter");
-            deployer.undeploy("mdb2WithFilter");
+            deployer.undeploy(MDB_1_WITH_FILTER);
+            deployer.undeploy(MDB_2_WITH_FILTER);
         } else {
-            deployer.undeploy("mdb1");
-            deployer.undeploy("mdb2");
+            container(2).undeploy(MDB_ON_QUEUE_1.getName());
+            container(4).undeploy(MDB_ON_QUEUE_2.getName());
         }
 
         container(2).stop();

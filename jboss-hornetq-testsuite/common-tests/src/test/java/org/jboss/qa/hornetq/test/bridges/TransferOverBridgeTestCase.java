@@ -66,8 +66,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();
-        deleteDataFolderForJBoss1();
-        deleteDataFolderForJBoss2();
     }
 
     /**
@@ -222,7 +220,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerTest() throws Exception {
-        testLogicForTestWithByteman(10, container(1), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, null);
+        testLogicForTestWithByteman(10, container(1), container(1).getHostname(), container(1).getBytemanPort(), null);
     }
 
     /**
@@ -252,7 +250,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerTest() throws Exception {
-        testLogicForTestWithByteman(10, container(2), getHostname(CONTAINER2_NAME), BYTEMAN_CONTAINER2_PORT, null);
+        testLogicForTestWithByteman(10, container(2), container(2).getHostname(), container(2).getBytemanPort(), null);
     }
 
 
@@ -284,7 +282,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, container(1), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT, new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(1), container(1).getHostname(), container(1).getBytemanPort(), new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -315,7 +313,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, container(2), getHostname(CONTAINER2_NAME), getBytemanPort(CONTAINER2_NAME), new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(2), container(2).getHostname(), container(2).getBytemanPort(), new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     //============================================================================================================
@@ -532,8 +530,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
 
-        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER2_NAME), getHornetqPort(
-                CONTAINER2_NAME));
+        jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", container(2).getHostname(), container(2).getHornetqPort());
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
 

@@ -72,7 +72,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
-
     public Archive getDeployment1() {
         File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
         PrintWriter writer = null;
@@ -562,8 +561,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_1);
             deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_2);
         } else {
-            container(2).deploy(getDeployment1());
-            container(4).deploy(getDeployment2());
+            container(2).deploy(MDB_ON_QUEUE_1);
+            container(4).deploy(MDB_ON_QUEUE_2);
         }
 
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
@@ -599,8 +598,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_1);
             deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_2);
         } else {
-            container(2).undeploy(getDeployment1().getName());
-            container(4).undeploy(getDeployment2().getName());
+            container(2).undeploy(MDB_ON_QUEUE_1.getName());
+            container(4).undeploy(MDB_ON_QUEUE_2.getName());
         }
 
         container(2).stop();

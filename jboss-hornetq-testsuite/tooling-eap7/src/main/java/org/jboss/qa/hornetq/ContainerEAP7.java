@@ -47,9 +47,6 @@ public class ContainerEAP7 implements Container {
     private ContainerController containerController = null;
     private Deployer deployer = null;
 
-
-
-
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
                      ContainerController containerController, Deployer deployer) {
@@ -137,6 +134,16 @@ public class ContainerEAP7 implements Container {
         return 8080 + getPortOffset();
     }
 
+    @Override
+    public String getUsername() {
+        return containerDef.getContainerProperties().get("username");
+    }
+
+    @Override
+    public String getPassword() {
+        return containerDef.getContainerProperties().get("password");
+    }
+
 
     @Override
     public void deleteDataFolder() throws IOException {
@@ -157,6 +164,8 @@ public class ContainerEAP7 implements Container {
 
         String javaVmArguments = containerProperties.get("javaVmArguments");
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
+        javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
+        javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.replace(String.valueOf(BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 

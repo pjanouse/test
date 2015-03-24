@@ -9,10 +9,7 @@ import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
@@ -36,6 +33,7 @@ public class ContainerEAP6 implements Container {
     private static final int BYTEMAN_PORT = 9091;
     private static int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
 
+
     private JmxUtils jmxUtils = null;
     private JournalExportImportUtils journalExportImportUtils = null;
 
@@ -44,11 +42,9 @@ public class ContainerEAP6 implements Container {
     private ContainerController containerController = null;
     private Deployer deployer = null;
 
-    private Integer portOffset = null;
-
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
-            ContainerController containerController, Deployer deployer) {
+                     ContainerController containerController, Deployer deployer) {
 
         this.containerIndex = containerIndex;
         this.containerController = containerController;
@@ -131,6 +127,26 @@ public class ContainerEAP6 implements Container {
         return 8080 + getPortOffset();
     }
 
+    /**
+     * Return username as defined in arquillian.xml.
+     *
+     * @return username or null if empty
+     */
+    @Override
+    public String getUsername() {
+        return containerDef.getContainerProperties().get("username");
+    }
+
+    /**
+     * Return password as defined in arquillian.xml.
+     *
+     * @return password or null if empty
+     */
+    @Override
+    public String getPassword() {
+        return containerDef.getContainerProperties().get("password");
+    }
+
     @Override
     public void deleteDataFolder() throws IOException {
         FileUtils.deleteDirectory(new File(getServerHome(), "standalone/data"));
@@ -144,12 +160,14 @@ public class ContainerEAP6 implements Container {
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
         // replace 9091 for byteman port
 
-        Map<String,String> containerProperties = containerDef.getContainerProperties();
+        Map<String, String> containerProperties = containerDef.getContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
 
         String javaVmArguments = containerProperties.get("javaVmArguments");
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
+        javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
+        javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.replace(String.valueOf(BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
@@ -240,7 +258,7 @@ public class ContainerEAP6 implements Container {
 
             long pid = ProcessIdUtils.getProcessId(this);
 
-            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
                 Runtime.getRuntime().exec("taskkill /f /pid " + pid);
             } else { // on all other platforms use kill -9
                 Runtime.getRuntime().exec("kill -9 " + pid);
@@ -304,7 +322,7 @@ public class ContainerEAP6 implements Container {
             eap6AdmOps.connect();
             eap6AdmOps.deploy(archive);
 
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.error("Could not deploy archive " + archive.getName(), ex);
         } finally {
             eap6AdmOps.close();
@@ -322,7 +340,7 @@ public class ContainerEAP6 implements Container {
             eap6AdmOps.connect();
             eap6AdmOps.undeploy(archiveName);
 
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.error("Could not undeploy archive " + archiveName, ex);
         } finally {
             eap6AdmOps.close();
@@ -345,7 +363,7 @@ public class ContainerEAP6 implements Container {
             this.containerController = controller;
         }
 
-        if (deployer == null)   {
+        if (deployer == null) {
             this.deployer = deployer;
         }
     }
