@@ -36,7 +36,8 @@ public class ContainerEAP7 implements Container {
 
     private static final int MANAGEMENT_PORT_DEFAULT_EAP7 = 9990;
     private static final int BYTEMAN_PORT = 9091;
-    private static int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
+    private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
+    private static final int PORT_HORNETQ_DEFAULT = 9990;
 
 
     private JmxUtils jmxUtils = null;
@@ -90,12 +91,10 @@ public class ContainerEAP7 implements Container {
         return (containerIndex - 1) * DEFAULT_PORT_OFFSET_INTERVAL;
     }
 
-
     @Override
     public Context getContext() throws NamingException {
-        return JMSTools.getEAP6Context(getHostname(), getPort());
+        return JMSTools.getEAP7Context(getHostname(), getJNDIPort());
     }
-
 
     @Override
     public String getHostname() {
@@ -106,13 +105,13 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT + getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT + getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
     }
 
 

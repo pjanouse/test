@@ -146,7 +146,7 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
         @Override
         public boolean closeClients() throws Exception {
             CliConfiguration config = new CliConfiguration(container(1).getHostname(), container(1).getPort(),
-                    getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
+                    container(1).getUsername(), container(1).getPassword());
             CliClient cliClient = new CliClient(config);
 
             CLI.Result result = cliClient.executeCommand(CliUtils.buildCommand(

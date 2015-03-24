@@ -88,7 +88,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public Context getContext() throws NamingException {
-        return JMSTools.getEAP6Context(getHostname(), getPort());
+        return JMSTools.getEAP6Context(getHostname(), getJNDIPort());
     }
 
 
@@ -101,13 +101,13 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT + getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT + getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
     }
 
 

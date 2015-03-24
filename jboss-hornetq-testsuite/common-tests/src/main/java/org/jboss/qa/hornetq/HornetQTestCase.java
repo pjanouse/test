@@ -691,7 +691,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     @Deprecated
     public static int getHornetqPort(String containerName) {
-        return PORT_HORNETQ_DEFAULT + getContainerInfo(containerName).getPortOffset();
+        return PORT_HORNETQ_DEFAULT_EAP6 + getContainerInfo(containerName).getPortOffset();
     }
 
     /**
@@ -702,7 +702,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @Deprecated
     public static int getHornetqBackupPort(String containerName) {
-        return PORT_HORNETQ_BACKUP_DEFAULT + getContainerInfo(containerName).getPortOffset();
+        return PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getContainerInfo(containerName).getPortOffset();
     }
 
 

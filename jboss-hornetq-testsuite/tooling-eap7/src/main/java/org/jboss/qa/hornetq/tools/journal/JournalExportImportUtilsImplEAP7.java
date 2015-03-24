@@ -144,7 +144,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
 
         processBuilder.addArgument(new File(exportedFileName).getAbsolutePath());
         processBuilder.addArgument(container.getIpAddress());
-        processBuilder.addArgument(String.valueOf(HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT + container.getPortOffset()));
+        processBuilder.addArgument(String.valueOf(HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + container.getPortOffset()));
         processBuilder.addArgument(String.valueOf(false));
         processBuilder.addArgument(String.valueOf(true));
 

@@ -100,7 +100,7 @@ public class SecurityClient extends Client {
 
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("host", hostname);
-        map.put("port", PORT_HORNETQ_DEFAULT);
+        map.put("port", PORT_HORNETQ_DEFAULT_EAP6);
 
         TransportConfiguration transportConfiguration = new TransportConfiguration(NettyConnectorFactory.class.getName(), map);
 

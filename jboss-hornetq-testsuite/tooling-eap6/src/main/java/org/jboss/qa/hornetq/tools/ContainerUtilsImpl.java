@@ -115,14 +115,14 @@ public class ContainerUtilsImpl extends ContainerUtils {
     @Override
     public int getHornetqBackupPort(String containerName) {
 
-        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT + getContainerInfo(containerName).getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getContainerInfo(containerName).getPortOffset();
 
     }
 
     @Override
     public int getHornetqPort(String containerName) {
 
-        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT + getContainerInfo(containerName).getPortOffset();
+        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + getContainerInfo(containerName).getPortOffset();
 
     }
 

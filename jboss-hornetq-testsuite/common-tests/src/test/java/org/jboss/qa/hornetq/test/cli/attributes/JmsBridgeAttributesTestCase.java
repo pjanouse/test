@@ -41,14 +41,12 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
-
-
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
     private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
 

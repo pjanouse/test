@@ -23,12 +23,14 @@ public interface HornetQTestCaseConstants {
     public static String CONNECTION_FACTORY_JNDI_EAP6_FULL_NAME = "java:/jboss/exported/jms/RemoteConnectionFactory";
 
     // Port for remote JNDI
+    // TODO  MOVE THIS TO CONTAINER
     public static int PORT_JNDI_EAP5 = 1099;
     public static int PORT_JNDI_EAP6 = 4447;
 
     // Port for HornetQ
-    public static int PORT_HORNETQ_DEFAULT = 5445;
-    public static int PORT_HORNETQ_BACKUP_DEFAULT = 5446;
+    // TODO MOVE THIS TO CONTAINER
+    public static int PORT_HORNETQ_DEFAULT_EAP6 = 5445;
+    public static int PORT_HORNETQ_BACKUP_DEFAULT_EAP6 = 5446;
 
     // Ports for Byteman
     public static final int BYTEMAN_CLIENT_PORT = 9591;
