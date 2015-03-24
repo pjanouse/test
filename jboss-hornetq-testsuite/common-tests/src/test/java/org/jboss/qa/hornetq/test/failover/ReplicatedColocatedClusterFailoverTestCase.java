@@ -79,11 +79,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         container(2).start();
 
         // give some time for servers to find each other
-        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
+        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -106,12 +106,12 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        logger.info("Start again - second server");
 //        logger.info("########################################");
 //        controller.start(CONTAINER2_NAME);
-//        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000);
+//        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
 //        logger.info("########################################");
 //        logger.info("Second server started");
 //        logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 

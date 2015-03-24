@@ -85,8 +85,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
 
         SimpleJMSClient client = new SimpleJMSClient(
-                getHostname(CONTAINER1_NAME),
-                getJNDIPort(CONTAINER1_NAME),
+                container(1).getHostname(),
+                container(1).getJNDIPort(),
                 MESSAGES,
                 Session.AUTO_ACKNOWLEDGE,
                 false);
@@ -910,12 +910,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
 
-        SimpleJMSClient client = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
             client.sendMessages(TEST_QUEUE_JNDI);
 
             container(1).kill();
@@ -933,7 +933,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(TEST_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
             
             client.receiveMessages(TEST_QUEUE_JNDI);
 

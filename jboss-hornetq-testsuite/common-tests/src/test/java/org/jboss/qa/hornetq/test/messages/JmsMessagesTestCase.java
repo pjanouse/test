@@ -356,7 +356,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
-        SimpleJMSClient clientOriginal = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
+        SimpleJMSClient clientOriginal = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
         clientOriginal.setReceiveTimeout(1000);
         MessageBuilder messageBuilder;
@@ -372,7 +372,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             clientOriginal.receiveMessages(inQueueJndiName);
         }
 
-        SimpleJMSClient clientDiverted = new SimpleJMSClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
+        SimpleJMSClient clientDiverted = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
         clientDiverted.setReceiveTimeout(1000);
         clientDiverted.receiveMessages(outQueueJndiName);

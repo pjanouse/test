@@ -119,7 +119,7 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
 
         deployer.undeploy("mdb1");
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getCurrentContainerId(), container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -139,13 +139,13 @@ public class BackwardCompatibilityJournalDataTestCase extends HornetQTestCase {
         }
         deployer.deploy("mdb2");
         SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getCurrentContainerId(), getHostname(
-                CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                CONTAINER3_NAME), container(3).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue2.start();
         producerToInQueue2.join();
 
         SoakReceiverClientAck receiverClientAck = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(
-                CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), outQueueJndiName, 10000, 10, 5);
+                CONTAINER3_NAME), container(3).getJNDIPort(), outQueueJndiName, 10000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
         logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());

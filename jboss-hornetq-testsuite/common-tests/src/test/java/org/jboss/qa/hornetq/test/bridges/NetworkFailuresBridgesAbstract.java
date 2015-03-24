@@ -238,25 +238,25 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), proxy12port);
+            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), proxy21port);
+            proxy2 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), proxy21port);
             proxy2.start();
         }
 
         if (mp12 == null){
             mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
                     discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
-            mp12.setIpAddressOfInterface(getHostname(CONTAINER1_NAME));
+            mp12.setIpAddressOfInterface(container(1).getHostname());
             mp12.start();
 
         }
         if (mp21 == null){
             mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
                     discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
-            mp21.setIpAddressOfInterface(getHostname(CONTAINER2_NAME));
+            mp21.setIpAddressOfInterface(container(2).getHostname());
             mp21.start();
         }
         log.info("All proxies started.");

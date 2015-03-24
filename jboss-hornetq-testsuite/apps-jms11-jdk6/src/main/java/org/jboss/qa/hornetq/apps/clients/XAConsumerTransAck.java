@@ -1,3 +1,4 @@
+// TODO initialize client by container
 package org.jboss.qa.hornetq.apps.clients;
 
 
@@ -12,6 +13,7 @@ import com.arjuna.ats.jta.TransactionManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 
@@ -86,29 +88,26 @@ public class XAConsumerTransAck extends Client {
     // list of received messages which were received and committed
     private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
 
-    /**
-     * @param hostname      hostname
-     * @param port          jndi port
-     * @param queueNameJndi set jndi name of the queue to send messages
-     */
-    public XAConsumerTransAck(String hostname, int port, String queueNameJndi) {
-        this(EAP6_CONTAINER, hostname, port, queueNameJndi);
-    }
+    private Container liveServer;
+    private Container backupServer;
 
     /**
-     * @param container     type of container to connect to (EAP 5, EAP 6, ...)
-     * @param hostname      hostname
-     * @param port          jndi port
-     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param containerToConnect container to which the client must connect
+     * @param queueNameJndi      set jndi name of the queue to send messages
+     * @param liveServer         live server for recovery manager
+     * @param backupServer       backup server for recovery manager
      */
-    public XAConsumerTransAck(String container, String hostname, int port, String queueNameJndi) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
+    public XAConsumerTransAck(Container containerToConnect, String queueNameJndi, Container liveServer, Container backupServer) {
+        super(containerToConnect.getContainerType().toString());
+        this.hostname = containerToConnect.getHostname();
+        this.port = containerToConnect.getJNDIPort();
         this.queueNameJndi = queueNameJndi;
         consumerIdentifier = "consumer-" + numberOfConsumers.incrementAndGet();
-
+        this.liveServer = liveServer;
+        this.backupServer = backupServer;
     }
+
+
 
     @Override
     public void run() {
@@ -448,15 +447,9 @@ public class XAConsumerTransAck extends Client {
                 String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
                 //org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost1,port=5446"
                 String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
-                        "guest,guest,host=" + ContainerUtils.getInstance().getHostname(CONTAINER1_NAME) + ",port=" + ContainerUtils.getInstance().getHornetqPort(
-
-
-                        CONTAINER1_NAME)
+                        "guest,guest,host=" + liveServer.getHostname() + ",port=" + liveServer.getHornetqPort()
                         + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
-                        + ContainerUtils.getInstance().getHostname(CONTAINER2_NAME) + " ,port=" + ContainerUtils.getInstance().getHornetqPort(
-
-
-                        CONTAINER2_NAME);
+                        + backupServer.getHostname() + " ,port=" + backupServer.getHornetqPort();
 
 //                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
 //                        "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
@@ -513,13 +506,13 @@ public class XAConsumerTransAck extends Client {
     }
 
     public static void main(String[] args) throws Exception {
-        XAConsumerTransAck xaConsumer = new XAConsumerTransAck("127.0.0.1", 4447, "jms/queue/testQueue0");
-        xaConsumer.startRecovery();
-        for (int i = 0; i < 20; i++) {
-            xaConsumer.runRecoveryScan();
-            Thread.sleep(1000);
-        }
-        xaConsumer.stopRecovery();
+//        XAConsumerTransAck xaConsumer = new XAConsumerTransAck("127.0.0.1", 4447, "jms/queue/testQueue0");
+//        xaConsumer.startRecovery();
+//        for (int i = 0; i < 20; i++) {
+//            xaConsumer.runRecoveryScan();
+//            Thread.sleep(1000);
+//        }
+//        xaConsumer.stopRecovery();
     }
 
 

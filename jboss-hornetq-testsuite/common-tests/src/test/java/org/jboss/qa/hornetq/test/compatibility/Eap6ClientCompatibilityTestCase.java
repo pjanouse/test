@@ -42,9 +42,9 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setInetAddress("public", getHostname(CONTAINER1_NAME));
-        jmsAdminOperations.setInetAddress("unsecure", getHostname(CONTAINER1_NAME));
-        jmsAdminOperations.setInetAddress("management", getHostname(CONTAINER1_NAME));
+        jmsAdminOperations.setInetAddress("public", container(1).getHostname());
+        jmsAdminOperations.setInetAddress("unsecure", container(1).getHostname());
+        jmsAdminOperations.setInetAddress("management", container(1).getHostname());
 
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);

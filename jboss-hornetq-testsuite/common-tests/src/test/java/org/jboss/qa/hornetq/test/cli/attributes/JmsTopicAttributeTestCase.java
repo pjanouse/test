@@ -59,7 +59,7 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     @Before
     public void startServer() throws InterruptedException {
@@ -69,11 +69,11 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
         CliClient cliClient = new CliClient(cliConf);
         cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
 
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, "testSubscriberClientId", "testSubscriber");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, "testSubscriberClientId", "testSubscriber");
         subscriberClientAck.subscribe();
 
         // send some messages to it
-        PublisherClientAck producer = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck producer = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         producer.join();

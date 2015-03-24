@@ -169,7 +169,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         try {
 
             // get eap 5 context even when you're connecting to eap 6 server
-            ctx = getEAP5Context(getHostname(CONTAINER1_NAME), getLegacyJNDIPort(CONTAINER1_NAME));
+            ctx = getEAP5Context(container(1).getHostname(), getLegacyJNDIPort(CONTAINER1_NAME));
 
             List<String> jndiNameToLookup = new ArrayList<String>();
 
@@ -229,8 +229,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
 
         container(1).start();
         deployDestinations(container(1));
@@ -454,7 +454,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("########################################");
             LOG.warn("Kill live server");
             LOG.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
             container(1).kill();
         } else {
             LOG.warn("########################################");
@@ -465,7 +465,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         LOG.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
+                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover(clients);
         waitForReceiversUntil(clients.getConsumers(), 200, 300000);
 
@@ -474,13 +474,13 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("failback - Start live server again ");
             LOG.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             LOG.warn("########################################");
             LOG.warn("failback - Live started again ");
             LOG.warn("########################################");
-            waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 600000);
+            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, getHornetqPort(CONTAINER2_NAME), 60000);
+            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
             waitForClientsToFailover(clients);
             Thread.sleep(5000); // give it some time
 //            LOG.warn("########################################");

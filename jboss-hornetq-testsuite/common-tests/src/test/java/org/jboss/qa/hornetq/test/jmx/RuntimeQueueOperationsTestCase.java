@@ -64,14 +64,14 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         ops.close();
         container(1).stop();
         container(1).start();
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(),queueJndiName,numberOfMessages);
         producer.start();
         producer.join();
 
 
 
         try {
-            context = getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+            context = getContext(container(1).getHostname(), container(1).getJNDIPort());
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
 
@@ -128,7 +128,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         ops.close();
         container(1).stop();
         container(1).start();
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(),queueJndiName,numberOfMessages);
         DelayedTextMessageBuilder delayedTextMessageBuilder= new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();

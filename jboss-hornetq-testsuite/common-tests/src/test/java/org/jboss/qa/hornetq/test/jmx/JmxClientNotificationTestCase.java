@@ -85,7 +85,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
                     null, null);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 1, 1, 1, 1);
             clients.setMessages(1);
             clients.startClients();
             while (!clients.isFinished()) {
@@ -155,7 +155,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = jmxUtils.getJmsServerMBean(mbeanServer);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 1, 1, 1, 1);
 
             clients.setMessages(100000);
 
@@ -188,7 +188,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new QueueClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1, 1, 1, 1);
+            Clients clients2 = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 1, 1, 1, 1);
 
             clients2.setMessages(100000);
 
@@ -264,7 +264,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName+"0", 30);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiName+"0", 30);
 
         producerToInQueue1.setCommitAfter(10);
 
@@ -334,7 +334,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = jmxUtils.getJmsServerMBean(mbeanServer);
 
             // send and receive single message
-            Clients clients = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 1, 1, 1, 1);
+            Clients clients = new TopicClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 1, 1, 1, 1);
 
             clients.setMessages(100000);
 
@@ -367,7 +367,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new TopicClientsAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 1, 1, 1, 1);
+            Clients clients2 = new TopicClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 1, 1, 1, 1);
 
             clients2.setMessages(100000);
 
@@ -443,7 +443,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        PublisherTransAck publisher = new PublisherTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName+"0", 30, "publisher");
+        PublisherTransAck publisher = new PublisherTransAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName+"0", 30, "publisher");
 
         publisher.setCommitAfter(10);
 

@@ -143,7 +143,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     private void sendTestMessagesAsUser() throws Exception {
         SecurityClient client = null;
         try {
-            client = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), TEST_QUEUE_JNDI, 10,
+            client = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), TEST_QUEUE_JNDI, 10,
                     User.USER.getUserName(), User.USER.getPassword());
             client.initializeClient();
             client.sendAndReceive();

@@ -45,7 +45,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -118,7 +118,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);

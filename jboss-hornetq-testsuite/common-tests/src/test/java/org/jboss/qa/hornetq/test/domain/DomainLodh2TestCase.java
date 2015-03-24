@@ -78,10 +78,6 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    String queueNamePrefix = "testQueue";
-
-    String queueJndiNamePrefix = "jms/queue/testQueue";
-
     FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
@@ -141,7 +137,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @TargetsContainer(SERVER_GROUP4)
     public static Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
+        File propertyFile = new File(getJbossHome(CONTAINER4_NAME)+ File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
         writer.close();
@@ -469,7 +465,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             Thread.sleep(5000);
         }
 
-        PublisherTransAck producer1 = new PublisherTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),
+        PublisherTransAck producer1 = new PublisherTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(),
                 inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
@@ -490,7 +486,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), outQueueJndiName, 3000, 10, 10);
         receiver1.setCommitAfter(100);
         receiver1.start();
 

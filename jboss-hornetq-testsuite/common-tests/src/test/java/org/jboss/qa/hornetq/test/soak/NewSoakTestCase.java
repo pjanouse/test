@@ -139,11 +139,11 @@ public class NewSoakTestCase extends HornetQTestCase {
 
 //        // start memory measuring of servers
         File jmsServerCsv = new File("jms-server-memory.csv");
-        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER1_NAME), String.valueOf(getPort(CONTAINER1_NAME)), jmsServerCsv);
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1).getHostname(), String.valueOf(container(1).getPort()), jmsServerCsv);
         jmsServerMeasurement.start();
 
         File mdbServerCsv = new File("mdb-server-memory.csv");
-        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(getHostname(CONTAINER2_NAME), String.valueOf(getPort(
+        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(container(2).getHostname(), String.valueOf(getPort(
                 CONTAINER2_NAME)), mdbServerCsv);
         mdbServerMeasurement.start();
 
@@ -161,13 +161,13 @@ public class NewSoakTestCase extends HornetQTestCase {
         LOG.info(String.format("Setting soak test duration to %dms", testDuration));
 
         // create in/out org.jboss.qa.hornetq.apps.clients
-        SoakProducerClientAck producer = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), this.getJNDIPort(CONTAINER1_NAME),
+        SoakProducerClientAck producer = new SoakProducerClientAck(container(1).getHostname(), this.container(1).getJNDIPort(),
                 RemoteJcaSoakModule.JCA_IN_QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new TextMessageBuilder(104));
 
         SoakReceiverClientAck[] consumers = new SoakReceiverClientAck[NUMBER_OF_CLIENTS];
         for (int i = 0; i < consumers.length; i++) {
-            consumers[i] = new SoakReceiverClientAck(getHostname(CONTAINER1_NAME), this.getJNDIPort(CONTAINER1_NAME),
+            consumers[i] = new SoakReceiverClientAck(container(1).getHostname(), this.container(1).getJNDIPort(),
                     DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI);
         }
         DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(CONTAINER1_INFO);

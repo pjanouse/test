@@ -128,7 +128,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -139,7 +139,7 @@ public class JcaTestCase extends HornetQTestCase {
         deployer.deploy("mdb1");
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 

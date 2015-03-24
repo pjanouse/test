@@ -166,8 +166,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         container(1).start();
 
         log.info("Start producer and consumer.");
-        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1_NAME).toString() ,getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1_NAME).toString(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
+        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1_NAME).toString() ,container(1).getHostname(), container(1).getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1_NAME).toString(), container(1).getHostname(), container(1).getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();

@@ -40,14 +40,14 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER2_NAME), getJNDIPort(
+        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), container(2).getHostname(), getJNDIPort(
 
 
                 CONTAINER2_NAME), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
@@ -87,7 +87,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
 
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), relativeJndiInQueueName, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
@@ -196,7 +196,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         String targetDestination = relativeJndiInQueueName;
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER2_NAME) + ":" + getJNDIPort(
+        targetContext.put("java.naming.provider.url", "remote://" + container(2).getHostname() + ":" + getJNDIPort(
                 CONTAINER2_NAME));
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
@@ -217,7 +217,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         log.info("Start proxy...");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), proxy12port);
+            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port);
             proxy1.start();
         }
         log.info("Proxy started.");

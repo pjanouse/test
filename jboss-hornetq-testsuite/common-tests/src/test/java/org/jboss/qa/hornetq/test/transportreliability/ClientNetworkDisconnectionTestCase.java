@@ -67,12 +67,12 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, connectionId, subscriberName);
         subscriber.setMaxRetries(1);
         subscriber.subscribe();
 
         // publish some messages
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 2000000, "testConnectionIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 2000000, "testConnectionIdPublisher");
         publisher.start();
         subscriber.start();
 
@@ -125,7 +125,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
         subscriber.subscribe();
         subscriber.start();
 
@@ -163,7 +163,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), proxyPort);
+            proxy1 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), proxyPort);
             proxy1.start();
         }
         log.info("All proxies started.");

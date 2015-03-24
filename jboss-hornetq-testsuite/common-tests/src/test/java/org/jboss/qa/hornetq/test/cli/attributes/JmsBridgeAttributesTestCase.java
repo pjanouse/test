@@ -48,7 +48,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME), getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME));
 
     private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
 

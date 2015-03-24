@@ -1,3 +1,4 @@
+// TODO DELETE THIS CLASS
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
@@ -63,10 +64,10 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
     @Deployment(managed = false, testable = false, name = "mdb1")
     @TargetsContainer(CONTAINER2_NAME)
     public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
-        writer.close();
+//        File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
+//        PrintWriter writer = new PrintWriter(propertyFile);
+//        writer.println("remote-jms-server=" + container(1).getHostname());
+//        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -79,10 +80,10 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
     @TargetsContainer(CONTAINER4_NAME)
     public static Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
-        writer.close();
+//        File propertyFile = new File(container(4).getServerHome() + File.separator + "mdb2.properties");
+//        PrintWriter writer = new PrintWriter(propertyFile);
+//        writer.println("remote-jms-server=" + container(3).getHostname());
+//        writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -325,7 +326,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
             Thread.sleep(5000);
         }
 
-        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
+        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inTopicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -343,7 +344,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), outQueueJndiName, 300000, 10, 10);
 
         receiver1.start();
 
@@ -394,7 +395,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
         container(2).start();
         container(4).start();
 
-        ProducerClientAck producer1 = new ProducerClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer1 = new ProducerClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
@@ -419,7 +420,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), getHostname(CONTAINER3_NAME), getJNDIPort(
+        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), container(3).getHostname(), getJNDIPort(
 
 
                 CONTAINER3_NAME), outQueueJndiName, 300000, 10, 10);
@@ -527,11 +528,11 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(container(1), getHostname(CONTAINER1_NAME));
-        prepareMdbServer(container(2), getHostname(CONTAINER2_NAME), getHostname(CONTAINER1_NAME));
+        prepareJmsServer(container(1), container(1).getHostname());
+        prepareMdbServer(container(2), container(2).getHostname(), container(1).getHostname());
 
-        prepareJmsServer(container(3), getHostname(CONTAINER3_NAME));
-        prepareMdbServer(container(4), getHostname(CONTAINER4_NAME), getHostname(CONTAINER3_NAME));
+        prepareJmsServer(container(3), container(3).getHostname());
+        prepareMdbServer(container(4), container(4).getHostname(), container(3).getHostname());
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -545,11 +546,11 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
      */
     public void prepareEAP6toEAP5topology() throws Exception {
 
-        prepareJmsServer(EAP5_CONTAINER, container(1), getHostname(CONTAINER1_NAME));
-        prepareJmsServer(EAP5_CONTAINER, container(2), getHostname(CONTAINER2_NAME));
+        prepareJmsServer(EAP5_CONTAINER, container(1), container(1).getHostname());
+        prepareJmsServer(EAP5_CONTAINER, container(2), container(2).getHostname());
 
-        prepareMdbServer(EAP6_CONTAINER, container(3), getHostname(CONTAINER3_NAME), getHostname(CONTAINER3_NAME));
-        prepareMdbServer(EAP6_CONTAINER, container(4), getHostname(CONTAINER4_NAME), getHostname(CONTAINER4_NAME));
+        prepareMdbServer(EAP6_CONTAINER, container(3), container(3).getHostname(), container(3).getHostname());
+        prepareMdbServer(EAP6_CONTAINER, container(4), container(4).getHostname(), container(4).getHostname());
 
         if (isEAP6()) {
             copyApplicationPropertiesFiles();
@@ -675,7 +676,7 @@ public class CompatibilityLodh2TestCase extends HornetQTestCase {
 
             String connectorClassName = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory";
             Map<String, String> connectionParameters = new HashMap<String, String>();
-            connectionParameters.put(getHostname(CONTAINER1_NAME), String.valueOf(getHornetqPort(CONTAINER1_NAME)));
+            connectionParameters.put(container(1).getHostname(), String.valueOf(container(1).getHornetqPort()));
             boolean ha = false;
 
             JMSOperations jmsAdminOperations = container.getJmsOperations();

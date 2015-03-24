@@ -74,7 +74,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsQueueOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -157,7 +157,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         prepareServer(container(1));
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         List<Client> producers = new ArrayList<Client>();
@@ -256,7 +256,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         logger.info("Result send-messages-to-dead-letter-address: " + r19.getResponse().asString());
         CliTestUtils.assertSuccess(r19);
 
-        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, 1000, 100, 10);
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 1000, 100, 10);
         receiverClientAck.start();
 
         List<Client> receivers = new ArrayList<Client>();

@@ -42,10 +42,10 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         container(1).start();
 
-        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
+        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
 
         // send some messages to InQueue to server 1
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(40));
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
@@ -65,7 +65,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
             // check HornetQ journal that there are no unfinished transactions
             String outputJournalFile = CONTAINER1_NAME + "-hornetq_journal_content_after_shutdown_of_JMS_bridge.txt";
-            PrintJournal.printJournal(getJbossHome(CONTAINER1_NAME), JOURNAL_DIRECTORY_A + File.separator + "bindings",
+            PrintJournal.printJournal(container(1).getServerHome(), JOURNAL_DIRECTORY_A + File.separator + "bindings",
                     JOURNAL_DIRECTORY_A + File.separator + "journal", outputJournalFile);
             // check that there are failed transactions
             String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
@@ -363,16 +363,16 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         if (CONTAINER1_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 1 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3_NAME) + ":" + getJNDIPort(
+            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + getJNDIPort(
 
 
                     CONTAINER3_NAME));
         } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER3_NAME) + ":" + getJNDIPort(
+            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + getJNDIPort(
                     CONTAINER3_NAME));
         } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is container 1 and 2
-            targetContext.put("java.naming.provider.url", "remote://" + getHostname(CONTAINER1_NAME) + ":" + getJNDIPort(CONTAINER1_NAME) +
-                    ",remote://" + getHostname(CONTAINER2_NAME) + ":" + getJNDIPort(CONTAINER2_NAME));
+            targetContext.put("java.naming.provider.url", "remote://" + container(1).getHostname() + ":" + container(1).getJNDIPort() +
+                    ",remote://" + container(2).getHostname() + ":" + container(2).getJNDIPort());
 //            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_NAME_IP + ":4447");
         }
 

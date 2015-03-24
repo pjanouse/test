@@ -35,7 +35,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     String queueJndiName = "jms/queue/" + queueName;
 
     private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/runtime-queue=jms.queue." + queueName;
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
 
     @Before
@@ -70,14 +70,14 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         ops.close();
         container(1).stop();
         container(1).start();
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(),queueJndiName,numberOfMessages);
         producer.start();
         producer.join();
 
 
 
         try {
-            context = getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+            context = getContext(container(1).getHostname(), container(1).getJNDIPort());
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
 
@@ -134,7 +134,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         ops.close();
         container(1).stop();
         container(1).start();
-        ProducerAutoAck producer = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME),queueJndiName,numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(),queueJndiName,numberOfMessages);
         DelayedTextMessageBuilder delayedTextMessageBuilder= new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();

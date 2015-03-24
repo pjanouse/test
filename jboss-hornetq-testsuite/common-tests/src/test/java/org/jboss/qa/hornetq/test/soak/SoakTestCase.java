@@ -83,21 +83,30 @@ public class SoakTestCase extends HornetQTestCase {
     // TODO stupid temporary solution - whole logic of producers with gap will be moved into separate class
     private Semaphore[] semaphores;
 
+
+    private final Archive mdb1Archive = getDeployment1();
+    private final Archive mdb2Archive = getDeployment2();
+    private static final String MDB1 = "mdb1";
+    private static final String MDB2 = "mdb2";
+
     /**
      * Creates deployment for Container 3 - server with MDB
      *
      * @return archive for deployment
      * @throws Exception
      */
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
-        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER1_NAME));
+    public Archive getDeployment1() {
+        File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Exception during creating PrintWriter for MDB1 deployement.", e);
+        }
+        writer.println("remote-jms-server=" + container(1).getHostname());
+        writer.println("remote-jms-jndi-port=" + container(1).getJNDIPort());
         writer.close();
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB1);
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
@@ -111,15 +120,18 @@ public class SoakTestCase extends HornetQTestCase {
      * @return archive for deployment
      * @throws Exception
      */
-    @Deployment(managed = false, testable = false, name = "mdb2")
-    @TargetsContainer(CONTAINER4_NAME)
-    public static Archive getDeployment2() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME) + File.separator + "mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
-        writer.println("remote-jms-jndi-port=" + getJNDIPort(CONTAINER3_NAME));
+    public Archive getDeployment2() {
+        File propertyFile = new File(container(4).getServerHome() + File.separator + "mdb2.properties");
+        PrintWriter writer;
+        try {
+            writer = new PrintWriter(propertyFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Exception during creating PrintWriter for MDB2 deployement.", e);
+        }
+        writer.println("remote-jms-server=" + container(3).getHostname());
+        writer.println("remote-jms-jndi-port=" + container(3).getJNDIPort());
         writer.close();
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB2);
         mdbJar.addClasses(SoakMdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
@@ -143,17 +155,17 @@ public class SoakTestCase extends HornetQTestCase {
         container(2).start();
         container(4).start();
 
-        deployer.deploy("mdb1");
-        deployer.deploy("mdb2");
+        container(2).deploy(mdb1Archive);
+        container(4).deploy(mdb2Archive);
 
         // start subscribers with gap
-        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(getHostname(CONTAINER2_NAME), 50, NUMBER_OF_SUBSCRIBERS, 10000);
+        HighLoadConsumerWithSemaphores[] consumers = startSubscribersWithGap(container(2).getHostname(), 50, NUMBER_OF_SUBSCRIBERS, 10000);
         for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; i++) {
             consumers[i].start();
         }
 
-        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(getHostname(CONTAINER3_NAME), getJNDIPort(
+        SoakProducerClientAck producerToInQueue1 = new SoakProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producerToInQueue2 = new SoakProducerClientAck(container(3).getHostname(), getJNDIPort(
                 CONTAINER3_NAME), IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(104));
         producerToInQueue2.setMessageBuilder(new TextMessageBuilder(104));
@@ -244,11 +256,11 @@ public class SoakTestCase extends HornetQTestCase {
             deployDestinations(container(3));
             container(3).stop();
 
-            prepareJmsServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-            prepareMdbServer(container(2), getHostname(CONTAINER2_NAME), CONTAINER1_NAME);
+            prepareJmsServer(container(1), container(1).getHostname(), CONTAINER2_NAME);
+            prepareMdbServer(container(2), container(2).getHostname(), CONTAINER1_NAME);
 
-            prepareJmsServer(container(3), getHostname(CONTAINER3_NAME), CONTAINER4_NAME);
-            prepareMdbServer(container(4), getHostname(CONTAINER4_NAME), CONTAINER3_NAME);
+            prepareJmsServer(container(3), container(3).getHostname(), CONTAINER4_NAME);
+            prepareMdbServer(container(4), container(4).getHostname(), CONTAINER3_NAME);
 
             copyApplicationPropertiesFiles();
 

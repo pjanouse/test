@@ -68,7 +68,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         container(2).start();
         container(3).start();
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -95,9 +95,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("Server killed");
         }
         logger.warn("###################################");
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 120000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER3_NAME), getJNDIPort(CONTAINER3_NAME), outQueueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(3).getHostname(), container(3).getJNDIPort(), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -137,7 +137,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         // Without starting live first the backup server will not start
         container(1).start();
         container(2).start();
-        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
+        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
         Thread.sleep(10000);
         container(1).stop();
 
@@ -156,7 +156,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         logger.info("#############################");
 
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(getHostname(CONTAINER3_NAME), getJNDIPort(
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(container(3).getHostname(), getJNDIPort(
                 CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -164,9 +164,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         producerToInQueue1.start();
 
         // give it some time for backup to alive
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 120000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), outQueueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -206,7 +206,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         container(2).start();
         container(3).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER3_NAME), getJNDIPort(
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(3).getHostname(), getJNDIPort(
                 CONTAINER3_NAME), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         messageBuilder.setAddDuplicatedHeader(false);
@@ -236,7 +236,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         }
 
         logger.warn("###################################");
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 120000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         // if failback then start container1 again
         // wait for container1 to start
@@ -254,7 +254,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
+            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
@@ -270,9 +270,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         ReceiverClientAck receiver1;
         if (failback) {
-            receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueueJndiName, 30000, 100, 10);
+            receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueueJndiName, 30000, 100, 10);
         } else {
-            receiver1 = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), outQueueJndiName, 30000, 100, 10);
+            receiver1 = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), outQueueJndiName, 30000, 100, 10);
         }
 
         receiver1.setMessageVerifier(messageVerifier);
@@ -380,9 +380,9 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", container(1).getHostname(), container(1).getHornetqPort());
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge-backup", getHostname(CONTAINER2_NAME), getHornetqPort(
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge-backup", container(2).getHostname(), getHornetqPort(
 
 
                 CONTAINER2_NAME));
@@ -442,7 +442,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.addJndiBindingForConnectionFactory(connectionFactoryName, connectionFactoryJndiName);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER3_NAME), getHornetqPort(
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", container(3).getHostname(), getHornetqPort(
                 CONTAINER3_NAME));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 
@@ -510,7 +510,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName,true);
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", getHostname(CONTAINER3_NAME), getHornetqPort(
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", container(3).getHostname(), getHornetqPort(
                 CONTAINER3_NAME));
         jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
 

@@ -259,7 +259,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        ProducerTransAck p = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
@@ -269,7 +269,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         p.start();
         p.join();
 
-        XAConsumerTransAck c = new XAConsumerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
+        XAConsumerTransAck c = new XAConsumerTransAck(container(1),queueJndiNamePrefix + "0", container(1), container(2));
         c.setCommitAfter(10);
         c.setMessageVerifier(messageVerifier);
         c.start();
@@ -282,7 +282,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
             container(1).kill();
         } else {
             logger.warn("########################################");
@@ -293,7 +293,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
+                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
 
         c.join();
 
@@ -333,7 +333,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        ProducerTransAck p = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
@@ -345,7 +345,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         List<Client> listOfReceivers = new ArrayList<Client>();
         for (int i = 0; i < numberOfConsumers; i++) {
-            XAConsumerTransAck c = new XAConsumerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
+            XAConsumerTransAck c = new XAConsumerTransAck(container(1),queueJndiNamePrefix + "0", container(1), container(2));
 //            c.setMessageVerifier(messageVerifier);
             c.setCommitAfter(10);
             c.start();
@@ -358,7 +358,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
             container(1).kill();
         } else {
             logger.warn("########################################");
@@ -369,7 +369,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
+                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
 
         waitForClientsToFinish(listOfReceivers, 300000);
 
@@ -417,7 +417,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        ProducerTransAck p = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        ProducerTransAck p = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
@@ -427,7 +427,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         p.start();
         p.join();
 
-        XAConsumerTransAck c = new XAConsumerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
+        XAConsumerTransAck c = new XAConsumerTransAck(container(1),queueJndiNamePrefix + "0", container(1), container(2));
         c.setCommitAfter(10);
         c.setMessageVerifier(messageVerifier);
         c.start();
@@ -439,12 +439,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
         logger.warn("########################################");
         logger.warn("Kill live server");
         logger.warn("########################################");
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), getBytemanPort(CONTAINER1_NAME));
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
         container(1).kill();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
         Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
+                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
 
         // wait for org.jboss.qa.hornetq.apps.clients to receive more messages from backup
         int numberOfReceivedMessages = c.getListOfReceivedMessages().size();

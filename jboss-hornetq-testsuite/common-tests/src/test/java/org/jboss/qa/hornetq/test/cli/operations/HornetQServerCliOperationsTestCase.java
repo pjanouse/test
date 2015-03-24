@@ -106,7 +106,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     private static final String MODULE = "/subsystem=messaging/hornetq-server=default";
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -322,7 +322,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //        CliTestUtils.assertSuccess(r1);
 
         // check that backup started
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
     }
 
@@ -336,16 +336,16 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         prepareServer(container(1));
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiName);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName);
         receiver.setTimeout(1000);
 
         // start org.jboss.qa.hornetq.apps.clients
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         producer.start();
@@ -605,7 +605,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         Message msg = session.createTextMessage("test message");
         producer.send(msg);
 
-        JmsServerInfo serverInfo = new JmsServerInfo(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME), "default");
+        JmsServerInfo serverInfo = new JmsServerInfo(container(1).getHostname(), container(1).getPort(), "default");
         String[] connectionIds = serverInfo.getConnectionIds();
 
         //assertEquals("Incorrect number of client connections to server", 1, connectionIds.length);
@@ -753,8 +753,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      * @throws Exception
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
-        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
     }
 
 }

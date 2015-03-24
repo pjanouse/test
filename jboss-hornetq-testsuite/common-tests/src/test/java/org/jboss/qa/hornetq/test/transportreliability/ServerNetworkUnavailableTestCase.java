@@ -170,12 +170,12 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", 500);
         producer.setMessageBuilder(messageBuilder);
 
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
@@ -183,7 +183,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         producer.join();
         publisher.join();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0");
         receiver.start();
         subscriber.start();
 
@@ -253,10 +253,10 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
@@ -291,7 +291,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         producer.stopSending();
         publisher.stopSending();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0");
         receiver.start();
         receiver.join();
 

@@ -119,8 +119,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ServerLocator locator = null;
         try {
             Map<String, Object> props = new HashMap<String, Object>();
-            props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-            props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+            props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+            props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
             props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
             props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
             props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -171,8 +171,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -226,11 +226,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.close();
         container(1).restart();
 
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CLIENT_PORT);
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -255,7 +255,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
                 connection.close();
             }
 
-            RuleInstaller.uninstallAllRules(getHostname(CONTAINER1_NAME), BYTEMAN_CLIENT_PORT);
+            RuleInstaller.uninstallAllRules(container(1).getHostname(), BYTEMAN_CLIENT_PORT);
 
             container(1).stop();
         }
@@ -279,8 +279,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -328,8 +328,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).restart();
 
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -377,9 +377,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         Context context;
 
         if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            context = getEAP5Context(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+            context = getEAP5Context(container(1).getHostname(), container(1).getJNDIPort());
         } else {
-            context = getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+            context = getContext(container(1).getHostname(), container(1).getJNDIPort());
         }
 
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
@@ -428,8 +428,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
         props.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
         props.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        props.put(TransportConstants.HOST_PROP_NAME, getHostname(CONTAINER1_NAME));
-        props.put(TransportConstants.PORT_PROP_NAME, getHornetqPort(CONTAINER1_NAME));
+        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
+        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
 

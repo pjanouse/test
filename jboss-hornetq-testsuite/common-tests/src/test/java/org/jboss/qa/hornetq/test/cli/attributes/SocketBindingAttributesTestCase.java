@@ -30,12 +30,12 @@ public class SocketBindingAttributesTestCase extends HornetQTestCase {
         String result=jmsOperations.getSocketBindingAtributes("messaging");
         String[]resultArr=result.split(",");
         Assert.assertTrue("Socket bound attribute is false, should be true",resultArr[0].equals("\"bound\" => true"));
-        if(getHostname(CONTAINER1_NAME).contains(":")){
+        if(container(1).getHostname().contains(":")){
             //for IPv6
-            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].contains(getHostname(CONTAINER1_NAME).substring(1,getHostname(CONTAINER1_NAME).length()-2)));
+            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].contains(container(1).getHostname().substring(1,container(1).getHostname().length()-2)));
         }else {
             //for IPv4
-            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].equals("\"bound-address\" => \"" + getHostname(CONTAINER1_NAME) + "\""));
+            Assert.assertTrue("Socket bound-address should be defined correctly", resultArr[1].equals("\"bound-address\" => \"" + container(1).getHostname() + "\""));
         }
 
 

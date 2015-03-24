@@ -55,7 +55,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(getHostname(CONTAINER1_NAME), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, getUsername(CONTAINER1_NAME), getPassword(CONTAINER1_NAME)));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -94,10 +94,10 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
 
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, clientId, subscriberName);
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
@@ -127,7 +127,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         logger.info("Result drop-all-subscriptions: " + r22.getResponse().asString());
         CliTestUtils.assertSuccess(r22);
 
-        subscriberClientAck = new SubscriberClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiName, clientId, subscriberName);
+        subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 

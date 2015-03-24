@@ -136,7 +136,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             container(1).stop();
         } else {
             // install rule to first server
-            RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
 //            killServer(CONTAINER1_NAME_NAME);
             container(1).kill();
         }
@@ -150,7 +150,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("failback - Start first server again ");
             logger.info("########################################");
             container(1).start();
-            Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 300000));
+            Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
 //            Thread.sleep(10000);
 //            logger.info("########################################");
 //            logger.info("failback - Stop second server to be sure that failback occurred");
@@ -214,11 +214,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).start();
 
         // give some time for servers to find each other
-        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
+        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 2000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -247,7 +247,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         // when 1/2 is processed then start 2nd server
         waitForMessages(outQueueName, numberOfMessages/2, 120000, container(1));
 
-        Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqBackupPort(CONTAINER1_NAME), 300000));
+        Assert.assertTrue("Backup on first server did not start - failover failed.", waitHornetQToAlive(container(1).getHostname(), getHornetqBackupPort(CONTAINER1_NAME), 300000));
         Thread.sleep(10000);
 
         logger.info("########################################");
@@ -259,7 +259,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         Assert.assertTrue("Live server 2 is not up again - failback failed.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000));
+                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForMessages(outQueueName, numberOfMessages, 120000, container(1), container(2));
 
         logger.info("Get information about transactions from HQ:");
@@ -282,7 +282,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
         jmsOperations.close();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), outQueue, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -336,18 +336,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
-        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A);
-        prepareLiveServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B);
+        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
 
         container(2).start();
         container(1).start();
 
         // give some time for servers to find each other
-        waitHornetQToAlive(getHostname(CONTAINER1_NAME), getHornetqPort(CONTAINER1_NAME), 60000);
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 60000);
+        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -370,12 +370,12 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("Start again - second server");
         logger.info("########################################");
         container(2).start();
-        waitHornetQToAlive(getHostname(CONTAINER2_NAME), getHornetqPort(CONTAINER2_NAME), 300000);
+        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
         logger.info("########################################");
         logger.info("Second server started");
         logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(100);
         printQueueStatus(container(1), inQueueName);
@@ -504,7 +504,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         GroupMessageVerifier messageVerifier = new GroupMessageVerifier();
 
-        ProducerClientAck producerRedG1 = new ProducerClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), inQueue, number_of_messages);
+        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, number_of_messages);
 
         if (largeMessages) {
 
@@ -518,7 +518,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         producerRedG1.setMessageVerifier(messageVerifier);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME), inQueue, 20000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), inQueue, 20000, 10, 10);
 
         receiver1.setMessageVerifier(messageVerifier);
         Thread.sleep(15000);
@@ -614,21 +614,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(getCurrentContainerForTest(), getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -840,11 +840,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     public void prepareColocatedTopologyInCluster() {
 
         String journalType = getJournalType();
-        prepareLiveServer(container(1), getHostname(CONTAINER1_NAME), JOURNAL_DIRECTORY_A, journalType);
-        prepareColocatedBackupServer(container(1), getHostname(CONTAINER1_NAME), "backup", JOURNAL_DIRECTORY_B, journalType);
+        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A, journalType);
+        prepareColocatedBackupServer(container(1), container(1).getHostname(), "backup", JOURNAL_DIRECTORY_B, journalType);
 
-        prepareLiveServer(container(2), getHostname(CONTAINER2_NAME), JOURNAL_DIRECTORY_B, journalType);
-        prepareColocatedBackupServer(container(2), getHostname(CONTAINER2_NAME), "backup", JOURNAL_DIRECTORY_A, journalType);
+        prepareLiveServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B, journalType);
+        prepareColocatedBackupServer(container(2), container(2).getHostname(), "backup", JOURNAL_DIRECTORY_A, journalType);
 
     }
 

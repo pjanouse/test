@@ -509,7 +509,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @Deprecated
     public Context getContext() throws NamingException {
-        return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+        return getContext(container(1).getHostname(), container(1).getJNDIPort());
     }
 
     /**
@@ -517,7 +517,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @Deprecated
     public Context getContextContainer1() throws NamingException {
-        return getContext(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME));
+        return getContext(container(1).getHostname(), container(1).getJNDIPort());
     }
 
     /**
@@ -525,7 +525,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @Deprecated
     public Context getContextContainer2() throws NamingException {
-        return getContext(getHostname(CONTAINER2_NAME), getJNDIPort(CONTAINER2_NAME));
+        return getContext(container(2).getHostname(), container(2).getJNDIPort());
     }
 
     /**
@@ -715,7 +715,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
 
         try {
-            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME));
+            JMXConnector jmxConnector = jmxUtils.getJmxConnectorForEap(container(1).getHostname(), container(1).getPort());
 
             MBeanServerConnection mbsc =
                     jmxConnector.getMBeanServerConnection();
@@ -1338,14 +1338,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param database   oracle12c,mssql2012
      * @throws Exception if anything goes wrong
      */
-    public static String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
+    public String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
 
         URL metaInfUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4//meta-inf.txt"));
 
         log.info("Print mete-inf url: " + metaInfUrl);
 
         ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
-        File targetDirDeployments = new File(getJbossHome(CONTAINER1_NAME) + File.separator + "standalone" + File.separator
+        File targetDirDeployments = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
                 + "deployments" + File.separator + "meta-inf.txt");
 
         FileOutputStream fos = new FileOutputStream(targetDirDeployments);
@@ -1358,7 +1358,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         URL jdbcUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4/" + jdbcFileName));
         ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
-        File targetDirDeploymentsForJdbc = new File(getJbossHome(CONTAINER1_NAME) + File.separator + "standalone" + File.separator
+        File targetDirDeploymentsForJdbc = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
                 + "deployments" + File.separator + jdbcFileName);
         FileOutputStream fos2 = new FileOutputStream(targetDirDeploymentsForJdbc);
         fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);

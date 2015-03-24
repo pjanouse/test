@@ -58,12 +58,12 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(120000);
 
-        BufferedReader in = new BufferedReader(new FileReader(getJbossHome(CONTAINER1_NAME)
+        BufferedReader in = new BufferedReader(new FileReader(container(1).getServerHome()
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
@@ -111,8 +111,8 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     @RunAsClient
     public void testOnlySimpleInVMJcaInCluster() throws Exception {
 
-        prepareMdbServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
-        prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
+        prepareMdbServer(container(1), container(1).getHostname(), CONTAINER2_NAME);
+        prepareJmsServer(container(2), container(2).getHostname());
 
         container(1).start();
         container(2).start();
@@ -120,12 +120,12 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(200000);
 
-        BufferedReader in = new BufferedReader(new FileReader(getJbossHome(CONTAINER1_NAME)
+        BufferedReader in = new BufferedReader(new FileReader(container(1).getServerHome()
                 + File.separator + "xa-resources.txt"));
 
         // there is one live per config
@@ -198,10 +198,10 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
     public void testRemoteJcaInCluster() throws Exception {
         // jms server are 2 and 3
         // mdb server is 1 = > 2
-        prepareMdbServer(container(1), getHostname(CONTAINER1_NAME), CONTAINER2_NAME);
+        prepareMdbServer(container(1), container(1).getHostname(), CONTAINER2_NAME);
 
-        prepareJmsServer(container(2), getHostname(CONTAINER2_NAME));
-        prepareJmsServer(container(3), getHostname(CONTAINER3_NAME));
+        prepareJmsServer(container(2), container(2).getHostname());
+        prepareJmsServer(container(3), container(3).getHostname());
 
         container(1).start();
         container(2).start();
@@ -210,12 +210,12 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         // deploy helper and rule
         deployer.undeploy("xaRecoverConfigHelper");
         deployer.deploy("xaRecoverConfigHelper");
-        RuleInstaller.installRule(this.getClass(), getHostname(CONTAINER1_NAME), BYTEMAN_CONTAINER1_PORT);
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
 
         // wait until tx manager call getXAResources
         Thread.sleep(300000);
 
-        File xaRecoveryConfigFile = new File(getJbossHome(CONTAINER1_NAME)
+        File xaRecoveryConfigFile = new File(container(1).getServerHome()
                 + File.separator + "xa-resources.txt");
         BufferedReader in = null;
         int numberOfLines = 0;
@@ -248,12 +248,12 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms servers are not present then fail the test
-        if (!xaResources1.replaceAll("-", ".").contains(getHostname(CONTAINER2_NAME)) || !xaResources1.replaceAll("-", ".").contains(getHostname(
+        if (!xaResources1.replaceAll("-", ".").contains(container(2).getHostname()) || !xaResources1.replaceAll("-", ".").contains(getHostname(
 
 
                 CONTAINER3_NAME))) {
 
-            Assert.fail(getHostname(CONTAINER2_NAME) + " or " + getHostname(CONTAINER3_NAME) + " not found but are expected in: " + xaResources1);
+            Assert.fail(container(2).getHostname() + " or " + container(3).getHostname() + " not found but are expected in: " + xaResources1);
 
         }
 
@@ -297,16 +297,16 @@ public class XARecoveryConfigTestCase extends HornetQTestCase {
         }
 
         // if ips of jms 2 server is not present then fail the test
-        if (!xaResources2.replaceAll("-", ".").contains(getHostname(CONTAINER2_NAME))) {
+        if (!xaResources2.replaceAll("-", ".").contains(container(2).getHostname())) {
 
-            Assert.fail(getHostname(CONTAINER2_NAME) + " not found but is expected in: " + xaResources2);
+            Assert.fail(container(2).getHostname() + " not found but is expected in: " + xaResources2);
 
         }
 
         // if ip of jms 3 server is present then fail the test
-        if (xaResources2.replaceAll("-", ".").contains(getHostname(CONTAINER3_NAME))) {
+        if (xaResources2.replaceAll("-", ".").contains(container(3).getHostname())) {
 
-            Assert.fail(getHostname(CONTAINER3_NAME) + " found but is not expected in: " + xaResources2);
+            Assert.fail(container(3).getHostname() + " found but is not expected in: " + xaResources2);
 
         }
 

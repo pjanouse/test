@@ -135,7 +135,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         Session session = null;
         long startTime = System.currentTimeMillis();
         try {
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
             context = getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);

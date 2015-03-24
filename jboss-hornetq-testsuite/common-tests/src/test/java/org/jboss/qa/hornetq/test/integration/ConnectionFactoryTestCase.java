@@ -61,7 +61,7 @@ public class ConnectionFactoryTestCase extends HornetQTestCase {
                 logger.debug("HornetQTestServlet servlet was not deployed and it ");
             }
             deployer.deploy("hornetQTestServlet");
-            String response = HttpRequest.get("http://" + getHostname(CONTAINER1_NAME) + ":8080/HornetQTestServlet/HornetQTestServlet" +
+            String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/HornetQTestServlet/HornetQTestServlet" +
                     "?op=testConnectionFactoryType&jndiName=" + connectionFactoryName, 4, TimeUnit.SECONDS);
             logger.info("Response from server is: " + response);
             Assert.assertTrue("This should be instance of XAConnectionFactory. Response is: " + response, preferFactoryRef == Boolean.valueOf(response.trim()));

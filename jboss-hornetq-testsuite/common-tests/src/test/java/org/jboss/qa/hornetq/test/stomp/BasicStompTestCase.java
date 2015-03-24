@@ -80,7 +80,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe
@@ -156,7 +156,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Send messages via STOMP protocol
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
             connection = stomp.connectBlocking();
             for (int i = 0; i < MESSAGES; i++) {
                 // Send message
@@ -170,7 +170,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
 
             // Receive messages via JMS API
-            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), QUEUE_JNDI);
+            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI);
             receiverAutoAck.run();
             assertEquals(MESSAGES, receiverAutoAck.getCount());
         } catch (Exception e) {
@@ -208,7 +208,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
             // Receives messages via STOMP protocol
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe
@@ -218,7 +218,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             assertNotNull(response);
 
             // Send messages via JMS API
-            ProducerAutoAck producerAutoAck = new ProducerAutoAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), QUEUE_JNDI, MESSAGES);
+            ProducerAutoAck producerAutoAck = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI, MESSAGES);
             producerAutoAck.setMessageBuilder(new ByteMessageBuilder(512));
             producerAutoAck.run();
 
@@ -271,7 +271,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(QUEUE_NAME));
         try {
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
 
             HighLoadStompProducerWithSemaphores[] producers = new HighLoadStompProducerWithSemaphores[CLIENTS];
             for (int i = 0; i < CLIENTS; i++) {
@@ -283,7 +283,7 @@ public class BasicStompTestCase extends HornetQTestCase {
                 producers[i].join();
             }
 
-            ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), QUEUE_JNDI);
+            ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI);
             receiverClientAck.start();
             receiverClientAck.join();
             assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverClientAck.getCount());
@@ -322,7 +322,7 @@ public class BasicStompTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         startAndPrepareServerForStompTest(QUEUE_NAME, QUEUE_JNDI, jmsAdminOperations, true);
         try {
-            Stomp stomp = new Stomp(getHostname(CONTAINER1_NAME), STOMP_PORT);
+            Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
             connection = stomp.connectBlocking();
 
             // Subscribe

@@ -83,7 +83,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "0", 10, null, null);
+            guest = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", 10, null, null);
             guest.initializeClient();
 
             try {
@@ -147,7 +147,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "1", 10, "user", "useruser");
             user.initializeClient();
 
             try {
@@ -211,7 +211,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         try {
             // try user admin
-            admin = new SecurityClient(getHostname(CONTAINER1_NAME), getJNDIPort(CONTAINER1_NAME), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
             admin.initializeClient();
 
             try {
@@ -273,7 +273,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.overrideInVMSecurity(false);
 
         container(1).restart();
-        SecurityClient producer= new SecurityClient(getHostname(CONTAINER1_NAME),getJNDIPort(CONTAINER1_NAME),inQueueJndiNameForMdb,10, "user","useruser");
+        SecurityClient producer= new SecurityClient(container(1).getHostname(),container(1).getJNDIPort(),inQueueJndiNameForMdb,10, "user","useruser");
         producer.initializeClient();
         producer.send();
         producer.join();
@@ -288,7 +288,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     @After
     public void stopServerIfAlive()    {
-        if (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(CONTAINER1_NAME), getPort(CONTAINER1_NAME))) {
+        if (CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), container(1).getPort())) {
             container(1).stop();
         }
     }
