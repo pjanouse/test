@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 
@@ -26,7 +27,6 @@ import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
-import org.omg.CORBA.DomainManagerOperations;
 
 
 @MetaInfServices

@@ -211,6 +211,11 @@
             <artifactId>log4j</artifactId>
             <version>${version.log4j}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>qa-hornetq-testplan-generator-annotations</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
             <groupId>org.jboss.jbossts.jta</groupId>
@@ -475,6 +480,11 @@
             </modules>
 
             <dependencies>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>qa-hornetq-testplan-generator-annotation-processor</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>

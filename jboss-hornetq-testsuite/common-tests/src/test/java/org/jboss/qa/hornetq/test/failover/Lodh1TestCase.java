@@ -1,16 +1,15 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
-import org.jboss.shrinkwrap.api.Archive;
-import org.junit.Assert;
+
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.annotations.TestPlan;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -28,6 +27,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +38,12 @@ import java.util.List;
 
 /**
  * @author mnovak@redhat.com
+ * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
+ * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
+@TestPlan
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class Lodh1TestCase extends HornetQTestCase {
@@ -123,6 +128,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         return mdbJar;
 
     }
+
 
 
     public JavaArchive createLodh1TestDeployment() {
@@ -245,6 +251,20 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
+     * from InQueue and sends them to OutQueue in XA transaction. Kill the server when MDB is processing messages and restart it. Read messages from OutQueue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul><li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>during processing messages kill/shutdown the server</li>
+     * <li>restart the server</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @throws Exception
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -253,6 +273,20 @@ public class Lodh1TestCase extends HornetQTestCase {
         testLodh(false);
     }
 
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
+     * from InQueue and sends them to OutQueue in XA transaction. Shutdown the server when MDB is processing messages and restart it. Read messages from OutQueue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul><li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>during processing messages kill/shutdown the server</li>
+     * <li>restart the server</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @throws Exception
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -315,11 +349,19 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+
     /**
-     * @throws Exception
-     */
-    /**
-     * Check whether clean shutdown does not leave unfinished transactions.
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and cleanly shut-down the server. Check there are no unfinished transactions.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>cleanly shutdown server</li>
+     * <li>check there are no unfinished HQ or Arjuna transactions</li>
+     * </ul>
+     * @tpPassCrit no unfinished HQ or Arjuna transactionsCheck there are no unfinished transactions
      */
     @Test
     @CleanUpBeforeTest
@@ -381,7 +423,18 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(2).stop();
     }
 
-
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue in XA transaction. Read messages from OutQueue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
