@@ -20,6 +20,7 @@ import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JdbcUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -1308,6 +1309,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    /**
+     * @param containerName
+     * @return
+     * @throws Exception
+     *
+     * @deprecated Use {@link Container#getServerVersion()} instead.
+     */
     @Deprecated
     public String getEapVersion(String containerName) throws Exception {
 
@@ -1361,6 +1369,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param eapVersion 6.2.0
      * @param database   oracle12c,mssql2012
      * @throws Exception if anything goes wrong
+     *
+     * @deprecated Use {@link JdbcUtils#downloadJdbcDriver(Container, String)} instead.
      */
     @Deprecated
     public String donwloadJdbcDriver(String eapVersion, String database) throws Exception {

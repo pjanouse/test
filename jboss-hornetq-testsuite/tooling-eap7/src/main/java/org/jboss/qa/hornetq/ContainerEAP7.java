@@ -143,6 +143,13 @@ public class ContainerEAP7 implements Container {
         return containerDef.getContainerProperties().get("password");
     }
 
+    @Override
+    public String getServerVersion() throws FileNotFoundException {
+        File versionFile = new File(getServerHome(), "version.txt");
+        Scanner scanner = new Scanner(new FileInputStream(versionFile));
+        String eapVersionLine = scanner.nextLine();
+        return eapVersionLine.replaceAll(EAP_VERSION_PATTERN, "$3").trim();
+    }
 
     @Override
     public void deleteDataFolder() throws IOException {

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -37,10 +38,10 @@ public interface Container {
     HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
 
     int getHttpPort();
-
     String getUsername();
-
     String getPassword();
+
+    String getServerVersion() throws FileNotFoundException;
 
     // cleanup operations
     void deleteDataFolder() throws IOException;

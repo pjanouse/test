@@ -16,6 +16,7 @@ import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JdbcUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -546,8 +547,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         String poolName = "lodhDb";
 
-        String eapVersion = getEapVersion(container.getName());
-        String jdbcDriverFileName = donwloadJdbcDriver(eapVersion, database);
+        String jdbcDriverFileName = JdbcUtils.downloadJdbcDriver(container, database);
         allocateDatabase(database);
 
         container.start();

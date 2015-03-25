@@ -1,5 +1,9 @@
 package org.jboss.qa.hornetq;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.StringTokenizer;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -28,6 +32,9 @@ import java.util.ServiceLoader;
 public class ContainerEAP6 implements Container {
 
     private static final Logger log = Logger.getLogger(ContainerEAP6.class);
+
+    private static final String EAP_VERSION_PATTERN =
+            "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
 
     private static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
     private static final int BYTEMAN_PORT = 9091;
@@ -144,6 +151,14 @@ public class ContainerEAP6 implements Container {
     @Override
     public String getPassword() {
         return containerDef.getContainerProperties().get("password");
+    }
+
+    @Override
+    public String getServerVersion() throws FileNotFoundException {
+        File versionFile = new File(getServerHome(), "version.txt");
+        Scanner scanner = new Scanner(new FileInputStream(versionFile));
+        String eapVersionLine = scanner.nextLine();
+        return eapVersionLine.replaceAll(EAP_VERSION_PATTERN, "$3").trim();
     }
 
     @Override
