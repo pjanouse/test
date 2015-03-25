@@ -1,9 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -24,17 +22,11 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
-import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -579,9 +571,6 @@ public class Lodh5TestCase extends HornetQTestCase {
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
-            String url = properties.get("db.jdbc_url");
 
 //            String databaseName = "crashrec"; // db.name
 //            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
@@ -615,7 +604,6 @@ public class Lodh5TestCase extends HornetQTestCase {
                 </xa-datasource>
             */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
@@ -652,7 +640,6 @@ public class Lodh5TestCase extends HornetQTestCase {
                 </xa-datasource>
             */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
@@ -690,12 +677,9 @@ public class Lodh5TestCase extends HornetQTestCase {
                 </xa-datasource>
             */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
             String url = properties.get("db.jdbc_url");
 
 //            String databaseName = "crashrec"; // db.name
