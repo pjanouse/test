@@ -264,6 +264,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Initializes JmxUtils. Each call will create new instance.
      *
      * @return jmx utils instance
+     *
+     * @deprecated Use {@link Container#getJmxUtils()}
      */
     @Deprecated
     private static synchronized JmxUtils getJmxUtils()   {
@@ -284,6 +286,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Initializes JmxNotificationListener instance at 1st call. Creates new instance for every call.
      *
      * @return JmxNotificationListener instance
+     *
+     * @deprecated Use {@link Container#createJmxNotificationListener()}
      */
     @Deprecated
     protected static synchronized JmxNotificationListener getJmxNotificationListener()    {
@@ -418,6 +422,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return envProperty;
     }
 
+    /**
+     * @deprecated Use {@link Container#getContext()}
+     */
     @Deprecated
     protected Context getContext(String containerName) throws NamingException {
         return getContext(getHostname(containerName), getJNDIPort(containerName));
@@ -430,6 +437,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param port     port on the target service
      * @return instance of {@link Context}
      * @throws NamingException if a naming exception is encountered
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     public Context getContext(String hostName, int port) throws NamingException {
@@ -451,6 +460,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param port     target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     protected Context getEAP6Context(String hostName, int port) throws NamingException {
@@ -464,6 +475,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param port     target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     protected Context getEAP5Context(String hostName, int port) throws NamingException {
@@ -474,6 +487,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Returns port for JNDI service
      *
      * @return returns default port for JNDI service
+     *
+     * @deprecated Use {@link Container#getJNDIPort()}
      */
     @Deprecated
     public int getJNDIPort() {
@@ -490,6 +505,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Returns port for JNDI service
      *
      * @return returns default port for JNDI service
+     *
+     * @deprecated Use {@link Container#getJNDIPort()}
      */
     @Deprecated
     public static int getJNDIPort(String containerName) {
@@ -512,6 +529,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContext()
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     public Context getContext() throws NamingException {
@@ -520,6 +539,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer1()
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     public Context getContextContainer1() throws NamingException {
@@ -528,6 +549,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * @see org.jboss.qa.hornetq.ContextProvider#getContextContainer2()
+     *
+     * @deprecated Use {@link Container#getContext()}
      */
     @Deprecated
     public Context getContextContainer2() throws NamingException {
@@ -656,6 +679,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param container
      * @return 8080 + portOffset
+     *
+     * @deprecated Use {@link Container#getHttpPort()}
      */
     @Deprecated
     public static int getHttpPort(String container) {
@@ -684,6 +709,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    /**
+     * @deprecated Use {@link Container#getBytemanPort()}
+     */
     @Deprecated
     public int getBytemanPort(String containerName) throws Exception {
 
@@ -691,6 +719,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     }
 
+    /**
+     * @deprecated Use {@link Container#getHornetqPort()}
+     */
     @Deprecated
     public static int getHornetqPort(String containerName) {
         return PORT_HORNETQ_DEFAULT_EAP6 + getContainerInfo(containerName).getPortOffset();
@@ -701,6 +732,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return port of collocated backup
+     *
+     * @deprecated Use {@link Container#getHornetqBackupPort()}
      */
     @Deprecated
     public static int getHornetqBackupPort(String containerName) {
@@ -765,6 +798,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * Methods determines current container (EAP 6 or EAP 5)
      *
      * @return container id
+     *
+     * @deprecated Use {@link Container#getContainerType()}
      */
     @Deprecated
     public static String getCurrentContainerId() {
@@ -904,6 +939,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return JBOSS_HOME as specified in arquillian.xml or null
+     *
+     * @deprecated Use {@link Container#getServerHome()}
      */
     @Deprecated
     public static String getJbossHome(String containerName) {
@@ -925,6 +962,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return hostname of "localhost" when no specified
+     *
+     * @deprecated Use {@link Container#getHostname()}
      */
     @Deprecated
     public static String getHostname(String containerName) {
@@ -1024,6 +1063,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return managementPort or rmiPort or 9999 when not set
+     *
+     * @deprecated Use {@link Container#getPort()}
      */
     @Deprecated
     public static int getPort(String containerName) {
@@ -1046,6 +1087,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return username or null if empty
+     *
+     * @deprecated Use {@link Container#getUsername()}
      */
     @Deprecated
     public static String getUsername(String containerName) {
@@ -1070,6 +1113,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param containerName name of the container
      * @return password or null if empty
+     *
+     * @deprecated {@link Container#getPassword()}
      */
     public static String getPassword(String containerName) {
 
@@ -1258,6 +1303,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param srcDir source directory
      * @param dstDir destination directory
      * @throws IOException
+     *
+     * @deprecated Use {@link FileUtils#copyDirectory(File, File)}
      */
     @Deprecated
     public void copyDirectory(File srcDir, File dstDir) throws IOException {
@@ -1285,6 +1332,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param sourceFile source file
      * @param destFile   destination file - file will be rewritten
      * @throws IOException
+     *
+     * @deprecated Use {@link FileUtils#copyFile(File, File)}
      */
     @Deprecated
     public void copyFile(File sourceFile, File destFile) throws IOException {
