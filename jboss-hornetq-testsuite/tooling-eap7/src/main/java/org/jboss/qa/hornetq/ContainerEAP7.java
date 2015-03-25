@@ -342,7 +342,7 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
-    public synchronized JmxUtils getJmsUtils() {
+    public synchronized JmxUtils getJmxUtils() {
         if (jmxUtils == null) {
             ServiceLoader serviceLoader = ServiceLoader.load(JmxUtils.class);
 

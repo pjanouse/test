@@ -58,7 +58,7 @@ public interface Container {
     void undeploy(String archiveName);
 
     JournalExportImportUtils getExportImportUtil();
-    JmxUtils getJmsUtils();
+    JmxUtils getJmxUtils();
     JmxNotificationListener createJmxNotificationListener();
     JMSOperations getJmsOperations();
 

@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -26,7 +25,7 @@ public class ProcessIdUtils {
         long pid = -1;
 
         try {
-            JMXConnector jmxConnector = container.getJmsUtils().getJmxConnectorForEap(container.getHostname(), container.getPort());
+            JMXConnector jmxConnector = container.getJmxUtils().getJmxConnectorForEap(container.getHostname(), container.getPort());
 
             MBeanServerConnection mbsc =
                     jmxConnector.getMBeanServerConnection();
