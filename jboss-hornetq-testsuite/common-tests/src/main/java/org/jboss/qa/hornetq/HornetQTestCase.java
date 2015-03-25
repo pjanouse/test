@@ -85,6 +85,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     // Multi-cast address
     @Deprecated
+    /**
+     * @deprecated use @Container.MCAST_ADDRESS instead
+     */
     public static final String MCAST_ADDRESS;
 
     // Journal directory for first live/backup pair or first node in cluster

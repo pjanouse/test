@@ -44,7 +44,7 @@ public class AddressSettingsAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, container(1).getUsername(), container(1).getPassword());
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
     @Before
     public void startServer() throws InterruptedException {
