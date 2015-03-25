@@ -74,7 +74,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
         try {
             ctx = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -128,8 +128,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         JMXConnector jmxConnector = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -198,8 +198,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -253,8 +253,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -307,8 +307,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -355,8 +355,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -406,8 +406,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -457,8 +457,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        container(1).stop();
-        container(1).start();
+        container(1).restart();
     }
 
     private void prepareServerForNotifications() throws Exception {
@@ -483,8 +482,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
-        container(1).stop();
-        container(1).start();
+        container(1).restart();
     }
 
 }

@@ -7,7 +7,6 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
@@ -61,7 +60,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
         // add notification listener to server control mbean
         // we will later use it to check if there was proper disconnection notification on the JMX server
-        JmxNotificationListener notificationListener = getJmxNotificationListener();
+        JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
         JMXConnector jmxConnector = null;
 
         Context ctx = null;
@@ -77,8 +76,8 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
                     notificationListener, null, null);
 
             LOG.info("Setting up error listener for JMS org.jboss.qa.hornetq.apps.clients");
-            ctx = getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             jmsConnection = cf.createConnection(username, USER_PASSWORD.get(username));
 
             final CountDownLatch connectionClosed = new CountDownLatch(1);
@@ -177,7 +176,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
         String rolesFileName = "application-roles.properties";
         File resourcesDirectory = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator
                 + this.getClass().getPackage().getName().replaceAll("\\.", File.separator));
-        File serverConfDirectory = new File(JBOSS_HOME_1 + File.separator + "standalone"
+        File serverConfDirectory = new File(container(1).getServerHome() + File.separator + "standalone"
                 + File.separator + "configuration");
 
         File usersFile = new File(resourcesDirectory, usersFileName);

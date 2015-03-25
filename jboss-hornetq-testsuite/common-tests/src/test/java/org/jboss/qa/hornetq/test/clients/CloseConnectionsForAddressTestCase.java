@@ -8,7 +8,6 @@ import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
-import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -104,7 +103,7 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
                 jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
                 jmxConnector.connect();
                 MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
-                HornetQServerControl serverControl = jmxUtils.getHornetQServerMBean(connection);
+                HornetQServerControl serverControl = container(1).getJmxUtils().getHornetQServerMBean(connection);
 
                 // This is workaround for direct method call, that would make the TS non-compilable
                 // with older client versions. Throws NoSuchMethod on older org.jboss.qa.hornetq.apps.clients thus failing the test
