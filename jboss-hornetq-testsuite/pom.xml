@@ -214,7 +214,7 @@
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>qa-hornetq-testplan-generator-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
         <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
@@ -483,7 +483,7 @@
                 <dependency>
                     <groupId>org.jboss.qa.hornetq</groupId>
                     <artifactId>qa-hornetq-testplan-generator-annotation-processor</artifactId>
-                    <version>1.0-SNAPSHOT</version>
+                    <version>0.0.1</version>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
