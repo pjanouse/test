@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -74,7 +75,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsQueueOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, container(1).getUsername(), container(1).getPassword()));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword()));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -163,7 +164,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         List<Client> producers = new ArrayList<Client>();
         producers.add(producer);
 
-        waitForProducersUntil(producers, 10, 60000);
+        ClientUtils.waitForProducersUntil(producers, 10, 60000);
 
         Result r1 = runOperation("add-jndi ", "jndi-binding=" + queueJndiName + "2");
         logger.info("Result add-jndi : " + r1.getResponse().asString());
@@ -256,12 +257,13 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         logger.info("Result send-messages-to-dead-letter-address: " + r19.getResponse().asString());
         CliTestUtils.assertSuccess(r19);
 
-        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 1000, 100, 10);
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 10000, 100, 10);
         receiverClientAck.start();
 
         List<Client> receivers = new ArrayList<Client>();
         receivers.add(receiverClientAck);
-        waitForReceiversUntil(receivers, 10, 120000);
+        ClientUtils.waitForReceiversUntil(receivers, 10, 120000);
 
         Result r20 = runOperation("list-consumers-as-json", null);
         logger.info("Result :list-consumers-as-json: " + r20.getResponse().asString());

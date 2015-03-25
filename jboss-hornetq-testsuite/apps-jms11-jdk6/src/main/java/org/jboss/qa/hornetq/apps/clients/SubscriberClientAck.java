@@ -81,6 +81,8 @@ public class SubscriberClientAck extends Client {
     }
 
     /**
+     * @deprecated do not use this constructor - as it uses EAP6_CONTAINER by default
+     *
      * Creates a subscriber to topic with client acknowledge.
      *
      * @param hostname       hostname
@@ -91,6 +93,7 @@ public class SubscriberClientAck extends Client {
      * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
                                int ackAfter, int maxRetries, String clientId, String subscriberName) {
         this(EAP6_CONTAINER, hostname, port, topicNameJndi, receiveTimeOut, ackAfter, maxRetries, clientId, subscriberName);

@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
@@ -55,7 +56,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
-    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, container(1).getUsername(), container(1).getPassword()));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword()));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -94,17 +95,18 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
 
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
         List<Client> producers = new ArrayList<Client>();
         producers.add(publisher);
 
-        waitForProducersUntil(producers, 10, 60000);
+        ClientUtils.waitForProducersUntil(producers, 10, 60000);
 
         Result r1 = runOperation("add-jndi ", "jndi-binding=" + topicJndiName + "2");
         logger.info("Result add-jndi : " + r1.getResponse().asString());

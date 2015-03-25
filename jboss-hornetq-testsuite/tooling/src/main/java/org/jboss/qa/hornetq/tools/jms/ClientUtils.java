@@ -133,4 +133,28 @@ public class ClientUtils {
         }
     }
 
+    /**
+     * Method blocks until all receivers gets the numberOfMessages or timeout expires
+     *
+     * @param producers        receivers
+     * @param numberOfMessages numberOfMessages
+     * @param timeout          timeout
+     */
+    public static void waitForProducersUntil(List<Client> producers, int numberOfMessages, long timeout) {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        for (Client c : producers) {
+            while (c.getCount() < numberOfMessages) {
+                if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
+                    Assert.fail("Client: " + c + " did not send " + numberOfMessages + " in timeout: " + timeout);
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }

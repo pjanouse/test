@@ -33,12 +33,14 @@ public class ReceiverClientAck extends Client {
 
 
     /**
+     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
      * Creates a receiver to queue with client acknowledge.
      *
      * @param hostname      hostname
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
      */
+    @Deprecated
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
 
         this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 10, 30);
@@ -72,6 +74,7 @@ public class ReceiverClientAck extends Client {
     }
 
     /**
+     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
      * Creates a receiver to queue with client acknowledge.
      *
      * @param hostname       hostname
@@ -81,6 +84,7 @@ public class ReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public ReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                              int ackAfter, int maxRetries) {
         this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);

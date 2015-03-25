@@ -849,6 +849,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
 
     /**
+     * @deprecated use @see ClientUtils#waitForProducersUntil()
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
      *
      * @param producers        receivers

@@ -36,11 +36,14 @@ public class PublisherClientAck extends Client {
     private boolean stop = false;
 
     /**
+     * @deprecated do not use this constructor - it uses EAP6_CONTAINER type by default
+     *
      * @param hostname       hostname
      * @param port           port
      * @param messages       number of messages to send
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
+    @Deprecated
     public PublisherClientAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this(EAP6_CONTAINER,hostname, port, topicNameJndi, messages, clientId);
     }

@@ -263,7 +263,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        ProducerTransAck p = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        ProducerTransAck p = new ProducerTransAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
@@ -421,7 +422,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(2).start();
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        ProducerTransAck p = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
+        ProducerTransAck p = new ProducerTransAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
