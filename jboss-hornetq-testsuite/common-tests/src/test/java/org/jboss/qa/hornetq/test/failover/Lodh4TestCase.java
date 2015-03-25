@@ -252,9 +252,11 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4).getHostname(), container(4).getJNDIPort(), relativeJndiOutQueueName + 0, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4).getContainerType().toString(),
+                container(4).getHostname(), container(4).getJNDIPort(), relativeJndiOutQueueName + 0, 10000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();

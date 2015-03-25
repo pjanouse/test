@@ -53,6 +53,8 @@ public interface Container {
     void start();
     void stop();
     void kill();
+    void waitForKill();
+    void waitForKill(long timeout);
     void restart();
     void deploy(Archive archive);
 

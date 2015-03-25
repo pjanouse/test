@@ -170,9 +170,9 @@ public class ContainerEAP7 implements Container {
         // modify properties for arquillian.xml
         // set port off set based on how it was configured here
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
-            // replace 9091 for byteman port
+        // replace 9091 for byteman port
 
-        Map<String,String> containerProperties = containerDef.getContainerProperties();
+        Map<String, String> containerProperties = containerDef.getContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
 
@@ -270,7 +270,7 @@ public class ContainerEAP7 implements Container {
 
             long pid = ProcessIdUtils.getProcessId(this);
 
-            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows"))  { // use taskkill
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
                 Runtime.getRuntime().exec("taskkill /f /pid " + pid);
             } else { // on all other platforms use kill -9
                 Runtime.getRuntime().exec("kill -9 " + pid);
@@ -283,6 +283,25 @@ public class ContainerEAP7 implements Container {
         }
         containerController.kill(getName());
 
+    }
+
+    @Override
+    public void waitForKill() {
+        waitForKill(120000);
+    }
+
+    @Override
+    public void waitForKill(long timeout) {
+
+        long startTime = System.currentTimeMillis();
+
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
+
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Server: " + getName() + " was not killed in timeout: " + timeout);
+            }
+        }
     }
 
     @Override
@@ -302,7 +321,7 @@ public class ContainerEAP7 implements Container {
             eap7AdmOps.connect();
             eap7AdmOps.deploy(archive);
 
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.error("Could not deploy archive " + archive.getName(), ex);
         } finally {
             eap7AdmOps.close();
@@ -325,7 +344,7 @@ public class ContainerEAP7 implements Container {
             eap7AdmOps.connect();
             eap7AdmOps.undeploy(archiveName);
 
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             log.error("Could not undeploy archive " + archiveName, ex);
         } finally {
             eap7AdmOps.close();
@@ -381,7 +400,7 @@ public class ContainerEAP7 implements Container {
             this.containerController = controller;
         }
 
-        if (deployer == null)   {
+        if (deployer == null) {
             this.deployer = deployer;
         }
     }
@@ -404,12 +423,13 @@ public class ContainerEAP7 implements Container {
         return iterator.next();
     }
 
-    /** Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
-     *
+    /**
+     * Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
+     * <p/>
      * returns LargeMessagePacketInterceptor instance
      */
     @Override
-    public LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
+    public LargeMessagePacketInterceptor getLargeMessagePacketInterceptor() {
         ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
         Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
 
@@ -421,7 +441,6 @@ public class ContainerEAP7 implements Container {
 
         return largeMessagePacketInterceptor;
     }
-
 
 
     private ContainerDef getContainerDefinition(String containerName, ArquillianDescriptor descriptor) {

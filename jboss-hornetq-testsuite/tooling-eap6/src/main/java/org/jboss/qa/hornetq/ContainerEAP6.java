@@ -290,6 +290,25 @@ public class ContainerEAP6 implements Container {
     }
 
     @Override
+    public void waitForKill() {
+        waitForKill(120000);
+    }
+
+    @Override
+    public void waitForKill(long timeout) {
+
+        long startTime = System.currentTimeMillis();
+
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
+
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Server: " + getName() + " was not killed in timeout: " + timeout);
+            }
+        }
+    }
+
+    @Override
     public void restart() {
         stop();
         start();
