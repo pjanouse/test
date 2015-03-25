@@ -50,14 +50,14 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
 
     private Properties attributes;
 
-    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, container(1).getUsername(), container(1).getPassword());
+    CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
-    private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
+    private void prepareServerWithHornetQCoreBridge(Container container, Container targetContainer) {
 
         String messagingBridgeConnectorAndSocketBindingName = "messaging-bridge";
 
         JMSOperations jmsAdminContainer1 = container.getJmsOperations();
-        jmsAdminContainer1.addRemoteSocketBinding(messagingBridgeConnectorAndSocketBindingName, getHostname(targeServerName), getHornetqPort(targeServerName));
+        jmsAdminContainer1.addRemoteSocketBinding(messagingBridgeConnectorAndSocketBindingName, targetContainer.getHostname(), targetContainer.getHornetqPort());
         jmsAdminContainer1.createRemoteConnector(messagingBridgeConnectorAndSocketBindingName, messagingBridgeConnectorAndSocketBindingName, null);
         jmsAdminContainer1.createQueue(inQueueName, inQueueJndiName);
         jmsAdminContainer1.setClusterUserPassword(CLUSTER_PASSWORD);
@@ -87,7 +87,7 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
         container(1).start();
         container(2).start();
 
-        prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
+        prepareServerWithHornetQCoreBridge(container(1), container(2));
         prepareTargetServerForHornetQCoreBridge(container(2));
     }
 

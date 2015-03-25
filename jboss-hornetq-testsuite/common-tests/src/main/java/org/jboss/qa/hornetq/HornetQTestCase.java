@@ -285,25 +285,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return jmxNotificationListener;
     }
 
-    /** Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
-     *
-     * returns LargeMessagePacketInterceptor instance
-     */
-    @Deprecated
-    protected static LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
-        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
-        Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
-
-        if (!iterator.hasNext()) {
-            throw new RuntimeException("No implementation found for JmxUtils.");
-        }
-
-        LargeMessagePacketInterceptor largeMessagePacketInterceptor = iterator.next();
-
-        return largeMessagePacketInterceptor;
-    }
-
-
     /**
      * Stops all servers
      */

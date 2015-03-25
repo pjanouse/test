@@ -16,7 +16,7 @@ import java.nio.channels.FileChannel;
 import java.util.Map;
 
 /**
- * Created by mnovak on 9/9/14.
+ * @author mnovak@redhat.com
  */
 public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
 

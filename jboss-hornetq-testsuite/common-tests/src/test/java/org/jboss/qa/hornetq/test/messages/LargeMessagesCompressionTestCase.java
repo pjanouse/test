@@ -139,7 +139,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             locator.setCompressLargeMessage(true);
 
             // need to use deprecated method to work with EAP 5 / HQ 2.2.x
-            locator.addInterceptor(getLargeMessagePacketInterceptor());
+            locator.addInterceptor(container(1).getLargeMessagePacketInterceptor());
 
             ClientSessionFactory sf = locator.createSessionFactory();
             session = sf.createSession();

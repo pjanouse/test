@@ -11,6 +11,7 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
+import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.*;
@@ -405,6 +406,24 @@ public class ContainerEAP6 implements Container {
             throw new RuntimeException("No implementation found for JmxUtils.");
         }
         return iterator.next();
+    }
+
+    /** Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
+     *
+     * returns LargeMessagePacketInterceptor instance
+     */
+    @Override
+    public LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
+        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
+        Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
+
+        if (!iterator.hasNext()) {
+            throw new RuntimeException("No implementation found for JmxUtils.");
+        }
+
+        LargeMessagePacketInterceptor largeMessagePacketInterceptor = iterator.next();
+
+        return largeMessagePacketInterceptor;
     }
 
 

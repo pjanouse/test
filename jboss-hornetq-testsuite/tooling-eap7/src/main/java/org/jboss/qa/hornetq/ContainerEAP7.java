@@ -2,9 +2,12 @@ package org.jboss.qa.hornetq;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.ServiceLoader;
 
 import javax.naming.Context;
@@ -17,6 +20,7 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
+import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
@@ -41,6 +45,8 @@ public class ContainerEAP7 implements Container {
     private static final int PORT_HORNETQ_DEFAULT_BACKUP = 9990;
     private static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/RemoteConnectionFactory";
 
+    private static final String EAP_VERSION_PATTERN =
+            "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
 
     private JmxUtils jmxUtils = null;
     private JournalExportImportUtils journalExportImportUtils = null;
@@ -397,6 +403,25 @@ public class ContainerEAP7 implements Container {
         }
         return iterator.next();
     }
+
+    /** Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
+     *
+     * returns LargeMessagePacketInterceptor instance
+     */
+    @Override
+    public LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
+        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
+        Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
+
+        if (!iterator.hasNext()) {
+            throw new RuntimeException("No implementation found for JmxUtils.");
+        }
+
+        LargeMessagePacketInterceptor largeMessagePacketInterceptor = iterator.next();
+
+        return largeMessagePacketInterceptor;
+    }
+
 
 
     private ContainerDef getContainerDefinition(String containerName, ArquillianDescriptor descriptor) {
