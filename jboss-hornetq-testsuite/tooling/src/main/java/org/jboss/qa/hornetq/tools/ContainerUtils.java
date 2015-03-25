@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 /**
  * @author mnovak@redhat.com
  */
+@Deprecated
 public abstract class ContainerUtils {
 
     public static ContainerUtils INSTANCE;

@@ -357,6 +357,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param jbossHome               jboss home
      */
+    @Deprecated
     private static String verifyJbossHome(String jbossHome) {
 
         if (jbossHome == null) {
@@ -374,6 +375,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * If it's IPv6 address then add [xxx::xxx] so port can be added.
      */
+    @Deprecated
     private static String checkIPv6Address(String ipAddress) {
 
         if (ipAddress != null) {
@@ -404,6 +406,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param name name of
      * @return value of the defined property or null
      */
+    @Deprecated
     private static String getEnvProperty(String name) {
 
         String envProperty = System.getProperty(name);
@@ -413,6 +416,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return envProperty;
     }
 
+    @Deprecated
     protected Context getContext(String containerName) throws NamingException {
         return getContext(getHostname(containerName), getJNDIPort(containerName));
     }
@@ -533,6 +537,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return JNDI name for CNF
      */
+    @Deprecated
     public String getConnectionFactoryName() {
         return (isEAP5()) ? CONNECTION_FACTORY_JNDI_EAP5 : CONNECTION_FACTORY_JNDI_EAP6;
     }
@@ -650,6 +655,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param container
      * @return 8080 + portOffset
      */
+    @Deprecated
     public static int getHttpPort(String container) {
         return 8080 + getContainerInfo(container).getPortOffset();
     }
@@ -660,6 +666,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return container info class
      */
+    @Deprecated
     public static ContainerInfo getContainerInfo(String containerName) {
         if (CONTAINER1_NAME.equals(containerName)) {
             return CONTAINER1_INFO;
@@ -785,6 +792,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
      */
+    @Deprecated
     public void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
@@ -810,6 +818,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
      */
+    @Deprecated
     public void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
@@ -844,6 +853,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
      */
+    @Deprecated
     public void waitForProducersUntil(List<Client> producers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
 
@@ -873,6 +883,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return Name of the profile as specified in arquillian.xml for
      * profileName or "default" if not set.
      */
+    @Deprecated
     public static String getProfile(String containerName) {
         for (GroupDef groupDef : arquillianDescriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
@@ -942,6 +953,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
      */
+    @Deprecated
     public void waitForClientsToFinish(Clients clients) {
         waitForClientsToFinish(clients, 600000);
     }
@@ -952,6 +964,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param clients org.jboss.qa.hornetq.apps.clients
      * @param timeout timeout
      */
+    @Deprecated
     public void waitForClientsToFinish(Clients clients, long timeout) {
         long startTime = System.currentTimeMillis();
         try {
@@ -991,6 +1004,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param port      port
      * @param timeout   timeout
      */
+    @Deprecated
     public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
@@ -1031,6 +1045,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the container
      * @return username or null if empty
      */
+    @Deprecated
     public static String getUsername(String containerName) {
 
         String username;
@@ -1109,6 +1124,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      * @throws Exception
      */
+    @Deprecated
     public boolean waitForNumberOfMessagesInQueue(Container container, String queueCoreName,
             int expectedNumberOfMessages, long timeout) throws Exception {
 
@@ -1139,6 +1155,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
      * @throws Exception
      */
+    @Deprecated
     public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, Container... containers) throws Exception {
 
         long startTime = System.currentTimeMillis();
@@ -1167,6 +1184,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return true if file contains the string
      * @throws Exception
      */
+    @Deprecated
     public boolean checkThatFileContainsUnfinishedTransactionsString(File fileToCheck, String stringToFind) throws Exception {
 
         return checkThatFileContainsGivenString(fileToCheck, stringToFind);
@@ -1180,6 +1198,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return true if file contains the string, false if not
      * @throws Exception if file does not exist or any other error
      */
+    @Deprecated
     public boolean checkThatFileContainsGivenString(File fileToCheck, String stringToFind) throws Exception {
         Scanner scanner = new Scanner(fileToCheck);
 
@@ -1212,6 +1231,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containers     container list
      * @return total number of messages in queue on given nodes
      */
+    @Deprecated
     public long countMessages(String queueName, Container... containers) {
         long sum = 0;
         for (Container container : containers) {
@@ -1237,6 +1257,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param dstDir destination directory
      * @throws IOException
      */
+    @Deprecated
     public void copyDirectory(File srcDir, File dstDir) throws IOException {
         log.info("Copy directory: " + srcDir.getAbsolutePath() + " to " + dstDir.getAbsolutePath());
         if (srcDir.isDirectory()) {
@@ -1263,6 +1284,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param destFile   destination file - file will be rewritten
      * @throws IOException
      */
+    @Deprecated
     public void copyFile(File sourceFile, File destFile) throws IOException {
         if (!destFile.exists()) {
             destFile.createNewFile();
@@ -1285,6 +1307,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
     }
 
+    @Deprecated
     public String getEapVersion(String containerName) throws Exception {
 
         File versionFile = new File(getJbossHome(containerName) + File.separator + "version.txt");
@@ -1338,6 +1361,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param database   oracle12c,mssql2012
      * @throws Exception if anything goes wrong
      */
+    @Deprecated
     public String donwloadJdbcDriver(String eapVersion, String database) throws Exception {
 
         URL metaInfUrl = new URL(URL_JDBC_DRIVERS.concat("/" + eapVersion + "/" + database + "/jdbc4//meta-inf.txt"));
@@ -1379,6 +1403,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param container
      * @throws Exception
      */
+    @Deprecated
     public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, Container container) throws Exception {
 
         // check that number of prepared transaction gets to 0

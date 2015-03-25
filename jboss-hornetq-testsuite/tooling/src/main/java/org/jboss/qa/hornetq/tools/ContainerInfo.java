@@ -9,6 +9,7 @@ import java.io.File;
 /**
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
+@Deprecated
 public final class ContainerInfo {
 
     // Logger
