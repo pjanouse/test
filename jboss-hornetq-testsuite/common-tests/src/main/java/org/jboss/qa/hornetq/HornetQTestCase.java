@@ -204,7 +204,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         }
 
         Container c = iterator.next();
-        c.init(name, index, getArquillianDescriptor(), controller, deployer);
+        c.init(name, index, getArquillianDescriptor(), controller);
         return c;
     }
 

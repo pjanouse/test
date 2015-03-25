@@ -50,7 +50,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
-                     ContainerController containerController, Deployer deployer) {
+                     ContainerController containerController) {
 
         this.containerIndex = containerIndex;
         this.containerController = containerController;
@@ -292,6 +292,11 @@ public class ContainerEAP7 implements Container {
         } finally {
             eap7AdmOps.close();
         }
+    }
+
+    @Override
+    public void undeploy(Archive archive) {
+        undeploy(archive.getName());
     }
 
     @Override

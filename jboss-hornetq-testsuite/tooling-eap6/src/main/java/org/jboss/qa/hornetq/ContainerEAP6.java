@@ -44,11 +44,10 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
-                     ContainerController containerController, Deployer deployer) {
+                     ContainerController containerController) {
 
         this.containerIndex = containerIndex;
         this.containerController = containerController;
-        this.deployer = deployer;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
     }
 
@@ -327,6 +326,11 @@ public class ContainerEAP6 implements Container {
         } finally {
             eap6AdmOps.close();
         }
+    }
+
+    @Override
+    public void undeploy(Archive archive) {
+        undeploy(archive.getName());
     }
 
     @Override

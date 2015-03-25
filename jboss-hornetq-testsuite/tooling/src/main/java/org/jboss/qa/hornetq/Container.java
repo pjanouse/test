@@ -21,7 +21,7 @@ public interface Container {
     public static String MCAST_ADDRESS = MulticastAddressUtils.getMulticastAddress();
 
     void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
-            ContainerController containerController, Deployer deployer);
+            ContainerController containerController);
 
     // basic container info
     String getName();
@@ -51,6 +51,9 @@ public interface Container {
     void kill();
     void restart();
     void deploy(Archive archive);
+
+    void undeploy(Archive archive);
+
     void undeploy(String archiveName);
 
     JournalExportImportUtils getExportImportUtil();
