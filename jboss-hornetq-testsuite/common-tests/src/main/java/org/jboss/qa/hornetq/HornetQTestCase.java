@@ -100,6 +100,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     private ContainerController controller;
 
     @ArquillianResource
+    @Deprecated
     protected Deployer deployer;
 
     // this property is initialized during BeforeClass phase by ArquillianConfiguration extension
