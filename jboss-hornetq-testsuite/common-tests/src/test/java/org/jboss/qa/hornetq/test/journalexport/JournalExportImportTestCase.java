@@ -1,20 +1,24 @@
 package org.jboss.qa.hornetq.test.journalexport;
 
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.NamingException;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -27,10 +31,12 @@ import static org.junit.Assert.*;
  * export/import worked in the first place).
  */
 @RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
+    private static final String DIRECTORY_WITH_JOURNAL = new File("target/journal-directory-for-import-export-testcase").getAbsolutePath();
     private static final String EXPORTED_JOURNAL_FILE_NAME = "journal_export.xml";
 
     private static final String TEST_QUEUE = "TestQueue";
@@ -46,8 +52,13 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
-        container(1).start();
+
         prepareServer(container(1));
+
+        container(1).start();
+
+        JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
+        journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
 
         Context ctx = null;
         Connection conn = null;
@@ -72,11 +83,11 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        boolean exported = container(1).getExportImportUtil().exportHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
+        boolean exported = journalExportImportUtils.exportHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
-        deleteDataFolder(CONTAINER1_INFO.getJbossHome(), CONTAINER1_NAME);
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
         container(1).start();
 
         boolean imported = journalExportImportUtils.importHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
@@ -84,8 +95,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         Message received;
         try {
-            ctx = getContext(CONTAINER1_NAME);
-            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             conn = factory.createConnection();
             conn.start();
 
@@ -106,9 +117,16 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     }
 
     private void prepareServer(final Container container) {
+
+        container.start();
         JMSOperations ops = container.getJmsOperations();
         ops.createQueue(TEST_QUEUE, TEST_QUEUE_NAME, true);
+        ops.setJournalDirectory(DIRECTORY_WITH_JOURNAL);
+        ops.setLargeMessagesDirectory(DIRECTORY_WITH_JOURNAL);
+        ops.setBindingsDirectory(DIRECTORY_WITH_JOURNAL);
+        ops.setPagingDirectory(DIRECTORY_WITH_JOURNAL);
         ops.close();
+        container.stop();
     }
 
     private void closeJmsConnection(final Context ctx, final Connection connection, final Session session)

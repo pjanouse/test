@@ -1351,7 +1351,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
-        model.get("path").set(path + File.separator + "journal");
+        model.get("path").set(path + File.separator + "messagingjournal");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -1385,7 +1385,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
-        model.get("path").set(path + File.separator + "paging");
+        model.get("path").set(path + File.separator + "messagingpaging");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -1419,7 +1419,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
-        model.get("path").set(path + File.separator + "large-messages");
+        model.get("path").set(path + File.separator + "mesaaginglargemessages");
 
         try {
             this.applyUpdate(model);
@@ -1454,7 +1454,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
-        model.get("path").set(path + File.separator + "bindings");
+        model.get("path").set(path + File.separator + "messagingbindings");
 
         try {
             this.applyUpdate(model);

@@ -37,6 +37,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
     private static final String EAP_60_EXPORT_TOOL_MAIN_CLASS = "org.hornetq.core.persistence.impl.journal.XmlDataExporter";
     private static final String EAP_60_IMPORT_TOOL_MAIN_CLASS = "org.hornetq.core.persistence.impl.journal.XmlDataImporter";
 
+    private String pathToJournal = null;
 
     /**
      * Export HornetQ journal from the given container to the given file.
@@ -54,7 +55,9 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
 
         // TODO: move standalone/domain path to ContainerInfo
-        String pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
+        if (pathToJournal == null || pathToJournal.equals("")) {
+            pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
+        }
         File journalDirectory = new File(pathToJournal);
         if (!(journalDirectory.exists() && journalDirectory.isDirectory() && journalDirectory.canRead())) {
             LOG.error("Cannot read from journal directory " + pathToJournal);
@@ -165,6 +168,11 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         int retval = importProcess.waitFor();
         LOG.info("Journal import is done (with return code " + retval + ")");
         return retval == 0;
+    }
+
+    @Override
+    public void setPathToJournalDirectory(String path) {
+        this.pathToJournal = path;
     }
 
 

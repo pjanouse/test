@@ -181,7 +181,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /////////////////////////////////////////////////////////////////////////////
     private final Map<Integer, org.jboss.qa.hornetq.Container> containers = new HashMap<Integer, org.jboss.qa.hornetq.Container>();
 //    public static final ContainerUtils containerUtils = getContainerUtils();
-    public static final JournalExportImportUtils journalExportImportUtils = getJournalExportImportUtils();
     public static final JmxUtils jmxUtils = getJmxUtils();
 //    public static final JmxNotificationListener jmxNotificationListener = getJmxNotificationListener();
 
@@ -237,31 +236,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         return cUtils.getInstance(getArquillianDescriptor(), CONTAINER1_INFO, CONTAINER2_INFO, CONTAINER3_INFO, CONTAINER4_INFO);
     }*/
-
-    /**
-     * Initializes JournalExportImportUtils instance at 1st call. We do not allow any later modifications of JournalExportImportUtils instance
-     *  already created.
-     *
-     * @return JournalExportImportUtils instance
-     */
-    @Deprecated
-    private static synchronized JournalExportImportUtils getJournalExportImportUtils()   {
-
-        if (journalExportImportUtils != null) {
-            return journalExportImportUtils;
-        }
-
-        ServiceLoader<JournalExportImportUtils> serviceLoader = ServiceLoader.load(JournalExportImportUtils.class);
-        Iterator<JournalExportImportUtils> iterator = serviceLoader.iterator();
-
-        if (!iterator.hasNext()) {
-            throw new RuntimeException("No implementation found for JournalExportImportUtils.");
-        }
-
-        JournalExportImportUtils jUtils = iterator.next();
-
-        return jUtils;
-    }
 
     /**
      * Initializes JmxUtils. Each call will create new instance.

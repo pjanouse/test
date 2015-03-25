@@ -36,6 +36,8 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
     private static final String EAP_60_IMPORT_TOOL_MAIN_CLASS = "org.hornetq.core.persistence.impl.journal.XmlDataImporter";
 
 
+    private String pathToJournal = null;
+
     /**
      * Export HornetQ journal from the given container to the given file.
      *
@@ -50,16 +52,15 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
     public boolean exportHornetQJournal(Container container, final String exportedFileName)
             throws IOException, InterruptedException {
 
-        LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
-
-        // TODO: move standalone/domain path to ContainerInfo
-        String pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
+        if (pathToJournal == null || pathToJournal.equals("")) {
+            pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
+        }
+        LOG.info("Exporting journal from: " + pathToJournal + " to file " + exportedFileName);
         File journalDirectory = new File(pathToJournal);
         if (!(journalDirectory.exists() && journalDirectory.isDirectory() && journalDirectory.canRead())) {
             LOG.error("Cannot read from journal directory " + pathToJournal);
             return false;
         }
-
 
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
@@ -74,8 +75,8 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
 
         processBuilder.addArgument(pathToJournal + File.separator + "messagingbindings");
         processBuilder.addArgument(pathToJournal + File.separator + "messagingjournal");
-        processBuilder.addArgument(pathToJournal + File.separator + "messagingpaging");
-        processBuilder.addArgument(pathToJournal + File.separator + "mesaaginglargemessages");
+        processBuilder.addArgument(pathToJournal + File.separator + "messagingpagings");
+        processBuilder.addArgument(pathToJournal + File.separator + "messaginglargemessages");
 
         Process exportProcess = processBuilder.startProcess();
 
@@ -165,6 +166,11 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
         int retval = importProcess.waitFor();
         LOG.info("Journal import is done (with return code " + retval + ")");
         return retval == 0;
+    }
+
+    @Override
+    public void setPathToJournalDirectory(String path) {
+        this.pathToJournal = path;
     }
 
 

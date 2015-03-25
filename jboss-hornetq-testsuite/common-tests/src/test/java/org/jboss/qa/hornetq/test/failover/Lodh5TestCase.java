@@ -51,6 +51,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 
     private final Archive mdbToDb = createLodh5Deployment();
+    private final Archive dbUtilServlet = createDbUtilServlet();
 
     // queue to send messages
     static String inQueueHornetQName = "InQueue";
@@ -254,7 +255,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        deployer.deploy(mdbToDb);
+        container(1).deploy(mdbToDb);
 
         long howLongToWait = 360000;
         long startTime = System.currentTimeMillis();
@@ -299,7 +300,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         Assert.assertEquals("After LODH 5 test there must be 0 transactions in prepared stated in DB. Current value is " + count,
                 0, count);
 
-        deployer.undeploy(mdbToDb);
+        container(1).undeploy(mdbToDb);
         container(1).stop();
     }
 
@@ -618,8 +619,6 @@ public class Lodh5TestCase extends HornetQTestCase {
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
             String url = properties.get("db.jdbc_url");
 
 //            String databaseName = "crashrec"; // db.name
@@ -657,8 +656,6 @@ public class Lodh5TestCase extends HornetQTestCase {
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
             String url = properties.get("db.jdbc_url");
 
 //            String databaseName = "crashrec"; // db.name
@@ -740,15 +737,10 @@ public class Lodh5TestCase extends HornetQTestCase {
             </xa-datasource>
             */
 
-
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
-            String url = properties.get("db.jdbc_url");
-//
+
 //            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
 //                    datasourceClassName, false, true);
 //            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
@@ -823,12 +815,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            </security>
 //            </xa-datasource>
 
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
 
             jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
@@ -865,12 +854,9 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            </security>
 //            </xa-datasource>
 
-            String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String recoveryUsername = properties.get("db.username");
-            String recoveryPassword = properties.get("db.password");
 
             jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false,jdbcDriverFileName , "TRANSACTION_READ_COMMITTED",
                     datasourceClassName, false, true);
@@ -930,9 +916,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         container.stop();
     }
 
-    @Deployment(managed = false, testable = false, name = "dbUtilServlet")
-    @TargetsContainer(CONTAINER1_NAME)
-    public static WebArchive createDbUtilServlet() {
+    public WebArchive createDbUtilServlet() {
 
         final WebArchive dbUtilServlet = ShrinkWrap.create(WebArchive.class, "dbUtilServlet.war");
         StringBuilder webXml = new StringBuilder();
@@ -960,11 +944,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         dbUtilServlet.addClass(DbUtilServlet.class);
         logger.info(dbUtilServlet.toString(true));
 //      Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/DbUtilServlet.war");
-        if (target.exists()) {
-            target.delete();
-        }
-        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/DbUtilServlet.war");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        dbUtilServlet.as(ZipExporter.class).exportTo(target, true);
 
         return dbUtilServlet;
     }
@@ -974,7 +958,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         List<String> messageIds = new ArrayList<String>();
 
         try {
-            deployer.deploy("dbUtilServlet");
+            container(1).deploy(dbUtilServlet);
             String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=printAll", 120, TimeUnit.SECONDS);
 
             StringTokenizer st = new StringTokenizer(response, ",");
@@ -985,7 +969,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             logger.info("Number of records: " + messageIds.size());
 
         } finally {
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
         }
 
         return messageIds;
@@ -995,11 +979,11 @@ public class Lodh5TestCase extends HornetQTestCase {
         int count = 0;
 
         try {
-            deployer.deploy("dbUtilServlet");
+            container(1).deploy(dbUtilServlet);
 
             String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=rollbackPreparedTransactions&owner=" + owner
                     + "&database=" + database, 30, TimeUnit.SECONDS);
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
 
             logger.info("Response is: " + response);
 
@@ -1016,7 +1000,7 @@ public class Lodh5TestCase extends HornetQTestCase {
                 }
             }
         } finally {
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
         }
 
         return count;
@@ -1026,10 +1010,10 @@ public class Lodh5TestCase extends HornetQTestCase {
     public int countRecords() throws Exception {
         int numberOfRecords = -1;
         try {
-            deployer.deploy("dbUtilServlet");
+            container(1).deploy(dbUtilServlet);
 
             String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
 
             logger.info("Response is: " + response);
 
@@ -1042,65 +1026,21 @@ public class Lodh5TestCase extends HornetQTestCase {
             }
             logger.info("Number of records " + numberOfRecords);
         } finally {
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
         }
         return numberOfRecords;
     }
 
     public void deleteRecords() throws Exception {
         try {
-            deployer.deploy("dbUtilServlet");
+            container(1).deploy(dbUtilServlet);
             String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=deleteRecords", 300, TimeUnit.SECONDS);
 
             logger.info("Response from delete records is: " + response);
         } finally {
-            deployer.undeploy("dbUtilServlet");
+            container(1).undeploy(dbUtilServlet);
         }
     }
-
-    public static void copyFolder(File src, File dest)
-            throws IOException {
-
-        if (src.isDirectory()) {
-
-            //if directory not exists, create it
-            if (!dest.exists()) {
-                dest.mkdir();
-                System.out.println("Directory copied from "
-                        + src + "  to " + dest);
-            }
-
-            //list all the directory contents
-            String files[] = src.list();
-
-            for (String file : files) {
-                //construct the src and dest file structure
-                File srcFile = new File(src, file);
-                File destFile = new File(dest, file);
-                //recursive copy
-                copyFolder(srcFile, destFile);
-            }
-
-        } else {
-            //if file, then copy it
-            //Use bytes stream to support all file types
-            InputStream in = new FileInputStream(src);
-            OutputStream out = new FileOutputStream(dest);
-
-            byte[] buffer = new byte[1024];
-
-            int length;
-            //copy the file content in bytes 
-            while ((length = in.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            in.close();
-            out.close();
-            System.out.println("File copied from " + src + " to " + dest);
-        }
-    }
-
 
     public void allocateDatabase(String database) throws Exception {
 

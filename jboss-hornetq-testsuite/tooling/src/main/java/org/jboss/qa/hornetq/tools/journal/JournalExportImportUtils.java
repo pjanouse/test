@@ -11,4 +11,10 @@ public interface JournalExportImportUtils {
 
     boolean importHornetQJournal(Container container, String exportedFileName)
                     throws Exception;
+
+    /**
+     * Absolute path to directory which contains Journal directories (it's parent dir of messagingbindings, messagingjournal)
+     * @param path
+     */
+    void setPathToJournalDirectory(String path);
 }
