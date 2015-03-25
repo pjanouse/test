@@ -12,7 +12,7 @@ import javax.management.remote.JMXServiceURL;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.hornetq.api.jms.management.JMSServerControl;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.Container;
 import org.kohsuke.MetaInfServices;
 
 
@@ -35,8 +35,8 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
      * @throws IOException
      */
     @Override
-    public JMXConnector getJmxConnectorForEap(final ContainerInfo container) throws IOException {
-        return getJmxConnectorForEap(container.getIpAddress(), 9999 + container.getPortOffset());
+    public JMXConnector getJmxConnectorForEap(final Container container) throws IOException {
+        return getJmxConnectorForEap(container.getHostname(), container.getPort());
     }
 
     /**

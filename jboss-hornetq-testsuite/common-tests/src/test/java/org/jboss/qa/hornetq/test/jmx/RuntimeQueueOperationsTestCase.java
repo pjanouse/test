@@ -151,7 +151,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         CompositeData[] resultMap=null;
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName objectName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,runtime-queue=jms.queue." + queueName);
             resultMap = (CompositeData[]) mbeanServer.invoke(objectName, "listScheduledMessages", new Object[]{}, new String[]{});
@@ -171,7 +171,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         CompositeData[] elements=null;
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName objectName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,runtime-queue=jms.queue." + queueName);
             CompositeData[] resultMap = (CompositeData[]) mbeanServer.invoke(objectName, "listDeliveringMessages", new Object[]{}, new String[]{});

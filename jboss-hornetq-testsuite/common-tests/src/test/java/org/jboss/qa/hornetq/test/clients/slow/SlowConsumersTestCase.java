@@ -133,8 +133,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            JmxNotificationListener notificationListener = getJmxNotificationListener();
-            jmxConnector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
+            jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = jmxConnector.getMBeanServerConnection();
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
                     notificationListener, null, null);

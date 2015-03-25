@@ -69,7 +69,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
         try {
             LOG.info("Connecting to JMX server");
-            jmxConnector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
 
             LOG.info("Attaching notification listener to JMX server");

@@ -13,6 +13,7 @@ import javax.management.remote.JMXServiceURL;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.hornetq.api.jms.management.JMSServerControl;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.kohsuke.MetaInfServices;
 
@@ -31,14 +32,14 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
      * Use {@link JMXConnector#connect()} to get MBeanServerConnection that you can use to get MBeans. Remember to properly
      * close the connector once you're done with it!
      *
-     * @param container Info about EAP 6 container.
+     * @param container Test EAP 6 container.
      * @return Active JMX connector to EAP server.
      *
      * @throws IOException
      */
     @Override
-    public JMXConnector getJmxConnectorForEap(final ContainerInfo container) throws IOException {
-        return getJmxConnectorForEap(container.getIpAddress(), 9999 + container.getPortOffset());
+    public JMXConnector getJmxConnectorForEap(final Container container) throws IOException {
+        return getJmxConnectorForEap(container.getHostname(), container.getPort());
     }
 
     /**

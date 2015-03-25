@@ -101,7 +101,7 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
         public boolean closeClients() throws Exception {
             JMXConnector jmxConnector = null;
             try {
-                jmxConnector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+                jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
                 jmxConnector.connect();
                 MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
                 HornetQServerControl serverControl = jmxUtils.getHornetQServerMBean(connection);

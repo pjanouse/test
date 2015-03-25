@@ -34,6 +34,7 @@ public interface Container {
     int getJNDIPort();
     int getPortOffset();
     Context getContext() throws NamingException;
+    String getConnectionFactoryName();
     String getHostname();
     int getHornetqPort();
     int getHornetqBackupPort();
@@ -69,5 +70,4 @@ public interface Container {
 
     void update(ContainerController controller, Deployer deployer);
 
-    String getConnectionFactoryName();
 }

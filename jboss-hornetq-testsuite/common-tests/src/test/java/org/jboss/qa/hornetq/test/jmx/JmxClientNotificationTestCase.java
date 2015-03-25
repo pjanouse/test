@@ -77,7 +77,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         JMXConnector connector = null;
         try {
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(), coreListener,
                     null, null);
@@ -148,7 +148,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
@@ -248,7 +248,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
@@ -327,7 +327,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
@@ -427,7 +427,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
@@ -502,7 +502,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         try {
 
-            connector = jmxUtils.getJmxConnectorForEap(CONTAINER1_INFO);
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
 
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 

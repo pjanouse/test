@@ -2,7 +2,7 @@ package org.jboss.qa.hornetq.apps.jmx;
 
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.hornetq.api.jms.management.JMSServerControl;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.Container;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -13,7 +13,8 @@ import java.io.IOException;
  * Created by mnovak on 3/17/15.
  */
 public interface JmxUtils {
-    JMXConnector getJmxConnectorForEap(ContainerInfo container) throws IOException;
+
+    JMXConnector getJmxConnectorForEap(Container container) throws IOException;
 
     JMXConnector getJmxConnectorForEap(String host, int port) throws IOException;
 
