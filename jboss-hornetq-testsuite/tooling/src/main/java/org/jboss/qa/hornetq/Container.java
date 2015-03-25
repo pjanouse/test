@@ -63,4 +63,6 @@ public interface Container {
     JMSOperations getJmsOperations();
 
     void update(ContainerController controller, Deployer deployer);
+
+    String getConnectionFactoryName();
 }

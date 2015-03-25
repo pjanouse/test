@@ -102,6 +102,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     @ArquillianResource
     @Deprecated
+    /**
+     * @deprecated use @Container deploy/undeploy methods instead
+     */
     protected Deployer deployer;
 
     // this property is initialized during BeforeClass phase by ArquillianConfiguration extension
@@ -176,36 +179,36 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /////////////////////////////////////////////////////////////////////////////
     // Assign container dependent tooling ///////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////
-    private final Map<Integer, Container> containers = new HashMap<Integer, Container>();
+    private final Map<Integer, org.jboss.qa.hornetq.Container> containers = new HashMap<Integer, org.jboss.qa.hornetq.Container>();
 //    public static final ContainerUtils containerUtils = getContainerUtils();
     public static final JournalExportImportUtils journalExportImportUtils = getJournalExportImportUtils();
     public static final JmxUtils jmxUtils = getJmxUtils();
 //    public static final JmxNotificationListener jmxNotificationListener = getJmxNotificationListener();
 
-    public Container container(int index) {
+    public org.jboss.qa.hornetq.Container container(int index) {
         if (!containers.containsKey(index)) {
             containers.put(index, createContainer("node-" + index, index));
         }
 
-        Container container = containers.get(index);
+        org.jboss.qa.hornetq.Container container = containers.get(index);
 
         container.update(controller, deployer);
 
         return container;
     }
 
-    public Collection<Container> containerList() {
+    public Collection<org.jboss.qa.hornetq.Container> containerList() {
         return Collections.unmodifiableCollection(containers.values());
     }
 
-    private Container createContainer(String name, int index) {
-        ServiceLoader<Container> loader = ServiceLoader.load(Container.class);
-        Iterator<Container> iterator = loader.iterator();
+    private org.jboss.qa.hornetq.Container createContainer(String name, int index) {
+        ServiceLoader<org.jboss.qa.hornetq.Container> loader = ServiceLoader.load(org.jboss.qa.hornetq.Container.class);
+        Iterator<org.jboss.qa.hornetq.Container> iterator = loader.iterator();
         if (!iterator.hasNext()) {
             throw new RuntimeException("No implementation found for Container");
         }
 
-        Container c = iterator.next();
+        org.jboss.qa.hornetq.Container c = iterator.next();
         c.init(name, index, getArquillianDescriptor(), controller);
         return c;
     }
@@ -329,7 +332,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @After
     public void stopAllServers() {
-        for (Container c : containerList()) {
+        for (org.jboss.qa.hornetq.Container c : containerList()) {
             c.stop();
         }
     }
@@ -563,6 +566,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return JNDI name for CNF
      */
     @Deprecated
+    /**
+     * @deprecated replaced by @Container getConnectionFactoryName
+     */
     public String getConnectionFactoryName() {
         return (isEAP5()) ? CONNECTION_FACTORY_JNDI_EAP5 : CONNECTION_FACTORY_JNDI_EAP6;
     }
@@ -609,7 +615,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param containerName name of the target container
      * @return true if operation was successful, false otherwise
      *
-     * @deprecated Use {@link Container#deleteDataFolder()} instead.
+     * @deprecated Use {@link org.jboss.qa.hornetq.Container#deleteDataFolder()} instead.
      */
     @Deprecated
     protected boolean deleteDataFolder(String jbossHome, String containerName) {
@@ -628,7 +634,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return true if operation was successful, false otherwise
      *
-     * @deprecated Use {@link Container#deleteDataFolder()} instead.
+     * @deprecated Use {@link org.jboss.qa.hornetq.Container#deleteDataFolder()} instead.
      */
     @Deprecated
     protected boolean deleteDataFolderForJBoss1() {
@@ -641,7 +647,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @return true if operation was successful, false otherwise
      *
-     * @deprecated Use {@link Container#deleteDataFolder()} instead.
+     * @deprecated Use {@link org.jboss.qa.hornetq.Container#deleteDataFolder()} instead.
      */
     @Deprecated
     protected boolean deleteDataFolderForJBoss2() {
@@ -1172,7 +1178,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception
      */
     @Deprecated
-    public boolean waitForNumberOfMessagesInQueue(Container container, String queueCoreName,
+    public boolean waitForNumberOfMessagesInQueue(org.jboss.qa.hornetq.Container container, String queueCoreName,
             int expectedNumberOfMessages, long timeout) throws Exception {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -1203,14 +1209,14 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception
      */
     @Deprecated
-    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, Container... containers) throws Exception {
+    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
         long count = 0;
         while ((count = countMessages(queueName, containers)) < numberOfMessages) {
             List<String> containerNames = new ArrayList<String>(containers.length);
-            for (Container c: containers) {
+            for (org.jboss.qa.hornetq.Container c: containers) {
                 containerNames.add(c.getName());
             }
 
@@ -1259,7 +1265,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         return false;
     }
 
-    public boolean checkUnfinishedArjunaTransactions(Container container) {
+    public boolean checkUnfinishedArjunaTransactions(org.jboss.qa.hornetq.Container container) {
 
         JMSOperations jmsOperations = container.getJmsOperations();
         boolean unfinishedTransactions2 = jmsOperations.areThereUnfinishedArjunaTransactions();
@@ -1279,9 +1285,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @return total number of messages in queue on given nodes
      */
     @Deprecated
-    public long countMessages(String queueName, Container... containers) {
+    public long countMessages(String queueName, org.jboss.qa.hornetq.Container... containers) {
         long sum = 0;
-        for (Container container : containers) {
+        for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
 
             ContainerInfo ci = getContainerInfo(container.getName());
@@ -1366,6 +1372,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @deprecated Use {@link Container#getServerVersion()} instead.
      */
     @Deprecated
+    /**
+     *
+     */
     public String getEapVersion(String containerName) throws Exception {
 
         File versionFile = new File(getJbossHome(containerName) + File.separator + "version.txt");
@@ -1464,7 +1473,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @throws Exception
      */
     @Deprecated
-    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, Container container) throws Exception {
+    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container) throws Exception {
 
         // check that number of prepared transaction gets to 0
         log.info("Get information about transactions from HQ:");

@@ -54,8 +54,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = getContext(CONTAINER1_NAME);
-            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(getConnectionFactoryName());
+            ctx = container(1). getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             conn = factory.createConnection();
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -72,14 +72,14 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        boolean exported = journalExportImportUtils.exportHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
+        boolean exported = container(1).getExportImportUtil().exportHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
         deleteDataFolder(CONTAINER1_INFO.getJbossHome(), CONTAINER1_NAME);
         container(1).start();
 
-        boolean imported = journalExportImportUtils.importHornetQJournal(CONTAINER1_INFO, EXPORTED_JOURNAL_FILE_NAME);
+        boolean imported = journalExportImportUtils.importHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be imported successfully", imported);
 
         Message received;

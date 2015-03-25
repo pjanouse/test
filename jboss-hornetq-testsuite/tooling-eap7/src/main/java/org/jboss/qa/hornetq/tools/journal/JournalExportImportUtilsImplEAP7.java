@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.EapVersion;
@@ -47,13 +48,13 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean exportHornetQJournal(final ContainerInfo container, final String exportedFileName)
+    public boolean exportHornetQJournal(Container container, final String exportedFileName)
             throws IOException, InterruptedException {
 
         LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
 
         // TODO: move standalone/domain path to ContainerInfo
-        String pathToJournal = getHornetQJournalDirectory(container.getJbossHome(), "standalone");
+        String pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
         File journalDirectory = new File(pathToJournal);
         if (!(journalDirectory.exists() && journalDirectory.isDirectory() && journalDirectory.canRead())) {
             LOG.error("Cannot read from journal directory " + pathToJournal);
@@ -63,9 +64,9 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
 
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        processBuilder.addClasspathEntry(journalToolClassPath(container.getJbossHome()));
+        processBuilder.addClasspathEntry(journalToolClassPath(container.getServerHome()));
 
-        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getJbossHome());
+        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
             processBuilder.setMainClass(EAP_60_EXPORT_TOOL_MAIN_CLASS);
         } else {
@@ -125,7 +126,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean importHornetQJournal(final ContainerInfo container, final String exportedFileName)
+    public boolean importHornetQJournal(Container container, final String exportedFileName)
             throws IOException, InterruptedException {
 
         LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
@@ -133,9 +134,9 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
         //processBuilder.mergeErrorStreamWithOutput(false);
-        processBuilder.addClasspathEntry(journalToolClassPath(container.getJbossHome()));
+        processBuilder.addClasspathEntry(journalToolClassPath(container.getServerHome()));
 
-        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getJbossHome());
+        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
             processBuilder.setMainClass(EAP_60_IMPORT_TOOL_MAIN_CLASS);
         } else {
@@ -143,7 +144,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         }
 
         processBuilder.addArgument(new File(exportedFileName).getAbsolutePath());
-        processBuilder.addArgument(container.getIpAddress());
+        processBuilder.addArgument(container.getHostname());
         processBuilder.addArgument(String.valueOf(HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + container.getPortOffset()));
         processBuilder.addArgument(String.valueOf(false));
         processBuilder.addArgument(String.valueOf(true));

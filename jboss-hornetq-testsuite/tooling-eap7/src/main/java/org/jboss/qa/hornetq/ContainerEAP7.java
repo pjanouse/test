@@ -38,6 +38,8 @@ public class ContainerEAP7 implements Container {
     private static final int BYTEMAN_PORT = 9091;
     private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
     private static final int PORT_HORNETQ_DEFAULT = 9990;
+    private static final int PORT_HORNETQ_DEFAULT_BACKUP = 9990;
+    private static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/RemoteConnectionFactory";
 
 
     private JmxUtils jmxUtils = null;
@@ -105,13 +107,13 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
+        return PORT_HORNETQ_DEFAULT + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
+        return PORT_HORNETQ_DEFAULT_BACKUP + getPortOffset();
     }
 
 
@@ -376,6 +378,11 @@ public class ContainerEAP7 implements Container {
         if (deployer == null)   {
             this.deployer = deployer;
         }
+    }
+
+    @Override
+    public String getConnectionFactoryName() {
+        return CONNECTION_FACTORY_JNDI_EAP7;
     }
 
     @Override

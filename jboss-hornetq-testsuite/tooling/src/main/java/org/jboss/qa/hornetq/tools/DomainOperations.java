@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.tools;
 
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -14,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.threads.JBossThreadFactory;

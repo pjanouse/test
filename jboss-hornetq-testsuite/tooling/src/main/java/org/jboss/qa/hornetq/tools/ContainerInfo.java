@@ -32,7 +32,7 @@ public final class ContainerInfo {
     private HornetQTestCaseConstants.CONTAINER_TYPE containerType;
 
     public ContainerInfo(final String name, final String domainName, final String ipAddress, final int bytemanPort,
-            final int portOffset, final String jbossHome) {
+                         final int portOffset, final String jbossHome) {
 
         this.name = name;
         this.domainName = domainName;

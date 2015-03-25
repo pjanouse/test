@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.compatibility;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -62,7 +61,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
 
     @Override
-    protected void prepareContainer(final Container container) throws Exception {
+    protected void prepareContainer(final org.jboss.qa.hornetq.Container container) throws Exception {
         final String discoveryGroupName = "dg-group1";
         final String broadCastGroupName = "bg-group1";
         final String messagingGroupSocketBindingName = "messaging-group";
@@ -127,7 +126,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
 
-    private void activateLegacyJnpModule(final Container container) throws Exception {
+    private void activateLegacyJnpModule(final org.jboss.qa.hornetq.Container container) throws Exception {
         StringBuilder pathToStandaloneXml = new StringBuilder();
         pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome())
                 .append(File.separator).append("standalone")
@@ -248,7 +247,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareLiveServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -311,7 +310,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareBackupServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -382,7 +381,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      *
      * @param container test container
      */
-    protected void deployDestinations(Container container) {
+    protected void deployDestinations(org.jboss.qa.hornetq.Container container) {
         deployDestinations(container, "default");
     }
 
@@ -392,7 +391,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      * @param container     test container
      * @param serverName    server name of the hornetq server
      */
-    protected void deployDestinations(Container container, String serverName) {
+    protected void deployDestinations(org.jboss.qa.hornetq.Container container, String serverName) {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
@@ -682,7 +681,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareServerForCompressLargeMessages(Container container) throws Exception {
+    protected void prepareServerForCompressLargeMessages(org.jboss.qa.hornetq.Container container) throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";

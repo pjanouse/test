@@ -38,7 +38,8 @@ public class ContainerEAP6 implements Container {
 
     private static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
     private static final int BYTEMAN_PORT = 9091;
-    private static int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
+    private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
+    private static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
 
 
     private JmxUtils jmxUtils = null;
@@ -385,6 +386,11 @@ public class ContainerEAP6 implements Container {
         if (deployer == null) {
             this.deployer = deployer;
         }
+    }
+
+    @Override
+    public String getConnectionFactoryName() {
+        return CONNECTION_FACTORY_JNDI_EAP6;
     }
 
 

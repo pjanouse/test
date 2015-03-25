@@ -18,11 +18,11 @@ public abstract class ContainerUtils {
      * Implementation of this method should be synchronized, just for sure.
      *
      * @param arquillianDescriptor arquillian descriptor
-     * @param containerInfos container info instances (usually 4 instances will be passed)
+     * @param containers container info instances (usually 4 instances will be passed)
      *
      * @return ContainerUtils
      */
-    public abstract ContainerUtils getInstance(ArquillianDescriptor arquillianDescriptor, ContainerInfo... containerInfos);
+    public abstract ContainerUtils getInstance(ArquillianDescriptor arquillianDescriptor, ContainerInfo... containers);
 
     /**
      * Returns already created instance of implementation of this class.

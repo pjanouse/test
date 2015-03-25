@@ -24,24 +24,60 @@ public interface HornetQTestCaseConstants {
 
     // Port for remote JNDI
     // TODO  MOVE THIS TO CONTAINER
+    @Deprecated
+    /**
+     * @deprecated use @Container getJndiPort() instead
+     */
     public static int PORT_JNDI_EAP5 = 1099;
+    @Deprecated
+    /**
+     * @deprecated use @Container getJndiPort() instead
+     */
     public static int PORT_JNDI_EAP6 = 4447;
 
     // Port for HornetQ
     // TODO MOVE THIS TO CONTAINER
+    @Deprecated
+    /**
+     * @deprecated use @Container getHornetQPort() instead
+     */
     public static int PORT_HORNETQ_DEFAULT_EAP6 = 5445;
+    @Deprecated
+    /**
+     * @deprecated use @Container getHornetQBackupPort() instead
+     */
     public static int PORT_HORNETQ_BACKUP_DEFAULT_EAP6 = 5446;
 
     // Ports for Byteman
     public static final int BYTEMAN_CLIENT_PORT = 9591;
 
     // TODO REMOVE THOSE PORTS - ONCE YOU GET RID OF POM.XML AND DEPENDENCIES IN TS
+    @Deprecated
+    /**
+     * @deprecated use @Container getBytemanPort() instead
+     */
     public static final int BYTEMAN_CONTAINER1_PORT = 9091;
+    @Deprecated
+    /**
+     * @deprecated use @Container getBytemanPort() instead
+     */
     public static final int BYTEMAN_CONTAINER2_PORT = 9191;
+    @Deprecated
+    /**
+     * @deprecated use @Container getBytemanPort() instead
+     */
     public static final int BYTEMAN_CONTAINER3_PORT = 9291;
+    @Deprecated
+    /**
+     * @deprecated use @Container getBytemanPort() instead
+     */
     public static final int BYTEMAN_CONTAINER4_PORT = 9391;
 
     // Management port - EAP 6
+    @Deprecated
+    /**
+     * @deprecated use @Container getPort() instead
+     */
     public static int MANAGEMENT_PORT_EAP6 = 9999;
 
     // IDs for the active container definition

@@ -21,6 +21,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -49,8 +50,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
 
-    private static final String MDBTODB = "mdbToDb";
-
+    private final Archive mdbToDb = createLodh5Deployment();
 
     // queue to send messages
     static String inQueueHornetQName = "InQueue";
@@ -60,17 +60,14 @@ public class Lodh5TestCase extends HornetQTestCase {
     private Map<String, String> properties;
 
     /**
-     * This mdb reads messages from remote InQueue
+     * This mdb reads messages from remote InQueue and sends to database.
      *
      * @return test artifact with MDBs
      */
-    @Deployment(managed = false, testable = false, name = MDBTODB)
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createDeployment() {
+    private JavaArchive createLodh5Deployment() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbToDb.jar");
         mdbJar.addClass(SimpleMdbToDb.class);
         mdbJar.addClass(MessageInfo.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 //        File target = new File("/tmp/mdbtodb.jar");
 //        if (target.exists()) {
@@ -257,7 +254,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        deployer.deploy(MDBTODB);
+        deployer.deploy(mdbToDb);
 
         long howLongToWait = 360000;
         long startTime = System.currentTimeMillis();
@@ -302,7 +299,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         Assert.assertEquals("After LODH 5 test there must be 0 transactions in prepared stated in DB. Current value is " + count,
                 0, count);
 
-        deployer.undeploy(MDBTODB);
+        deployer.undeploy(mdbToDb);
         container(1).stop();
     }
 
@@ -495,7 +492,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
             logger.info("!!!!! deploying MDB !!!!!");
             try {
-                this.deployer.deploy("mdbToDb");
+                container(1).deploy(mdbToDb);
             } catch (Exception e) {
                 // byteman might kill the server before control returns back here from deploy method, which results
                 // in arquillian exception; it's safe to ignore, everything is deployed and running correctly on the server
@@ -530,7 +527,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             }
             Assert.assertEquals(numberOfMessages, countRecords());
         } finally {
-            deployer.undeploy("mdbToDb");
+            container(1).undeploy(mdbToDb);
             container(1).stop();
 //        PrintJournal.printJournal(CONTAINER1_NAME_NAME, "journal_content_after_shutdown4.txt");
         }

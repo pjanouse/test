@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
-import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
@@ -191,7 +190,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      * @param container     Test container - defined in arquillian.xml
      * @param journalType   Type of journal
      */
-    private void prepareServerForTCPTransport(Container container, String journalType) {
+    private void prepareServerForTCPTransport(org.jboss.qa.hornetq.Container container, String journalType) {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -207,7 +206,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      * @param container     Test container - defined in arquillian.xml
      * @param journalType   Type of journal
      */
-    private void prepareServerForHTTPTransport(Container container, String journalType) {
+    private void prepareServerForHTTPTransport(org.jboss.qa.hornetq.Container container, String journalType) {
         container.start();
         String socketBindingName = "messaging-http";
         HashMap<String, String> params = new HashMap<String, String>();
@@ -233,7 +232,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      * @param journalType   Type of journal
      * @throws IOException
      */
-    private void prepareServerForSSLTransport(Container container, String journalType) throws IOException {
+    private void prepareServerForSSLTransport(org.jboss.qa.hornetq.Container container, String journalType) throws IOException {
         container.start();
 
         AdministrationTestCase fileOperation = new AdministrationTestCase();
