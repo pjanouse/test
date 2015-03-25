@@ -54,9 +54,9 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
         container(1).start();
         // Send messages into input node and read from output node
-        ProducerTransAck producer = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
-        ReceiverTransAck receiver = new ReceiverTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), queueJndiName, 10000, 10, 10);
 
         logger.info("Start producer and consumer.");
         producer.start();

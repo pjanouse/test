@@ -1101,6 +1101,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Gets current container for test.
      *
+     * @deprecated  use @see Container#getContainerType()
+     *
      * @return name
      */
     @Deprecated

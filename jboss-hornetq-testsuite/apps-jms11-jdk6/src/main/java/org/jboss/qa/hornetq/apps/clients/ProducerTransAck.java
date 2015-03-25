@@ -36,11 +36,14 @@ public class ProducerTransAck extends Client {
     private MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
     /**
+     * @deprecated use ProducerTransAck(Container container, String queueNameJndi, int messages)
+     *
      * @param hostname      hostname
      * @param port          port
      * @param messages      number of messages to send
      * @param queueNameJndi set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerTransAck(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }

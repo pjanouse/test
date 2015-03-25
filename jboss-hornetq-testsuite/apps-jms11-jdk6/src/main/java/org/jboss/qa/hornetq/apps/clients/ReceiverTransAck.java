@@ -41,6 +41,7 @@ public class ReceiverTransAck extends Client {
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
      */
+    @Deprecated
     public ReceiverTransAck(String hostname, int port, String queueJndiName) {
 
         this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 1000, 5);
@@ -83,6 +84,7 @@ public class ReceiverTransAck extends Client {
      * @param commitAfter    send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public ReceiverTransAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                             int commitAfter, int maxRetries) {
         this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, commitAfter, maxRetries);
