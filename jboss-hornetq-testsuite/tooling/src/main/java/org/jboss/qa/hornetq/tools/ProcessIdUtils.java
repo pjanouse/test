@@ -22,7 +22,7 @@ public class ProcessIdUtils {
      */
     public static long getProcessId(Container container) {
 
-        long pid = -1;
+        long pid;
 
         try {
             JMXConnector jmxConnector = container.getJmxUtils().getJmxConnectorForEap(container.getHostname(), container.getPort());
@@ -36,7 +36,7 @@ public class ProcessIdUtils {
 
             pid = Long.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
         } catch (Exception ex)  {
-            log.error("Getting process id failed: ", ex);
+            throw new RuntimeException("Getting process id failed: ", ex);
         }
 
         return pid;

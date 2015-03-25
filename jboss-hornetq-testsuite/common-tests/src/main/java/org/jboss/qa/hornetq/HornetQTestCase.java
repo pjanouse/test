@@ -789,6 +789,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * <p/>
      * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
      *
+     * @deprecated replaced by @link ClientUtils waitForReceiversUntil()
      * @param receivers        receivers
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
@@ -1004,6 +1005,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
      * For example after failover/failback.
+     *
+     * @deprecated  replaced by @see org.jboss.qa.hornetq.tools.CheckServerAvailableUtils#waitHornetQToAlive()
      *
      * @param ipAddress ipAddress
      * @param port      port

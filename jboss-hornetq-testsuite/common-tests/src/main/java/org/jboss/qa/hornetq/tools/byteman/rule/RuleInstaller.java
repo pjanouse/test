@@ -65,7 +65,6 @@ public class RuleInstaller {
      * @param host      hostname where byteman listen to
      * @param port      port where byteman listen to
      */
-    @Deprecated
     public static void installRule(Class testClass, String host, int port)  {
 
         SubmitUtil.host = host;

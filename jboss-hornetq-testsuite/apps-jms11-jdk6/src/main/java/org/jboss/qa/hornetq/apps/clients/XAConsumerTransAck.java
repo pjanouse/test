@@ -15,8 +15,6 @@ import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
-
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.NamingException;

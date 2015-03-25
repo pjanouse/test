@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -46,6 +47,26 @@ public class CheckServerAvailableUtils {
             }
             return false;
         }
+    }
+
+    /**
+     * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
+     * For example after failover/failback.
+     *
+     * @param ipAddress ipAddress
+     * @param port      port
+     * @param timeout   timeout
+     */
+    public static boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
+            Thread.sleep(1000);
+        }
+
+        if (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port)) {
+            Assert.fail("Server: " + ipAddress + ":" + port + " did not start again. Time out: " + timeout);
+        }
+        return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
     }
 
 }

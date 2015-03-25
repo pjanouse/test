@@ -17,6 +17,8 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.threads.JBossThreadFactory;
 
+import javax.resource.NotSupportedException;
+
 
 /**
  * Administration operations for manipulating domain structure.
@@ -66,7 +68,7 @@ public final class DomainOperations {
      * @return connected client
      */
     public static DomainOperations forDefaultContainer() {
-        return forContainer(ContainerUtils.getInstance().getContainerInfo(HornetQTestCaseConstants.CONTAINER1_NAME));
+        throw new RuntimeException("This is not yet implemented");
     }
 
     /**
@@ -78,8 +80,7 @@ public final class DomainOperations {
      * @return connected client
      */
     public static DomainOperations forContainer(final ContainerInfo container) {
-        return new DomainOperations(container.getIpAddress(),
-                ContainerUtils.getInstance().getPort(container.getName()) + container.getPortOffset());
+        throw new RuntimeException("This is not yet implemented");
     }
 
     public DomainOperations reloadDomain() {

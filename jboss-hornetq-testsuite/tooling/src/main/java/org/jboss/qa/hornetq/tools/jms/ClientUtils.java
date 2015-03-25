@@ -1,12 +1,15 @@
 package org.jboss.qa.hornetq.tools.jms;
 
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.junit.Assert;
 
 
 /**
@@ -102,6 +105,32 @@ public class ClientUtils {
             }
         }
         throw new JMSException("FAILURE - MaxRetry reached for message with counter " + counter);
+    }
+
+    /**
+     * Method blocks until all receivers gets the numberOfMessages or timeout expires
+     * <p/>
+     * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
+     *
+     * @param receivers        receivers
+     * @param numberOfMessages numberOfMessages
+     * @param timeout          timeout
+     */
+    public static void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        for (Client c : receivers) {
+            while (c.getCount() < numberOfMessages) {
+                if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
+                    Assert.fail("Client: " + c + " did not receive " + numberOfMessages + " in timeout: " + timeout);
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }
