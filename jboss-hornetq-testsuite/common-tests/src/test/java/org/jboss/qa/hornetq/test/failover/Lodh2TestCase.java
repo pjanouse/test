@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -9,6 +10,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -24,6 +26,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -66,13 +69,13 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
 
-    public final Archive MDB_ON_QUEUE_1 = getDeployment1();
-    public final Archive MDB_ON_QUEUE_2 = getDeployment2();
-    public static final String MDB_ON_QUEUE_WITH_FILTER_1 = "mdb1WithFilter";
-    public static final String MDB_ON_QUEUE_WITH_FILTER_2 = "mdb2WithFilter";
-    public static final String MDB_ON_NON_DURABLE_TOPIC = "nonDurableMdbOnTopic";
-    public static final String MDB_WITH_PROPERTIES_MAPPED_NAME = "mdbWithPropertiesMappedName";
-    public static final String MDB_WITH_PROPERTIES_NAME = "mdbWithPropertiesName";
+    public final Archive mdbOnQueue1 = getDeployment1();
+    public final Archive mdbOnQueue2 = getDeployment2();
+    public final Archive mdbOnQueueWithFilter1 = getDeploymentWithFilter1();
+    public final Archive mdbOnQueueWithFilter2 = getDeploymentWithFilter2();
+    public final Archive mdbOnNonDurableTopic = getDeploymentNonDurableMdbOnTopic();
+    public final Archive mdbWithPropertiesMappedName = getDeploymentMdbWithProperties();
+    public final Archive mdbWithPropertiesName = getDeploymentMdbWithPropertiesName();
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -120,11 +123,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_MAPPED_NAME)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentMdbWithProperties() throws Exception {
+    public Archive getDeploymentMdbWithProperties() {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_MAPPED_NAME + ".jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithPropertiesMappedName + ".jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
@@ -139,17 +140,15 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_NAME)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentMdbWithPropertiesName() throws Exception {
+    public Archive getDeploymentMdbWithPropertiesName() {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_NAME + ".jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithPropertiesName + ".jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/" + MDB_WITH_PROPERTIES_NAME + ".jar");
+//        File target = new File("/tmp/" + mdbWithPropertiesName + ".jar");
 //        if (target.exists()) {
 //            target.delete();
 //        }
@@ -158,9 +157,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_WITH_FILTER_1)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentWithFilter1() throws Exception {
+    public Archive getDeploymentWithFilter1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
@@ -169,9 +166,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_WITH_FILTER_2)
-    @TargetsContainer(CONTAINER4_NAME)
-    public static Archive getDeploymentWithFilter2() throws Exception {
+    public Archive getDeploymentWithFilter2() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
@@ -180,9 +175,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_ON_NON_DURABLE_TOPIC)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
+    public Archive getDeploymentNonDurableMdbOnTopic() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
@@ -471,7 +464,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(2).start();
 
         if (!isDurable) {
-            deployer.deploy(MDB_ON_NON_DURABLE_TOPIC);
+            container(2).deploy(mdbOnNonDurableTopic);
             Thread.sleep(5000);
         }
 
@@ -489,11 +482,11 @@ public class Lodh2TestCase extends HornetQTestCase {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
 
         executeFailureSequence(failureSequence, 3000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 10);
@@ -521,7 +514,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                     producer1.getMessages() > receiver1.getCount());
             Assert.assertTrue("Receivers did not get any messages.",
                     receiver1.getCount() > 0);
-            deployer.undeploy(MDB_ON_NON_DURABLE_TOPIC);
+            container(2).undeploy(mdbOnNonDurableTopic);
         }
 
 
@@ -571,23 +564,23 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         // deploy mdbs
         if (isFiltered) {
-            deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_1);
-            deployer.deploy(MDB_ON_QUEUE_WITH_FILTER_2);
+            container(2).deploy(mdbOnQueueWithFilter1);
+            container(4).deploy(mdbOnQueueWithFilter2);
         } else {
-            container(2).deploy(MDB_ON_QUEUE_1);
-            container(4).deploy(MDB_ON_QUEUE_2);
+            container(2).deploy(mdbOnQueue1);
+            container(4).deploy(mdbOnQueue2);
         }
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
                 container(3), container(4));
 
         executeFailureSequence(failureSequence, 5000, isShutdown);
 
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
                 container(3), container(4));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 3000, 10, 10);
@@ -608,11 +601,11 @@ public class Lodh2TestCase extends HornetQTestCase {
                 receiver1.getCount() > 0);
 
         if (isFiltered) {
-            deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_1);
-            deployer.undeploy(MDB_ON_QUEUE_WITH_FILTER_2);
+            container(2).undeploy(mdbOnQueueWithFilter1);
+            container(4).undeploy(mdbOnQueueWithFilter2);
         } else {
-            container(2).undeploy(MDB_ON_QUEUE_1.getName());
-            container(4).undeploy(MDB_ON_QUEUE_2.getName());
+            container(2).undeploy(mdbOnQueue1.getName());
+            container(4).undeploy(mdbOnQueue2.getName());
         }
 
         container(2).stop();
@@ -659,14 +652,14 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(2).deploy(getDeployment1());
         container(4).deploy(getDeployment2());
 
-        waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
 
         container(2).stop();
         container(4).stop();
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
-                " when MDB is processing messages", waitForMessages(inQueueName, 1, 10000, container(1), container(3)));
+                " when MDB is processing messages", new JMSTools().waitForMessages(inQueueName, 1, 10000, container(1), container(3)));
 
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
@@ -678,9 +671,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
         String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
 
-        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils().checkThatFileContainsUnfinishedTransactionsString(
                 new File(workingDirectory, journalFile1), stringToFind));
-        Assert.assertFalse("There are unfinished HornetQ transactions in node-3. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-3. Failing the test.", new TransactionUtils().checkThatFileContainsUnfinishedTransactionsString(
                 new File(workingDirectory, journalFile3), stringToFind));
 
         container(1).stop();
@@ -707,7 +700,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testPropertyReplacementWithName() throws Exception {
-        testPropertyBasedMdb(MDB_WITH_PROPERTIES_NAME);
+        testPropertyBasedMdb(mdbWithPropertiesName);
     }
 
     /**
@@ -718,10 +711,10 @@ public class Lodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testPropertyReplacementWithMappedName() throws Exception {
-        testPropertyBasedMdb(MDB_WITH_PROPERTIES_MAPPED_NAME);
+        testPropertyBasedMdb(mdbWithPropertiesMappedName);
     }
 
-    public void testPropertyBasedMdb(String mdbDeployemnt) throws Exception {
+    public void testPropertyBasedMdb(Archive mdbDeployemnt) throws Exception {
         Container inServer = container(1);
         Container outServer = container(1);
 
@@ -758,7 +751,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         producer1.start();
         producer1.join();
 
-        deployer.deploy(mdbDeployemnt);
+        container(2).deploy(mdbDeployemnt);
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 10000, 10, 10);
@@ -778,7 +771,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         Assert.assertTrue("Receivers did not get any messages.",
                 receiver1.getCount() > 0);
 
-        deployer.undeploy(mdbDeployemnt);
+        container(2).undeploy(mdbDeployemnt);
 
         container(2).stop();
         container(1).stop();
@@ -1019,8 +1012,8 @@ public class Lodh2TestCase extends HornetQTestCase {
             applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
                     + "configuration" + File.separator + "application-roles.properties");
 
-            copyFile(applicationUsersModified, applicationUsersOriginal);
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
 
