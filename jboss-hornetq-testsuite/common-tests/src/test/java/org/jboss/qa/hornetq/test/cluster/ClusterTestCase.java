@@ -1,19 +1,44 @@
 package org.jboss.qa.hornetq.test.cluster;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.*;
-import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerResp;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.clients.SecurityClient;
+import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueueWithSelectorAndSecurity;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTempQueue;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopicToTopic;
+import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
+import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.test.security.PermissionGroup;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
@@ -24,14 +49,31 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueSession;
+import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 //TODO
 //ClusterTestCase
 //        - clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly
@@ -61,23 +103,23 @@ public class ClusterTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 1;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 3;
 
-    private static final String MDB_ON_QUEUE1 = "mdbOnQueue1";
-    private static final String MDB_ON_QUEUE2 = "mdbOnQueue2";
-    private static final String MDB_ON_QUEUE1_SECURITY = "mdbOnQueue1Security";
-    private static final String MDB_ON_QUEUE1_SECURITY2 = "mdbOnQueue1Security2";
+    private final JavaArchive MDB_ON_QUEUE1 = createDeploymentMdbOnQueue1();
+    private final JavaArchive MDB_ON_QUEUE2 = createDeploymentMdbOnQueue2();
+    private final JavaArchive MDB_ON_QUEUE1_SECURITY = createDeploymentMdbOnQueueWithSecurity();
+    private final JavaArchive MDB_ON_QUEUE1_SECURITY2 = createDeploymentMdbOnQueueWithSecurity2();
 
-    private static final String MDB_ON_TEMPQUEUE1 = "mdbOnTempQueue1";
-    private static final String MDB_ON_TEMPQUEUE2 = "mdbOnTempQueue2";
+    private final JavaArchive MDB_ON_TEMPQUEUE1 = createDeploymentMdbOnTempQueue1();
+    private final JavaArchive MDB_ON_TEMPQUEUE2 = createDeploymentMdbOnTempQueue2();
 
-    private static final String MDB_ON_TOPIC1 = "mdbOnTopic1";
-    private static final String MDB_ON_TOPIC2 = "mdbOnTopic2";
+    private final JavaArchive MDB_ON_TOPIC1 = createDeploymentMdbOnTopic1();
+    private final JavaArchive MDB_ON_TOPIC2 = createDeploymentMdbOnTopic2();
 
-    private static final String MDB_ON_TEMPTOPIC1 = "mdbOnTempTopic1";
-    private static final String MDB_ON_TEMPTOPIC2 = "mdbOnTempTopic2";
+    private final JavaArchive MDB_ON_TEMPTOPIC1 = createDeploymentMdbOnTempTopic1();
+    private final JavaArchive MDB_ON_TEMPTOPIC2 = createDeploymentMdbOnTempTopic2();
 
-    private static final String MDB_ON_QUEUE1_TEMP_QUEUE = "mdbQueue1withTempQueue";
+    private final JavaArchive MDB_ON_QUEUE1_TEMP_QUEUE = createDeploymentMdbOnQueue1Temp();
 
-    private static final String MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = "mdbOnTopic1WithDifferentSubscriptionName1";
+    private final JavaArchive MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = createDeploymentMdbOnTopicWithSub1();
 
 
     static String queueNamePrefix = "testQueue";
@@ -119,9 +161,8 @@ public class ClusterTestCase extends HornetQTestCase {
 
         queueClients.startClients();
         topicClients.startClients();
-
-        waitForClientsToFinish(queueClients);
-        waitForClientsToFinish(topicClients);
+        JMSTools.waitForClientsToFinish(queueClients);
+        JMSTools.waitForClientsToFinish(topicClients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", queueClients.evaluateResults());
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", topicClients.evaluateResults());
@@ -148,8 +189,9 @@ public class ClusterTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
+
+        JMSTools.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        JMSTools.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
@@ -176,7 +218,7 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("Start again - second server");
         log.info("########################################");
         container(2).start();
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
+        JMSTools.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
         log.info("########################################");
         log.info("Second server started");
         log.info("########################################");
@@ -258,7 +300,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(1).start();
 
         // send messages without dup id -> load-balance to node 2
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().name(), container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -274,7 +316,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         try {
 
-            context = getContext(container(1).getHostname(), container(1).getJNDIPort());
+            context = container(1).getContext();
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
 
@@ -309,10 +351,7 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         // receive  some of them from first server and kill receiver -> only some of them gets back to
-        ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), container(2).getHostname(), getJNDIPort(
-
-
-                CONTAINER2_NAME), inQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2).getContainerType().name(), container(2).getHostname(),container(2).getJNDIPort(), inQueueJndiNameForMdb, 10000, 10, 10);
         receiver2.start();
         receiver2.join();
 
@@ -341,9 +380,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        deployer.deploy(MDB_ON_QUEUE1);
+        container(1).deploy(MDB_ON_QUEUE1);
 
-        deployer.deploy(MDB_ON_QUEUE2);
+        container(2).deploy(MDB_ON_QUEUE2);
 
         // Send messages into input node and read from output node
         ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -368,9 +407,9 @@ public class ClusterTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
                 , NUMBER_OF_MESSAGES_PER_PRODUCER);
 
-        deployer.undeploy(MDB_ON_QUEUE1);
+        container(1).undeploy(MDB_ON_QUEUE1);
 
-        deployer.undeploy(MDB_ON_QUEUE2);
+        container(2).undeploy(MDB_ON_QUEUE2);
 
         container(1).stop();
 
@@ -395,9 +434,9 @@ public class ClusterTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        deployer.deploy(MDB_ON_TEMPQUEUE1);
+        container(1).deploy(MDB_ON_TEMPQUEUE1);
 
-        deployer.deploy(MDB_ON_TEMPQUEUE2);
+        container(2).deploy(MDB_ON_TEMPQUEUE2);
 
         // Send messages into input node and read from output node
         ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
@@ -407,16 +446,16 @@ public class ClusterTestCase extends HornetQTestCase {
         producer.start();
         producer.join();
         log.info("Removing MDB ond secnod server and adding it back ");
-        deployer.undeploy(MDB_ON_TEMPQUEUE2);
-        deployer.deploy(MDB_ON_TEMPQUEUE2);
+        container(2).undeploy(MDB_ON_TEMPQUEUE2);
+        container(2).deploy(MDB_ON_TEMPQUEUE2);
         log.info("Trying to read from newly deployed OutQueue");
 
         receiver.start();
         receiver.join();
 
         Assert.assertEquals("Number of messages in OutQueue does not match", numberOfMessages, receiver.getListOfReceivedMessages().size());
-        deployer.undeploy(MDB_ON_TEMPQUEUE1);
-        deployer.undeploy(MDB_ON_TEMPQUEUE2);
+        container(1).undeploy(MDB_ON_TEMPQUEUE1);
+        container(2).undeploy(MDB_ON_TEMPQUEUE2);
 
 
         container(1).stop();
@@ -440,7 +479,7 @@ public class ClusterTestCase extends HornetQTestCase {
         prepareServers(true);
         container(1).start();
         try {
-            deployer.deploy(MDB_ON_TEMPTOPIC1);
+            container(1).deploy(MDB_ON_TEMPTOPIC1);
             passed = true;
 
         } catch (Exception e) {
@@ -466,13 +505,13 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         prepareServers(false);
         container(1).start();
-        deployer.deploy(MDB_ON_TEMPTOPIC1);
+        container(1).deploy(MDB_ON_TEMPTOPIC1);
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         SubscriberAutoAck subscriber = new SubscriberAutoAck(CONTAINER1_NAME, container(1).getHostname(), 4447, inTopicJndiNameForMdb, "subscriber1", "subscription1");
         subscriber.start();
         subscriber.join();
-        deployer.undeploy(MDB_ON_TEMPTOPIC1);
-        deployer.deploy(MDB_ON_TEMPTOPIC1);
+        container(1).undeploy(MDB_ON_TEMPTOPIC1);
+        container(1).deploy(MDB_ON_TEMPTOPIC1);
 
         Assert.assertEquals("Number of subscriptions is not 0", 0, jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
 
@@ -495,8 +534,8 @@ public class ClusterTestCase extends HornetQTestCase {
         prepareServer(container(2), false);
         container(1).start();
         container(2).start();
-        deployer.deploy(MDB_ON_TEMPTOPIC1);
-        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        container(1).deploy(MDB_ON_TEMPTOPIC1);
+        container(2).deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
         SubscriberAutoAck subscriber = new SubscriberAutoAck(container(2).getHostname(), container(2).getJNDIPort(), outTopicJndiNameForMdb, "subscriber1", "subscription1");
@@ -506,8 +545,8 @@ public class ClusterTestCase extends HornetQTestCase {
         publisher.join();
         subscriber.join();
         Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getListOfReceivedMessages().size());
-        deployer.undeploy(MDB_ON_TEMPTOPIC2);
-        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        container(2).undeploy(MDB_ON_TEMPTOPIC2);
+        container(2).deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         container(1).stop();
         container(2).stop();
@@ -529,7 +568,7 @@ public class ClusterTestCase extends HornetQTestCase {
         prepareServer(container(2), false);
         container(1).start();
         container(2).start();
-        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        container(2).deploy(MDB_ON_TEMPTOPIC2);
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
         SubscriberAutoAck subscriber = new SubscriberAutoAck(
@@ -541,8 +580,8 @@ public class ClusterTestCase extends HornetQTestCase {
         subscriber.join();
 
         Assert.assertEquals("Number of delivered messages is not correct", 10, subscriber.getListOfReceivedMessages().size());
-        deployer.undeploy(MDB_ON_TEMPTOPIC2);
-        deployer.deploy(MDB_ON_TEMPTOPIC2);
+        container(2).undeploy(MDB_ON_TEMPTOPIC2);
+        container(2).deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0, jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
         container(1).stop();
         container(2).stop();
@@ -557,7 +596,7 @@ public class ClusterTestCase extends HornetQTestCase {
         prepareServers(true);
         container(2).start();
         container(1).start();
-        deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
+        container(1).deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
         ProducerResp responsiveProducer = new ProducerResp(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -587,7 +626,7 @@ public class ClusterTestCase extends HornetQTestCase {
         ArrayList<File> pagingFilesPath = new ArrayList<File>();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
-        Context context = getContext(CONTAINER1_NAME);
+        Context context = container(1).getContext();
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
         Connection connection = cf.createConnection();
         Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
@@ -624,7 +663,7 @@ public class ClusterTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, false);
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
-        Context context = getContext(CONTAINER1_NAME);
+        Context context = container(1).getContext();
         Queue inqueue = (Queue) context.lookup(inQueueJndiNameForMdb);
         ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
         Connection connection = cf.createConnection();
@@ -656,7 +695,7 @@ public class ClusterTestCase extends HornetQTestCase {
         boolean failed = false;
         container(1).start();
         try {
-            Context context = getContext(CONTAINER1_NAME);
+            Context context = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
             Connection connection1 = cf.createConnection();
             Connection connection2 = cf.createConnection();
@@ -684,7 +723,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestTemQueueMessageExpiration() throws Exception {
         prepareServers(true);
         container(1).start();
-        deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
+        container(1).deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
         ProducerResp responsiveProducer = new ProducerResp(CONTAINER1_NAME, container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, 1, 300);
@@ -705,7 +744,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestTemQueueMessageExpirationLM() throws Exception {
         prepareServers(true);
         container(1).start();
-        deployer.deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
+        container(1).deploy(MDB_ON_QUEUE1_TEMP_QUEUE);
 
         int cont1Count = 0, cont2Count = 0;
         ProducerResp responsiveProducer = new ProducerResp(CONTAINER1_NAME, container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, 1, 300);
@@ -727,12 +766,12 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbHqXmlOnQueueRedeploy() throws Exception {
         prepareServer(container(1), false);
         container(1).start();
-        deployer.deploy(MDB_ON_TEMPQUEUE1);
+        container(1).deploy(MDB_ON_TEMPQUEUE1);
         ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueueJndiNameForMdb, 10000, 10, 10);
         producer.start();
         producer.join();
-        deployer.deploy(MDB_ON_TEMPQUEUE1);
+        container(1).deploy(MDB_ON_TEMPQUEUE1);
         receiver.start();
         receiver.join();
         Assert.assertEquals("Number of messages does not match", NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
@@ -811,15 +850,14 @@ public class ClusterTestCase extends HornetQTestCase {
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-        ProducerClientAck producerRedG2 = new ProducerClientAck(container(2).getHostname(), getJNDIPort(
-                CONTAINER2_NAME), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producerRedG2 = new ProducerClientAck(container(2).getHostname(),container(2).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
         ProducerClientAck producerBlueG1 = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
 
 
 
-        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+        container(1).deploy(MDB_ON_QUEUE1_SECURITY);
 
 
 
@@ -910,7 +948,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(2).stop();
         container(2).kill();
         container(1).start();
-        deployer.deploy(MDB_ON_QUEUE1_SECURITY);
+        container(1).deploy(MDB_ON_QUEUE1_SECURITY);
 
         //setup producers and receivers
         ProducerClientAck producerRedG1 = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -967,13 +1005,13 @@ public class ClusterTestCase extends HornetQTestCase {
 
         if (mdbsWithDifferentSubscriptions) {
 
-            deployer.deploy(MDB_ON_TOPIC1);
+            container(1).deploy(MDB_ON_TOPIC1);
             // lets say I don't want to have two mdbs with just different subscription names in test suite, this will do the same
-            deployer.deploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
+            container(1).deploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
         } else {
 
-            deployer.deploy(MDB_ON_TOPIC1);
-            deployer.deploy(MDB_ON_TOPIC2);
+            container(1).deploy(MDB_ON_TOPIC1);
+            container(2).deploy(MDB_ON_TOPIC2);
         }
 
         // give it some time - mdbs to subscribe
@@ -1018,14 +1056,14 @@ public class ClusterTestCase extends HornetQTestCase {
 
         if (mdbsWithDifferentSubscriptions) {
 
-            deployer.undeploy(MDB_ON_TOPIC1);
+            container(1).deploy(MDB_ON_TOPIC1);
             // lets say I don't want to have two mdbs with just different subscription names in test suite, this will do the same
-            deployer.undeploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
+            container(1).deploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
 
         } else {
 
-            deployer.undeploy(MDB_ON_TOPIC1);
-            deployer.undeploy(MDB_ON_TOPIC2);
+            container(1).deploy(MDB_ON_TOPIC1);
+            container(2).deploy(MDB_ON_TOPIC2);
         }
 
         container(1).stop();
@@ -1090,10 +1128,10 @@ public class ClusterTestCase extends HornetQTestCase {
 
 
     public void clusterWitMessageGroupingCrashServerWithNoConsumer(Container serverToKill, long timeBetweenKillAndRestart) throws Exception {
-        testMessageGrouping(serverToKill, timeBetweenKillAndRestart, CONTAINER3_NAME);
+        testMessageGrouping(serverToKill, timeBetweenKillAndRestart, container(3));
     }
 
-    public void testMessageGrouping(Container serverToKill, long timeBetweenKillAndRestart, String serverWithConsumer) throws Exception {
+    public void testMessageGrouping(Container serverToKill, long timeBetweenKillAndRestart, Container serverWithConsumer) throws Exception {
 
         int numberOfMessages = 10000;
 
@@ -1127,15 +1165,14 @@ public class ClusterTestCase extends HornetQTestCase {
         for (int i = 0; i < 2; i++) {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
             groupMessageVerifiers.add(groupMessageVerifier);
-            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(serverWithConsumer), getJNDIPort(serverWithConsumer), inQueueJndiNameForMdb, 40000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(serverWithConsumer.getHostname(), serverWithConsumer.getJNDIPort(), inQueueJndiNameForMdb, 40000, 100, 10);
             receiver.setMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
         }
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2).getHostname(), getJNDIPort(
-                    CONTAINER2_NAME), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2).getHostname(),container(2).getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
@@ -1154,8 +1191,7 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("Killed server - " + serverToKill);
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2).getHostname(), getJNDIPort(
-                    CONTAINER2_NAME), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2).getHostname(), container(2).getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
@@ -1237,7 +1273,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         List<String> groups = new ArrayList<String>();
 
-        Context context = getContext(CONTAINER1_NAME);
+        Context context = container(1).getContext();
         ConnectionFactory factory = (ConnectionFactory) context.lookup(HornetQTestCaseConstants.CONNECTION_FACTORY_JNDI_EAP6);
         Connection connection = factory.createConnection();
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -1259,32 +1295,32 @@ public class ClusterTestCase extends HornetQTestCase {
         List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>(); // create 500 groups
         List<Client> receivers = new ArrayList<Client>();
 
-        String serverToConnect = null;
+        Container serverToConnect = null;
         for (String group : groups) {
             if (groups.lastIndexOf(group) % 4 == 0) {
-                serverToConnect = CONTAINER1_NAME;
+                serverToConnect = container(1);
 
             } else if (groups.lastIndexOf(group) % 4 == 1) {
-                serverToConnect = CONTAINER2_NAME;
+                serverToConnect = container(2);
             } else if (groups.lastIndexOf(group) % 4 == 2) {
-                serverToConnect = CONTAINER3_NAME;
+                serverToConnect = container(3);
             } else {
-                serverToConnect = CONTAINER4_NAME;
+                serverToConnect = container(4);
             }
 
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(getHostname(serverToConnect),
-                    getJNDIPort(serverToConnect), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(serverToConnect.getHostname(),
+                    serverToConnect.getJNDIPort(), inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, group));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
             producers.add(producerToInQueue1);
-            ReceiverTransAck receiver = new ReceiverTransAck(getHostname(serverToConnect), getJNDIPort(serverToConnect),
+            ReceiverTransAck receiver = new ReceiverTransAck(serverToConnect.getHostname(), serverToConnect.getJNDIPort(),
                     inQueueJndiNameForMdb, 40000, 100, 10);
             receiver.start();
             receivers.add(receiver);
         }
 
-        waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 300, 120000);
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 300, 120000);
 
         log.info("Kill server - " + serverToKill);
         // kill remote 1
@@ -1302,7 +1338,7 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("Started server - " + serverToKill);
 
         // wait timeout time to get messages redistributed to the other node
-        waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 600, 120000);
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 600, 120000);
 
         int numberOfSendMessages = 0;
         int numberOfReceivedMessages = 0;
@@ -1356,11 +1392,10 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver.setMessageVerifier(verifier);
         receiver.start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(), container(1).getHostname(), container(1).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
-        ProducerTransAck producerToInQueue2 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(
-                CONTAINER2_NAME), container(2).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue2 = new ProducerTransAck(container(2).getContainerType().name(), container(2).getHostname(), container(2).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
         producerToInQueue1.start();
@@ -1378,11 +1413,10 @@ public class ClusterTestCase extends HornetQTestCase {
         Thread.sleep(5000);
 
 
-        ProducerTransAck producerToInQueue3 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue3 = new ProducerTransAck(container(1).getContainerType().name(), container(1).getHostname(), container(1).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
-        ProducerTransAck producerToInQueue4 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(
-                CONTAINER2_NAME), container(2).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue4 = new ProducerTransAck(container(2).getContainerType().name(), container(2).getHostname(), container(2).getJNDIPort(),inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
         producerToInQueue3.start();
@@ -1434,7 +1468,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(1).start();
 
         log.info("Send messages to first server.");
-        sendMessages(CONTAINER1_NAME, inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        sendMessages(container(1), inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
         log.info("Send messages to first server - done.");
 
 
@@ -1511,12 +1545,10 @@ public class ClusterTestCase extends HornetQTestCase {
         producerToInQueue1.setCommitAfter(10);
         producerToInQueue1.start();
 
-        ReceiverClientAck receiverOriginalAddress = new ReceiverClientAck(container(2).getHostname(), getJNDIPort(
-                CONTAINER2_NAME), inQueueJndiNameForMdb, 30000, 100, 10);
+        ReceiverClientAck receiverOriginalAddress = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), inQueueJndiNameForMdb, 30000, 100, 10);
         receiverOriginalAddress.start();
 
-        ReceiverClientAck receiverDivertedAddress = new ReceiverClientAck(container(2).getHostname(), getJNDIPort(
-                CONTAINER2_NAME), outQueueJndiNameForMdb, 30000, 100, 10);
+        ReceiverClientAck receiverDivertedAddress = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), outQueueJndiNameForMdb, 30000, 100, 10);
         receiverDivertedAddress.start();
 
         producerToInQueue1.join(60000);
@@ -1640,9 +1672,9 @@ public class ClusterTestCase extends HornetQTestCase {
             verifier.verifyMessages();
         }
 
-        if (serverWithLocalHandler.getName().equals(testedContainer)) {
+        if (serverWithLocalHandler.equals(testedContainer)) {
             Assert.assertEquals("There is different number of sent and recevied messages.", numberOfSentMessages, numberOfReceivedMessages);
-        } else if (serverWithRemoteHandler.getName().equals((testedContainer))) {
+        } else if (serverWithRemoteHandler.equals(testedContainer)) {
             Assert.assertEquals("There must be 0 messages recevied.", 0, numberOfReceivedMessages);
         }
 
@@ -1650,22 +1682,22 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
 
-    private SecurityClient createConsumerReceiveAndRollback(String containerName, String queue) throws Exception {
+    private SecurityClient createConsumerReceiveAndRollback(Container cont, String queue) throws Exception {
 
-        SecurityClient securityClient = new SecurityClient(getHostname(containerName), getJNDIPort(containerName), queue, NUMBER_OF_MESSAGES_PER_PRODUCER, null, null);
+        SecurityClient securityClient = new SecurityClient(cont.getHostname(), cont.getJNDIPort(), queue, NUMBER_OF_MESSAGES_PER_PRODUCER, null, null);
         securityClient.initializeClient();
         securityClient.consumeAndRollback(200);
         return securityClient;
     }
 
-    private void sendMessages(String containerName, String queue, MessageBuilder messageBuilder) throws InterruptedException {
+    private void sendMessages(Container cont, String queue, MessageBuilder messageBuilder) throws InterruptedException {
 
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), getHostname(containerName), getJNDIPort(containerName),
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(cont.getContainerType().name(), cont.getHostname(), cont.getJNDIPort(),
                 queue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        log.info("Start producer to send messages to node " + containerName + " to destination: " + queue);
+        log.info("Start producer to send messages to node " + cont.getName() + " to destination: " + queue);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -1679,23 +1711,6 @@ public class ClusterTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    /**
-     * Deploys mdb with given name
-     *
-     * @param nameOfMdb nameOfMdb
-     */
-    public void deployMdb(String nameOfMdb) {
-        deployer.deploy(nameOfMdb);
-    }
-
-    /**
-     * Deploys mdb with given name
-     *
-     * @param nameOfMdb nameOfMdb
-     */
-    public void undeployMdb(String nameOfMdb) {
-        deployer.undeploy(nameOfMdb);
-    }
 
     /**
      * Create org.jboss.qa.hornetq.apps.clients with the given acknowledge mode on topic or queue.
@@ -1841,13 +1856,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    /**
-     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
-     *
-     * @return mdb
-     */
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1)
-    @TargetsContainer(CONTAINER1_NAME)
+
     public static JavaArchive createDeploymentMdbOnQueue1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
@@ -1861,14 +1870,7 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    /**
-     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue defined in hornetq-jms.xml
-     * Queues are part of deployment
-     *
-     * @return mdb
-     */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPQUEUE1)
-    @TargetsContainer(CONTAINER1_NAME)
+
     public static JavaArchive createDeploymentMdbOnTempQueue1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
@@ -1884,13 +1886,6 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
 
-    /**
-     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
-     *
-     * @return mdb
-     */
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE2)
-    @TargetsContainer(CONTAINER2_NAME)
     public static JavaArchive createDeploymentMdbOnQueue2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
@@ -1904,13 +1899,7 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    /**
-     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue defined in hornetq-jms.xml
-     *
-     * @return mdb
-     */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPQUEUE2)
-    @TargetsContainer(CONTAINER2_NAME)
+
     public static JavaArchive createDeploymentMdbOnTempQueue2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
@@ -1925,13 +1914,7 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    /**
-     * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
-     *
-     * @return mdb
-     */
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_SECURITY)
-    @TargetsContainer(CONTAINER1_NAME)
+
     public static JavaArchive createDeploymentMdbOnQueueWithSecurity() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security.jar");
         mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
@@ -1944,8 +1927,7 @@ public class ClusterTestCase extends HornetQTestCase {
 //        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_SECURITY2)
-    @TargetsContainer(CONTAINER2_NAME)
+
     public static JavaArchive createDeploymentMdbOnQueueWithSecurity2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security2.jar");
         mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
@@ -1965,8 +1947,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TOPIC1)
-    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeploymentMdbOnTopic1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic1.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
@@ -1980,8 +1960,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPTOPIC1)
-    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeploymentMdbOnTempTopic1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic1.jar");
         mdbJar.addClass(LocalMdbFromTopicToTopic.class);
@@ -2001,8 +1979,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TEMPTOPIC2)
-    @TargetsContainer(CONTAINER2_NAME)
     public static JavaArchive createDeploymentMdbOnTempTopic2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic2.jar");
         mdbJar.addClass(LocalMdbFromTopicToTopic.class);
@@ -2018,8 +1994,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TOPIC2)
-    @TargetsContainer(CONTAINER2_NAME)
     public static JavaArchive createDeploymentMdbOnTopic2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic2.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
@@ -2033,8 +2007,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION)
-    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeploymentMdbOnTopicWithSub1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopicWithSub1.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigTopic.class);
@@ -2055,8 +2027,6 @@ public class ClusterTestCase extends HornetQTestCase {
      *
      * @return mdb
      */
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE1_TEMP_QUEUE)
-    @TargetsContainer(CONTAINER1_NAME)
     public static JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1withTempQueue.jar");
         mdbJar.addClass(LocalMdbFromQueueToTempQueue.class);

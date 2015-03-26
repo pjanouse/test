@@ -1,8 +1,11 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.apps.Clients;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.junit.Assert;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
@@ -16,6 +19,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -187,5 +191,104 @@ public final class JMSTools {
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
         env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostname, jndiPort));
         return new InitialContext(env);
+    }
+    /**
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
+     * @param clients org.jboss.qa.hornetq.apps.clients
+     */
+    public static void waitForClientsToFinish(Clients clients) {
+        waitForClientsToFinish(clients, 600000);
+    }
+
+    /**
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
+     * @param clients org.jboss.qa.hornetq.apps.clients
+     * @param timeout timeout
+     */
+    public static void waitForClientsToFinish(Clients clients, long timeout) {
+        long startTime = System.currentTimeMillis();
+        try {
+            while (!clients.isFinished()) {
+                Thread.sleep(1000);
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
+                    StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
+                    for (Thread t : mst.keySet()) {
+                        stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
+                        StackTraceElement[] elements = mst.get(t);
+                        for (StackTraceElement e : elements) {
+                            stacks.append("---").append(e).append("\n");
+                        }
+                        stacks.append("---------------------------------------------\n");
+                    }
+                    log.error(stacks);
+                    for (Client c : clients.getConsumers()) {
+                        c.interrupt();
+                    }
+                    for (Client c : clients.getProducers()) {
+                        c.interrupt();
+                    }
+                    Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all. Print all stacktraces:" + stacks);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("waitForClientsToFinish failed: ", e);
+        }
+    }
+
+    /**
+     * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
+     * For example after failover/failback.
+     *
+     * @param ipAddress ipAddress
+     * @param port      port
+     * @param timeout   timeout
+     */
+    public static boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
+        while (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port) && System.currentTimeMillis() - startTime < timeout) {
+            Thread.sleep(1000);
+        }
+
+        if (!CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port)) {
+            Assert.fail("Server: " + ipAddress + ":" + port + " did not start again. Time out: " + timeout);
+        }
+        return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
+    }
+
+    /**
+     * Method blocks until sum of messages received is equal or greater the numberOfMessages, if timeout expires then Assert.fail
+     * <p/>
+     *
+     * @param receivers        receivers
+     * @param numberOfMessages numberOfMessages
+     * @param timeout          timeout
+     */
+    public static void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
+        long startTimeInMillis = System.currentTimeMillis();
+
+        int sum = 0;
+
+        do {
+
+            sum = 0;
+
+            for (Client c : receivers) {
+                sum += c.getCount();
+            }
+
+            if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
+                Assert.fail("Clients did not receive " + numberOfMessages + " in timeout: " + timeout);
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        } while (sum <= numberOfMessages);
     }
 }

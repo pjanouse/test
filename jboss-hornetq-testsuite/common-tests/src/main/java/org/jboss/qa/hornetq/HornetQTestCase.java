@@ -819,6 +819,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param receivers        receivers
      * @param numberOfMessages numberOfMessages
      * @param timeout          timeout
+     * @deprecated moved to tooling.JMSTools
      */
     @Deprecated
     public void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
@@ -958,7 +959,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
      *
-     * @param clients org.jboss.qa.hornetq.apps.clients
+     * @deprecated moved to tooling.JmsTools
      */
     @Deprecated
     public void waitForClientsToFinish(Clients clients) {
@@ -970,6 +971,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
      * @param timeout timeout
+     * @deprecated moved to tooling.JmsTools
      */
     @Deprecated
     public void waitForClientsToFinish(Clients clients, long timeout) {
@@ -1012,6 +1014,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param ipAddress ipAddress
      * @param port      port
      * @param timeout   timeout
+     * @deprecated moved to JMSTools
      */
     @Deprecated
     public boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
