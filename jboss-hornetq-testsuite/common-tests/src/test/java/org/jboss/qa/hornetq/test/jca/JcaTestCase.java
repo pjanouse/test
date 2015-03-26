@@ -1,9 +1,7 @@
 package org.jboss.qa.hornetq.test.jca;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -16,6 +14,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -25,10 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mnovak@redhat.com
@@ -43,6 +38,8 @@ public class JcaTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
+    private final Archive mdbDeployment = createDeployment();
+
     // queue to send messages in
     static String inQueueName = "InQueue";
     static String inQueue = "jms/queue/" + inQueueName;
@@ -51,9 +48,7 @@ public class JcaTestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createDeployment() {
+    public JavaArchive createDeployment() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
 
@@ -136,7 +131,7 @@ public class JcaTestCase extends HornetQTestCase {
         producer1.start();
         producer1.join();
 
-        deployer.deploy("mdb1");
+        container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 6000, 10, 10);
@@ -158,23 +153,11 @@ public class JcaTestCase extends HornetQTestCase {
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
 
-        deployer.undeploy("mdb1");
+        container(1).undeploy("mdbDeployment");
         container(1).stop();
 
     }
 
-    private List<String> checkLostMessages(List<String> listOfSentMessages, List<String> listOfReceivedMessages) {
-
-        //get lost messages
-        List<String> listOfLostMessages = new ArrayList<String>();
-
-        for (String duplicateId : listOfSentMessages) {
-            if (!listOfReceivedMessages.contains(duplicateId)) {
-                listOfLostMessages.add(duplicateId);
-            }
-        }
-        return listOfLostMessages;
-    }
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
@@ -184,7 +167,6 @@ public class JcaTestCase extends HornetQTestCase {
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();
-        deleteFolder(new File(JOURNAL_DIRECTORY_A));
     }
 
     /**

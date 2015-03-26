@@ -22,12 +22,10 @@ import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
-import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.management.common.JmsUtils;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -195,14 +193,14 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
 
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+        File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
-        FileUtils.copyDirectory(applicationUsersModified, applicationUsersOriginal);
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+        File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
-        FileUtils.copyDirectory(applicationRolesModified, applicationRolesOriginal);
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
 //        stopServer(CONTAINER1_NAME_NAME);
 //
@@ -306,7 +304,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         prepareJmsServerEAP6(container(1));
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().toString(),
                 container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
@@ -333,7 +331,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 5000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -379,7 +377,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         // cluster A
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().name(),
+        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().toString(),
                 container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
@@ -447,7 +445,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         prepareServer();
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().name(),
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getContainerType().toString(),
                 container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);

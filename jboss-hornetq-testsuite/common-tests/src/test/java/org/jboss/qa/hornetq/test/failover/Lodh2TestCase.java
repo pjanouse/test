@@ -4,9 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -18,13 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
-import org.jboss.qa.hornetq.apps.mdb.MdbListenningOnNonDurableTopic;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementProperties;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
+import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -43,11 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 
 /**
@@ -814,10 +802,10 @@ public class Lodh2TestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
-//        container(2).stop();
-//        container(4).stop();
-//        container(1).stop();
-//        container(3).stop();
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
     }
 
     /**

@@ -114,6 +114,19 @@ public class ReceiverClientAck extends Client {
         setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
+    /**
+     * Creates a receiver to queue with client acknowledge.
+     *
+     * @param container      container
+     * @param queueJndiName  jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public ReceiverClientAck(Container container, String queueJndiName, long receiveTimeOut, int ackAfter, int maxRetries) {
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName, receiveTimeOut, ackAfter, maxRetries);
+    }
+
     @Override
     public void run() {
 

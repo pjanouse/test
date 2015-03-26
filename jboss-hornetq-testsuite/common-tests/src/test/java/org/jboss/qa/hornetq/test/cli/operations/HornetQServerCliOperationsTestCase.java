@@ -17,16 +17,13 @@ import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.management.cli.CliUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
@@ -106,7 +103,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     private static final String MODULE = "/subsystem=messaging/hornetq-server=default";
 
-    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), MANAGEMENT_PORT_EAP6, container(1).getUsername(), container(1).getPassword()));
+    private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(),
+            container(1).getUsername(), container(1).getPassword()));
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
 
@@ -144,19 +142,19 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         XAConnection con = null;
 
-        XASession xaSession = null;
+        XASession xaSession;
 
-        Session session = null;
+        Session session;
 
-        Queue queue = null;
+        Queue queue;
 
         try {
 
-            context = getContext(CONTAINER1_NAME);
+            context = container(1).getContext();
 
             queue = (Queue) context.lookup(queueJndiName);
 
-            XAConnectionFactory cf = (XAConnectionFactory) context.lookup(getConnectionFactoryName());
+            XAConnectionFactory cf = (XAConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
 
             con = cf.createXAConnection();
 
@@ -194,13 +192,13 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
                 } catch (JMSException e) {
                     //ignore
                 }
-                if (context != null)    {
-                    try {
-                        context.close();
-                    } catch (NamingException e) {
-                        //ignore
-                    }
+
+                try {
+                    context.close();
+                } catch (NamingException e) {
+                    //ignore
                 }
+
             }
 
         }
@@ -218,7 +216,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         container(1).start();
 
-        for (int i = 0; i < numberOfPreparedTransactions; i++)  {
+        for (int i = 0; i < numberOfPreparedTransactions; i++) {
             createPreparedTransaction();
         }
 
@@ -288,7 +286,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         Result r10 = runOperation("list-prepared-transactions", null);
         logger.info("Result list-prepared-transactions: " + r10.getResponse().asString());
         CliTestUtils.assertSuccess(r10);
-        if (numberOfPreparedTransactions -2 == r10.getResponse().get("result").asList().size()) {
+        if (numberOfPreparedTransactions - 2 == r10.getResponse().get("result").asList().size()) {
             logger.info("number of prepared transaction is: " + r10.getResponse().get("result").asList().size());
         } else {
             Assert.fail("Number of prepared transaction must be: " + (numberOfPreparedTransactions - 2));
@@ -338,14 +336,16 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         // send some messages to it
         ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), queueJndiName);
         receiver.setTimeout(1000);
 
         // start org.jboss.qa.hornetq.apps.clients
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        PublisherClientAck publisher = new PublisherClientAck(container(1).getContainerType().toString(),
+                container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         producer.start();
@@ -358,7 +358,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         List<Client> receivers = new ArrayList<Client>();
         receivers.add(receiver);
         receivers.add(subscriberClientAck);
-        waitForReceiversUntil(receivers, 20, 60000);
+        ClientUtils.waitForReceiversUntil(receivers, 20, 60000);
 
         // test operations
         Result r1 = runOperation("list-all-consumers-as-json", null);
@@ -594,8 +594,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public void testListingSessions() throws Exception {
         this.prepareQueueOnServer();
 
-        Context ctx = this.getContext();
-        ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+        Context ctx = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
         Connection conn = cf.createConnection();
         conn.start();
         Session session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -638,10 +638,9 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      * Prepares live server for dedicated topology.
      *
      * @param container        test container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -694,7 +693,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -753,8 +752,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
      * @throws Exception
      */
     public void prepareSimpleDedicatedTopology() throws Exception {
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServer(container(2), JOURNAL_DIRECTORY_A);
     }
 
 }

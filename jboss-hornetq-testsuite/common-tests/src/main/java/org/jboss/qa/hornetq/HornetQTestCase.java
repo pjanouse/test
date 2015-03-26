@@ -785,6 +785,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * @deprecated use @see ClientUtils#waitForReceiversUntil
+     *
      * Method blocks until all receivers gets the numberOfMessages or timeout expires
      * <p/>
      * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
