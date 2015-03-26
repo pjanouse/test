@@ -55,23 +55,42 @@ public class QueueClientsClientAck implements Clients {
 
     private int receivedMessagesAckAfter = 1000;
 
+    public QueueClientsClientAck(Container container, int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu){
+        this(container, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
+    }
+
+    public QueueClientsClientAck(Container container, String queueJndiNamePrefix, int numberOfQueues,
+                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+
+        this.container = container.getContainerType().toString();
+        this.hostnameForConsumers = container.getHostname();
+        this.hostnameForProducers = container.getHostname();
+        this.jndiPort = container.getJNDIPort();
+        this.portForConsumers = jndiPort;
+        this.queueJndiNamePrefix = queueJndiNamePrefix;
+        this.queueJndiNamePrefixProducers = queueJndiNamePrefix;
+        this.queueJndiNamePrefixConsumers = queueJndiNamePrefix;
+        this.numberOfQueues = numberOfQueues;
+        this.numberOfProducersPerQueueu = numberOfProducersPerQueueu;
+        this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
+        this.messages = numberOfMessages;
+
+    }
+
+    @Deprecated
     public QueueClientsClientAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
     }
 
+    @Deprecated
     public QueueClientsClientAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                  int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu,
                     numberOfMessages);
     }
 
-    public QueueClientsClientAck(Container container, String queueJndiNamePrefix, int numberOfQueues,
-                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiNamePrefix, numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu,
-                numberOfMessages);
-    }
-
+    @Deprecated
     public QueueClientsClientAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                  int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this.container = container;

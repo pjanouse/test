@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -32,17 +33,37 @@ public class TopicClientsAutoAck implements Clients {
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
 
+    public TopicClientsAutoAck(Container container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic){
+
+        this(container, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
+    }
+
+    public TopicClientsAutoAck(Container container, String topicJndiNamePrefix, int numberOfTopics,
+                               int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages){
+        this.container = container.getContainerType().toString();
+        this.hostnameForSubscribers = container.getHostname();
+        this.hostnameForPublishers = container.getHostname();
+        this.jndiPort = container.getJNDIPort();
+        this.topicJndiNamePrefix = topicJndiNamePrefix;
+        this.numberOfTopics = numberOfTopics;
+        this.numberOfPublishersPerTopic = numberOfPublishersPerTopic;
+        this.numberOfsubscribersPerTopic = numberOfsubscribersPerTopic;
+        this.messages = numberOfMessages;
+    }
+
+    @Deprecated
     public TopicClientsAutoAck(int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
         this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
     }
 
+    @Deprecated
     public TopicClientsAutoAck(String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
         this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
                 numberOfsubscribersPerTopic, numberOfMessages);
     }
-
+    @Deprecated
     public TopicClientsAutoAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
         this.container = container;

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -41,12 +42,40 @@ public class ProducerResp extends Client {
     private boolean largeMessage = false;
     private boolean skipReceive = false;
     private String largeString="";
+
+    /**
+     * @param container     EAP container
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
+     */
+    public ProducerResp(Container container,String queueNameJndi, int messages){
+        this(container,queueNameJndi,messages,0);
+
+    }
+
+
+    /**
+     * @param container     EAP container
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param waitBeforeReceive sets delay before receiving replies with may cause expiration of replies with some mdbs (LocalMdbFromQueueToTempQueue)
+     */
+    public ProducerResp(Container container,String queueNameJndi, int messages, int waitBeforeReceive){
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.messages = messages;
+        this.queueNameJndi = queueNameJndi;
+        this.waitBeforeReceive=waitBeforeReceive;
+
+    }
     /**
      * @param hostname      hostname
      * @param port          port
      * @param messages      number of messages to send
      * @param queueNameJndi set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerResp(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }
@@ -58,6 +87,7 @@ public class ProducerResp extends Client {
      * @param messages      number of messages to send
      * @param queueNameJndi set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerResp(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
         this.hostname = hostname;
@@ -73,6 +103,7 @@ public class ProducerResp extends Client {
      * @param queueNameJndi set jndi name of the queue to send messages
      * @param waitBeforeReceive sets delay before receiving replies with may cause expiration of replies with some mdbs (LocalMdbFromQueueToTempQueue)
      */
+    @Deprecated
     public ProducerResp(String container, String hostname, int port, String queueNameJndi, int messages, int waitBeforeReceive) {
         this(container, hostname, port, queueNameJndi, messages);
         this.waitBeforeReceive = waitBeforeReceive;

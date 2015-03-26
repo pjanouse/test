@@ -55,8 +55,27 @@ public class ReceiverClientAck extends Client {
      */
     public ReceiverClientAck(Container container, String queueJndiName) {
 
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName);
+        this(container, queueJndiName, 60000,10,30);
 
+    }
+    /**
+     * Creates a receiver to queue with client acknowledge.
+     *
+     * @param container      container
+     * @param queueJndiName  jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public ReceiverClientAck(Container container, String queueJndiName , long receiveTimeOut,int ackAfter, int maxRetries){
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.queueNameJndi = queueJndiName;
+        this.receiveTimeOut = receiveTimeOut;
+        this.ackAfter = ackAfter;
+        this.maxRetries = maxRetries;
+        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     /**
@@ -67,6 +86,7 @@ public class ReceiverClientAck extends Client {
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
      */
+    @Deprecated
     public ReceiverClientAck(String container, String hostname, int port, String queueJndiName) {
 
         this(container, hostname, port, queueJndiName, 60000, 10, 30);
@@ -101,6 +121,7 @@ public class ReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public ReceiverClientAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
                              int ackAfter, int maxRetries) {
         super(container);

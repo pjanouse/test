@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -49,17 +50,39 @@ public class QueueClientsTransAck implements Clients {
     private int receivedMessagesAckAfter = 1000;
     private int producedMessagesAckAfter = 1000;
 
+
+    public QueueClientsTransAck(Container container, int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu){
+
+    }
+
+    public QueueClientsTransAck(Container container, String queueJndiNamePrefix, int numberOfQueues,
+                                int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
+        this.container = container.getContainerType().toString();
+        this.hostnameForConsumers = container.getHostname();
+        this.hostnameForProducers = container.getHostname();
+        this.jndiPort = container.getJNDIPort();
+        this.queueJndiNamePrefix = queueJndiNamePrefix;
+        this.numberOfQueues = numberOfQueues;
+        this.numberOfProducersPerQueueu = numberOfProducersPerQueueu;
+        this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
+        this.messages = numberOfMessages;
+
+    }
+
+    @Deprecated
     public QueueClientsTransAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", HornetQTestCaseConstants.PORT_JNDI_EAP6, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 1000);
     }
 
+    @Deprecated
     public QueueClientsTransAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, queueJndiNamePrefix, numberOfQueues,
                 numberOfProducersPerQueueu, numberOfConsumersPerQueueu, numberOfMessages);
     }
 
+    @Deprecated
     public QueueClientsTransAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                 int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this.container = container;

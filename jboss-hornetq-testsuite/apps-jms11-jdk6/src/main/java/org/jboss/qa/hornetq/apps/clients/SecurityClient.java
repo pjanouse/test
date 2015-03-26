@@ -8,6 +8,7 @@ import org.hornetq.api.core.client.ClientSessionFactory;
 import org.hornetq.api.core.client.HornetQClient;
 import org.hornetq.api.core.client.ServerLocator;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
@@ -48,6 +49,22 @@ public class SecurityClient extends Client {
     ClientSession coreClientSession = null;
 
     /**
+     * @param container     EAP container
+     * @param messages      number of messages to send
+     * @param queueNameJndi set jndi name of the queue to send messages
+     * @param username      username
+     * @param password      password
+     */
+    public SecurityClient(Container container,String queueNameJndi, int messages, String username, String password) {
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.messages = messages;
+        this.queueNameJndi = queueNameJndi;
+        this.username = username;
+        this.password = password;
+    }
+    /**
      * @param hostname      hostname
      * @param port          port
      * @param messages      number of messages to send
@@ -55,6 +72,7 @@ public class SecurityClient extends Client {
      * @param username      username
      * @param password      password
      */
+    @Deprecated
     public SecurityClient(String hostname, int port, String queueNameJndi, int messages, String username, String password) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages, username, password);
     }
@@ -67,6 +85,7 @@ public class SecurityClient extends Client {
      * @param username      username
      * @param password      password
      */
+    @Deprecated
     public SecurityClient(String container, String hostname, int port, String queueNameJndi, int messages, String username, String password) {
         super(container);
         this.hostname = hostname;

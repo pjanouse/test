@@ -54,7 +54,12 @@ public class ProducerTransAck extends Client {
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerTransAck(Container container, String queueNameJndi, int messages) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueNameJndi, messages);
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.messages = messages;
+        this.queueNameJndi = queueNameJndi;
+
     }
 
     /**
@@ -63,7 +68,9 @@ public class ProducerTransAck extends Client {
      * @param port          port
      * @param messages      number of messages to send
      * @param queueNameJndi set jndi name of the queue to send messages
+     *
      */
+    @Deprecated
     public ProducerTransAck(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
         this.hostname = hostname;
@@ -84,7 +91,7 @@ public class ProducerTransAck extends Client {
 
             context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+            ConnectionFactory cf = (ConnectionFactory) context.lookup( getConnectionFactoryJndiName());
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 

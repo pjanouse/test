@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.JMSTools;
 
@@ -26,15 +27,16 @@ public class Client extends Thread implements HornetQTestCaseConstants {
 
     private static final Logger logger = Logger.getLogger(Client.class);
     private String currentContainer = EAP6_CONTAINER;
-    private String connectionFactoryJndiName = CONNECTION_FACTORY_JNDI_EAP6;
     private int timeout = 100;
     protected int counter = 0;
+    protected Container container;
 
     /**
      * Creates client for the given container.
      *
      * @param currentContainerForTest currentContainerForTest - see @HornetQTestCaseConstants
      */
+    @Deprecated
     public Client(String currentContainerForTest) {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
@@ -48,6 +50,11 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         }
     }
 
+
+    public Client(Container container){
+        this.container=container;
+        currentContainer=container.getContainerType().toString();
+    }
     /**
      *  Returns jndi context.
      *
@@ -72,6 +79,7 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         return context;
     }
 
+    @Deprecated
     protected String getConnectionFactoryJndiName() {
         if (currentContainer.equals(EAP5_CONTAINER) || currentContainer.equals(EAP5_WITH_JBM_CONTAINER)) {
             return CONNECTION_FACTORY_JNDI_EAP5;

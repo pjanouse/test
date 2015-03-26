@@ -40,11 +40,49 @@ public class SubscriberAutoAck extends Client {
     /**
      * Creates a subscriber to topic with client acknowledge.
      *
+     * @param container      container to which to connect
+     * @param topicNameJndi  jndi name of the topic
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberAutoAck(Container container, String topicNameJndi, String clientId, String subscriberName) {
+
+        this(container, topicNameJndi, 30000, 30, clientId, subscriberName);
+
+    }
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container     container
+     * @param topicNameJndi  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param maxRetries     how many times to retry receive before giving up
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberAutoAck(Container container, String topicNameJndi, long receiveTimeOut, int maxRetries, String clientId, String subscriberName){
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.topicNameJndi = topicNameJndi;
+        this.receiveTimeOut = receiveTimeOut;
+        this.maxRetries = maxRetries;
+        this.clientId = clientId;
+        this.subscriberName = subscriberName;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
+
+
+
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
      * @param hostname       hostname
      * @param port           jndi port
      * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
         this(EAP6_CONTAINER, hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
@@ -60,22 +98,10 @@ public class SubscriberAutoAck extends Client {
      * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
         this(container, hostname, port, topicNameJndi, 30000, 30, clientId, subscriberName);
-
-    }
-
-    /**
-     * Creates a subscriber to topic with client acknowledge.
-     *
-     * @param container      container to which to connect
-     * @param topicNameJndi  jndi name of the topic
-     * @param subscriberName name of the subscriber
-     */
-    public SubscriberAutoAck(Container container, String topicNameJndi, String clientId, String subscriberName) {
-
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, 30000, 30, clientId, subscriberName);
 
     }
 
@@ -89,6 +115,7 @@ public class SubscriberAutoAck extends Client {
      * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberAutoAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
                              int maxRetries, String clientId, String subscriberName) {
         this(EAP6_CONTAINER, hostname, port, topicNameJndi, receiveTimeOut, maxRetries, clientId, subscriberName);
@@ -105,6 +132,7 @@ public class SubscriberAutoAck extends Client {
      * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, long receiveTimeOut,
                              int maxRetries, String clientId, String subscriberName) {
         super(container);

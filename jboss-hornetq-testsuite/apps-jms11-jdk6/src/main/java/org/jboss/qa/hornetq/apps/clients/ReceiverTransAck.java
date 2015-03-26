@@ -56,7 +56,30 @@ public class ReceiverTransAck extends Client {
      */
     public ReceiverTransAck(Container container, String queueJndiName) {
 
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName);
+        this(container, queueJndiName,60000,10000,5);
+
+    }
+    /**
+     * Creates a receiver to queue with auto acknowledge.
+     *
+     * @param container container to which to connect
+     * @param queueJndiName jndi name of the queue
+     * @param receiveTimeOut how long to wait to receive message
+     * @param commitAfter    send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     */
+    public ReceiverTransAck(Container container, String queueJndiName, long receiveTimeOut,
+                            int commitAfter, int maxRetries) {
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getPort();
+        this.queueNameJndi = queueJndiName;
+        this.receiveTimeOut = receiveTimeOut;
+        this.commitAfter = commitAfter;
+        this.maxRetries = maxRetries;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
+
 
     }
 
@@ -68,6 +91,7 @@ public class ReceiverTransAck extends Client {
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
      */
+    @Deprecated
     public ReceiverTransAck(String container, String hostname, int port, String queueJndiName) {
 
         this(container, hostname, port, queueJndiName, 60000, 1000, 5);
@@ -100,6 +124,7 @@ public class ReceiverTransAck extends Client {
      * @param commitAfter    send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public ReceiverTransAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
                             int commitAfter, int maxRetries) {
         super(container);
@@ -111,12 +136,6 @@ public class ReceiverTransAck extends Client {
         this.maxRetries = maxRetries;
 
         setTimeout(0); // set receive timeout to 0 to read with max speed
-    }
-
-    public ReceiverTransAck(Container container, String queueJndiName, long receiveTimeOut,
-                            int commitAfter, int maxRetries) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName, receiveTimeOut, commitAfter, maxRetries);
-
     }
 
     @Override

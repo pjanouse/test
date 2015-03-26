@@ -40,7 +40,9 @@ public class ProducerClientAck extends Client {
      * @param port           port
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
+     *
      */
+    @Deprecated
     public ProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }

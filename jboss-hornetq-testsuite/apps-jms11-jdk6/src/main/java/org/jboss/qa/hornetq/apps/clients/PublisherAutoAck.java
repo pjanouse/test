@@ -42,19 +42,29 @@ public class PublisherAutoAck extends Client {
      * @param messages       number of messages to send
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
+    @Deprecated
     public PublisherAutoAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this(EAP6_CONTAINER, hostname, port, topicNameJndi, messages, clientId);
     }
 
     /**
      * @param container      container instance
-     * @param messages       number of messages to send
      * @param topicNameJndi  set jndi name of the topic to send messages
+     * @param messages       number of messages to send
+     * @param clientId       clientID
      */
     public PublisherAutoAck(Container container, String topicNameJndi, int messages, String clientId) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, messages, clientId);
+       super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.messages = messages;
+        this.topicNameJndi = topicNameJndi;
+        this.clientId = clientId;
+
+
     }
 
+    @Deprecated
     public PublisherAutoAck(String container, String hostname, int port, String topicNameJndi, int messages, String clientId) {
         super(container);
         this.hostname = hostname;

@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -51,11 +52,32 @@ public class QueueClientsAutoAck implements Clients {
     private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
 
+    public QueueClientsAutoAck(Container container, int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
+        this(container, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
+
+    }
+    public QueueClientsAutoAck(Container container, String queueJndiNamePrefix, int numberOfQueues,
+                               int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages){
+        this.container = container.getContainerType().toString();
+        this.hostnameForConsumers = container.getHostname();
+        this.hostnameForProducers = container.getHostname();
+        this.jndiPort = container.getJNDIPort();
+        this.queueJndiNamePrefix = queueJndiNamePrefix;
+        this.numberOfQueues = numberOfQueues;
+        this.numberOfProducersPerQueueu = numberOfProducersPerQueueu;
+        this.numberOfConsumersPerQueueu = numberOfConsumersPerQueueu;
+        this.messages = numberOfMessages;
+
+
+    }
+
+    @Deprecated
     public QueueClientsAutoAck(int numberOfQueues, int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu) {
 
         this("localhost", 4447, "jms/queue/testQueue", numberOfQueues, numberOfProducersPerQueueu, numberOfConsumersPerQueueu, 100);
     }
 
+    @Deprecated
     public QueueClientsAutoAck(String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
 
@@ -63,6 +85,7 @@ public class QueueClientsAutoAck implements Clients {
                 numberOfProducersPerQueueu, numberOfConsumersPerQueueu, numberOfMessages);
     }
 
+    @Deprecated
     public QueueClientsAutoAck(String container, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this.container = container;
