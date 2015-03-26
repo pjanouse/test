@@ -4,14 +4,13 @@ import org.apache.log4j.Logger;
 import org.junit.Assert;
 
 import java.io.File;
-import java.util.Scanner;
 
 /**
  * @author mnovak@redhat.com
  */
 public class TransactionUtils {
 
-    private static final Logger log = Logger.getLogger(TransactionUtils.class);
+    private static final Logger log = Logger.getLogger(CheckFileContentUtils.class);
 
     /**
      * Wait for given time-out for no xa transactions in prepared state.
@@ -56,28 +55,8 @@ public class TransactionUtils {
      */
     public boolean checkThatFileContainsUnfinishedTransactionsString(File fileToCheck, String stringToFind) throws Exception {
 
-        return checkThatFileContainsGivenString(fileToCheck, stringToFind);
+        return CheckFileContentUtils.checkThatFileContainsGivenString(fileToCheck, stringToFind);
 
-    }
-
-    /**
-     * Checks whether file contains given string.
-     *
-     * @param fileToCheck
-     * @return true if file contains the string, false if not
-     * @throws Exception if file does not exist or any other error
-     */
-    public boolean checkThatFileContainsGivenString(File fileToCheck, String stringToFind) throws Exception {
-        Scanner scanner = new Scanner(fileToCheck);
-
-        //now read the file line by line...
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            if (line.contains(stringToFind)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 

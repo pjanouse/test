@@ -48,7 +48,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
-    private void prepareServerWithHornetQCoreBridge(Container container, String targeServerName) {
+    private void prepareServerWithHornetQCoreBridge(Container container, Container targetServer) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
         String bridgeConnectionFactoryJndiName = "java:/jms/RemoteConnectionFactory";
@@ -58,7 +58,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + getHostname(targeServerName) + ":" + getJNDIPort(targeServerName));
+        targetContext.put("java.naming.provider.url", "remote://" + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
@@ -93,7 +93,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         container(1).start();
         container(2).start();
 
-        prepareServerWithHornetQCoreBridge(container(1), CONTAINER2_NAME);
+        prepareServerWithHornetQCoreBridge(container(1), container(2));
         prepareTargetServerForHornetQCoreBridge(container(2));
 
         container(1).stop();
@@ -120,14 +120,14 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
         writeReadAttributeTest(address, "/hornetqJmsBridgeAttributes.txt");
 
-        String sourceServer = CONTAINER1_NAME;
-        String targetServer = CONTAINER2_NAME;
+        Container sourceServer = container(1);
+        Container targetServer = container(2);
         int numberOfMessages = 100;
 
-        ProducerTransAck prod = new ProducerTransAck(getHostname(sourceServer), getJNDIPort(sourceServer), inQueueJndiName, numberOfMessages);
+        ProducerTransAck prod = new ProducerTransAck(sourceServer, inQueueJndiName, numberOfMessages);
         prod.start();
         prod.join();
-        ReceiverTransAck r = new ReceiverTransAck(getHostname(targetServer), getJNDIPort(targetServer), outQueueJndiName);
+        ReceiverTransAck r = new ReceiverTransAck(targetServer, outQueueJndiName);
         r.setReceiveTimeOut(1000);
         r.start();
         r.join();

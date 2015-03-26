@@ -1139,6 +1139,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      *
+     * @deprecated use @see JMSTools#waitForNumberOfMessagesInQueue
+     *
      * @param container                container
      * @param queueCoreName            queue name
      * @param expectedNumberOfMessages number of messages
@@ -1220,7 +1222,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Checks whether file contains given string.
      *
-     * @deprecated use @see TransactionUtils#checkThatFileContainsGivenString()
+     * @deprecated use @see CheckFileContentUtils#checkThatFileContainsGivenString()
      *
      * @param fileToCheck
      * @return true if file contains the string, false if not

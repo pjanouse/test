@@ -3,9 +3,11 @@ package org.jboss.qa.hornetq;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
+import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
@@ -52,6 +54,7 @@ public interface Container {
 
     // ContainerController delegates
     void start();
+    void start(Map<String,String> containerProperties);
     void stop();
     void kill();
     void waitForKill();
@@ -70,4 +73,5 @@ public interface Container {
 
     void update(ContainerController controller, Deployer deployer);
 
+    ContainerDef getContainerDefinition();
 }

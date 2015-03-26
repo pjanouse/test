@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.messages;
 
-
 import org.apache.log4j.Logger;
 import org.hornetq.core.message.impl.MessageImpl;
 import org.hornetq.jms.client.HornetQBytesMessage;
@@ -33,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
-
 /**
  * Tests for creating and manipulating messages.
  *
@@ -52,13 +50,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     private String outQueue = "OutQueue";
     private String outQueueJndiName = "jms/queue/" + outQueue;
 
-    @Before
-    public void startTestContainer() {
-        container(1).start();
-    }
-
-
     @After
+    @Before
     public void stopTestContainer() {
         container(1).stop();
     }
@@ -69,16 +62,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testRemovingScheduledMessage() throws Exception {
 
-        container(1).start();
         prepareServer(container(1));
+
+        container(1).start();
 
         Context ctx = null;
         Connection connection = null;
         Session session = null;
         Message msg = null;
         try {
-            ctx = this.getContext(CONTAINER1_NAME);
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             Queue testQueue = (Queue) ctx.lookup(inQueueJndiName);
             connection = cf.createConnection();
             connection.start();
@@ -151,17 +145,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     private void testThatDivertedMessagesIsAlsoScheduled(boolean isExclusive, boolean isLargeMessage) throws Exception {
 
-        container(1).start();
-
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
+
+        container(1).start();
 
         // send scheduled message
         Context ctx = null;
         Connection connection = null;
         Session session = null;
         try {
-            ctx = this.getContext(CONTAINER1_NAME);
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             Queue originalQueue = (Queue) ctx.lookup(inQueueJndiName);
             connection = cf.createConnection();
             connection.start();
@@ -254,16 +248,16 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         long expireTime = 1000;
 
-        container(1).start();
-
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
+
+        container(1).start();
 
         // send scheduled message
         Context ctx = null;
         Connection connection = null;
         Session session = null;
         try {
-            ctx = this.getContext(CONTAINER1_NAME);
+            ctx = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
             Queue originalQueue = (Queue) ctx.lookup(inQueueJndiName);
             connection = cf.createConnection();
@@ -352,9 +346,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         int numberOfMessages = 100;
 
-        container(1).start();
-
         prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
+
+        container(1).start();
 
         SimpleJMSClient clientOriginal = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
@@ -506,16 +500,23 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     private void prepareServer(Container container) {
 
+        container.start();
+
         JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
 
         jmsOperations.close();
 
+        container.stop();
+
 
     }
 
     private void prepareServerWithDivert(Container container, String originalQueue, String divertedQueue, boolean isExclusive) {
+
+        container.start();
+
         JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
@@ -524,6 +525,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
+        container.stop();
     }
 
     @Test
@@ -531,14 +533,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testMapMessageWithNull() throws Exception {
+
+        container(1).start();
+
         Context ctx = null;
         Connection connection = null;
         Session session = null;
-        TemporaryQueue testQueue = null;
+        TemporaryQueue testQueue;
 
         try {
-            ctx = this.getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             connection.start();
 
@@ -578,6 +583,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
                 ctx.close();
             }
         }
+        container(1).stop();
     }
 
 }

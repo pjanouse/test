@@ -187,6 +187,11 @@ public class ContainerEAP6 implements Container {
         javaVmArguments = javaVmArguments.replace(String.valueOf(BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
+        start(containerProperties);
+    }
+
+    @Override
+    public void start(Map<String, String> containerProperties) {
         containerController.start(getName(), containerProperties);
     }
 
@@ -406,6 +411,11 @@ public class ContainerEAP6 implements Container {
         if (deployer == null) {
             this.deployer = deployer;
         }
+    }
+
+    @Override
+    public ContainerDef getContainerDefinition() {
+        return containerDef;
     }
 
     @Override
