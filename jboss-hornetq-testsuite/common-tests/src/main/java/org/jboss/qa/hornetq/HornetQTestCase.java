@@ -1165,6 +1165,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Waits until all containers in the given queue contains the given number of messages
      *
+     * * @deprecated use @see JMSTools#waitForMessages instead
+     *
      * @param queueName        queue name
      * @param numberOfMessages number of messages
      * @param timeout          time out
@@ -1197,6 +1199,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Checks whether file contains given string.
      *
+     * @deprecated use @see TransactionUtils#checkThatFileContainsUnfinishedTransactionsString()
+     *
      * @param fileToCheck
      * @return true if file contains the string
      * @throws Exception
@@ -1210,6 +1214,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Checks whether file contains given string.
+     *
+     * @deprecated use @see TransactionUtils#checkThatFileContainsGivenString()
      *
      * @param fileToCheck
      * @return true if file contains the string, false if not
@@ -1243,6 +1249,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Returns total number of messages in queue on given nodes
+     *
+     * @deprecated use @see JMSTools#countMessages instead
      *
      * @param queueName      queue name
      * @param containers     container list
@@ -1431,6 +1439,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     /**
      * Wait for given time-out for no xa transactions in prepared state.
+     *
+     * @deprecated use @see TransactionUtils#waitUntilThereAreNoPreparedHornetQTransactions
      *
      * @param timeout
      * @param container

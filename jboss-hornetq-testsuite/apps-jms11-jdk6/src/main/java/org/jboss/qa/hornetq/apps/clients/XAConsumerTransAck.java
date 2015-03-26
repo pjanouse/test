@@ -449,6 +449,7 @@ public class XAConsumerTransAck extends Client {
                         + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
                         + backupServer.getHostname() + " ,port=" + backupServer.getHornetqPort();
 
+                logger.info("Start recovery with configuration: " + remoteResourceRecoveryOpts);
 //                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
 //                        "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
 

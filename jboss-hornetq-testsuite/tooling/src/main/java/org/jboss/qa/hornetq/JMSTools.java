@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
@@ -11,6 +13,9 @@ import javax.naming.NamingException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -18,7 +23,7 @@ import java.util.Properties;
  */
 public final class JMSTools {
 
-    private static final Logger LOG = Logger.getLogger(JMSTools.class);
+    private static final Logger log = Logger.getLogger(JMSTools.class);
 
     /**
      * Cleanups resources
@@ -32,7 +37,7 @@ public final class JMSTools {
             try {
                 session.close();
             } catch (JMSException e) {
-                LOG.error("Error while trying to close JMS session", e);
+                log.error("Error while trying to close JMS session", e);
             }
         }
         if (connection != null) {
@@ -40,14 +45,14 @@ public final class JMSTools {
                 connection.stop();
                 connection.close();
             } catch (JMSException e) {
-                LOG.error("Error while trying to close JMS connection", e);
+                log.error("Error while trying to close JMS connection", e);
             }
         }
         if (context != null) {
             try {
                 context.close();
             } catch (NamingException e) {
-                LOG.error("Error while trying to close naming context", e);
+                log.error("Error while trying to close naming context", e);
             }
         }
     }
@@ -66,6 +71,57 @@ public final class JMSTools {
         env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostName, port));
         return new InitialContext(env);
     }
+
+    /**
+     * Waits until all containers in the given queue contains the given number of messages
+     *
+     * @param queueName        queue name
+     * @param numberOfMessages number of messages
+     * @param timeout          time out
+     * @param containers       container list
+     * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
+     * @throws Exception
+     */
+    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
+
+        long startTime = System.currentTimeMillis();
+
+        long count = 0;
+        while ((count = countMessages(queueName, containers)) < numberOfMessages) {
+            List<String> containerNames = new ArrayList<String>(containers.length);
+            for (org.jboss.qa.hornetq.Container c: containers) {
+                containerNames.add(c.getName());
+            }
+
+            log.info("Total number of messages in queue: " + queueName + " on node "
+                    + Arrays.toString(containerNames.toArray()) + " is " + count);
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns total number of messages in queue on given nodes
+     *
+     * @param queueName      queue name
+     * @param containers     container list
+     * @return total number of messages in queue on given nodes
+     */
+    public long countMessages(String queueName, org.jboss.qa.hornetq.Container... containers) {
+        long sum = 0;
+        for (org.jboss.qa.hornetq.Container container : containers) {
+            JMSOperations jmsOperations = container.getJmsOperations();
+            long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
+            log.info("Number of messages on node : " + container + " is: " + count);
+            sum += count;
+            jmsOperations.close();
+        }
+        return sum;
+    }
+
 
     /**
      * Returns EAP 5 context
