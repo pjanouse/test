@@ -144,8 +144,8 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         Session session = null;
         long startTime = System.currentTimeMillis();
         try {
-            context = getContext();
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
+            context = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
 
             producer = new HighLoadProducerWithSemaphores("producer", topic, cf, semaphores[0], gapBetweenConsumers,

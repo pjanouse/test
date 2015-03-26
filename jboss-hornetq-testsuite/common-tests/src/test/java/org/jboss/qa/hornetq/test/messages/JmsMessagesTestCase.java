@@ -174,6 +174,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             msg.setLongProperty(MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
 
             producer.send(msg);
+            log.info("Send message to queue - isExclusive: " + isExclusive + ", isLargeMessage:" + isLargeMessage);
             producer.close();
 
             Queue divertedQueue = (Queue) ctx.lookup(outQueueJndiName);

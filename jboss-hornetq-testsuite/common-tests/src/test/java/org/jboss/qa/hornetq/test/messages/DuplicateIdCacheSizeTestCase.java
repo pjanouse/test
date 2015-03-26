@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
@@ -51,8 +52,8 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
         Connection connection = null;
         Session session = null;
         try {
-            ctx = this.getContext(CONTAINER1_NAME);
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             connection.start();
 
