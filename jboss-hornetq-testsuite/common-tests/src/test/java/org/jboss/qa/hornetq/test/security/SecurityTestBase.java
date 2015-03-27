@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.security;
 
 
+import org.apache.commons.io.FileUtils;
 import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -54,11 +55,11 @@ public abstract class SecurityTestBase extends HornetQTestCase {
     protected void prepareServerSideKeystores() throws IOException {
         File sourceKeystore = new File(TEST_KEYSTORES_DIRECTORY + File.separator + KEY_STORE_NAME);
         File targetKeystore = new File(KEY_STORE_PATH);
-        this.copyFile(sourceKeystore, targetKeystore);
+        FileUtils.copyFile(sourceKeystore, targetKeystore);
 
         File sourceTruststore = new File(TEST_KEYSTORES_DIRECTORY + File.separator + TRUST_STORE_NAME);
         File targetTruststore = new File(TRUST_STORE_PATH);
-        this.copyFile(sourceTruststore, targetTruststore);
+        FileUtils.copyFile(sourceTruststore, targetTruststore);
     }
 
 

@@ -1,21 +1,21 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
-import org.jboss.qa.hornetq.tools.ContainerInfo;
-import org.jboss.qa.hornetq.tools.SocketBinding;
-import org.jboss.qa.hornetq.tools.XMLManipulation;
-import org.junit.Assert;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.test.administration.AdministrationTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.SocketBinding;
+import org.jboss.qa.hornetq.tools.XMLManipulation;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -109,9 +109,9 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
-    private void activateLegacyJnpModule(final ContainerInfo container) throws Exception {
+    private void activateLegacyJnpModule(final Container container) throws Exception {
         StringBuilder pathToStandaloneXml = new StringBuilder();
-        pathToStandaloneXml = pathToStandaloneXml.append(container.getJbossHome())
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome())
                 .append(File.separator).append("standalone")
                 .append(File.separator).append("configuration")
                 .append(File.separator).append("standalone-full-ha.xml");
@@ -142,7 +142,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      */
     public void transportProtocolTest() throws Exception {
 
-        if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
             // configure legacy extension
 
             container(1).start();
@@ -159,14 +159,14 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
             container(1).stop();
 
-            activateLegacyJnpModule(getContainerInfo(CONTAINER1_NAME));
+            activateLegacyJnpModule(container(1));
         }
 
         container(1).start();
 
         log.info("Start producer and consumer.");
-        ProducerTransAck producer = new ProducerTransAck(getContainerType(CONTAINER1_NAME).toString() ,container(1).getHostname(), container(1).getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        ReceiverTransAck receiver = new ReceiverTransAck(getContainerType(CONTAINER1_NAME).toString(), container(1).getHostname(), container(1).getJNDIPort(), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
+        ProducerTransAck producer = new ProducerTransAck(container(1), IN_QUEUE_JNDI_NAME_FOR_MDB, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), IN_QUEUE_JNDI_NAME_FOR_MDB, RECEIVE_TIMEOUT, 50, RECEIVER_MAX_RETRIES);
 
         producer.start();
         producer.join();
@@ -235,7 +235,6 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     private void prepareServerForSSLTransport(org.jboss.qa.hornetq.Container container, String journalType) throws IOException {
         container.start();
 
-        AdministrationTestCase fileOperation = new AdministrationTestCase();
         File keyStore = new File("src/test/resources/org/jboss/qa/hornetq/test/transportprotocols/hornetq.example.keystore");
         File trustStore = new File("src/test/resources/org/jboss/qa/hornetq/test/transportprotocols/hornetq.example.truststore");
         File keyStoreNew = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator + "deployments" + File.separator + "hornetq.example.keystore");
@@ -248,8 +247,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
             boolean result = trustStoreNew.createNewFile();
             log.info("New Trust store file was created - " + Boolean.toString(result));
         }
-        fileOperation.copyFile(keyStore, keyStoreNew);
-        fileOperation.copyFile(trustStore, trustStoreNew);
+        FileUtils.copyFile(keyStore, keyStoreNew);
+        FileUtils.copyFile(trustStore, trustStoreNew);
 
         String socketBindingName = "messaging";
         HashMap<String, String> connectorParams = new HashMap<String, String>();

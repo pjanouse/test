@@ -19,10 +19,7 @@ import org.junit.Test;
 
 import javax.jms.Session;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -365,7 +362,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         long producerStartTime = System.currentTimeMillis();
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
 
         prod1.setMessageBuilder(new TextMessageBuilder(1024 * 1024)); // 1MB
 
@@ -385,7 +382,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer and consumer.");
         // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
 
-        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", 50);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 50);
 
         MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
 
@@ -397,7 +394,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         producer.start();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", 30000, 1, 100);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 1, 100);
 
         receiver.setTimeout(100);
 

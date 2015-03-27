@@ -48,7 +48,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
 
         // send some messages to InQueue to server 1
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(40));
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
@@ -366,14 +366,15 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         Map<String,String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         if (CONTAINER1_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 1 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + getJNDIPort(
 
+            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + container(3).getJNDIPort());
 
-                    CONTAINER3_NAME));
         } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is container 3
-            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + getJNDIPort(
-                    CONTAINER3_NAME));
+
+            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + container(3).getJNDIPort());
+
         } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is container 1 and 2
+
             targetContext.put("java.naming.provider.url", "remote://" + container(1).getHostname() + ":" + container(1).getJNDIPort() +
                     ",remote://" + container(2).getHostname() + ":" + container(2).getJNDIPort());
 //            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_NAME_IP + ":4447");
