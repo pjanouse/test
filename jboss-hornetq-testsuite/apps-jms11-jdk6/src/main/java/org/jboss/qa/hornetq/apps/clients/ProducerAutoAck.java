@@ -45,6 +45,7 @@ public class ProducerAutoAck extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerAutoAck(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }
@@ -65,6 +66,7 @@ public class ProducerAutoAck extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerAutoAck(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
         this.hostname = hostname;
