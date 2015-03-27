@@ -17,7 +17,7 @@ import javax.jms.*;
 import javax.naming.Context;
 
 /**
- * Created by mnovak on 12/2/14.
+ * @author mnovak@redhat.com
  */
 public class FilteringQueueTestCase extends HornetQTestCase {
 
@@ -45,7 +45,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -59,8 +59,8 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            context = getContext(CONTAINER1_NAME);
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI_EAP6);
+            context = container(1).getContext();
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
             Queue queue = (Queue) context.lookup(inQueue);
@@ -118,7 +118,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -129,11 +129,11 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         Context context = null;
         Connection connection = null;
-        Session session = null;
+        Session session;
 
         try {
-            context = getContext(CONTAINER1_NAME);
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(CONNECTION_FACTORY_JNDI_EAP6);
+            context = container(1).getContext();
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
             Queue queue = (Queue) context.lookup(inQueue);
@@ -204,7 +204,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 100 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 100 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");

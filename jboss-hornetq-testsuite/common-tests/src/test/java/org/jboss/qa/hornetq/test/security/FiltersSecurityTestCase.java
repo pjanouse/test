@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.security;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -45,7 +46,8 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testHashMask() throws Exception {
-        this.prepareServer();
+        this.prepareServer(container(1));
+        container(1).start();
         AddressSecuritySettings.forDefaultContainer(this)
                 .forAddress("#")
                 .giveUserAllPermissions(User.ADMIN.getUserName())
@@ -66,7 +68,8 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testStarAsLastMask() throws Exception {
-        this.prepareServer();
+        this.prepareServer(container(1));
+        container(1).start();
         AddressSecuritySettings.forDefaultContainer(this)
                 .forAddress("#")
                 .giveUserAllPermissions(User.ADMIN.getUserName())
@@ -87,7 +90,8 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testStarInMask() throws Exception {
-        this.prepareServer();
+        this.prepareServer(container(1));
+        container(1).start();
         AddressSecuritySettings.forDefaultContainer(this)
                 .forAddress("#")
                 .giveUserAllPermissions(User.ADMIN.getUserName())
@@ -111,7 +115,8 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testMoreSpecificFilterSettings() throws Exception {
-        this.prepareServer();
+        this.prepareServer(container(1));
+        container(1).start();
         AddressSecuritySettings.forDefaultContainer(this)
                 .forAddress("#")
                 .giveUserAllPermissions(User.ADMIN.getUserName())
@@ -148,7 +153,9 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     }
 
 
-    private void prepareServer() throws IOException {
+    private void prepareServer(Container container) throws IOException {
+
+        container.start();
         JMSOperations ops = container(1).getJmsOperations();
         ops.setBindingsDirectory(JOURNAL_DIRECTORY_A);
         ops.setPagingDirectory(JOURNAL_DIRECTORY_A);
@@ -171,6 +178,7 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
                 .create();
 
         this.createTestQueues();
+        container.stop();
     }
 
 

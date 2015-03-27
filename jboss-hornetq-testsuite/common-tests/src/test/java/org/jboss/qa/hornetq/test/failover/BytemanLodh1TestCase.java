@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.annotations.TestPlan;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
@@ -21,6 +22,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -66,10 +68,10 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
     private static final String OUT_QUEUE = "jms/queue/" + OUT_QUEUE_NAME;
 
+    private final Archive mdb1Lodh1 = createLodh1Deployment();
+    private final Archive mdb2Copy = createLodh1CopyDeployment();
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createLodh1Deployment() {
+    public JavaArchive createLodh1Deployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
@@ -80,18 +82,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info(ejbXml);
 
         logger.info(mdbJar.toString(true));
-        File target = new File("/tmp/mdb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
-
-    @Deployment(managed = false, testable = false, name = "mdb2-copy")
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createLodh1CopyDeployment() {
+    public JavaArchive createLodh1CopyDeployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1-copy");
         mdbJar.addClass(LocalCopyMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
@@ -381,7 +380,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "createLargeMessage",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillOnCreatingLargeMessage() throws Exception {
-        this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
+        this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
     /**
@@ -412,7 +411,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "sendContinuations",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillOnSendingLargeMessage() throws Exception {
-        this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
+        this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
     /**
@@ -439,7 +438,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "createFileForLargeMessage",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     public void testServerKillOnCreatingLargeMessageFile() throws Exception {
-        this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
+        this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
     /**
@@ -467,7 +466,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     @Ignore
     public void testServerKillOnDeletingLargeMessageFilePassThrough() throws Exception {
-        this.generalLodh1Test("mdb2-copy", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
+        this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
 
@@ -481,16 +480,16 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     @Ignore
     public void testServerKillOnDeletingLargeMessageFile() throws Exception {
-        this.generalLodh1Test("mdb1", new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
+        this.generalLodh1Test(mdb1Lodh1, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
 
 
     private void generalLodh1Test() throws Exception {
-        this.generalLodh1Test("mdb1", new ClientMixMessageBuilder(10, 150));
+        this.generalLodh1Test(mdb1Lodh1, new ClientMixMessageBuilder(10, 150));
     }
 
 
-    private void generalLodh1Test(final String deploymentName, final MessageBuilder msgBuilder) throws Exception {
+    private void generalLodh1Test(final Archive deployment, final MessageBuilder msgBuilder) throws Exception {
 
         prepareJmsServer(container(1));
 
@@ -500,10 +499,10 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Sending messages to InQueue");
         this.sendMessages(msgBuilder);
 
-        logger.info("Deploying MDB " + deploymentName);
+        logger.info("Deploying MDB " + deployment);
         RuleInstaller.installRule(this.getClass(), container(1));
         try {
-            this.deployer.deploy(deploymentName);
+            container(1).deploy(deployment);
         } catch (Exception e) {
             // byteman might kill the server before control returns back here from deploy method, which results
             // in arquillian exception; it's safe to ignore, everything is deployed and running correctly on the server
@@ -525,9 +524,9 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         }
         jmsOperations.close();
         // wait for InQueue to be empty
-        waitForMessages(IN_QUEUE_NAME, 0, 300000, container(1));
+        new JMSTools().waitForMessages(IN_QUEUE_NAME, 0, 300000, container(1));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 

@@ -64,7 +64,7 @@ public class SoakProducerClientAck extends Client {
     }
 
     public SoakProducerClientAck(Container container, String queueNameJndi, int messages) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getHornetqPort(), queueNameJndi, messages);
+        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueNameJndi, messages);
     }
 
     /**
