@@ -3,12 +3,11 @@ package org.jboss.qa.hornetq.test.security;
 import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.shrinkwrap.api.Archive;
 import org.junit.After;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SecurityClient;
@@ -51,7 +50,7 @@ import java.util.HashMap;
 public class PermissionSecurityTestCase extends HornetQTestCase {
 
 
-    private static final String MDB_ON_QUEUE_TO_QUEUE ="queToQueueWithSecMdb";
+    private final Archive mdbOnQueueToQueue = createDeploymentMdbOnQueue1Temp();
 
     private static final Logger logger = Logger.getLogger(PermissionSecurityTestCase.class);
 
@@ -59,7 +58,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
-   // InQueue and OutQueue for mdb
+    // InQueue and OutQueue for mdb
     static String inQueueNameForMdb = "InQueue";
     static String inQueueJndiNameForMdb = "jms/queue/" + inQueueNameForMdb;
     static String outQueueNameForMdb = "OutQueue";
@@ -84,7 +83,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "0", 10, null, null);
+            guest = new SecurityClient(container(1), queueJndiNamePrefix + "0", 10, null, null);
             guest.initializeClient();
 
             try {
@@ -148,7 +147,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "1", 10, "user", "useruser");
+            user = new SecurityClient(container(1), queueJndiNamePrefix + "1", 10, "user", "useruser");
             user.initializeClient();
 
             try {
@@ -212,7 +211,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         try {
             // try user admin
-            admin = new SecurityClient(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
+            admin = new SecurityClient(container(1), queueJndiNamePrefix + "2", 10, "admin", "adminadmin");
             admin.initializeClient();
 
             try {
@@ -261,20 +260,20 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     //TODO This test will fail on EAP 6.4.0.DR13 and older
-    public void inVmSecurityTestCase() throws Exception{
+    public void inVmSecurityTestCase() throws Exception {
 
         prepareServer();
         container(1).start();
-        deployer.deploy(MDB_ON_QUEUE_TO_QUEUE);
+        container(1).deploy(mdbOnQueueToQueue);
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        HashMap<String,String> opts= new HashMap<String, String>();
-        opts.put("password-stacking","useFirstPass");
-        jmsAdminOperations.rewriteLoginModule("Remoting",opts);
+        HashMap<String, String> opts = new HashMap<String, String>();
+        opts.put("password-stacking", "useFirstPass");
+        jmsAdminOperations.rewriteLoginModule("Remoting", opts);
         jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
         jmsAdminOperations.overrideInVMSecurity(false);
 
         container(1).restart();
-        SecurityClient producer= new SecurityClient(container(1).getHostname(),container(1).getJNDIPort(),inQueueJndiNameForMdb,10, "user","useruser");
+        SecurityClient producer = new SecurityClient(container(1), inQueueJndiNameForMdb, 10, "user", "useruser");
         producer.initializeClient();
         producer.send();
         producer.join();
@@ -282,13 +281,13 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         Thread.sleep(2000);
 
         jmsAdminOperations = container(1).getJmsOperations();
-        long count=jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
-        Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue",0,count);
+        long count = jmsAdminOperations.getCountOfMessagesOnQueue(outQueueNameForMdb);
+        Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue", 0, count);
         container(1).stop();
     }
 
     @After
-    public void stopServerIfAlive()    {
+    public void stopServerIfAlive() {
         if (CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), container(1).getPort())) {
             container(1).stop();
         }
@@ -391,8 +390,8 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param container     test container
-     * @param serverName    server name of the hornetq server
+     * @param container  test container
+     * @param serverName server name of the hornetq server
      */
     private void deployDestinations(Container container, String serverName) {
 
@@ -407,10 +406,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.close();
     }
 
-
-    @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_TO_QUEUE)
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createDeploymentMdbOnQueue1Temp() {
+    public JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "localMdbFromQueue.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");

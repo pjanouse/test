@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.security;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
 import org.hornetq.api.core.Message;
 import org.hornetq.api.core.TransportConfiguration;
@@ -123,7 +124,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
             props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
             props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
             props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
             TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                     props);
@@ -175,7 +176,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
         props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
@@ -233,7 +234,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
         props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
@@ -283,9 +284,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
         props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
@@ -332,9 +333,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
         props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, TRUST_STORE_PATH);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, KEY_STORE_PATH);
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
         props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
@@ -371,19 +372,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11(CONTAINER1_NAME);
+        prepareSeverWithPkcs11(container(1));
 
         container(1).start();
 
-        Context context;
+        Context context = container(1).getContext();
 
-        if (getContainerType(CONTAINER1_NAME).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            context = getEAP5Context(container(1).getHostname(), container(1).getJNDIPort());
-        } else {
-            context = getContext(container(1).getHostname(), container(1).getJNDIPort());
-        }
-
-        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         Queue testQueue = session.createQueue(QUEUE_NAME);
@@ -417,7 +412,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11(CONTAINER1_NAME);
+        prepareSeverWithPkcs11(container(1));
 
         container(1).start();
 
@@ -462,11 +457,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
-    private void prepareSeverWithPkcs11(String containerName) throws Exception {
+    private void prepareSeverWithPkcs11(Container container) throws Exception {
 
-        installSecurityExtension(CONTAINER1_NAME);
+        installSecurityExtension(container);
 
-        container(1).start();
+        container.start();
         JMSOperations ops = this.prepareServer();
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
@@ -529,26 +524,26 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", acceptorConnectorName);
         ops.setSecurityEnabled(true);
 
-        if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             ops.addExtension("org.jboss.legacy.jnp");
             ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
             ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-            activateLegacyJnpModule(getContainerInfo(containerName));
+            activateLegacyJnpModule(container);
         }
 
         ops.close();
 
-        container(1).stop();
+        container.stop();
 
-        if (getContainerType(containerName).equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            activateLegacyJnpModule(getContainerInfo(containerName));
+        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+            activateLegacyJnpModule(container);
         }
 
     }
 
-    private void activateLegacyJnpModule(final ContainerInfo container) throws Exception {
+    private void activateLegacyJnpModule(final Container container) throws Exception {
         StringBuilder pathToStandaloneXml = new StringBuilder();
-        pathToStandaloneXml = pathToStandaloneXml.append(container.getJbossHome())
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome())
                 .append(File.separator).append("standalone")
                 .append(File.separator).append("configuration")
                 .append(File.separator).append("standalone-full-ha.xml");
@@ -575,12 +570,12 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     /**
      * Creates org.jboss.as.security.providers module so PKCS11 provider from can be loaded
      */
-    private void installSecurityExtension(String containerName) throws Exception {
+    private void installSecurityExtension(Container container) throws Exception {
 
         final String securityJarFileName = "security-providers.jar";
 
         // create modules/system/layers/base/org/jboss/as/security/providers/main
-        File moduleDir = new File(getJbossHome(containerName),
+        File moduleDir = new File(container.getServerHome(),
                 "modules" + File.separator + "system" + File.separator + "layers" + File.separator + "base"
                         + File.separator + "org" + File.separator + "jboss" + File.separator + "as"
                         + File.separator + "security" + File.separator + "providers" + File.separator + "main");

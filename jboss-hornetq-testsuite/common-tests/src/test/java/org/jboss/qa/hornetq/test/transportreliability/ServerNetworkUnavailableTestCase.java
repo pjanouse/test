@@ -192,7 +192,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(5000);
             log.info("############# Kill server 1.");
-            container(1).kill();
+            container(1).waitForKill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
@@ -269,7 +269,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
             RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
             Thread.sleep(10000);
             log.info("############# Kill server 1.");
-            container(1).kill();
+            container(1).waitForKill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
