@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.compatibility;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -498,7 +499,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -669,7 +670,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         clients.stopClients();
 
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 

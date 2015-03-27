@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -40,7 +41,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
     protected static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
     protected static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
-    protected static final int BYTEMAN_PORT_1 = 9091;
 
     protected static String NIO_JOURNAL_TYPE = "NIO";
     protected static String ASYNCIO_JOURNAL_TYPE = "ASYNCIO";
@@ -88,7 +88,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void makeSureAllClientsAreDead() throws InterruptedException {
         if (clients != null) {
             clients.stopClients();
-            waitForClientsToFinish(clients, 300000);
+            JMSTools.waitForClientsToFinish(clients, 300000);
         }
 
     }
@@ -139,7 +139,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT_1);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).kill();
         } else {
             logger.warn("########################################");
@@ -149,8 +149,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -165,7 +165,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
 //            logger.warn("########################################");
@@ -183,7 +183,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -266,8 +266,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
             Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
-                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), getHornetqPort(
-                    CONTAINER2_NAME), 300000));
+                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
+                        container(2).getHornetqPort(), 300000));
 
             waitForClientsToFailover();
 
@@ -287,7 +287,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
 
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
 
             waitForClientsToFailover();
 
@@ -303,7 +303,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -396,8 +396,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -406,13 +406,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(),
+                    container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
 //            logger.warn("########################################");
@@ -430,7 +431,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         // message verifiers for diverted messages - compares send and diverted messages
         FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier();
@@ -487,11 +488,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         if (failback) {
 
-            receiverFromDivertedQueue = new ReceiverTransAck(container(1).getHostname(), container(1).getJNDIPort(), divertedQueueJndiName, 5000, 100, 5);
+            receiverFromDivertedQueue = new ReceiverTransAck(container(1), divertedQueueJndiName, 5000, 100, 5);
 
         } else {
 
-            receiverFromDivertedQueue = new ReceiverTransAck(container(2).getHostname(), container(2).getJNDIPort(), divertedQueueJndiName, 5000, 100, 5);
+            receiverFromDivertedQueue = new ReceiverTransAck(container(2), divertedQueueJndiName, 5000, 100, 5);
 
         }
         receiverFromDivertedQueue.start();
@@ -565,14 +566,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsOperations.close();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -583,10 +584,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
 
-    protected void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
+    protected void waitHornetQBackupToBecomePassive(Container container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), port)) {
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), port)) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
@@ -674,9 +675,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         logger.warn("Deploy byteman rule:");
 
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT_1);
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
-        waitForServerToBeKilled(CONTAINER1_NAME, 60000);
+        waitForServerToBeKilled(container(1), 60000);
 
         container(1).kill();
 
@@ -690,12 +691,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 300000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 300000);
             Thread.sleep(5000); // give it some time
-//            logger.warn("########################################");
-//            logger.warn("failback - Stop backup server");
-//            logger.warn("########################################");
-//            stopServer(CONTAINER2_NAME);
+
         }
 
         Thread.sleep(10000);
@@ -705,7 +703,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         clients.stopClients();
 
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -715,14 +713,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-    public boolean waitForServerToBeKilled(String container, long timeout) throws Exception {
+    public boolean waitForServerToBeKilled(Container container, long timeout) throws Exception {
 
         boolean isRunning = false;
 
         long startTime = System.currentTimeMillis();
 
         while (isRunning && System.currentTimeMillis() - startTime < timeout) {
-            isRunning = CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), getHttpPort(container));
+            isRunning = CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), container.getHttpPort());
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);
         }
@@ -740,7 +738,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        ProducerTransAck p = new ProducerTransAck(CONTAINER1_NAME, container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
         p.setMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
@@ -767,8 +765,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         startTime = System.currentTimeMillis();
         while (p.getListOfSentMessages().size() < 300 && System.currentTimeMillis() - startTime < 120000) {
             Thread.sleep(1000);
@@ -803,9 +801,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         p.join(600000);
         ReceiverTransAck r;
         if (failback) {
-            r = new ReceiverTransAck(CONTAINER1_NAME, container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + 0);
+            r = new ReceiverTransAck(container(1), queueJndiNamePrefix + 0);
         } else {
-            r = new ReceiverTransAck(CONTAINER2_NAME, container(2).getHostname(), container(2).getJNDIPort(), queueJndiNamePrefix + 0);
+            r = new ReceiverTransAck(container(2), queueJndiNamePrefix + 0);
         }
         r.setMessageVerifier(queueTextMessageVerifier);
         r.setCommitAfter(100);
@@ -865,21 +863,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -1178,7 +1176,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         if (clients != null) {
             clients.stopClients();
-            waitForClientsToFinish(clients, 300000);
+            JMSTools.waitForClientsToFinish(clients, 300000);
         }
 
         container(1).stop();
@@ -1452,7 +1450,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT_1);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).kill();
         } else {
             logger.warn("########################################");
@@ -1462,8 +1460,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -1472,13 +1470,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                    container(1).getHostname(), container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
         }
@@ -1489,7 +1488,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 

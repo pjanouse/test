@@ -164,7 +164,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      */
     private Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
 
-        Clients clients = null;
+        Clients clients;
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {

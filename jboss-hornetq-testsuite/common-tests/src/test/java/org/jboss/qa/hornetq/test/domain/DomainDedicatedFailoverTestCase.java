@@ -12,6 +12,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -101,7 +102,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     public void makeSureAllClientsAreDead() throws InterruptedException {
         if (clients != null) {
             clients.stopClients();
-            waitForClientsToFinish(clients, 300000);
+            JMSTools.waitForClientsToFinish(clients, 300000);
         }
 
     }
@@ -196,7 +197,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -323,7 +324,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         // compare numbers in original and diverted queue
         int sum = 0;
@@ -411,7 +412,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -538,7 +539,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         clients.stopClients();
 
         // blocking call checking whether all consumers finished
-        waitForClientsToFinish(clients);
+        JMSTools.waitForClientsToFinish(clients);
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
@@ -1011,7 +1012,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         if (clients != null) {
             clients.stopClients();
-            waitForClientsToFinish(clients, 300000);
+            JMSTools.waitForClientsToFinish(clients, 300000);
         }
 
         container(1).stop();
