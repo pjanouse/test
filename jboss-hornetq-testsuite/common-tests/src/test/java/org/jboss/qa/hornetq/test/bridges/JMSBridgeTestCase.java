@@ -16,10 +16,12 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 /**
- * Created by mnovak on 5/13/14.
+ * @author mnovak@redhat.com
  */
 public class JMSBridgeTestCase extends HornetQTestCase {
 
@@ -31,9 +33,6 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     public final static String AT_MOST_ONCE = "AT_MOST_ONCE";
     public final static String DUPLICATES_OK = "DUPLICATES_OK";
     public final static String ONCE_AND_ONLY_ONCE = "ONCE_AND_ONLY_ONCE";
-
-    public final static String OLD_SERVER = CONTAINER1_NAME;
-    public final static String NEW_SERVER = CONTAINER3_NAME;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10,200);
 
@@ -114,14 +113,14 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         logger.info("JMS bridge should be connected now. Check logs above that is really so!");
         logger.info("#############################");
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(inServer.getHostname(), inServer.getJNDIPort(),
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(inServer,
                 inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(outServer.getHostname(), outServer.getJNDIPort(),
+        ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
