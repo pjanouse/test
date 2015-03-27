@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.administration;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -138,12 +139,12 @@ public class AdministrationTestCase extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
-        copyFile(applicationUsersModified, applicationUsersOriginal);
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
         File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
-        copyFile(applicationRolesModified, applicationRolesOriginal);
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
         for (int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);

@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -10,6 +11,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -79,11 +82,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         container(2).start();
 
         // give some time for servers to find each other
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -106,12 +109,12 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        logger.info("Start again - second server");
 //        logger.info("########################################");
 //        controller.start(CONTAINER2_NAME);
-//        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
+//        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
 //        logger.info("########################################");
 //        logger.info("Second server started");
 //        logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueue, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 
@@ -247,7 +250,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -256,7 +259,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -281,7 +284,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
-        int socketBindingPort = PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
+        int socketBindingPort = container.getHornetqBackupPort();
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
@@ -350,7 +353,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -359,7 +362,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }

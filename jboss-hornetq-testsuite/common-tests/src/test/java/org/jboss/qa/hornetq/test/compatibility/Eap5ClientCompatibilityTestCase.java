@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -446,14 +447,14 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 50, 300000);
-        waitForProducersUntil(clients.getProducers(), 50, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 50, 300000);
+        ClientUtils.waitForProducersUntil(clients.getProducers(), 50, 300000);
 
         if (!shutdown) {
             LOG.warn("########################################");
             LOG.warn("Kill live server");
             LOG.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).kill();
         } else {
             LOG.warn("########################################");
@@ -463,21 +464,21 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         }
 
         LOG.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover(clients);
-        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 200, 300000);
 
         if (failback) {
             LOG.warn("########################################");
             LOG.warn("failback - Start live server again ");
             LOG.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             LOG.warn("########################################");
             LOG.warn("failback - Live started again ");
             LOG.warn("########################################");
-            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
             waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
             waitForClientsToFailover(clients);
@@ -661,9 +662,9 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 100, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 100, 300000);
 
-        waitForProducersUntil(clients.getProducers(), 100, 300000);
+        ClientUtils.waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         clients.stopClients();
 

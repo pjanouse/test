@@ -4,10 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
@@ -42,7 +45,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
         container(1).start();
 
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
 
         // send some messages to InQueue to server 1
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, numberOfMessages);
@@ -56,7 +59,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         container(3).start();
 
         // check that some messages got to OutQueue on server 3 and shutdown server1
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
 
         for (int i = 0; i < 5; i++) {
 
@@ -71,7 +74,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
             String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
 //            String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
 
-            Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", checkThatFileContainsUnfinishedTransactionsString(
+            Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils().checkThatFileContainsUnfinishedTransactionsString(
                     new File(outputJournalFile), stringToFind));
 
             container(1).start();

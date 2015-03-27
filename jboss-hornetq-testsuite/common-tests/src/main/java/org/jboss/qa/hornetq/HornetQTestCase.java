@@ -968,6 +968,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * @deprecated use @see ClientUtils#waitForClientsToFinish
      * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
      *
      * @deprecated moved to tooling.JmsTools
@@ -978,6 +979,8 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     /**
+     * @deprecated use @see ClientUtils#waitForClientsToFinish
+     *
      * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
@@ -1315,7 +1318,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             }
         } else {
             // This method is implemented in Copying a File
-            copyFile(srcDir, dstDir);
+            FileUtils.copyFile(srcDir, dstDir);
         }
     }
 

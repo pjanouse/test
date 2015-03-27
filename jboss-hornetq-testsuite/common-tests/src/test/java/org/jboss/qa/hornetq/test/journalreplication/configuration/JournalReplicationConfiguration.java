@@ -11,6 +11,7 @@ import javax.jms.Session;
 import javax.naming.Context;
 import javax.naming.NamingException;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -70,7 +71,7 @@ public class JournalReplicationConfiguration
 	int port = -1;
     String host = "localhost";
 
-	public void prepareLive(Container liveServer, JournalReplicationAbstract journalReplicationAbstractTestCase)
+	public void prepareLive(Container liveServer, JournalReplicationAbstract journalReplicationAbstractTestCase)  throws Exception
 	{
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -167,7 +168,7 @@ public class JournalReplicationConfiguration
 	    		"configuration" + File.separator + 
 	    		"application-users.properties");
 
-	    copyFile(applicationUsersModified, applicationUsersOriginal);
+	    FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 	    
 	    File applicationRolesModified = new File(
 	    		"src" + File.separator +
@@ -186,10 +187,10 @@ public class JournalReplicationConfiguration
 	    		"configuration" + File.separator + 
 	    		"application-roles.properties");
 
-	    copyFile(applicationRolesModified, applicationRolesOriginal);
+	    FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 	}
 	
-	public void prepareBackup(Container backupServer)
+	public void prepareBackup(Container backupServer) throws Exception
 	{
 
         String broadCastGroupName = "bg-group1";
@@ -275,7 +276,7 @@ public class JournalReplicationConfiguration
 	    		"configuration" + File.separator + 
 	    		"application-users.properties");
 
-	    copyFile(applicationUsersModified, applicationUsersOriginal);
+	    FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
 	    File applicationRolesModified = new File(
 	    		"src" + File.separator +
@@ -294,13 +295,8 @@ public class JournalReplicationConfiguration
 	    		"configuration" + File.separator + 
 	    		"application-roles.properties");
 
-	    copyFile(applicationRolesModified, applicationRolesOriginal);
+	    FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
-	}
-
-	private void copyFile(File original, File destination)
-	{
-		FileUtil.copyFile(original, destination);
 	}
 
 	public String getLiveServerID()

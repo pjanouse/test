@@ -170,7 +170,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             Clients clients2 = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);
             clients2.setMessages(100000);
             clients2.startClients();
+
             ClientUtils.waitForReceiversUntil(clients2.getConsumers(), 20, 60000);
+
             clients2.stopClients();
 
             while (!clients2.isFinished()) {

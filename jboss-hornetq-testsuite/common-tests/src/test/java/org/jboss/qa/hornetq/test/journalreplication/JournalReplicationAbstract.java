@@ -51,7 +51,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
 	}
 	
 	@Before
-	public void beforeEachTest()
+	public void beforeEachTest() throws Exception
 	{
 		preparator = new JournalReplicationConfiguration();
 		

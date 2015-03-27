@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.security;
 
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.hornetq.api.core.Message;
@@ -488,7 +489,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 //        nssLibraryDirectory=/usr/lib64
 //        nssSecmodDirectory=/home/mnovak/tmp/pkcs11/fipsdb
 //        nssModule=fips
-        copyFile(new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_ORIGINAL), new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_MODIFIED));
+        FileUtils.copyFile(new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_ORIGINAL), new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_MODIFIED));
         File pkcs11ConfigFile = new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_MODIFIED);
         replaceStringInFile(pkcs11ConfigFile, "nssLibraryDirectory=", System.getProperty("sun.arch.data.model").equals("64") ?
                 "nssLibraryDirectory=/usr/lib64" : "nssLibraryDirectory=/usr/lib");
@@ -623,7 +624,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             targetforSecjar.delete();
         }
         targetforSecjar.createNewFile();
-        copyFile(secJar, targetforSecjar);
+        FileUtils.copyFile(secJar, targetforSecjar);
 
 //        // patch $JBOSS_HOME/modules/sun/jdk/main/module.xml by sed -i 's#\(<path name="sun/security/provider"/>\)#\1<path name="sun/security/pkcs11"/>#'
 //        File jdkModuleXml = new File(getJbossHome(containerName), "modules" + File.separator + "system"

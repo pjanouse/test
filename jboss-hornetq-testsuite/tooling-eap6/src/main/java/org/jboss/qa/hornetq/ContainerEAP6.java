@@ -38,6 +38,9 @@ public class ContainerEAP6 implements Container {
             "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
 
     private static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
+    private static final int JNDI_PORT_DEFAULT_EAP6 = 4447;
+    private static int PORT_HORNETQ_DEFAULT_EAP6 = 5445;
+    private static int PORT_HORNETQ_BACKUP_DEFAULT_EAP6 = 5446;
     private static final int BYTEMAN_PORT = 9091;
     private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
     private static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
@@ -83,7 +86,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getJNDIPort() {
-        return 4447 + getPortOffset();
+        return JNDI_PORT_DEFAULT_EAP6 + getPortOffset();
     }
 
 
@@ -109,13 +112,13 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
+        return PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return HornetQTestCaseConstants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
+        return PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
     }
 
 

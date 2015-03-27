@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
@@ -27,7 +28,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
     public void prepareRemoteJcaTopology() throws Exception {
         prepareLiveServer(container(1));
         prepareBackupServer(container(2));
-        prepareMdbServer(container(3), CONTAINER1_NAME, CONTAINER2_NAME);
+        prepareMdbServer(container(3), container(1), container(2));
         copyApplicationPropertiesFiles();
     }
 
@@ -100,7 +101,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -109,7 +110,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -186,7 +187,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -195,7 +196,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }

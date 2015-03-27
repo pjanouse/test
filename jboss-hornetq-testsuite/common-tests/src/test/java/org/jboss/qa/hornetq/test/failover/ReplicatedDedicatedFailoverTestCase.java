@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
@@ -567,7 +568,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -576,7 +577,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -691,7 +692,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
         try {
-            copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -700,7 +701,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
         try {
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         } catch (IOException e) {
             logger.error("Error during copy.", e);
         }
@@ -725,36 +726,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
         jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-    }
-
-    /**
-     * Copies file from one place to another.
-     *
-     * @param sourceFile source file
-     * @param destFile   destination file - file will be rewritten
-     * @throws java.io.IOException
-     */
-    public void copyFile(File sourceFile, File destFile) throws IOException {
-        if (!destFile.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            destFile.createNewFile();
-        }
-
-        FileChannel source = null;
-        FileChannel destination = null;
-
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-        }
     }
 
     /**

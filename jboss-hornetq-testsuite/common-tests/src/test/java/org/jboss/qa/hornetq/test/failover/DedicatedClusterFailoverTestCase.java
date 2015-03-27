@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -31,12 +32,12 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedClusterFailoverTestCase.class);
     private static final int NUMBER_OF_DESTINATIONS = 1;
+
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100000;
     private static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
     private static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
-    private static final int BYTEMAN_PORT = 9091;
-    static boolean topologyCreated = false;
+
     String queueNamePrefix = "testQueue";
     String topicNamePrefix = "testTopic";
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -90,28 +91,28 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).start();
 
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), getBytemanPort(CONTAINER1_NAME));
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
         Clients clients = createClients(acknowledge, topic);
 
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 50, 60000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 50, 60000);
 
         container(1).kill();
 
         // wait for backup to wake up
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
-        waitForReceiversUntil(clients.getConsumers(), 300, 60000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 300, 60000);
 
         if (failback) {
             logger.info("########################################");
             logger.info("failback - Start live server again ");
             logger.info("########################################");
             container(1).start();
-            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
-            waitForReceiversUntil(clients.getConsumers(), 500, 60000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+            ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 60000);
 //            logger.info("########################################");
 //            logger.info("failback - Stop backup server");
 //            logger.info("########################################");
@@ -119,8 +120,8 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 //            Thread.sleep(5000); // give some time to org.jboss.qa.hornetq.apps.clients to do failback
 
             // check that backup is dead
-            Assert.assertFalse("Backup should deactivate after failback.", CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(
-                    CONTAINER2_NAME), container(2).getHornetqPort()));
+            Assert.assertFalse("Backup should deactivate after failback.", CheckServerAvailableUtils.checkThatServerIsReallyUp(container(2).getHostname(),
+                    container(2).getHornetqPort()));
         }
 
         clients.stopClients();
@@ -167,21 +168,21 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(container(1), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(container(1), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }

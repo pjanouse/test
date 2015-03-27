@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.soak;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -378,8 +379,8 @@ public class SoakTestCase extends HornetQTestCase {
             applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
                     + "configuration" + File.separator + "application-roles.properties");
 
-            copyFile(applicationUsersModified, applicationUsersOriginal);
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
 

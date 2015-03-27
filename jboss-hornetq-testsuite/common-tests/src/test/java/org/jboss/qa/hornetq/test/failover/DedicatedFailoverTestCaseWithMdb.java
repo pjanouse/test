@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -7,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -14,7 +16,9 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -55,9 +59,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
     FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
-    @Deployment(managed = false, testable = false, name = "mdb1")
-    @TargetsContainer(CONTAINER3_NAME)
-    public static Archive getDeployment1() throws Exception {
+    private final Archive mdb1 = getDeployment1();
+
+
+    public static Archive getDeployment1() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
@@ -111,7 +116,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -124,7 +129,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         logger.info("Deploying MDB to mdb server.");
 //        // start mdb server
-        deployer.deploy("mdb1");
+        container(3).deploy(mdb1);
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
@@ -139,15 +144,15 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 600000));
+        Assert.assertTrue("Backup server (container2) did not start after kill.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 600000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
-        waitUntilThereAreNoPreparedHornetQTransactions(360000, container(2));
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(2));
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), outQueueJndiName, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 3000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -156,7 +161,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
         messageVerifier.verifyMessages();
 
-        deployer.undeploy("mdb1");
+        container(3).undeploy(mdb1);
 
         container(3).stop();
         container(2).stop();
@@ -178,7 +183,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
@@ -190,7 +195,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(3).start();
 
         // start mdb server
-        deployer.deploy("mdb1");
+        container(3).deploy(mdb1);
         logger.info("MDB was deployed to mdb server - container 3");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
@@ -204,24 +209,24 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup server (container2) did not start after kill.", CheckServerAvailableUtils.waitHornetQToAlive(
+                container(2).getHostname(), container(2).getHornetqPort(), 300000));
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         container(1).start();
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
         logger.info("Container 1 started again");
         Thread.sleep(10000);
         logger.info("Container 2 stopping...");
         container(2).stop();
         logger.info("Container 2 stopped");
 
-        waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-        waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), outQueueJndiName, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 3000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
@@ -234,7 +239,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
 
         logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
-        deployer.undeploy("mdb1");
+        container(3).undeploy(mdb1);
         container(3).stop();
         container(2).stop();
         container(1).stop();
@@ -287,7 +292,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     public void prepareRemoteJcaTopology() throws Exception {
             prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
             prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
-            prepareMdbServer(container(3), CONTAINER1_NAME, CONTAINER2_NAME);
+            prepareMdbServer(container(3), container(1), container(2));
             copyApplicationPropertiesFiles();
     }
 
@@ -296,7 +301,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareMdbServer(Container container, String containerLive, String containerBackup) {
+    protected void prepareMdbServer(Container container, Container containerLive, Container containerBackup) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -332,9 +337,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.setClusterUserPassword("heslo");
 
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(containerLive), getHornetqPort(containerLive));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", containerLive.getHostname(), containerLive.getHornetqPort());
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", getHostname(containerBackup), getHornetqPort(containerBackup));
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", containerBackup.getHostname(), containerBackup.getHornetqPort());
         jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
 
         List<String> connectorList = new ArrayList<String>();
@@ -505,8 +510,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
                     + "configuration" + File.separator + "application-roles.properties");
 
-            copyFile(applicationUsersModified, applicationUsersOriginal);
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
 

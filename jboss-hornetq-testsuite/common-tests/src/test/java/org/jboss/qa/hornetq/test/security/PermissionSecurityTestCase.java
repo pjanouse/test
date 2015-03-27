@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.security;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.junit.After;
@@ -369,12 +370,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
         File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-users.properties");
-        copyFile(applicationUsersModified, applicationUsersOriginal);
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
         File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
         File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
                 + "configuration" + File.separator + "application-roles.properties");
-        copyFile(applicationRolesModified, applicationRolesOriginal);
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         container.stop();
     }
 

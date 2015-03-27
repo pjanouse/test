@@ -36,6 +36,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -146,8 +147,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
-        waitForProducersUntil(clients.getProducers(), 100, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        ClientUtils.waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         if (!shutdown) {
             logger.warn("########################################");
@@ -163,21 +164,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
-        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
         if (failback) {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
             waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
             waitForClientsToFailover();
@@ -256,12 +257,12 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         prepareSimpleDedicatedTopology();
 
         container(2).start();
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 10000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 10000);
         addDivert(container(2), divertedQueue, isExclusive, topic);
         container(2).stop();
 
         container(1).start();
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 30000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 30000);
         addDivert(container(1), divertedQueue, isExclusive, topic);
         container(1).stop();
         container(1).start();
@@ -274,8 +275,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
-        waitForProducersUntil(clients.getProducers(), 100, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        ClientUtils.waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         if (!shutdown) {
             logger.warn("########################################");
@@ -290,21 +291,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
-        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
         if (failback) {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
             waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
             waitForClientsToFailover();
@@ -394,8 +395,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 200, 300000);
-        waitForProducersUntil(clients.getProducers(), 100, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 200, 300000);
+        ClientUtils.waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         // call force-failover operation
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -403,10 +404,10 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         jmsOperations.close();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover();
-        waitForReceiversUntil(clients.getConsumers(), 600, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
         clients.stopClients();
         // blocking call checking whether all consumers finished
@@ -506,7 +507,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         clients.startClients();
 
-        waitForReceiversUntil(clients.getConsumers(), 320, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 320, 300000);
 
         logger.warn("Deploy byteman rule:");
 
@@ -518,14 +519,14 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
 //        Thread.sleep(20000); // give some time for org.jboss.qa.hornetq.apps.clients to failover
-        waitForReceiversUntil(clients.getConsumers(), 500, 300000);
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
 
         if (failback) {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
@@ -599,7 +600,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", waitHornetQToAlive(getHostname(
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
                 CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
         startTime = System.currentTimeMillis();
         while (p.getListOfSentMessages().size() < 300 && System.currentTimeMillis() - startTime < 120000) {
@@ -612,13 +613,13 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             PrintJournal.printJournal(container(1).getServerHome(), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                     "journalAfterStartingLiveAgain_Failback.txt");
             logger.warn("########################################");
             logger.warn("Live server started - this is failback");
             logger.warn("########################################");
-            waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             Thread.sleep(10000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");

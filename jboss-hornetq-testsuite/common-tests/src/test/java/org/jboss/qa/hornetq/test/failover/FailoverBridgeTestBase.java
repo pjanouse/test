@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
@@ -11,6 +12,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.After;
 import org.junit.Assert;
@@ -95,7 +97,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("Server killed");
         }
         logger.warn("###################################");
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(3).getHostname(), container(3).getJNDIPort(), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -137,7 +139,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         // Without starting live first the backup server will not start
         container(1).start();
         container(2).start();
-        waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
         Thread.sleep(10000);
         container(1).stop();
 
@@ -164,7 +166,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         producerToInQueue1.start();
 
         // give it some time for backup to alive
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2).getHostname(), container(2).getJNDIPort(), outQueueJndiName, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -236,7 +238,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         }
 
         logger.warn("###################################");
-        waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
+        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         // if failback then start container1 again
         // wait for container1 to start
@@ -254,7 +256,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
             container(1).start();
-            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            junit.framework.Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
@@ -546,8 +548,8 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone" + File.separator
                     + "configuration" + File.separator + "application-roles.properties");
 
-            copyFile(applicationUsersModified, applicationUsersOriginal);
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
 

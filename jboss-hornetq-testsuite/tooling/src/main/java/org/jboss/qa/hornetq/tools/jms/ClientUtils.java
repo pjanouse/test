@@ -2,12 +2,14 @@ package org.jboss.qa.hornetq.tools.jms;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.junit.Assert;
 
@@ -19,7 +21,7 @@ import org.junit.Assert;
  */
 public class ClientUtils {
 
-    private static final Logger LOG = Logger.getLogger(ClientUtils.class);
+    private static final Logger log = Logger.getLogger(ClientUtils.class);
 
     private static final int DEFAULT_MAX_RETRIES = 30;
 
@@ -49,9 +51,9 @@ public class ClientUtils {
                 producer.send(msg);
 
                 if (msgCounter == null) {
-                    LOG.info("SENT message with id " + msg.getJMSMessageID());
+                    log.info("SENT message with id " + msg.getJMSMessageID());
                 } else {
-                    LOG.info("SENT message with counter " + msgCounter
+                    log.info("SENT message with counter " + msgCounter
                             + " and id " + msg.getJMSMessageID());
                 }
 
@@ -62,9 +64,9 @@ public class ClientUtils {
                 }
             } catch (JMSException ex) {
                 if (msgCounter == null) {
-                    LOG.info("SEND RETRY - Sent message with id " + msg.getJMSMessageID());
+                    log.info("SEND RETRY - Sent message with id " + msg.getJMSMessageID());
                 } else {
-                    LOG.info("SEND RETRY - Sent message with counter " + msgCounter
+                    log.info("SEND RETRY - Sent message with counter " + msgCounter
                             + " and id " + msg.getJMSMessageID());
                 }
                 numberOfRetries++;
@@ -101,7 +103,7 @@ public class ClientUtils {
                 return msg;
             } catch (JMSException ex) {
                 numberOfRetries++;
-                LOG.error("RETRY receive for message with counter " + counter);
+                log.error("RETRY receive for message with counter " + counter);
             }
         }
         throw new JMSException("FAILURE - MaxRetry reached for message with counter " + counter);
@@ -130,6 +132,52 @@ public class ClientUtils {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    /**
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
+     */
+    public static void waitForClientsToFinish(Clients clients) {
+        waitForClientsToFinish(clients, 600000);
+    }
+
+    /**
+     *
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     *
+     * @param clients org.jboss.qa.hornetq.apps.clients
+     * @param timeout timeout
+     */
+    public static void waitForClientsToFinish(Clients clients, long timeout) {
+        long startTime = System.currentTimeMillis();
+        try {
+            while (!clients.isFinished()) {
+                Thread.sleep(1000);
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
+                    StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
+                    for (Thread t : mst.keySet()) {
+                        stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
+                        StackTraceElement[] elements = mst.get(t);
+                        for (StackTraceElement e : elements) {
+                            stacks.append("---").append(e).append("\n");
+                        }
+                        stacks.append("---------------------------------------------\n");
+                    }
+                    log.error(stacks);
+                    for (Client c : clients.getConsumers()) {
+                        c.interrupt();
+                    }
+                    for (Client c : clients.getProducers()) {
+                        c.interrupt();
+                    }
+                    Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all. Print all stacktraces:" + stacks);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("waitForClientsToFinish failed: ", e);
         }
     }
 
