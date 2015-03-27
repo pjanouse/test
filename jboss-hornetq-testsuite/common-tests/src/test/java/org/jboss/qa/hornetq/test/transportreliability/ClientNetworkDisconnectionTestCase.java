@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
@@ -14,6 +15,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,19 +69,19 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiName, connectionId, subscriberName);
         subscriber.setMaxRetries(1);
         subscriber.subscribe();
 
         // publish some messages
-        PublisherClientAck publisher = new PublisherClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 2000000, "testConnectionIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiName, 2000000, "testConnectionIdPublisher");
         publisher.start();
         subscriber.start();
 
         // wait for subscriber to receive some messages
         List<Client> subscribers = new ArrayList<Client>();
         subscribers.add(subscriber);
-        waitForReceiversUntil(subscribers, 30, 60000);
+        ClientUtils.waitForReceiversUntil(subscribers, 30, 60000);
 
         // stop proxies
         stopProxies();
@@ -125,7 +127,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
         subscriber.subscribe();
         subscriber.start();
 

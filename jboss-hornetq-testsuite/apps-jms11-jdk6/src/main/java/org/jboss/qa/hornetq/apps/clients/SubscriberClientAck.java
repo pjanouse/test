@@ -46,6 +46,7 @@ public class SubscriberClientAck extends Client {
      * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
         this(hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
@@ -61,6 +62,7 @@ public class SubscriberClientAck extends Client {
      * @param topicNameJndi  jndi name of the topic
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
         this(container, hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
@@ -76,7 +78,7 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(Container container, String topicNameJndi, String clientId, String subscriberName) {
 
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), topicNameJndi, 60000, 10, 30, clientId, subscriberName);
+        this(container, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
 
     }
 
@@ -110,11 +112,37 @@ public class SubscriberClientAck extends Client {
      * @param maxRetries     how many times to retry receive before giving up
      * @param subscriberName name of the subscriber
      */
+    @Deprecated
     public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, long receiveTimeOut,
                                int ackAfter, int maxRetries, String clientId, String subscriberName) {
         super(container);
         this.hostname = hostname;
         this.port = port;
+        this.topicNameJndi = topicNameJndi;
+        this.receiveTimeOut = receiveTimeOut;
+        this.ackAfter = ackAfter;
+        this.maxRetries = maxRetries;
+        this.clientId = clientId;
+        this.subscriberName = subscriberName;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
+    }
+
+    /**
+     * Creates a subscriber to topic with client acknowledge.
+     *
+     * @param container container to connect
+     * @param topicNameJndi  jndi name of the topic
+     * @param receiveTimeOut how long to wait to receive message
+     * @param ackAfter       send ack after how many messages
+     * @param maxRetries     how many times to retry receive before giving up
+     * @param subscriberName name of the subscriber
+     */
+    public SubscriberClientAck(Container container, String topicNameJndi, long receiveTimeOut,
+                               int ackAfter, int maxRetries, String clientId, String subscriberName) {
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
         this.topicNameJndi = topicNameJndi;
         this.receiveTimeOut = receiveTimeOut;
         this.ackAfter = ackAfter;
