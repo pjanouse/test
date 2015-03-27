@@ -1,12 +1,12 @@
 package org.jboss.qa.hornetq.test.failover;
 
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
 import org.junit.Assert;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -93,12 +93,12 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     private static final String GROUP_ADDRESS = "233.6.88.5";
 
-    public static final String MDB_1_WITH_FILTER = "mdb1WithFilter";
-    public static final String MDB_2_WITH_FILTER = "mdb2WithFilter";
-    public static final String NON_DURABLE_MDB_ON_TOPIC = "nonDurableMdbOnTopic";
+    public final Archive mdb1WithFilter = getDeploymentWithFilter1();
+    public final Archive mdb2WithFilter = getDeploymentWithFilter2();
+    public final Archive nonDurableMdbOnTopic = getDeploymentNonDurableMdbOnTopic();
 
-    public final Archive MDB_ON_QUEUE_1 = getDeployment1();
-    public final Archive MDB_ON_QUEUE_2 = getDeployment2();
+    public final Archive mdbOnQueue1 = getDeployment1();
+    public final Archive mdbOnQueue2 = getDeployment2();
 
     public Archive getDeployment1() {
         File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
@@ -135,10 +135,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-
-    @Deployment(managed = false, testable = false, name = MDB_1_WITH_FILTER)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentWithFilter1() throws Exception {
+    public Archive getDeploymentWithFilter1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
@@ -148,9 +145,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     }
 
-    @Deployment(managed = false, testable = false, name = MDB_2_WITH_FILTER)
-    @TargetsContainer(CONTAINER4_NAME)
-    public static Archive getDeploymentWithFilter2() throws Exception {
+    public Archive getDeploymentWithFilter2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
@@ -159,9 +154,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    @Deployment(managed = false, testable = false, name = NON_DURABLE_MDB_ON_TOPIC)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
+    public Archive getDeploymentNonDurableMdbOnTopic() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
@@ -398,7 +391,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         container(2).start();
 
         if (!isDurable) {
-            deployer.deploy(NON_DURABLE_MDB_ON_TOPIC);
+            container(2).deploy(nonDurableMdbOnTopic);
             Thread.sleep(5000);
         }
 
@@ -445,7 +438,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                     producer1.getMessages() > receiver1.getCount());
             Assert.assertTrue("Receivers did not get any messages.",
                     receiver1.getCount() > 0);
-            deployer.undeploy(NON_DURABLE_MDB_ON_TOPIC);
+            container(2).undeploy(nonDurableMdbOnTopic);
         }
 
 
@@ -491,14 +484,14 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
         // deploy mdbs
         if (isFiltered) {
-            deployer.deploy(MDB_1_WITH_FILTER);
-            deployer.deploy(MDB_2_WITH_FILTER);
+            container(2).deploy(mdb1WithFilter);
+            container(4).deploy(mdb2WithFilter);
         } else {
-            container(2).deploy(MDB_ON_QUEUE_1);
-            container(4).deploy(MDB_ON_QUEUE_2);
+            container(2).deploy(mdbOnQueue1);
+            container(4).deploy(mdbOnQueue2);
         }
 
-        waitForMessages(OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
+        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
 
         if (waitForProducer) {
             executeFailureSequence(failureSequence, 15000);
@@ -506,7 +499,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             executeFailureSequence(failureSequence, 30000);
         }
 
-        waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, container(1), container(3));
+        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, container(1), container(3));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -529,11 +522,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                 receiver1.getCount() > 0);
 
         if (isFiltered) {
-            deployer.undeploy(MDB_1_WITH_FILTER);
-            deployer.undeploy(MDB_2_WITH_FILTER);
+            container(2).undeploy(mdb1WithFilter);
+            container(4).undeploy(mdb2WithFilter);
         } else {
-            container(2).undeploy(MDB_ON_QUEUE_1.getName());
-            container(4).undeploy(MDB_ON_QUEUE_2.getName());
+            container(2).undeploy(mdbOnQueue1.getName());
+            container(4).undeploy(mdbOnQueue2.getName());
         }
 
         container(2).stop();
@@ -723,8 +716,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                     + File.separator
                     + "configuration" + File.separator + "application-roles.properties");
 
-            copyFile(applicationUsersModified, applicationUsersOriginal);
-            copyFile(applicationRolesModified, applicationRolesOriginal);
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
     }
 
