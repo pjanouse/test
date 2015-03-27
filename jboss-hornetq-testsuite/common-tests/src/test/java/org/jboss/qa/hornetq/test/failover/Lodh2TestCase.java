@@ -24,6 +24,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -113,17 +114,17 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     public Archive getDeploymentMdbWithProperties() {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithPropertiesMappedName + ".jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesMappedName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdbWithPropertyReplacements.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        File target = new File("/tmp/mdbWithPropertyReplacements.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -726,7 +727,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         }
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        container(2).start();
+        container(2).start(properties);
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10);
 

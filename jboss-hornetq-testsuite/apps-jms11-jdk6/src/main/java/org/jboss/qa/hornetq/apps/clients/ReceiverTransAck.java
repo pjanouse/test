@@ -72,7 +72,7 @@ public class ReceiverTransAck extends Client {
                             int commitAfter, int maxRetries) {
         super(container);
         this.hostname = container.getHostname();
-        this.port = container.getPort();
+        this.port = container.getJNDIPort();
         this.queueNameJndi = queueJndiName;
         this.receiveTimeOut = receiveTimeOut;
         this.commitAfter = commitAfter;
