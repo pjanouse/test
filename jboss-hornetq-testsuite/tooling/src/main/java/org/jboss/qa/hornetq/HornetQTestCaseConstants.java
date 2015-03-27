@@ -73,13 +73,6 @@ public interface HornetQTestCaseConstants {
      */
     public static final int BYTEMAN_CONTAINER4_PORT = 9391;
 
-    // Management port - EAP 6
-    @Deprecated
-    /**
-     * @deprecated use @Container getPort() instead
-     */
-    public static int MANAGEMENT_PORT_EAP6 = 9999;
-
     // IDs for the active container definition
     public static final String EAP5_CONTAINER = "EAP5_CONTAINER";
     public static final String EAP6_CONTAINER = "EAP6_CONTAINER";
