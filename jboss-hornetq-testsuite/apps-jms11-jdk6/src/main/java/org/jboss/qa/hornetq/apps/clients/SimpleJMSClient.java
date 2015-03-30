@@ -109,6 +109,8 @@ public class SimpleJMSClient extends Client {
      */
     public SimpleJMSClient(Container container, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
         super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
         this.messages = messages;
         this.ackMode = ackMode;
         this.transactionSession = transactionSession;

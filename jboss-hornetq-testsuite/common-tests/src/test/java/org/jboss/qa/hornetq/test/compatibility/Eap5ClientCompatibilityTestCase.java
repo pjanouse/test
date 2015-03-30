@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.test.compatibility;
 
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.*;
@@ -34,14 +34,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Forward compatibility tests for EAP5 HornetQ org.jboss.qa.hornetq.apps.clients connecting to EAP6 server.
  * <p/>
- * For this test working properly, you need to use arqullian-eap6-legacy.xml descriptor. Your JBOSS_HOME_X
- * properties need to point to EAP6 servers with org.jboss.legacy.jnp module installed. When running
- * this test, use eap5x-backward-compatibility maven profile and set netty.version and hornetq.version
- * maven properties to client libraries versions you want to test with (HornetQ needs to be 2.2.x).
+ * For this test working properly, you need to use arqullian-eap6-legacy.xml descriptor. Your JBOSS_HOME_X properties need to
+ * point to EAP6 servers with org.jboss.legacy.jnp module installed. When running this test, use eap5x-backward-compatibility
+ * maven profile and set netty.version and hornetq.version maven properties to client libraries versions you want to test with
+ * (HornetQ needs to be 2.2.x).
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
@@ -55,12 +54,6 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     String topicJndiNamePrefix = "jms/topic/testTopic";
 
     private static int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000000;
-
-    @Override
-    protected int getLegacyClientJndiPort() {
-        return SocketBinding.LEGACY_JNP.getPort();
-    }
-
 
     @Override
     protected void prepareContainer(final org.jboss.qa.hornetq.Container container) throws Exception {
@@ -86,15 +79,13 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         ops.setSharedStore(true);
 
         ops.removeBroadcastGroup(broadCastGroupName);
-        ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName,
-                "");
+        ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         ops.removeDiscoveryGroup(discoveryGroupName);
         ops.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         ops.removeClusteringGroup(clusterGroupName);
-        ops.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
-                connectorName);
+        ops.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         ops.disableSecurity();
         ops.removeAddressSettings("#");
@@ -108,7 +99,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
         ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-        //ops.createSocketBinding(SocketBinding.LEGACY_REMOTING.getName(), SocketBinding.LEGACY_REMOTING.getPort());
+        // ops.createSocketBinding(SocketBinding.LEGACY_REMOTING.getName(), SocketBinding.LEGACY_REMOTING.getPort());
 
         this.deployDestinations(ops);
         ops.close();
@@ -117,23 +108,17 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         container.stop();
     }
 
-
     private void deployDestinations(final JMSOperations ops) {
         for (int destinationNumber = 0; destinationNumber < NUMBER_OF_DESTINATIONS; destinationNumber++) {
-            ops.createQueue(QUEUE_NAME_PREFIX + destinationNumber, QUEUE_JNDI_NAME_PREFIX
-                    + destinationNumber, true);
-            ops.createTopic(TOPIC_NAME_PREFIX + destinationNumber, TOPIC_JNDI_NAME_PREFIX
-                    + destinationNumber);
+            ops.createQueue(QUEUE_NAME_PREFIX + destinationNumber, QUEUE_JNDI_NAME_PREFIX + destinationNumber, true);
+            ops.createTopic(TOPIC_NAME_PREFIX + destinationNumber, TOPIC_JNDI_NAME_PREFIX + destinationNumber);
         }
     }
 
-
     private void activateLegacyJnpModule(final org.jboss.qa.hornetq.Container container) throws Exception {
         StringBuilder pathToStandaloneXml = new StringBuilder();
-        pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome())
-                .append(File.separator).append("standalone")
-                .append(File.separator).append("configuration")
-                .append(File.separator).append("standalone-full-ha.xml");
+        pathToStandaloneXml = pathToStandaloneXml.append(container.getServerHome()).append(File.separator).append("standalone")
+                .append(File.separator).append("configuration").append(File.separator).append("standalone-full-ha.xml");
         Document doc = XMLManipulation.getDOMModel(pathToStandaloneXml.toString());
 
         Element e = doc.createElement("subsystem");
@@ -144,16 +129,16 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         entry.setAttribute("rmi-socket-binding", "rmi-jnp");
         e.appendChild(entry);
 
-        /*Element entry2 = doc.createElement("remoting");
-         entry2.setAttribute("socket-binding", "legacy-remoting");
-         e.appendChild(entry2);*/
+        /*
+         * Element entry2 = doc.createElement("remoting"); entry2.setAttribute("socket-binding", "legacy-remoting");
+         * e.appendChild(entry2);
+         */
         XPath xpathInstance = XPathFactory.newInstance().newXPath();
         Node node = (Node) xpathInstance.evaluate("//profile", doc, XPathConstants.NODE);
         node.appendChild(e);
 
         XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
     }
-
 
     @Test
     @RunAsClient
@@ -170,7 +155,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         try {
 
             // get eap 5 context even when you're connecting to eap 6 server
-            ctx = getEAP5Context(container(1).getHostname(), getLegacyJNDIPort(CONTAINER1_NAME));
+            ctx = container(1).getContext();
 
             List<String> jndiNameToLookup = new ArrayList<String>();
 
@@ -201,7 +186,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
                         LOG.info("jndiName: " + jndiName + " was found and cast to destination.");
 
                     } else {
-                        Assert.fail("jndiName: " + jndiName + " could not be cast to connection factory of destination which is an error.");
+                        Assert.fail("jndiName: " + jndiName
+                                + " could not be cast to connection factory of destination which is an error.");
                     }
 
                 }
@@ -221,7 +207,6 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             }
         }
     }
-
 
     /**
      * Prepare two servers in simple dedicated topology.
@@ -245,11 +230,12 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param container        test container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
+     * @param container test container - defined in arquillian.xml
+     * @param bindingAddress says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareLiveServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory)
+            throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -285,7 +271,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
+                connectorName);
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -312,7 +299,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory) throws Exception {
+    protected void prepareBackupServer(org.jboss.qa.hornetq.Container container, String bindingAddress, String journalDirectory)
+            throws Exception {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -350,7 +338,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
+                connectorName);
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -360,7 +349,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+        // jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
@@ -377,7 +366,6 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         container.stop();
     }
 
-
     /**
      * Deploys destinations to server which is currently running.
      *
@@ -390,8 +378,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param container     test container
-     * @param serverName    server name of the hornetq server
+     * @param container test container
+     * @param serverName server name of the hornetq server
      */
     protected void deployDestinations(org.jboss.qa.hornetq.Container container, String serverName) {
 
@@ -408,31 +396,20 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.close();
     }
 
-
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
+     * This test will start two servers in dedicated topology - no cluster. Sent some messages to first Receive messages from
+     * the second one
      *
      * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
+     * @param failback whether to test failback
+     * @param topic whether to test with topics
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>15",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+            @BMRule(name = "Setup counter for PostOfficeImpl", targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl", targetMethod = "processRoute", action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl", targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl", targetMethod = "processRoute", action = "incrementCounter(\"counter\");"
+                    + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received", targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl", targetMethod = "processRoute", condition = "readCounter(\"counter\")>15", action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();") })
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
         prepareSimpleDedicatedTopology();
@@ -443,7 +420,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Thread.sleep(10000);
 
-        Clients clients = createClients(CONTAINER1_INFO, acknowledge, topic);
+        Clients clients = createClients(container(1), acknowledge, topic);
         clients.setProducedMessagesCommitAfter(10);
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
@@ -465,8 +442,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         }
 
         LOG.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils
+                .waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000));
         waitForClientsToFailover(clients);
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 200, 300000);
 
@@ -475,22 +452,23 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("failback - Start live server again ");
             LOG.warn("########################################");
             container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                    container(1).getHostname(), container(1).getHornetqPort(), 300000));
             LOG.warn("########################################");
             LOG.warn("failback - Live started again ");
             LOG.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
             waitForClientsToFailover(clients);
             Thread.sleep(5000); // give it some time
-//            LOG.warn("########################################");
-//            LOG.warn("failback - Stop backup server");
-//            LOG.warn("########################################");
-//            stopServer(CONTAINER2_NAME);
-//            LOG.warn("########################################");
-//            LOG.warn("failback - Backup server stopped");
-//            LOG.warn("########################################");
+            // LOG.warn("########################################");
+            // LOG.warn("failback - Stop backup server");
+            // LOG.warn("########################################");
+            // stopServer(CONTAINER2_NAME);
+            // LOG.warn("########################################");
+            // LOG.warn("failback - Backup server stopped");
+            // LOG.warn("########################################");
         }
 
         Thread.sleep(5000);
@@ -501,7 +479,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         // blocking call checking whether all consumers finished
         JMSTools.waitForClientsToFinish(clients);
 
-        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.",
+                clients.evaluateResults());
 
         container(1).stop();
 
@@ -522,7 +501,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
             while (c.getCount() <= startValue) {
                 if (System.currentTimeMillis() - startTime > timeout) {
-                    Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
+                    Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: "
+                            + c);
                 }
                 try {
                     Thread.sleep(1000);
@@ -553,27 +533,24 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
     }
 
-
-
-    protected void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
+    protected void waitHornetQBackupToBecomePassive(Container container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), port)) {
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), container.getPort())) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
             }
         }
-
     }
 
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
+     * This test will start two servers in dedicated topology - no cluster. Sent some messages to first Receive messages from
+     * the second one
      *
      * @param acknowledge acknowledge type
-     * @param failback    whether to test failback
-     * @param topic       whether to test with topics
+     * @param failback whether to test failback
+     * @param topic whether to test with topics
      * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
@@ -581,11 +558,11 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
+     * This test will start two servers in dedicated topology - no cluster. Sent some messages to first Receive messages from
+     * the second one
      *
      * @param acknowledge acknowledge type
-     * @param failback    whether to test fail back
+     * @param failback whether to test fail back
      * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback) throws Exception {
@@ -653,13 +630,13 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
         Thread.sleep(5000);
 
-        Clients clients = createClients(CONTAINER1_INFO, Session.AUTO_ACKNOWLEDGE, false);
+        Clients clients = createClients(container(1), Session.AUTO_ACKNOWLEDGE, false);
 
         clients.setProducedMessagesCommitAfter(10);
 
         clients.setReceivedMessagesAckCommitAfter(9);
 
-        clients.setMessageBuilder(new ClientMixMessageBuilder(10,200));
+        clients.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
 
         clients.startClients();
 
@@ -672,7 +649,8 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         // blocking call checking whether all consumers finished
         JMSTools.waitForClientsToFinish(clients);
 
-        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.",
+                clients.evaluateResults());
 
         container(1).stop();
 
@@ -732,28 +710,22 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
     }
 
-
-
-
-    protected Clients createClients(final ContainerInfo container, final int acknowledgeMode, final boolean isTopic)
+    protected Clients createClients(Container container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
 
         Clients clients;
 
         if (isTopic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsAutoAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsClientAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsTransAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
                 clients.setProducedMessagesCommitAfter(10);
@@ -763,18 +735,15 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsAutoAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsClientAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container.getContainerType().name(), container.getIpAddress(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsTransAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
                 clients.setProducedMessagesCommitAfter(10);

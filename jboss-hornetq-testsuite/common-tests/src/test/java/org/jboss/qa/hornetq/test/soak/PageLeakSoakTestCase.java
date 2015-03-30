@@ -10,10 +10,13 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.MemoryCpuMeasuring;
+import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
 
 /**
  *
@@ -70,9 +73,10 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         container(1).stop();
 
         // start measuring of
-        MemoryCpuMeasuring jmsServerMeasurement = new MemoryCpuMeasuring(getProcessId(CONTAINER1_NAME), "jms-server");
+        File jmsServerCsv = new File("jms-server-memory.csv");
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1).getHostname(), String.valueOf(container(1).getPort()), jmsServerCsv);
 
-        jmsServerMeasurement.startMeasuring();
+        jmsServerMeasurement.start();
 
         Assert.assertEquals("There must be same number of send and received messages from topic for fast subscriber.",
                 fastSubscriber.getListOfReceivedMessages().size(), publisher.getListOfSentMessages().size());
@@ -82,7 +86,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         logger.error("################################################################");
         logger.error("################################################################");
         logger.error("################################################################");
-        logger.error("CHECK MEMORY AND CPU GRAPH FOR NUMBER OF INSTANCES IN MEMORY!!!");
+        logger.error("CHECK MEMORY GRAPH FOR NUMBER OF INSTANCES IN MEMORY!!!");
         logger.error("################################################################");
         logger.error("################################################################");
         logger.error("################################################################");
