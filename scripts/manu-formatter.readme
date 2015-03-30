@@ -1,0 +1,7 @@
+In idea, make sure you have Eclipse Fromatter Plugin installed, then:
+
+File -> Settings... (Ctrl+Alt+S) -> Other Settings -> Eclipse Code Formatter
+
+and select manu-formatter.xml in 'Eclipse Java Formatter config file'.
+Then you can use Ctrl+Alt+L to reformat currently open file.
+
