@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
@@ -55,6 +56,7 @@ public class SimpleJMSClient extends Client {
      * @param ackMode            acknowledge mode
      * @param transactionSession is session transacted
      */
+    @Deprecated
     public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession) {
         this(hostname, port, messages, ackMode, transactionSession, new ByteMessageBuilder());
     }
@@ -69,6 +71,7 @@ public class SimpleJMSClient extends Client {
      * @param transactionSession is session transacted
      * @param messageBuilder     messages builder used for building messages
      */
+    @Deprecated
     public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
         this(EAP6_CONTAINER, hostname, port, messages, ackMode, transactionSession, messageBuilder);
     }
@@ -84,6 +87,7 @@ public class SimpleJMSClient extends Client {
      * @param transactionSession is session transacted
      * @param messageBuilder     messages builder used for building messages
      */
+    @Deprecated
     public SimpleJMSClient(String container, String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
         super(container);
         this.hostname = hostname;
@@ -92,6 +96,34 @@ public class SimpleJMSClient extends Client {
         this.ackMode = ackMode;
         this.transactionSession = transactionSession;
         this.messageBuilder = messageBuilder;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param container         container
+     * @param messages           count of messages to be send
+     * @param ackMode            acknowledge mode
+     * @param transactionSession is session transacted
+     * @param messageBuilder     messages builder used for building messages
+     */
+    public SimpleJMSClient(Container container, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
+        super(container);
+        this.messages = messages;
+        this.ackMode = ackMode;
+        this.transactionSession = transactionSession;
+        this.messageBuilder = messageBuilder;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param messages           count of messages to be send
+     * @param ackMode            acknowledge mode
+     * @param transactionSession is session transacted
+     */
+    public SimpleJMSClient(Container container, int messages, int ackMode, boolean transactionSession) {
+        this(container, messages, ackMode, transactionSession, new ByteMessageBuilder());
     }
 
     /**
