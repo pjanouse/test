@@ -67,6 +67,7 @@ public class CleanUp {
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "tmp"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "log"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "data"));
+                FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "deployments"));
 
                 JournalDirectory.deleteJournalDirectoryA(jbossHome);
                 JournalDirectory.deleteJournalDirectoryB(jbossHome);

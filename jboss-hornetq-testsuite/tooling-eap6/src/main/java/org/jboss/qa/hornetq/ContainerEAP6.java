@@ -367,6 +367,7 @@ public class ContainerEAP6 implements Container {
 
         } catch (Exception ex) {
             log.error("Could not deploy archive " + archive.getName(), ex);
+            throw new RuntimeException(ex);
         } finally {
             eap6AdmOps.close();
         }
@@ -390,6 +391,7 @@ public class ContainerEAP6 implements Container {
 
         } catch (Exception ex) {
             log.error("Could not undeploy archive " + archiveName, ex);
+            throw new RuntimeException(ex);
         } finally {
             eap6AdmOps.close();
         }

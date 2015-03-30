@@ -639,6 +639,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         jmsAdminContainer1 = container(1).getJmsOperations();
         jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + sourceQueue, "jms.queue." + targetQueue, -1, "bridge-connector");
+        jmsAdminContainer1.close();
+
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -651,7 +653,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         assertEquals(messages, client2.getReceivedMessages());
 
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(targetQueue));
-        jmsAdminContainer1.close();
         jmsAdminContainer2.close();
         container(1).stop();
         container(2).stop();
