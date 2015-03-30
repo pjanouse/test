@@ -625,6 +625,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", container(2).getHostname(), container(2).getHornetqPort());
         jmsAdminContainer1.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminContainer1.close();
 
         // Send messages into input node
         if (messageBuilder != null) {
@@ -633,7 +634,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         SimpleJMSClient client1 = new SimpleJMSClient(container(1), messages, Session.AUTO_ACKNOWLEDGE, false, messageBuilder);
         client1.sendMessages(sourceQueueJndiName);
-        jmsAdminContainer1.close();
 
         container(1).restart();
 

@@ -67,7 +67,11 @@ public class CleanUp {
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "tmp"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "log"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "data"));
-                FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "deployments"));
+                try {
+                    FileUtils.cleanDirectory(new File(pathToStandaloneDirectory + File.separator + "deployments"));
+                } catch (IOException e) {
+                    logger.error("Failed to cleanup deployments directory.", e);
+                }
 
                 JournalDirectory.deleteJournalDirectoryA(jbossHome);
                 JournalDirectory.deleteJournalDirectoryB(jbossHome);
