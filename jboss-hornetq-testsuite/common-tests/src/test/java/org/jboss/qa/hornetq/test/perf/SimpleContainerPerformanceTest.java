@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.perf.CounterMdb;
 import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -137,6 +138,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void normalByteMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new ByteMessageBuilder(512));
@@ -149,6 +151,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void normalTextMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new TextMessageBuilder(512));
@@ -161,6 +164,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void largeByteMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
@@ -173,6 +177,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void largeTextMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
@@ -195,6 +200,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
         jmsAdminOperations.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);
+        jmsAdminOperations.close();
         container(1).stop();
         container(1).start();
 
@@ -209,8 +215,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             connection = cf.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue inQueue = (Queue) context.lookup(IN_QUEUE_NAME);
-            Queue outQueue = (Queue) context.lookup(OUT_QUEUE_NAME);
+            Queue inQueue = (Queue) context.lookup(IN_QUEUE_JNDI_NAME);
+            Queue outQueue = (Queue) context.lookup(OUT_QUEUE_JNDI_NAME);
 
             // cleaning
             MessageConsumer consumer = session.createConsumer(outQueue);
@@ -302,9 +308,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             JMSTools.cleanupResources(context, connection, session);
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
-        jmsAdminOperations.removeQueue(IN_QUEUE_NAME);
-        jmsAdminOperations.removeQueue(OUT_QUEUE_NAME);
-        jmsAdminOperations.close();
         log.info("Stopping container for test ....");
         container(1).undeploy(MDB_DEPLOY);
         container(1).stop();
