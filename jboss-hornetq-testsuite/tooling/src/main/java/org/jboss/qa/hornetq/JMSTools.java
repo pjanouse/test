@@ -189,7 +189,7 @@ public final class JMSTools {
     public static Context getEAP7Context(String hostname, int jndiPort) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostname, jndiPort));
+        env.put(Context.PROVIDER_URL, String.format("http-remote://%s:%s", hostname, jndiPort));
         return new InitialContext(env);
     }
     /**

@@ -218,7 +218,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             assertNotNull(response);
 
             // Send messages via JMS API
-            ProducerAutoAck producerAutoAck = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI, MESSAGES);
+            ProducerAutoAck producerAutoAck = new ProducerAutoAck(container(1), QUEUE_JNDI, MESSAGES);
             producerAutoAck.setMessageBuilder(new ByteMessageBuilder(512));
             producerAutoAck.run();
 
@@ -283,7 +283,7 @@ public class BasicStompTestCase extends HornetQTestCase {
                 producers[i].join();
             }
 
-            ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI);
+            ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1), QUEUE_JNDI);
             receiverClientAck.start();
             receiverClientAck.join();
             assertEquals(MESSAGES_PER_CLIENT * CLIENTS, receiverClientAck.getCount());

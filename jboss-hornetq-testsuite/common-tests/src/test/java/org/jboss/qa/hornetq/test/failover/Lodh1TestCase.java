@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.test.failover;
 
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.FileUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -299,7 +299,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodh(boolean shutdown) throws Exception {
 
         // we use only the first server
-        prepareJmsServerEAP6(container(1));
+        prepareServer(container(1));
+
         container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -438,7 +439,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodhWithoutKill() throws Exception {
 
         // we use only the first server
-        prepareServer();
+        prepareServer(container(1));
         container(1).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -534,12 +535,12 @@ public class Lodh1TestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareServer() throws Exception {
+    public void prepareServer(Container container) throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareJmsServerEAP6(container(1));
-        } else if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER))   {
-            prepareJmsServerEAP7(container(1));
+        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareJmsServerEAP6(container);
+        } else if (container.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER))   {
+            prepareJmsServerEAP7(container);
         }
     }
 

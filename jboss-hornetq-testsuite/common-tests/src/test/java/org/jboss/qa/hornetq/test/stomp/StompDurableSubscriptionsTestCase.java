@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.stomp;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.fusesource.stomp.client.Stomp;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -22,6 +23,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Session;
 import javax.jms.Topic;
 import javax.naming.Context;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -64,8 +66,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void normalByteMessagesTest() throws InterruptedException {
-        deleteDataFolderForJBoss1();
+    public void normalByteMessagesTest() throws Exception {
         testLogic(5000, 30000, 10, 10000, 512, 1024 * 50, 1024 * 10);
     }
 
@@ -78,8 +79,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void largeByteMessagesTest() throws InterruptedException {
-        deleteDataFolderForJBoss1();
+    public void largeByteMessagesTest() throws Exception {
         testLogic(500, 5000, 10, 10000, 150 * 1024, 1024 * 50, 1024 * 10);
     }
 
@@ -136,8 +136,8 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         long startTime = System.currentTimeMillis();
         try {
             Stomp stomp = new Stomp(container(1).getHostname(), STOMP_PORT);
-            context = getContext();
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
+            context = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
 
             producer = new HighLoadStompProducerWithSemaphores("producer", TOPIC_JNDI, stomp,

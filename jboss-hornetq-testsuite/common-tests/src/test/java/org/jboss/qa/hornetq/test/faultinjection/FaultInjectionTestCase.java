@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.faultinjection;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -7,6 +8,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
@@ -20,6 +22,9 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 
@@ -51,10 +56,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     private static final String CONNECTION_FACTORY = "RemoteConnectionFactory";
     
     @Before
-    public void preActionPrepareServers()
-    {
+    public void preActionPrepareServers() throws Exception {
         container(1).stop();
-    	deleteDataFolderForJBoss1();
         container(1).start();
     }
     
@@ -62,10 +65,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Stops all servers
      */
     @After
-    public void postActionStopAllServers() 
-    {
+    public void postActionStopAllServers() throws Exception {
         container(1).stop();
-        deleteDataFolderForJBoss1();
     }
     
     /**
@@ -73,7 +74,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException if something is wrong
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     public void dummySendReceiveTest() throws InterruptedException {
@@ -120,7 +121,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @throws InterruptedException is something is wrong
      * @id commit02
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -150,7 +151,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @throws InterruptedException is something is wrong
      * @id commit03
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -180,7 +181,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id commit05
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -208,7 +209,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id commit06
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -238,7 +239,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @throws InterruptedException is something is wrong
      * @id commit12
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -267,7 +268,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @throws InterruptedException is something is wrong
      * @id commit13
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -297,7 +298,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * 
      * @id commit14 
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -326,7 +327,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id commit09
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -354,7 +355,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id commit10
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -390,7 +391,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @throws InterruptedException is something is wrong
      * @id rollback05
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -418,7 +419,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id rollback06
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -447,7 +448,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id rollback12
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -475,7 +476,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id rollback13
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -505,7 +506,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *  
      * @id rollback02
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -535,7 +536,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * 
      * @id rollback03
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -566,7 +567,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * 
      * @id rollback09
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -595,7 +596,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * 
      * @id rollback10
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -630,7 +631,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @id ack08
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
@@ -661,7 +662,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     /**
      * Server is killed after QueueImpl.acknowledge
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -691,7 +692,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * 
      * @id nonTrans02
      */
-    @Test
+    @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules(
@@ -909,13 +910,14 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
+        jmsAdminOperations.close();
 
         SimpleJMSClient client = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
             
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             client.sendMessages(TEST_QUEUE_JNDI);
 
             container(1).kill();
@@ -933,7 +935,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(TEST_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CONTAINER1_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             
             client.receiveMessages(TEST_QUEUE_JNDI);
 

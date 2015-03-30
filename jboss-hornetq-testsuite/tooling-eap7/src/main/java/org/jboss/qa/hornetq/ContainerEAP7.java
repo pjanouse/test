@@ -43,6 +43,7 @@ public class ContainerEAP7 implements Container {
     private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
     private static final int PORT_HORNETQ_DEFAULT = 9990;
     private static final int PORT_HORNETQ_DEFAULT_BACKUP = 9990;
+    private static final int JNDI_PORT_DEFAULT_EAP7 = 8080;
     private static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/RemoteConnectionFactory";
 
     private static final String EAP_VERSION_PATTERN =
@@ -89,7 +90,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getJNDIPort() {
-        return 9990 + getPortOffset();
+        return JNDI_PORT_DEFAULT_EAP7 + getPortOffset();
     }
 
 
