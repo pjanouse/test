@@ -6,7 +6,12 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
-import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
+import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
+import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -16,7 +21,6 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,7 +31,6 @@ import javax.jms.Session;
  */
 @RunWith(Arquillian.class)
 // TODO fix and run this test - consumer first node, producer 3rd node
-@Ignore
 public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedClusterFailoverTestCase.class);
