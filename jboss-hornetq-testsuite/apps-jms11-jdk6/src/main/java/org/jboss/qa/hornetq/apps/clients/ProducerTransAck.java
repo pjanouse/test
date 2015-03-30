@@ -317,8 +317,8 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP7_CONTAINER.toString(), "127.0.0.1", 8080, "jms/queue/InQueue", 2000);
-        MessageBuilder builder = new TextMessageBuilder(1024);
+        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP7_CONTAINER.toString(), "127.0.0.1", 8080, "jms/queue/InQueue", 20);
+        MessageBuilder builder = new TextMessageBuilder(14);
         producer.setMessageBuilder(builder);
         producer.setTimeout(0);
         producer.setCommitAfter(10);

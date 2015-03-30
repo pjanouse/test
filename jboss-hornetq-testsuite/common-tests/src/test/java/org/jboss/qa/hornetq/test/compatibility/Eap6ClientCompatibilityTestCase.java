@@ -20,13 +20,6 @@ public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
     private static final Logger log = Logger.getLogger(Eap6ClientCompatibilityTestCase.class);
 
-
-    @Override
-    protected int getLegacyClientJndiPort() {
-        return this.getJNDIPort();
-    }
-
-
     /**
      * Set all jms binding which will be needed for tests.
      */

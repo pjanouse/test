@@ -147,18 +147,15 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
         if (isTopic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsAutoAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsClientAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new TopicClientsTransAck(container, TOPIC_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
                 clients.setProducedMessagesCommitAfter(10);
@@ -168,18 +165,15 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsAutoAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsClientAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container.getContainerType().name(), container.getHostname(),
-                        this.getLegacyClientJndiPort(), QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
+                clients = new QueueClientsTransAck(container, QUEUE_JNDI_NAME_PREFIX, NUMBER_OF_DESTINATIONS,
                         NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION,
                         NUMBER_OF_MESSAGES_PER_PRODUCER);
                 clients.setProducedMessagesCommitAfter(10);
@@ -200,8 +194,5 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
         return clients;
     }
-
-
-    abstract protected int getLegacyClientJndiPort();
 
 }
