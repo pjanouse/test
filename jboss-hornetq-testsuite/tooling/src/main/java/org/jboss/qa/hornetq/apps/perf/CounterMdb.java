@@ -21,7 +21,7 @@ import javax.jms.*;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "InQueue")})
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "java:/jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class CounterMdb implements MessageListener {
@@ -32,10 +32,10 @@ public class CounterMdb implements MessageListener {
     @Resource(mappedName = "java:/JmsXA")
     private ConnectionFactory cf;
 
-    @Resource(mappedName = "InQueue")
+    @Resource(mappedName = "java:/jms/queue/InQueue")
     private Queue inQueue;
 
-    @Resource(mappedName = "OutQueue")
+    @Resource(mappedName = "java:/jms/queue/OutQueue")
     private Queue outQueue;
 
     @Resource

@@ -127,7 +127,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         Connection connection = null;
 
         try {
-            context = getContext(CONTAINER1_NAME);
+            context = container(1).getContext();
 
             Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
 

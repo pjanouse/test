@@ -1,17 +1,15 @@
 package org.jboss.qa.hornetq.test.perf;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.perf.CounterMdb;
 import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -21,7 +19,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.QueueBrowser;
+import javax.jms.Session;
 import javax.naming.Context;
 
 import static org.junit.Assert.fail;
@@ -53,7 +58,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
 
     // ID of the deployment
-    private static final String MDB_DEPLOY = "mdbPerformanceMDB";
+    private final JavaArchive MDB_DEPLOY = createArchiveWithPerformanceMdb();
 
     private static int MESSAGES = 100;
 
@@ -118,9 +123,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * @return archive
      * @throws Exception if something is wrong
      */
-    @Deployment(managed = false, testable = false, name = MDB_DEPLOY)
-    @TargetsContainer(CONTAINER1_NAME)
-    public static JavaArchive createArchiveWithPerformanceMdb() throws Exception {
+    public static JavaArchive createArchiveWithPerformanceMdb() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "performanceMdb.jar");
         mdbJar.addClass(CounterMdb.class);
         mdbJar.addClass(PerformanceConstants.class);
@@ -183,37 +186,41 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * @param messageBuilder implementation of {@link org.jboss.qa.hornetq.apps.MessageBuilder} used for test
      */
     private void testLogic(int messagesCount, int cyclesCount, MessageBuilder messageBuilder) {
-        final String IN_QUEUE = "InQueue";
-        final String OUT_QUEUE = "OutQueue";
-
+        final String IN_QUEUE_NAME = "InQueue";
+        final String IN_QUEUE_JNDI_NAME = "jms/queue/"+IN_QUEUE_NAME;
+        final String OUT_QUEUE_NAME = "OutQueue";
+        final String OUT_QUEUE_JNDI_NAME = "jms/queue/"+OUT_QUEUE_NAME;
+        container(1).start();
         log.info("Staring container for test ....");
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createQueue(IN_QUEUE, IN_QUEUE);
-        jmsAdminOperations.createQueue(OUT_QUEUE, OUT_QUEUE);
+        jmsAdminOperations.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
+        jmsAdminOperations.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);
+        container(1).stop();
         container(1).start();
+
 
         Context context = null;
         Connection connection = null;
         Session session = null;
         long startTime = System.currentTimeMillis();
         try {
-            context = this.getContext();
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(this.getConnectionFactoryName());
+            context = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = cf.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue inQueue = (Queue) context.lookup(IN_QUEUE);
-            Queue outQueue = (Queue) context.lookup(OUT_QUEUE);
-            
-            //cleaning
+            Queue inQueue = (Queue) context.lookup(IN_QUEUE_NAME);
+            Queue outQueue = (Queue) context.lookup(OUT_QUEUE_NAME);
+
+            // cleaning
             MessageConsumer consumer = session.createConsumer(outQueue);
             Message msg;
             int size = 0;
-            while ((msg = consumer.receive(100)) != null) 
+            while ((msg = consumer.receive(100)) != null)
                 size++;
             if (size > 0)
                 log.warn(String.format("Cleaned %s messages from output queue before test start!!!", size));
-            
+
             consumer.close();
 
             // Sends all messages into the server
@@ -231,7 +238,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             producer.close();
 
             log.info("  Deploying mdb for test ....");
-            deployer.deploy(MDB_DEPLOY);
+            container(1).deploy(MDB_DEPLOY);
             log.info("  Receiving ....");
             long waitForMessagesStart = System.currentTimeMillis();
             boolean wait = true;
@@ -242,7 +249,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
                 if (log.isDebugEnabled()) {
                     log.debug(" No messages in output queue");
                 }
-                wait =  !(browser.getEnumeration().hasMoreElements());
+                wait = !(browser.getEnumeration().hasMoreElements());
 
                 if ((System.currentTimeMillis() - waitForMessagesStart) / 1000 > MAX_WAIT_TIME) {
                     fail("Receive timeout, output queue has still no messages");
@@ -286,20 +293,20 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             log.info(String.format(" Total number of messages : %s", cnt));
             log.info(String.format(" Total duration of delivery : %s ms", sum));
             log.info(String.format(" Throughput (msg/sec) : %s ", cnt * 1000 / sum));
-            log.info(String.format(" Avg msg delivery time : %s ms",  sum / cnt));
+            log.info(String.format(" Avg msg delivery time : %s ms", sum / cnt));
             log.info("########################################################");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             fail(e.getMessage());
-        } finally {            
+        } finally {
             JMSTools.cleanupResources(context, connection, session);
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
-        jmsAdminOperations.removeQueue(IN_QUEUE);
-        jmsAdminOperations.removeQueue(OUT_QUEUE);
+        jmsAdminOperations.removeQueue(IN_QUEUE_NAME);
+        jmsAdminOperations.removeQueue(OUT_QUEUE_NAME);
         jmsAdminOperations.close();
         log.info("Stopping container for test ....");
-        deployer.undeploy(MDB_DEPLOY);
+        container(1).undeploy(MDB_DEPLOY);
         container(1).stop();
     }
 }
