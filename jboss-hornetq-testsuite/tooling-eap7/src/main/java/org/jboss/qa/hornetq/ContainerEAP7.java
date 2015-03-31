@@ -415,6 +415,11 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
+    public PrintJournal getPrintJournal() {
+        return null;
+    }
+
+    @Override
     public String getConnectionFactoryName() {
         return CONNECTION_FACTORY_JNDI_EAP7;
     }

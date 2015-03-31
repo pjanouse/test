@@ -3,10 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -757,7 +754,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.warn("Shutdown live server");
         logger.warn("########################################");
         container(1).stop();
-        PrintJournal.printJournal(container(1).getServerHome(), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+        container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                 "journalAfterShutdownAndFailoverToBackup.txt");
         logger.warn("########################################");
         logger.warn("Live server shutdowned");
@@ -779,7 +776,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
-            PrintJournal.printJournal(container(1).getServerHome(), JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+            container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                     "journalAfterStartingLiveAgain_Failback.txt");
             logger.warn("########################################");
             logger.warn("Live server started - this is failback");

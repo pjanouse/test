@@ -6,10 +6,7 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
@@ -645,8 +642,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
 
-        PrintJournal.printJournal(container(1), journalFile1);
-        PrintJournal.printJournal(container(3), journalFile3);
+        container(1).getPrintJournal().printJournal(journalFile1);
+        container(3).getPrintJournal().printJournal(journalFile3);
 
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
@@ -814,7 +811,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         prepareJmsServerEAP6(container(3));
         prepareMdbServerEAP6(container(4), container(3), inServer, outServer);
-
 
         copyApplicationPropertiesFiles();
 

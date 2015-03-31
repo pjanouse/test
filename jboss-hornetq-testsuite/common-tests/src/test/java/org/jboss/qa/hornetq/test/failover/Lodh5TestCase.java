@@ -3,10 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.HttpRequest;
-import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
@@ -259,9 +256,9 @@ public class Lodh5TestCase extends HornetQTestCase {
         for (int i = 0; i < 1; i++) {
 
             container(1).kill();
-            PrintJournal.printJournal(container(1), databaseName + "journal_content_after_kill1.txt");
+            container(1).getPrintJournal().printJournal(databaseName + "journal_content_after_kill1.txt");
             container(1).start();
-            PrintJournal.printJournal(container(2), databaseName + "journal_content_after_restart2.txt");
+            container(2).getPrintJournal().printJournal(databaseName + "journal_content_after_restart2.txt");
             Thread.sleep(10000);
 
         }
@@ -274,7 +271,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             lastValue = newValue;
             Thread.sleep(5000);
         }
-        PrintJournal.printJournal(container(1), databaseName + "journal_content_after_recovery.txt");
+        container(1).getPrintJournal().printJournal(databaseName + "journal_content_after_recovery.txt");
 
         logger.info("Print lost messages:");
         List<String> listOfSentMessages = new ArrayList<String>();

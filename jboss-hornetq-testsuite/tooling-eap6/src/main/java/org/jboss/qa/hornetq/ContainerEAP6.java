@@ -424,6 +424,11 @@ public class ContainerEAP6 implements Container {
     }
 
     @Override
+    public PrintJournal getPrintJournal() {
+        return new PrintJournalImplEAP6(this);
+    }
+
+    @Override
     public String getConnectionFactoryName() {
         return CONNECTION_FACTORY_JNDI_EAP6;
     }

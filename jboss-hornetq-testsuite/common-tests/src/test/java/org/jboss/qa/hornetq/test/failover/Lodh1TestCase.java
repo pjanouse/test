@@ -6,10 +6,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.PrintJournal;
+import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.annotations.TestPlan;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -36,7 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -357,7 +353,9 @@ public class Lodh1TestCase extends HornetQTestCase {
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
 
         // this create file in $WORKSPACE or working direcotry - depends whether it's defined
-        PrintJournal.printJournal(container(1), journalFile1);
+        PrintJournal printJournal = container(1).getPrintJournal();
+        printJournal.printJournal(journalFile1);
+
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
 

@@ -74,4 +74,5 @@ public interface Container {
     void update(ContainerController controller, Deployer deployer);
 
     ContainerDef getContainerDefinition();
+    PrintJournal getPrintJournal();
 }
