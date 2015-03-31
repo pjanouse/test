@@ -142,8 +142,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         } else {
             // install rule to first server
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
-//            killServer(CONTAINER1_NAME_NAME);
-            container(1).kill();
+            container(1).waitForKill();
         }
 
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
@@ -485,7 +484,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         JMSOperations jmsAdminOperationsC1 = container(1).getJmsOperations();
 
-        JMSOperations jmsAdminOperationsC2 = container(1).getJmsOperations();
+        JMSOperations jmsAdminOperationsC2 = container(2).getJmsOperations();
 
         jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
 

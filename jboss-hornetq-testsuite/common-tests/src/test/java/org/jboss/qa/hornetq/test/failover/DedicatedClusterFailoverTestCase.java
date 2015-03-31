@@ -21,6 +21,7 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +32,7 @@ import javax.jms.Session;
  */
 @RunWith(Arquillian.class)
 // TODO fix and run this test - consumer first node, producer 3rd node
+@Ignore
 public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedClusterFailoverTestCase.class);
@@ -332,7 +334,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
         }
-
+        jmsAdminOperations.close();
         container.stop();
     }
 
