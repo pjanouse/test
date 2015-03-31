@@ -74,10 +74,10 @@ public class Client extends Thread implements HornetQTestCaseConstants {
             logger.debug("Create EAP 5 InitialContext.");
             context = JMSTools.getEAP5Context(hostname, port);
         } else if (currentContainer.equals(EAP6_CONTAINER) || currentContainer.equals(EAP6_DOMAIN_CONTAINER)) {
-            logger.debug("Create EAP 6 InitialContext.");
+            logger.info("Create EAP 6 InitialContext.");
             context = JMSTools.getEAP6Context(hostname, port);
         } else {
-            logger.debug("Create EAP 7 InitialContext.");
+            logger.info("Create EAP 7 InitialContext.");
             context = JMSTools.getEAP7Context(hostname, port);
         }
 

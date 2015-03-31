@@ -91,7 +91,7 @@ public class ProducerTransAck extends Client {
 
             context = getContext(hostname, port);
 
-            ConnectionFactory cf = (ConnectionFactory) context.lookup( getConnectionFactoryJndiName());
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
             Queue queue = (Queue) context.lookup(queueNameJndi);
 

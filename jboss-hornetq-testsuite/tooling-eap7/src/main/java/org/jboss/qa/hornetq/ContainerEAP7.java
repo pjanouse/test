@@ -63,7 +63,6 @@ public class ContainerEAP7 implements Container {
 
         this.containerIndex = containerIndex;
         this.containerController = containerController;
-        this.deployer = deployer;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
     }
 
@@ -77,7 +76,6 @@ public class ContainerEAP7 implements Container {
     @Override
     public String getServerHome() {
         // TODO: verifyJbossHome?
-        // TODO: env property instead of container property?
         return containerDef.getContainerProperties().get("jbossHome");
     }
 

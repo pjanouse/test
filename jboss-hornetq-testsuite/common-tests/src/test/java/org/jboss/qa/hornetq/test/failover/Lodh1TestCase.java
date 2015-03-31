@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.failover;
 
-
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -37,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +44,9 @@ import java.util.List;
  * @author mnovak@redhat.com
  * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
  * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
+ * @tpJobLink 
+ *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
+ *            /
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @TestPlan
@@ -59,7 +61,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     private final Archive mdb1Archive = createLodh1Deployment();
 
-    // queue to send messages in 
+    // queue to send messages in
     static String inQueueName = "InQueue";
     static String inQueue = "jms/queue/" + inQueueName;
 
@@ -121,12 +123,12 @@ public class Lodh1TestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh1")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -142,75 +144,38 @@ public class Lodh1TestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml(deploymentName)), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
 
+    /**
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy 21 MDBs which reads messages
+     *             from InQueue and sends them to OutQueue in XA transaction. MDB is using limited connection pool and for sending of
+     *             messages it's using different users to create managed connection.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which sends messages to InQueue</li>
+     *              <li>deploy 21 MDBs which reads messages from InQueue and sends to OutQueue (connection pool limited to 10, and uses different user for creating connection)</li>
+     *              <li>receive messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLimitedPoolSize() throws Exception {
-        prepareJmsServerEAP6(container(1));
+
+        prepareServer(container(1), true);
+
         container(1).start();
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-
-        jmsAdminOperations.setSecurityEnabled(true);
-        jmsAdminOperations.setAuthenticationForNullUsers(true);
-
-        // set security persmissions for roles admin,users - user is already there
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
-
-        jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
-        jmsAdminOperations.addRoleToSecuritySettings("#", "users");
-
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
-
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
-
-        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
-                + "configuration" + File.separator + "application-users.properties");
-        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
-
-        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone" + File.separator
-                + "configuration" + File.separator + "application-roles.properties");
-        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
-
-//        stopServer(CONTAINER1_NAME_NAME);
-//
-//        controller.start(CONTAINER1_NAME_NAME);
-        String connectionFactoryName = "hornetq-ra";
-        jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
-        jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
-        jmsAdminOperations.close();
-
-        container(1).restart();
 
         logger.info("Deploy MDBs.");
         for (int j = 1; j < 22; j++) {
@@ -236,10 +201,8 @@ public class Lodh1TestCase extends HornetQTestCase {
         logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
-
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(),
-                receiver1.getListOfReceivedMessages().size());
+        Assert.assertEquals("There is different number of sent and received messages.", producer1.getListOfSentMessages()
+                .size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
         logger.info("Undeploy MDBs.");
@@ -249,18 +212,19 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(1).stop();
     }
 
-
     /**
      * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     * from InQueue and sends them to OutQueue in XA transaction. Kill the server when MDB is processing messages and restart it. Read messages from OutQueue
+     *             from InQueue and sends them to OutQueue in XA transaction. Kill the server when MDB is processing messages
+     *             and restart it. Read messages from OutQueue
      * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul><li>start first server with deployed InQueue and OutQueue</li>
-     * <li>start producer which sends messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     * <li>during processing messages kill/shutdown the server</li>
-     * <li>restart the server</li>
-     * <li>receive messages from OutQueue</li>
-     * </ul>
+     * @tpProcedure <ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which sends messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *              <li>during processing messages kill/shutdown the server</li>
+     *              <li>restart the server</li>
+     *              <li>receive messages from OutQueue</li>
+     *              </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -273,15 +237,17 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     * from InQueue and sends them to OutQueue in XA transaction. Shutdown the server when MDB is processing messages and restart it. Read messages from OutQueue
+     *             from InQueue and sends them to OutQueue in XA transaction. Shutdown the server when MDB is processing
+     *             messages and restart it. Read messages from OutQueue
      * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul><li>start first server with deployed InQueue and OutQueue</li>
-     * <li>start producer which sends messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     * <li>during processing messages kill/shutdown the server</li>
-     * <li>restart the server</li>
-     * <li>receive messages from OutQueue</li>
-     * </ul>
+     * @tpProcedure <ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which sends messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *              <li>during processing messages kill/shutdown the server</li>
+     *              <li>restart the server</li>
+     *              <li>receive messages from OutQueue</li>
+     *              </ul>
      * @tpPassCrit receiver consumes all messages
      * @throws Exception
      */
@@ -317,7 +283,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         for (int i = 0; i < 2; i++) { // for (int i = 0; i < 5; i++) {
             killSequence.add(container(1));
         }
-               
+
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
@@ -339,26 +305,25 @@ public class Lodh1TestCase extends HornetQTestCase {
         messageVerifier.verifyMessages();
 
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
-        Assert.assertEquals("There is different number of sent and received messages. Received: " + receiver1.getListOfReceivedMessages().size()
-                + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()  + ".", producerToInQueue1.getListOfSentMessages().size(),
-                receiver1.getListOfReceivedMessages().size());
+        Assert.assertEquals("There is different number of sent and received messages. Received: "
+                + receiver1.getListOfReceivedMessages().size() + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()
+                + ".", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).undeploy(mdb1Archive);
         container(1).stop();
     }
 
-
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
-     * messages from InQueue and cleanly shut-down the server. Check there are no unfinished transactions.
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
+     *             from InQueue and cleanly shut-down the server. Check there are no unfinished transactions.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start first server with deployed InQueue and OutQueue</li>
-     * <li>start producer which sends messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     * <li>cleanly shutdown server</li>
-     * <li>check there are no unfinished HQ or Arjuna transactions</li>
-     * </ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which sends messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *              <li>cleanly shutdown server</li>
+     *              <li>check there are no unfinished HQ or Arjuna transactions</li>
+     *              </ul>
      * @tpPassCrit no unfinished HQ or Arjuna transactionsCheck there are no unfinished transactions
      */
     @Test
@@ -369,8 +334,8 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareJmsServerEAP6(container(1));
-        prepareJmsServerEAP6(container(2));
+        prepareServer(container(1));
+        prepareServer(container(2));
 
         // cluster A
         container(1).start();
@@ -396,40 +361,47 @@ public class Lodh1TestCase extends HornetQTestCase {
         // check that there are failed transactions
         String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
 
-        String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
-        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils().checkThatFileContainsUnfinishedTransactionsString(
-                new File(workingDirectory, journalFile1), stringToFind));
+        String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System
+                .getenv("WORKSPACE");
+        Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils()
+                .checkThatFileContainsUnfinishedTransactionsString(new File(workingDirectory, journalFile1), stringToFind));
 
         // copy tx-objectStore to container 2 and check there are no unfinished arjuna transactions
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "tx-object-store"),
-                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "tx-object-store"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingbindings"),
-                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingbindings"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingjournal"),
-                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingjournal"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"),
-                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messaginglargemessages"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingpaging"),
-                new File(container(2).getServerHome(), "standalone" + File.separator + "data" + File.separator + "messagingpaging/"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+                + "tx-object-store"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+                + File.separator + "tx-object-store"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+                + "messagingbindings"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+                + File.separator + "messagingbindings"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+                + "messagingjournal"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+                + File.separator + "messagingjournal"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+                + "messaginglargemessages"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+                + File.separator + "messaginglargemessages"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+                + "messagingpaging"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+                + File.separator + "messagingpaging/"));
 
         container(2).start();
-        Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.", checkUnfinishedArjunaTransactions(
-                container(2)));
-        Assert.assertTrue("There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
+        Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.",
+                checkUnfinishedArjunaTransactions(container(2)));
+        Assert.assertTrue(
+                "There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
                 new JMSTools().waitForMessages(inQueueName, 1, 5000, container(2)));
         container(2).stop();
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
-     * messages from InQueue and sends them to OutQueue in XA transaction. Read messages from OutQueue
+     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
+     *             from InQueue and sends them to OutQueue in XA transaction. Read messages from OutQueue
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start first server with deployed InQueue and OutQueue</li>
-     * <li>start producer which sends messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     * <li>receive messages from OutQueue</li>
-     * </ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which sends messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     *              <li>receive messages from OutQueue</li>
+     *              </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -438,11 +410,13 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testLodhWithoutKill() throws Exception {
 
+        int numberOfMessages = 100;
+
         // we use only the first server
         prepareServer(container(1));
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -452,9 +426,13 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         container(1).deploy(mdb1Archive);
 
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1));
+
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 300000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -472,14 +450,14 @@ public class Lodh1TestCase extends HornetQTestCase {
     /**
      * Executes kill sequence.
      *
-     * @param failSequence     map Contanier -> ContainerIP
+     * @param failSequence map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
     private void executeNodeFaillSequence(List<Container> failSequence, long timeBetweenFails, boolean shutdown)
             throws InterruptedException {
 
         if (shutdown) {
-            for (Container container: failSequence) {
+            for (Container container : failSequence) {
                 Thread.sleep(timeBetweenFails);
 
                 printQueuesCount();
@@ -520,8 +498,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * Be sure that both of the servers are stopped before and after the test.
-     * Delete also the journal directory.
+     * Be sure that both of the servers are stopped before and after the test. Delete also the journal directory.
      */
     @Before
     @After
@@ -536,15 +513,10 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareServer(Container container) throws Exception {
-
-        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareJmsServerEAP6(container);
-        } else if (container.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER))   {
-            prepareJmsServerEAP7(container);
-        }
+        prepareServer(container, false);
     }
 
-    private void prepareJmsServerEAP7(Container container) {
+    public void prepareServer(Container container, boolean isWithSecurityAndLimitedPoolSize) throws Exception {
 
         container.start();
 
@@ -572,50 +544,63 @@ public class Lodh1TestCase extends HornetQTestCase {
             // Ignore it
         }
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+
+        if (isWithSecurityAndLimitedPoolSize) {
+
+            jmsAdminOperations.setSecurityEnabled(true);
+            jmsAdminOperations.setAuthenticationForNullUsers(true);
+
+            // set security persmissions for roles admin,users - user is already there
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+            jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
+            jmsAdminOperations.addRoleToSecuritySettings("#", "users");
+
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
+
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
+            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
+
+            File applicationUsersModified = new File(
+                    "src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+            File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                    + File.separator + "configuration" + File.separator + "application-users.properties");
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+
+            File applicationRolesModified = new File(
+                    "src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+            File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                    + File.separator + "configuration" + File.separator + "application-roles.properties");
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+
+            // stopServer(CONTAINER1_NAME_NAME);
+            //
+            // controller.start(CONTAINER1_NAME_NAME);
+            String connectionFactoryName = "hornetq-ra";
+            jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
+            jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
+
+        }
         jmsAdminOperations.close();
 
         container.stop();
-    }
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container Container used in the test
-     */
-    private void prepareJmsServerEAP6(Container container) {
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setClustered(false);
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-        jmsAdminOperations.removeClusteringGroup("my-cluster");
-        jmsAdminOperations.removeBroadcastGroup("bg-group1");
-        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);
-
-        try {
-            jmsAdminOperations.removeQueue(inQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-
-        try {
-            jmsAdminOperations.removeQueue(outQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-        jmsAdminOperations.close();
-
-        container.stop();
-
     }
 
     @Deployment(managed = false, testable = false, name = "mdb2")
@@ -631,12 +616,12 @@ public class Lodh1TestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh2")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -654,12 +639,12 @@ public class Lodh1TestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh3")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -674,16 +659,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh4")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -698,16 +682,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh6")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -722,16 +705,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh7")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -746,16 +728,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh8")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -770,16 +751,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh9")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -794,16 +774,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh10")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -818,16 +797,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh5")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -842,16 +820,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh13")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -866,16 +843,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh14")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -890,16 +866,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh15")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -914,16 +889,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh16")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -938,16 +912,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh17")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -962,16 +935,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh18")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -986,16 +958,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh19")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -1010,16 +981,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh20")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -1034,16 +1004,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh21")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -1058,16 +1027,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh0")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -1082,19 +1050,17 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
-
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh11")), "jboss-ejb3.xml");
 
         logger.info(mdbJar.toString(true));
-//          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
-
 
 }

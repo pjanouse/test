@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.junit.rules;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
@@ -94,62 +95,9 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                     log.info("Copying log directory " + serverLogDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
 
-                    copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
+                    FileUtils.copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
                 }
             }
-        }
-    }
-
-    /**
-     * Copies file from one place to another.
-     *
-     * @param sourceFile source file
-     * @param destFile   destination file - file will be rewritten
-     * @throws java.io.IOException
-     */
-    public void copyFile(File sourceFile, File destFile) throws IOException {
-        if (!destFile.exists()) {
-            destFile.createNewFile();
-        }
-
-        FileChannel source = null;
-        FileChannel destination = null;
-
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-        }
-    }
-
-    /**
-     * Copies one directory to another.
-     *
-     * @param srcDir source directory
-     * @param dstDir destination directory
-     * @throws IOException
-     */
-    public void copyDirectory(File srcDir, File dstDir) throws IOException {
-        if (srcDir.isDirectory()) {
-            if (!dstDir.exists()) {
-                dstDir.mkdir();
-            }
-
-            String[] children = srcDir.list();
-            for (String aChildren : children) {
-                copyDirectory(new File(srcDir, aChildren),
-                        new File(dstDir, aChildren));
-            }
-        } else {
-            // This method is implemented in Copying a File
-            copyFile(srcDir, dstDir);
         }
     }
 

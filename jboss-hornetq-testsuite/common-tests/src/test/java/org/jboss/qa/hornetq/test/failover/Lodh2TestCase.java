@@ -23,7 +23,6 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -89,7 +88,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
@@ -107,7 +105,6 @@ public class Lodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -116,7 +113,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesMappedName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
@@ -133,7 +129,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithPropertiesName + ".jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
@@ -149,7 +144,6 @@ public class Lodh2TestCase extends HornetQTestCase {
     public Archive getDeploymentWithFilter1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
@@ -159,7 +153,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -168,7 +161,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -816,11 +808,12 @@ public class Lodh2TestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopology(Container inServer, Container outServer) throws Exception {
 
-        prepareJmsServer(container(1));
-        prepareMdbServer(container(2), container(1), inServer, outServer);
 
-        prepareJmsServer(container(3));
-        prepareMdbServer(container(4), container(3), inServer, outServer);
+        prepareJmsServerEAP6(container(1));
+        prepareMdbServerEAP6(container(2), container(1), inServer, outServer);
+
+        prepareJmsServerEAP6(container(3));
+        prepareMdbServerEAP6(container(4), container(3), inServer, outServer);
 
 
         copyApplicationPropertiesFiles();
@@ -840,7 +833,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(Container container) {
+    private void prepareJmsServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -889,7 +882,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(Container container, Container jmsServer, Container inServer, Container outServer) {
+    private void prepareMdbServerEAP6(Container container, Container jmsServer, Container inServer, Container outServer) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
