@@ -120,7 +120,7 @@ public class ContainerEAP7 implements Container {
     @Override
     public int getBytemanPort() {
 
-        return Constants.BYTEMAN_PORT + getPortOffset();
+        return Constants.DEFAULT_BYTEMAN_PORT + getPortOffset();
 
     }
 
