@@ -58,7 +58,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
 
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        processBuilder.addClasspathEntry(journalToolClassPath(container.getServerHome()));
+        processBuilder.addClasspathEntry(journalToolClassPath(container));
 
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
@@ -129,7 +129,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
         //processBuilder.mergeErrorStreamWithOutput(false);
-        processBuilder.addClasspathEntry(journalToolClassPath(container.getServerHome()));
+        processBuilder.addClasspathEntry(journalToolClassPath(container));
 
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
@@ -168,17 +168,17 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
     }
 
 
-    private static String journalToolClassPath(final String jbossHome) throws IOException {
-        String classpath = getModuleJarsClasspath(jbossHome, HORNETQ_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(jbossHome, NETTY_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(jbossHome, LOGGING_MODULE_PATH);
+    private static String journalToolClassPath(Container container) throws IOException {
+        String classpath = getModuleJarsClasspath(container, HORNETQ_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(container, NETTY_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(container, LOGGING_MODULE_PATH);
         LOG.info("Setting up classpath for the export tool: " + classpath);
         return classpath;
     }
 
 
-    private static String getModuleJarsClasspath(final String jbossHome, final String modulePath) throws IOException {
-        return ServerPathUtils.getModuleDirectory(jbossHome, modulePath).getAbsolutePath() + File.separator + "*";
+    private static String getModuleJarsClasspath(Container container, final String modulePath) throws IOException {
+        return ServerPathUtils.getModuleDirectory(container, modulePath).getAbsolutePath() + File.separator + "*";
     }
 
 
