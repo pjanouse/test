@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
+import com.sun.javafx.UnmodifiableArrayList;
 import org.apache.log4j.Logger;
 
 import org.hornetq.utils.json.JSONArray;
@@ -634,10 +635,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connectors");
-//        ModelNode modelnew = createModelNode();
-//        modelnew.get(connectorName).clear();
-//        model.get("value").set(modelnew);
-        model.get("value").set(connectorName);
+        ModelNode modelnew = createModelNode();
+        modelnew.set(connectorName);
+        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] {modelnew}, 1);
+        model.get("value").set(connectors);
 
         System.out.println(model.toString());
 
@@ -4858,13 +4859,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
-            jmsAdminOperations.setPersistenceEnabled(true);
-            jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-            jmsAdminOperations.removeClusteringGroup("my-cluster");
-            jmsAdminOperations.removeBroadcastGroup("bg-group1");
-            jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-            jmsAdminOperations.setNodeIdentifier(1234567);
+//            jmsAdminOperations.setPersistenceEnabled(true);
+//            jmsAdminOperations.removeAddressSettings("#");
+//            jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+//            jmsAdminOperations.removeClusteringGroup("my-cluster");
+//            jmsAdminOperations.removeBroadcastGroup("bg-group1");
+//            jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+//            jmsAdminOperations.setNodeIdentifier(1234567);
 
             // Map<String, String> params = new HashMap<String, String>();
             // params.put("java.naming.provider.url", "jnp://localhost:5599");
@@ -4884,7 +4885,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-            // jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", "http-connector");
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
             // jmsAdminOperations.reload();
