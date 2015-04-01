@@ -21,7 +21,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
 
-
 /**
  * Basic administration operations for JMS subsystem
  * <p/>
@@ -65,19 +64,21 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     }
 
-
     /**
      * Constructor
      */
     public void connect() {
         try {
 
-//            final ThreadGroup group = new ThreadGroup("management-client-thread");
-//            final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " + executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
-//            ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
-//
-//            ClientConfigurationImpl clientConfiguration = new ClientConfigurationImpl();
-//            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port, null, null, timeout));
+            // final ThreadGroup group = new ThreadGroup("management-client-thread");
+            // final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " +
+            // executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
+            // ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new
+            // LinkedBlockingQueue<Runnable>(), threadFactory);
+            //
+            // ClientConfigurationImpl clientConfiguration = new ClientConfigurationImpl();
+            // this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port,
+            // null, null, timeout));
 
             InetAddress inetAddress = InetAddress.getByName(hostname);
             this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
@@ -112,7 +113,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     @Override
     public void createQueue(String queueName, String jndiName) {
@@ -123,8 +124,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates queue
      *
      * @param queueName queue name
-     * @param jndiName  JNDI queue name
-     * @param durable   is queue durable
+     * @param jndiName JNDI queue name
+     * @param durable is queue durable
      */
     @Override
     public void createQueue(String queueName, String jndiName, boolean durable) {
@@ -135,9 +136,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates queue
      *
      * @param serverName name of the hornetq server
-     * @param queueName  queue name
-     * @param jndiName   JNDI queue name
-     * @param durable    is queue durable
+     * @param queueName queue name
+     * @param jndiName JNDI queue name
+     * @param durable is queue durable
      */
     @Override
     public void createQueue(String serverName, String queueName, String jndiName, boolean durable) {
@@ -148,7 +149,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates topic
      *
      * @param topicName queue name
-     * @param jndiName  JNDI queue name
+     * @param jndiName JNDI queue name
      */
     @Override
     public void createTopic(String topicName, String jndiName) {
@@ -159,8 +160,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates topic
      *
      * @param serverName
-     * @param topicName  queue name
-     * @param jndiName   JNDI queue name
+     * @param topicName queue name
+     * @param jndiName JNDI queue name
      */
     @Override
     public void createTopic(String serverName, String topicName, String jndiName) {
@@ -177,7 +178,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         removeJmsDestination(DESTINATION_TYPE_QUEUE, queueName);
     }
 
-
     /**
      * Removes topic
      *
@@ -192,7 +192,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     @Override
     public void addQueueJNDIName(String queueName, String jndiName) {
@@ -203,7 +203,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     @Override
     public void addTopicJNDIName(String queueName, String jndiName) {
@@ -214,7 +214,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds JNDI name for queue
      *
      * @param queueName queue name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     @Override
     public void removeQueueJNDIName(String queueName, String jndiName) {
@@ -225,7 +225,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds JNDI name for queue
      *
      * @param topicName topic name
-     * @param jndiName  new JNDI name for the queue
+     * @param jndiName new JNDI name for the queue
      */
     @Override
     public void removeTpicJNDIName(String topicName, String jndiName) {
@@ -272,7 +272,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         final ModelNode countMessages = createModelNode();
         countMessages.get(ClientConstants.OP).set("count-messages");
         countMessages.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        countMessages.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        countMessages.get(ClientConstants.OP_ADDR)
+                .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         countMessages.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         ModelNode modelNode;
         try {
@@ -295,7 +296,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         final ModelNode removeMessagesFromQueue = createModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-messages");
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         ModelNode modelNode;
         try {
@@ -319,7 +321,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets password for cluster user.
      *
-     * @param password   password
+     * @param password password
      * @param serverName name of the hornetq server
      */
     @Override
@@ -333,7 +335,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            //throw new RuntimeException(e);
+            // throw new RuntimeException(e);
             logger.error("Set cluster password can't be set. Remove this log when it's fixed.", e);
         }
     }
@@ -404,7 +406,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds security attribute on HornetQ
      *
      * @param serverName set name of the hornetq server <<<<<<< HEAD
-     * @param value      set to false to disable security for hornetq =======
+     * @param value set to false to disable security for hornetq =======
      */
     @Override
     public void addSecurityEnabled(String serverName, boolean value) {
@@ -453,13 +455,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions) {
         rewriteLoginModule("other", "classic", loginModule, moduleOptions);
     }
 
-
-    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions) {
+    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule,
+            HashMap<String, String> moduleOptions) {
         final ModelNode loginModuleRemove = createModelNode();
         loginModuleRemove.get(ClientConstants.OP).set("write-attribute");
         loginModuleRemove.get(ClientConstants.OP_ADDR).add("subsystem", "security");
@@ -472,7 +473,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         for (Map.Entry<String, String> entry : moduleOptions.entrySet()) {
             list.add(new ModelNode().setExpression(entry.getKey(), entry.getValue()));
         }
-        //loginModuleRemove.get("value").set(new ModelNode().setExpression("password-stacking","useFirstPass"));
+        // loginModuleRemove.get("value").set(new ModelNode().setExpression("password-stacking","useFirstPass"));
         loginModuleRemove.get("value").set(list);
         try {
             this.applyUpdate(loginModuleRemove);
@@ -480,7 +481,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-
 
     /**
      * Adds extension.
@@ -506,12 +506,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username, String password) {
+    public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username,
+            String password) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, int reconnectAttempts, String connectorClassName) {
+    public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha,
+            int reconnectAttempts, String connectorClassName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -526,14 +528,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode undefineConnector = createModelNode();
         undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
         undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         undefineConnector.get("name").set("connector");
 
         ModelNode setDiscoveryGroup = createModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
         setDiscoveryGroup.get("name").set("discovery-group-name");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
@@ -566,20 +570,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     @Override
-    public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts, String connectorClassName) {
+    public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts,
+            String connectorClassName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     /**
      * Sets permission privileges to a given role.
      *
-     * @param address    address of the queue like '#' (for all queues)
-     * @param role       role of the user like 'guest'
+     * @param address address of the queue like '#' (for all queues)
+     * @param role role of the user like 'guest'
      * @param permission possible values
-     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
-     * @param value      true for enable permission
+     *        {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value true for enable permission
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String address, String role, String permission, boolean value) {
@@ -590,14 +594,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets permission privileges to a given role.
      *
      * @param serverName server name
-     * @param address    address of the queue like '#' (for all queues)
-     * @param role       role of the user like 'guest'
+     * @param address address of the queue like '#' (for all queues)
+     * @param role role of the user like 'guest'
      * @param permission possible values
-     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
-     * @param value      true for enable permission
+     *        {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value true for enable permission
      */
     @Override
-    public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission, boolean value) {
+    public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission,
+            boolean value) {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -617,9 +622,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets connector on pooled connection factory
      *
-     * @param connectionFactoryName name of the pooled connection factory like
-     *                              "hornetq-ra"
-     * @param connectorName         name of the connector like "remote-connector"
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param connectorName name of the connector like "remote-connector"
      */
     @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, String connectorName) {
@@ -629,10 +633,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
-        model.get("name").set("connector");
-        ModelNode modelnew = createModelNode();
-        modelnew.get(connectorName).clear();
-        model.get("value").set(modelnew);
+        model.get("name").set("connectors");
+//        ModelNode modelnew = createModelNode();
+//        modelnew.get(connectorName).clear();
+//        model.get("value").set(modelnew);
+        model.get("value").set(connectorName);
 
         System.out.println(model.toString());
 
@@ -644,11 +649,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Sets connector on pooled connection factory transaction=xa,
-     * entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
+     * Sets connector on pooled connection factory transaction=xa, entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
      *
      * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
-     * @param connectorName         name of the connector like "remote-connector"
+     * @param connectorName name of the connector like "remote-connector"
      */
     @Override
     public void createPooledConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
@@ -680,8 +684,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates connection factory.
      *
      * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
-     * @param jndiName              jndi name of connection factory
-     * @param connectorName         name of the connector like "remote-connector"
+     * @param jndiName jndi name of connection factory
+     * @param connectorName name of the connector like "remote-connector"
      */
     @Override
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
@@ -693,7 +697,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         model.get("entries").add(jndiName);
 
-//        model.get("name").set("connector");
+        // model.get("name").set("connector");
         ModelNode modelnew = createModelNode();
         modelnew.get(connectorName).clear();
         model.get("connector").set(modelnew);
@@ -732,8 +736,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets connector on pooled connection factory
      *
-     * @param connectionFactoryName name of the pooled connection factory like
-     *                              "hornetq-ra"
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
      * @param connectorNames
      */
     @Override
@@ -769,7 +772,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds role to security settings.
      *
      * @param address address of the queue like '#' (for all queues)
-     * @param role    role of the user like 'guest'
+     * @param role role of the user like 'guest'
      */
     @Override
     public void addRoleToSecuritySettings(String address, String role) {
@@ -832,13 +835,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name
+     * @param jndiName JNDI name
      */
     private void addDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = createModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("add-jndi");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         addJmsJNDIName.get("jndi-binding").set(jndiName);
         try {
@@ -848,19 +852,19 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     /**
      * Add JNDI name
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name
+     * @param jndiName JNDI name
      */
     private void removeDestinationJNDIName(String destinationType, String destinationName, String jndiName) {
         final ModelNode addJmsJNDIName = new ModelNode();
         addJmsJNDIName.get(ClientConstants.OP).set("remove-jndi");
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        addJmsJNDIName.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         addJmsJNDIName.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         addJmsJNDIName.get("jndi-binding").set(jndiName);
         try {
@@ -875,10 +879,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      *
      * @param destinationType type of destination (queue, topic)
      * @param destinationName destination name
-     * @param jndiName        JNDI name for destination
-     * @param durable         Is durable destination
+     * @param jndiName JNDI name for destination
+     * @param durable Is durable destination
      */
-    private void createJmsDestination(String serverName, String destinationType, String destinationName, String jndiName, boolean durable) {
+    private void createJmsDestination(String serverName, String destinationType, String destinationName, String jndiName,
+            boolean durable) {
+
+        try {
+            removeJmsDestination(destinationType, destinationName);
+        } catch (Exception ex)  {
+            // ignore
+        }
+
         String externalSuffix = (jndiName.startsWith("/")) ? "" : "/";
         ModelNode createJmsQueueOperation = createModelNode();
         createJmsQueueOperation.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -916,7 +928,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         final ModelNode removeJmsQueue = createModelNode();
         removeJmsQueue.get(ClientConstants.OP).set("remove");
         removeJmsQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        removeJmsQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        removeJmsQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeJmsQueue.get(ClientConstants.OP_ADDR).add(destinationType, destinationName);
         try {
             this.applyUpdate(removeJmsQueue);
@@ -930,7 +943,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      *
      * @param update instance of the update
      * @return instance of ModelNode
-     * @throws IOException                if something goes wrong
+     * @throws IOException if something goes wrong
      * @throws JMSAdminOperationException if something goes wrong
      * @see {@link ModelNode}
      */
@@ -952,8 +965,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates initial model node for the operation.
      * <p/>
-     * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation
-     * address will be populated with path composed of prefix entries (in the order they were added).
+     * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
+     * populated with path composed of prefix entries (in the order they were added).
      *
      * @return created model node instance
      */
@@ -984,8 +997,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
-                          String filter, String routingName, String transformerClassName) {
-        addDivert(NAME_OF_MESSAGING_DEFAULT_SERVER, divertName, divertAddress, forwardingAddress, isExclusive, filter, routingName, transformerClassName);
+            String filter, String routingName, String transformerClassName) {
+        addDivert(NAME_OF_MESSAGING_DEFAULT_SERVER, divertName, divertAddress, forwardingAddress, isExclusive, filter,
+                routingName, transformerClassName);
     }
 
     /**
@@ -995,8 +1009,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @param divertName
      */
     @Override
-    public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
-                          String filter, String routingName, String transformerClassName) {
+    public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress,
+            boolean isExclusive, String filter, String routingName, String transformerClassName) {
         final ModelNode addDivert = new ModelNode();
         addDivert.get(ClientConstants.OP).set(ClientConstants.ADD);
         addDivert.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -1025,7 +1039,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
     @Override
@@ -1057,7 +1071,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets id-cache-size attribute in servers configuration.
      *
-     * @param serverName  sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param numberOfIds - number of ids to remember
      */
     @Override
@@ -1088,7 +1102,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds persistence-enabled attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param persistenceEnabled - true for persist messages
      */
     @Override
@@ -1120,7 +1134,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets clustered attribute.
      *
      * @param serverName sets name of the hornetq server to be changed
-     * @param clustered  set true to allow server to create cluster
+     * @param clustered set true to allow server to create cluster
      */
     @Override
     public void setClustered(String serverName, boolean clustered) {
@@ -1151,7 +1165,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds clustered attribute.
      *
      * @param serverName sets name of the hornetq server to be changed
-     * @param clustered  set true to allow server to create cluster
+     * @param clustered set true to allow server to create cluster
      */
     @Override
     public void addClustered(String serverName, boolean clustered) {
@@ -1169,8 +1183,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Set this to true if this server shares journal with other server (with
-     * live of backup)
+     * Set this to true if this server shares journal with other server (with live of backup)
      *
      * @param sharedStore share journal
      */
@@ -1180,11 +1193,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Set this to true if this server shares journal with other server (with
-     * live of backup)
+     * Set this to true if this server shares journal with other server (with live of backup)
      *
      * @param sharedStore share journal
-     * @param serverName  hornetq server name
+     * @param serverName hornetq server name
      */
     @Override
     public void setSharedStore(String serverName, boolean sharedStore) {
@@ -1216,7 +1228,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds attribute for sharing journal.
      *
      * @param sharedStore shared journal
-     * @param serverName  hornetq server name
+     * @param serverName hornetq server name
      */
     @Override
     public void addSharedStore(String serverName, boolean sharedStore) {
@@ -1247,7 +1259,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Allow jms org.jboss.qa.hornetq.apps.clients to reconnect from backup to live when live comes alive.
      *
      * @param allowFailback
-     * @param serverName    name of the hornetq server
+     * @param serverName name of the hornetq server
      */
     @Override
     public void setAllowFailback(String serverName, boolean allowFailback) {
@@ -1278,7 +1290,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Can be "NIO" or "AIO"
      *
-     * @param serverName  set name of hornetq server
+     * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
     @Override
@@ -1310,7 +1322,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds journal-type attribute.
      *
-     * @param serverName  set name of hornetq server
+     * @param serverName set name of hornetq server
      * @param journalType can be "NIO" or "AIO"
      */
     @Override
@@ -1342,7 +1354,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * The directory to store the journal files in.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     @Override
     public void setJournalDirectory(String serverName, String path) {
@@ -1376,7 +1388,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * The directory to store paged messages in.
      *
      * @param serverName set name of the server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     @Override
     public void setPagingDirectory(String serverName, String path) {
@@ -1410,7 +1422,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * The directory in which to store large messages.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     @Override
     public void setLargeMessagesDirectory(String serverName, String path) {
@@ -1445,7 +1457,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * The directory in which to store the persisted bindings.
      *
      * @param serverName set name of hornetq server
-     * @param path       set absolute path
+     * @param path set absolute path
      */
     @Override
     public void setBindingsDirectory(String serverName, String path) {
@@ -1513,9 +1525,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @param transactionIsolation
      */
     @Override
-    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
-                                   boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
-                                   boolean isSameRmOverride, boolean noTxSeparatePool) {
+    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
+            String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
+            boolean noTxSeparatePool) {
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1569,9 +1581,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Add XA datasource property.
      *
-     * @param poolName      pool name
+     * @param poolName pool name
      * @param attributeName attribute name
-     * @param value         value
+     * @param value value
      */
     @Override
     public void setXADatasourceAtribute(String poolName, String attributeName, String value) {
@@ -1615,55 +1627,44 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors
-     * over the network. A connector defines a way in which a client (or other
-     * server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors over the network. A connector defines a way in
+     * which a client (or other server) can make connections to the server.
      *
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param localBindAddress    local bind address that the datagram socket is
-     *                            bound to. The default value is the wildcard IP address chosen by the
-     *                            kernel
-     * @param localBindPort       local port to which the datagram socket is bound to.
-     * @param groupAddress        multicast address to which the data will be broadcast
-     *                            - mandatory.
-     * @param groupPort           UDP port number used for broadcasting - mandatory.
-     * @param broadCastPeriod     period in milliseconds between consecutive
-     *                            broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be
-     *                            broadcasted.
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param localBindAddress local bind address that the datagram socket is bound to. The default value is the wildcard IP
+     *        address chosen by the kernel
+     * @param localBindPort local port to which the datagram socket is bound to.
+     * @param groupAddress multicast address to which the data will be broadcast - mandatory.
+     * @param groupPort UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod period in milliseconds between consecutive broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
      */
     @Override
-    public void setBroadCastGroup(String name, String localBindAddress, int localBindPort,
-                                  String groupAddress, int groupPort, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
-        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod, connectorName, backupConnectorName);
+    public void setBroadCastGroup(String name, String localBindAddress, int localBindPort, String groupAddress, int groupPort,
+            long broadCastPeriod, String connectorName, String backupConnectorName) {
+        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, localBindAddress, localBindPort, groupAddress, groupPort,
+                broadCastPeriod, connectorName, backupConnectorName);
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors
-     * over the network. A connector defines a way in which a client (or other
-     * server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors over the network. A connector defines a way in
+     * which a client (or other server) can make connections to the server.
      *
-     * @param serverName          set name of hornetq server
-     * @param name                a unique name for the broadcast group - mandatory.
-     * @param localBindAddress    local bind address that the datagram socket is
-     *                            bound to. The default value is the wildcard IP address chosen by the
-     *                            kernel
-     * @param localBindPort       local port to which the datagram socket is bound to.
-     * @param groupAddress        multicast address to which the data will be broadcast
-     *                            - mandatory.
-     * @param groupPort           UDP port number used for broadcasting - mandatory.
-     * @param broadCastPeriod     period in milliseconds between consecutive
-     *                            broadcasts.
-     * @param connectorName       A pair connector.
-     * @param backupConnectorName optional backup connector that will be
-     *                            broadcasted.
+     * @param serverName set name of hornetq server
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param localBindAddress local bind address that the datagram socket is bound to. The default value is the wildcard IP
+     *        address chosen by the kernel
+     * @param localBindPort local port to which the datagram socket is bound to.
+     * @param groupAddress multicast address to which the data will be broadcast - mandatory.
+     * @param groupPort UDP port number used for broadcasting - mandatory.
+     * @param broadCastPeriod period in milliseconds between consecutive broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
      */
     @Override
     public void setBroadCastGroup(String serverName, String name, String localBindAddress, int localBindPort,
-                                  String groupAddress, int groupPort, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1705,43 +1706,36 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors
-     * over the network. A connector defines a way in which a client (or other
-     * server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors over the network. A connector defines a way in
+     * which a client (or other server) can make connections to the server.
      *
-     * @param name                            a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use
-     *                                        for broadcasting connectors
-     * @param broadCastPeriod                 period in milliseconds between consecutive
-     *                                        broadcasts.
-     * @param connectorName                   A pair connector.
-     * @param backupConnectorName             optional backup connector that will be
-     *                                        broadcasted.
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
+     * @param broadCastPeriod period in milliseconds between consecutive broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
      */
     @Override
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
-        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, messagingGroupSocketBindingName, broadCastPeriod, connectorName, backupConnectorName);
+            String connectorName, String backupConnectorName) {
+        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, messagingGroupSocketBindingName, broadCastPeriod,
+                connectorName, backupConnectorName);
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors
-     * over the network. A connector defines a way in which a client (or other
-     * server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors over the network. A connector defines a way in
+     * which a client (or other server) can make connections to the server.
      *
-     * @param serverName                      set name of hornetq server
-     * @param name                            a unique name for the broadcast group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use
-     *                                        for broadcasting connectors
-     * @param broadCastPeriod                 period in milliseconds between consecutive
-     *                                        broadcasts.
-     * @param connectorName                   A pair connector.
-     * @param backupConnectorName             optional backup connector that will be
-     *                                        broadcasted.
+     * @param serverName set name of hornetq server
+     * @param name a unique name for the broadcast group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for broadcasting connectors
+     * @param broadCastPeriod period in milliseconds between consecutive broadcasts.
+     * @param connectorName A pair connector.
+     * @param backupConnectorName optional backup connector that will be broadcasted.
      */
     @Override
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-                                  String connectorName, String backupConnectorName) {
+            String connectorName, String backupConnectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1763,6 +1757,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             model.get("connectors").add(backupConnectorName);
         }
 
+        logger.info(model);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -1771,18 +1766,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * A broadcast group is the means by which a server broadcasts connectors
-     * over the network. A connector defines a way in which a client (or other
-     * server) can make connections to the server.
+     * A broadcast group is the means by which a server broadcasts connectors over the network. A connector defines a way in
+     * which a client (or other server) can make connections to the server.
      *
-     * @param name            a unique name for the broadcast group - mandatory
-     * @param jgroupsStack    jgroups protocol stack
-     * @param jgroupsChannel  the name that jgroups channels connect to for broadcasting
+     * @param name a unique name for the broadcast group - mandatory
+     * @param jgroupsStack jgroups protocol stack
+     * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
      * @param broadcastPeriod period in miliseconds between consecutive broadcasts
-     * @param connectorName   a pair connector
+     * @param connectorName a pair connector
      */
     @Override
-    public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+    public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod,
+            String connectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -1812,43 +1807,34 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Discovery group defines how connector information is received from a
-     * multicast address.
+     * Discovery group defines how connector information is received from a multicast address.
      *
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param localBindAddress The discovery group will be bound only to this
-     *                         local address.
-     * @param groupAddress     Multicast IP address of the group to listen on -
-     *                         mandatory.
-     * @param groupPort        UDP port of the multicast group - mandatory
-     * @param refreshTimeout   Period the discovery group waits after receiving
-     *                         the last broadcast from a particular server before removing that servers
-     *                         connector pair entry from its list.
+     * @param name A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this local address.
+     * @param groupAddress Multicast IP address of the group to listen on - mandatory.
+     * @param groupPort UDP port of the multicast group - mandatory
+     * @param refreshTimeout Period the discovery group waits after receiving the last broadcast from a particular server before
+     *        removing that servers connector pair entry from its list.
      */
     @Override
-    public void setDiscoveryGroup(String name, String localBindAddress,
-                                  String groupAddress, int groupPort, long refreshTimeout) {
+    public void setDiscoveryGroup(String name, String localBindAddress, String groupAddress, int groupPort, long refreshTimeout) {
         setDiscoveryGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, localBindAddress, groupAddress, groupPort, refreshTimeout);
     }
 
     /**
-     * Discovery group defines how connector information is received from a
-     * multicast address.
+     * Discovery group defines how connector information is received from a multicast address.
      *
-     * @param serverName       Set name of hornetq server
-     * @param name             A unique name for the discovery group - mandatory.
-     * @param localBindAddress The discovery group will be bound only to this
-     *                         local address.
-     * @param groupAddress     Multicast IP address of the group to listen on -
-     *                         mandatory.
-     * @param groupPort        UDP port of the multicast group - mandatory
-     * @param refreshTimeout   Period the discovery group waits after receiving
-     *                         the last broadcast from a particular server before removing that servers
-     *                         connector pair entry from its list.
+     * @param serverName Set name of hornetq server
+     * @param name A unique name for the discovery group - mandatory.
+     * @param localBindAddress The discovery group will be bound only to this local address.
+     * @param groupAddress Multicast IP address of the group to listen on - mandatory.
+     * @param groupPort UDP port of the multicast group - mandatory
+     * @param refreshTimeout Period the discovery group waits after receiving the last broadcast from a particular server before
+     *        removing that servers connector pair entry from its list.
      */
     @Override
-    public void setDiscoveryGroup(String serverName, String name, String localBindAddress,
-                                  String groupAddress, int groupPort, long refreshTimeout) {
+    public void setDiscoveryGroup(String serverName, String name, String localBindAddress, String groupAddress, int groupPort,
+            long refreshTimeout) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -1879,15 +1865,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Discovery group defines how connector information is received from a
-     * multicast address.
+     * Discovery group defines how connector information is received from a multicast address.
      *
-     * @param name                            A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use
-     *                                        for accepting connectors from other servers
-     * @param refreshTimeout                  Period the discovery group waits after receiving
-     *                                        the last broadcast from a particular server before removing that servers
-     *                                        connector pair entry from its list.
+     * @param name A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
+     * @param refreshTimeout Period the discovery group waits after receiving the last broadcast from a particular server before
+     *        removing that servers connector pair entry from its list.
      */
     @Override
     public void setDiscoveryGroup(String name, String messagingGroupSocketBindingName, long refreshTimeout) {
@@ -1895,16 +1878,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Discovery group defines how connector information is received from a
-     * multicast address.
+     * Discovery group defines how connector information is received from a multicast address.
      *
-     * @param serverName                      Set name of hornetq server
-     * @param name                            A unique name for the discovery group - mandatory.
-     * @param messagingGroupSocketBindingName name of the socket binding to use
-     *                                        for accepting connectors from other servers
-     * @param refreshTimeout                  Period the discovery group waits after receiving
-     *                                        the last broadcast from a particular server before removing that servers
-     *                                        connector pair entry from its list.
+     * @param serverName Set name of hornetq server
+     * @param name A unique name for the discovery group - mandatory.
+     * @param messagingGroupSocketBindingName name of the socket binding to use for accepting connectors from other servers
+     * @param refreshTimeout Period the discovery group waits after receiving the last broadcast from a particular server before
+     *        removing that servers connector pair entry from its list.
      */
     @Override
     public void setDiscoveryGroup(String serverName, String name, String messagingGroupSocketBindingName, long refreshTimeout) {
@@ -1930,14 +1910,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Discovery group defines how connector information is received from a
-     * multicast address.
+     * Discovery group defines how connector information is received from a multicast address.
      *
-     * @param name           A unique name for the discovery group - mandatory.
-     * @param refreshTimeout Period the discovery group waits after receiving
-     *                       the last broadcast from a particular server before removing that servers
-     *                       connector pair entry from its list.
-     * @param jgroupsStack   jgroups protocol stack
+     * @param name A unique name for the discovery group - mandatory.
+     * @param refreshTimeout Period the discovery group waits after receiving the last broadcast from a particular server before
+     *        removing that servers connector pair entry from its list.
+     * @param jgroupsStack jgroups protocol stack
      * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
      */
     @Override
@@ -1971,25 +1949,21 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets cluster configuration.
      *
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
-     * @param discoveryGroupRef      Name of discovery group used by this bridge.
-     * @param forwardWhenNoConsumers Should messages be load balanced if there
-     *                               are no matching consumers on target?
-     * @param maxHops                Maximum number of hops cluster topology is propagated.
-     *                               Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be
-     *                               inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param name Name of the cluster group - like "failover-cluster"
+     * @param address Name of address this cluster connection applies to.
+     * @param discoveryGroupRef Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval Period (in ms) between successive retries.
+     * @param useDuplicateDetection Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName Name of connector to use for live connection.
      */
     @Override
-    public void setClusterConnections(String name, String address,
-                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
-                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
-        setClusterConnections(NAME_OF_MESSAGING_DEFAULT_SERVER, name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval, useDuplicateDetection, connectorName);
+    public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers,
+            int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        setClusterConnections(NAME_OF_MESSAGING_DEFAULT_SERVER, name, address, discoveryGroupRef, forwardWhenNoConsumers,
+                maxHops, retryInterval, useDuplicateDetection, connectorName);
     }
-
 
     @Override
     public int getNumberOfPreparedTransaction() {
@@ -2001,7 +1975,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public int getNumberOfPreparedTransaction(String serverName) {
-        //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        // /subsystem=messaging/hornetq-server=default:list-prepared-transactions
         int i = -1;
         try {
             ModelNode model = new ModelNode();
@@ -2032,7 +2006,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public String listPreparedTransaction(String serverName) {
-        //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        // /subsystem=messaging/hornetq-server=default:list-prepared-transactions
         int i = -1;
         ModelNode result = null;
         try {
@@ -2040,7 +2014,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             model.get(ClientConstants.OP).set("list-prepared-transactions");
             model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
             model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-
 
             try {
                 result = this.applyUpdate(model);
@@ -2054,11 +2027,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         return result.toString();
     }
 
-
     /**
      * Removes protocol from JGroups stack
      *
-     * @param nameOfStack  name of stack udp,tcp
+     * @param nameOfStack name of stack udp,tcp
      * @param protocolName protocol name PING,MERGE
      */
     public void removeProtocolFromJGroupsStack(String nameOfStack, String protocolName) {
@@ -2082,23 +2054,19 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets cluster configuration.
      *
-     * @param serverName             Set name of hornetq server.
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
-     * @param discoveryGroupRef      Name of discovery group used by this bridge.
-     * @param forwardWhenNoConsumers Should messages be load balanced if there
-     *                               are no matching consumers on target?
-     * @param maxHops                Maximum number of hops cluster topology is propagated.
-     *                               Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be
-     *                               inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param serverName Set name of hornetq server.
+     * @param name Name of the cluster group - like "failover-cluster"
+     * @param address Name of address this cluster connection applies to.
+     * @param discoveryGroupRef Name of discovery group used by this bridge.
+     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval Period (in ms) between successive retries.
+     * @param useDuplicateDetection Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName Name of connector to use for live connection.
      */
     @Override
-    public void setClusterConnections(String serverName, String name, String address,
-                                      String discoveryGroupRef, boolean forwardWhenNoConsumers, int maxHops,
-                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
+    public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef,
+            boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -2113,11 +2081,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("retry-interval").set(retryInterval);
         model.get("use-duplicate-detection").set(useDuplicateDetection);
         if (connectorName != null && !"".equals(connectorName)) {
-            model.get("connector-ref").set(connectorName);
+            model.get("connector-name").set(connectorName);
         } else {
-            model.get("connector-ref").set(ModelType.UNDEFINED);
+            model.get("connector-name").set(ModelType.UNDEFINED);
         }
-
+        logger.info(model);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -2130,7 +2098,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets reconnect attempts on cluster connection.
      *
      * @param clusterGroupName name
-     * @param attempts         number of retries (-1 for indenfitely)
+     * @param attempts number of retries (-1 for indenfitely)
      */
     @Override
     public void setReconnectAttemptsForClusterConnection(String clusterGroupName, int attempts) {
@@ -2154,7 +2122,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets connection ttl value.
      *
-     * @param serverName    name of the server
+     * @param serverName name of the server
      * @param valueInMillis ttl
      */
     @Override
@@ -2178,20 +2146,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets cluster configuration.
      *
-     * @param serverName             Set name of hornetq server.
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
+     * @param serverName Set name of hornetq server.
+     * @param name Name of the cluster group - like "failover-cluster"
+     * @param address Name of address this cluster connection applies to.
      * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
-     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param maxHops Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval Period (in ms) between successive retries.
+     * @param useDuplicateDetection Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName Name of connector to use for live connection.
      */
     @Override
-    public void setStaticClusterConnections(String serverName, String name, String address,
-                                            boolean forwardWhenNoConsumers, int maxHops,
-                                            long retryInterval, boolean useDuplicateDetection,
-                                            String connectorName, String... remoteConnectors) {
+    public void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers,
+            int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -2219,7 +2185,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.
+     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for
+     * EAP 5.
      *
      * @param active if true then this attribute is activated. It's defaulted to true.
      */
@@ -2258,7 +2225,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         return elements[1].getMethodName();
     }
 
-
     /**
      * Sets size of the journal file.
      *
@@ -2272,7 +2238,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets size of the journal file.
      *
-     * @param serverName  name of the hornetq server
+     * @param serverName name of the hornetq server
      * @param sizeInBytes size of the journal file in bytes
      */
     @Override
@@ -2292,8 +2258,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * How long (in ms) to wait after the last consumer is closed on a queue
-     * before redistributing messages.
+     * How long (in ms) to wait after the last consumer is closed on a queue before redistributing messages.
      *
      * @param delay in milliseconds
      */
@@ -2340,7 +2305,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets ha attribute.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2362,7 +2327,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
-        //java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
+        // java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -2418,12 +2383,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     /**
      * Sets ha attribute.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
@@ -2447,7 +2411,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets ha attribute.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     @Override
     public void setHaForPooledConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2471,7 +2435,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets failover-on-server-shutdown.
      *
      * @param connectionFactoryName
-     * @param value                 true if connection factory supports ha.
+     * @param value true if connection factory supports ha.
      */
     @Override
     public void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2527,7 +2491,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Whether or not messages are acknowledged synchronously.
      *
      * @param connectionFactoryName
-     * @param value                 default false, should be true for fail-over scenarios
+     * @param value default false, should be true for fail-over scenarios
      */
     @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2548,7 +2512,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Whether or not messages are acknowledged synchronously.
      *
      * @param connectionFactoryName
-     * @param value                 default false, should be true for fail-over scenarios
+     * @param value default false, should be true for fail-over scenarios
      */
     @Override
     public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2609,7 +2573,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Multiplier to apply to successive retry intervals.
      *
      * @param connectionFactoryName
-     * @param value                 1.0 by default
+     * @param value 1.0 by default
      */
     @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
@@ -2630,7 +2594,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Multiplier to apply to successive retry intervals.
      *
      * @param connectionFactoryName
-     * @param value                 1.0 by default
+     * @param value 1.0 by default
      */
     @Override
     public void setRetryIntervalMultiplierForPooledConnectionFactory(String connectionFactoryName, double value) {
@@ -2648,11 +2612,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * How many times should client retry connection when connection is lost.
-     * This should be -1 if failover is required.
+     * How many times should client retry connection when connection is lost. This should be -1 if failover is required.
      *
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
-     * @param value                 value
+     * @param value value
      */
     @Override
     public void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value) {
@@ -2670,11 +2633,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * How many times should client retry connection when connection is lost.
-     * This should be -1 if failover is required.
+     * How many times should client retry connection when connection is lost. This should be -1 if failover is required.
      *
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
-     * @param value                 value
+     * @param value value
      */
     @Override
     public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
@@ -2807,7 +2769,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Removes address settings
      *
      * @param serverName name of the server
-     * @param address    address specification
+     * @param address address specification
      */
     @Override
     public void removeAddressSettings(String serverName, String address) {
@@ -2830,36 +2792,35 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds address settings
      *
-     * @param address             address specification
-     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
-     * @param maxSizeBytes        The max bytes size
-     * @param redeliveryDelay     Defines how long to wait before attempting
-     *                            redelivery of a cancelled message
-     * @param redistributionDelay Defines how long to wait when the last
-     *                            consumer is closed on a queue before redistributing any messages
-     * @param pageSizeBytes       The paging size
+     * @param address address specification
+     * @param addressFullPolicy address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes The max bytes size
+     * @param redeliveryDelay Defines how long to wait before attempting redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any
+     *        messages
+     * @param pageSizeBytes The paging size
      */
     @Override
     public void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
-                                   long redistributionDelay, long pageSizeBytes) {
-        addAddressSettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address, addressFullPolicy, maxSizeBytes, redeliveryDelay, redistributionDelay, pageSizeBytes);
+            long redistributionDelay, long pageSizeBytes) {
+        addAddressSettings(NAME_OF_MESSAGING_DEFAULT_SERVER, address, addressFullPolicy, maxSizeBytes, redeliveryDelay,
+                redistributionDelay, pageSizeBytes);
     }
 
     /**
      * Adds address settings
      *
-     * @param address             address specification
-     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
-     * @param maxSizeBytes        The max bytes size
-     * @param redeliveryDelay     Defines how long to wait before attempting
-     *                            redelivery of a cancelled message
-     * @param redistributionDelay Defines how long to wait when the last
-     *                            consumer is closed on a queue before redistributing any messages
-     * @param pageSizeBytes       The paging size
+     * @param address address specification
+     * @param addressFullPolicy address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes The max bytes size
+     * @param redeliveryDelay Defines how long to wait before attempting redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any
+     *        messages
+     * @param pageSizeBytes The paging size
      */
     @Override
-    public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
-                                   long redistributionDelay, long pageSizeBytes) {
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes,
+            int redeliveryDelay, long redistributionDelay, long pageSizeBytes) {
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -2882,9 +2843,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
-     * @param address     address specification
-     * @param threshold   the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
-     * @param policy      what should happen with slow consumers
+     * @param address address specification
+     * @param threshold the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy what should happen with slow consumers
      * @param checkPeriod how often to check for slow consumers (in minutes, default is 5)
      */
     @Override
@@ -2895,15 +2856,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
-     * @param serverName  hornetq server name
-     * @param address     address specification
-     * @param threshold   the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
-     * @param policy      what should happen with slow consumers
+     * @param serverName hornetq server name
+     * @param address address specification
+     * @param threshold the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy what should happen with slow consumers
      * @param checkPeriod how often to check for slow consumers (in minutes, default is 5)
      */
     @Override
     public void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy,
-                                      int checkPeriod) {
+            int checkPeriod) {
 
         ModelNode addressSettings = createModelNode();
         addressSettings.get(ClientConstants.OP).set("write-attribute");
@@ -2932,24 +2893,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     /**
      * Adds address settings
      *
-     * @param address             address specification
-     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
-     * @param maxSizeBytes        The max bytes size
-     * @param redeliveryDelay     Defines how long to wait before attempting
-     *                            redelivery of a cancelled message
-     * @param redistributionDelay Defines how long to wait when the last
-     *                            consumer is closed on a queue before redistributing any messages
-     * @param pageSizeBytes       The paging size
-     * @param expireQueue         Expire queue
-     * @param deadLetterQueue     dead letter queue jms.queue.DLQ
+     * @param address address specification
+     * @param addressFullPolicy address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes The max bytes size
+     * @param redeliveryDelay Defines how long to wait before attempting redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any
+     *        messages
+     * @param pageSizeBytes The paging size
+     * @param expireQueue Expire queue
+     * @param deadLetterQueue dead letter queue jms.queue.DLQ
      */
     @Override
-    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
-                                   long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
+            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
         setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -2963,7 +2922,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         setAddressAttributes.get("expiry-address").set(expireQueue);
         setAddressAttributes.get("dead-letter-address").set(deadLetterQueue);
 
-
         try {
             this.applyUpdate(setAddressAttributes);
         } catch (Exception e) {
@@ -2971,11 +2929,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
-                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue,
-                                   String deadLetterQueue, int maxDeliveryAttempts) {
+            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue,
+            int maxDeliveryAttempts) {
 
         ModelNode setAddressAttributes = createModelNode();
         setAddressAttributes.get(ClientConstants.OP).set("add");
@@ -2998,12 +2955,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     /**
      * Adds grouping handler
      *
-     * @param name    name of grouping handler
-     * @param type    type - LOCAL, REMOTE
+     * @param name name of grouping handler
+     * @param type type - LOCAL, REMOTE
      * @param address cluster address
      * @param timeout timeout to have decision where the message will be routed
      */
@@ -3017,10 +2973,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds grouping handler
      *
      * @param serverName hornetq server name
-     * @param name       name of grouping handler
-     * @param type       type - LOCAL, REMOTE
-     * @param address    cluster address
-     * @param timeout    timeout to have decision where the message will be routed
+     * @param name name of grouping handler
+     * @param type type - LOCAL, REMOTE
+     * @param address cluster address
+     * @param timeout timeout to have decision where the message will be routed
      */
     public void addMessageGrouping(String serverName, String name, String type, String address, long timeout) {
 
@@ -3032,7 +2988,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         modelNode.get("grouping-handler-address").set(address);
         modelNode.get("type").set(type);
         modelNode.get("timeout").set(timeout);
-//        modelNode.get("group-timeout").set(timeout);
+        // modelNode.get("group-timeout").set(timeout);
 
         try {
             this.applyUpdate(modelNode);
@@ -3040,21 +2996,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-
     }
 
     /**
      * Adds grouping handler
      *
      * @param serverName hornetq server name
-     * @param name       name of grouping handler
-     * @param type       type - LOCAL, REMOTE
-     * @param address    cluster address
-     * @param timeout    timeout to have decision where the message will be routed
+     * @param name name of grouping handler
+     * @param type type - LOCAL, REMOTE
+     * @param address cluster address
+     * @param timeout timeout to have decision where the message will be routed
      */
     @Override
     public void addMessageGrouping(String serverName, String name, String type, String address, long timeout,
-                                   long groupTimeout, long reaperPeriod) {
+            long groupTimeout, long reaperPeriod) {
 
         ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("add");
@@ -3073,18 +3028,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-
     }
 
     /**
      * Adds external context.
      */
     @Override
-    public void addExternalContext(String binding, String className, String module, String bindingType, Map<String, String> environmentProperies) {
-//        [standalone@localhost:9999 /] /subsystem=naming/binding="java:global/client-context":add(module=org.jboss.legacy.naming.spi,
-// class=javax.naming.InitialContext,binding-type=external-context,
-// environment={"java.naming.provider.url" => "jnp://localhost:5599", "java.naming.factory.url.pkgs" => "org.jnp.interfaces",
-// "java.naming.factory.initial" => "org.jboss.legacy.jnp.factory.WatchfulContextFactory" })
+    public void addExternalContext(String binding, String className, String module, String bindingType,
+            Map<String, String> environmentProperies) {
+        // [standalone@localhost:9999 /]
+        // /subsystem=naming/binding="java:global/client-context":add(module=org.jboss.legacy.naming.spi,
+        // class=javax.naming.InitialContext,binding-type=external-context,
+        // environment={"java.naming.provider.url" => "jnp://localhost:5599", "java.naming.factory.url.pkgs" =>
+        // "org.jnp.interfaces",
+        // "java.naming.factory.initial" => "org.jboss.legacy.jnp.factory.WatchfulContextFactory" })
 
         ModelNode modelNode = new ModelNode();
         modelNode.get(ClientConstants.OP).set("add");
@@ -3107,9 +3064,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-
     }
-
 
     /**
      * Sets transaction node identifier.
@@ -3225,9 +3180,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * <p/>
      * Like: <loopback-address value="127.0.0.2" \>
      *
-     * @param interfaceName - name of the interface like "public" or
-     *                      "management"
-     * @param ipAddress     - ipAddress of the interface
+     * @param interfaceName - name of the interface like "public" or "management"
+     * @param ipAddress - ipAddress of the interface
      */
     @Override
     public void setLoopBackAddressType(String interfaceName, String ipAddress) {
@@ -3262,9 +3216,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * <p/>
      * Like: <inet-address value="127.0.0.2" \>
      *
-     * @param interfaceName - name of the interface like "public" or
-     *                      "management"
-     * @param ipAddress     - ipAddress of the interface
+     * @param interfaceName - name of the interface like "public" or "management"
+     * @param ipAddress - ipAddress of the interface
      */
     @Override
     public void setInetAddress(String interfaceName, String ipAddress) {
@@ -3345,8 +3298,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * This method is hack! Somehow calling update model throw exception when it
-     * should not. For this reason try it more times until success.
+     * This method is hack! Somehow calling update model throw exception when it should not. For this reason try it more times
+     * until success.
      *
      * @param model model
      * @param retry how many times to retry
@@ -3367,8 +3320,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets logging level for console log - standard output.
      *
-     * @param level like "ALL",
-     *              "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+     * @param level like "ALL", "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
      */
     @Override
     public void setLoggingLevelForConsole(String level) {
@@ -3387,7 +3339,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-        //./root-logger=ROOT:write-attribute(name=handlers,value=["FILE", "CONSOLE"])
+        // ./root-logger=ROOT:write-attribute(name=handlers,value=["FILE", "CONSOLE"])
 
         model = createModelNode();
         model.get(ClientConstants.OP).set("add-handler");
@@ -3405,8 +3357,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets logging level for root level log
      *
-     * @param level like "ALL",
-     *              "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
+     * @param level like "ALL", "CONFIG","DEBUG","ERROR","FATAL","FINE","FINER","FINEST","INFO","OFF","TRACE","WARN","WARNING"
      */
     @Override
     public void seRootLoggingLevel(String level) {
@@ -3428,8 +3379,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Removes defined bridge, method just logs exception it does not throws
-     * exception
+     * Removes defined bridge, method just logs exception it does not throws exception
      *
      * @param name Name of the bridge
      */
@@ -3449,22 +3399,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                                 String... staticConnector) {
-        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts, staticConnector);
+            String... staticConnector) {
+        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts,
+                staticConnector);
     }
 
     /**
      * Creates new bridge
      *
-     * @param name              bridge name
-     * @param queueName         source queue
+     * @param name bridge name
+     * @param queueName source queue
      * @param forwardingAddress target address
      * @param reconnectAttempts reconnect attempts for bridge
-     * @param staticConnector   static connector
+     * @param staticConnector static connector
      */
     @Override
-    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts,
-                                 String... staticConnector) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress,
+            int reconnectAttempts, String... staticConnector) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -3477,7 +3428,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("use-duplicate-detection").set(true);
         model.get("failover-on-server-shutdown").set(true);
         model.get("ha").set(true);
-//        model.get("failover-on-server-shutdown").set(true);
+        // model.get("failover-on-server-shutdown").set(true);
         model.get("reconnect-attempts").set(reconnectAttempts);
         for (String c : staticConnector) {
             model.get("static-connectors").add(c);
@@ -3490,10 +3441,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination
-            , Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination, Map<String, String> targetContext
-            , String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime
-            , boolean addMessageIDInHeader) {
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination,
+            Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination,
+            Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries,
+            long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -3552,7 +3503,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling) {
+    public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress,
+            int gosshipRouterPort, boolean enableBundling) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
@@ -3566,18 +3518,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             logger.error(e);
         }
 
-//        model = new ModelNode();
-//        model.get(ClientConstants.OP).set("write-attribute");
-//        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
-//        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-//        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
-//        model.get("name").set("socket-binding");
-//        model.get("value").set(ModelType.UNDEFINED);
-//        try {
-//            this.applyUpdate(model);
-//        } catch (Exception e) {
-//            logger.error(e);
-//        }
+        // model = new ModelNode();
+        // model.get(ClientConstants.OP).set("write-attribute");
+        // model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        // model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        // model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        // model.get("name").set("socket-binding");
+        // model.get("value").set(ModelType.UNDEFINED);
+        // try {
+        // this.applyUpdate(model);
+        // } catch (Exception e) {
+        // logger.error(e);
+        // }
 
         model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
@@ -3620,28 +3572,28 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             logger.error(e);
         }
 
-
     }
 
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                                 String discoveryGroupName) {
-        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts, ha, discoveryGroupName);
+            String discoveryGroupName) {
+        createCoreBridge(NAME_OF_MESSAGING_DEFAULT_SERVER, name, queueName, forwardingAddress, reconnectAttempts, ha,
+                discoveryGroupName);
     }
 
     /**
      * Creates new bridge
      *
-     * @param name               bridge name
-     * @param queueName          source queue
-     * @param forwardingAddress  target address
-     * @param reconnectAttempts  reconnect attempts for bridge
-     * @param ha                 ha
+     * @param name bridge name
+     * @param queueName source queue
+     * @param forwardingAddress target address
+     * @param reconnectAttempts reconnect attempts for bridge
+     * @param ha ha
      * @param discoveryGroupName discovery group name
      */
     @Override
-    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-                                 String discoveryGroupName) {
+    public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress,
+            int reconnectAttempts, boolean ha, String discoveryGroupName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -3657,6 +3609,25 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("reconnect-attempts").set(reconnectAttempts);
         model.get("discovery-group-name").set(discoveryGroupName);
 
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void removeHttpConnector(String name) {
+        removeHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
+    }
+
+    @Override
+    public void removeHttpConnector(String serverName, String name) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -3690,13 +3661,59 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates remote connector
      *
-     * @param name          name of the remote connector
+     * @param name name of the remote connector
      * @param socketBinding
-     * @param params        source queue
+     * @param params source queue
      */
     @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
         createRemoteConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params);
+    }
+
+    /**
+     * Creates remote connector
+     *
+     * @param name name of the remote connector
+     * @param socketBinding
+     * @param params source queue
+     */
+    @Override
+    public void createHttpConnector(String name, String socketBinding, Map<String, String> params) {
+        createHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params);
+    }
+
+    /**
+     * Creates remote connector
+     *
+     * @param name name of the remote connector
+     * @param socketBinding
+     * @param params source queue
+     */
+    @Override
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+
+        removeHttpConnector(serverName, name);
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
+        model.get("socket-binding").set(socketBinding);
+        if (params == null) {
+            params = new HashMap<String, String>();
+            params.put("http-upgrade-endpoint", "http-acceptor");
+        }
+
+        for (String key : params.keySet()) {
+            model.get("param").add(key, params.get(key));
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -3712,10 +3729,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates remote connector
      *
-     * @param serverName    set name of hornetq server
-     * @param name          name of the remote connector
+     * @param serverName set name of hornetq server
+     * @param name name of the remote connector
      * @param socketBinding
-     * @param params        params
+     * @param params params
      */
     @Override
     public void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
@@ -3771,7 +3788,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
-                                    int multicastPort) {
+            int multicastPort) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
@@ -3798,7 +3815,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress,
-                                    int multicastPort) {
+            int multicastPort) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
@@ -3827,7 +3844,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
 
-        //socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
+        // socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
 
         try {
             this.applyUpdate(model);
@@ -3895,12 +3912,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     /**
      * Set multicast address for socket binding
      *
      * @param socketBindingName name of the socket binding
-     * @param port              port of the socket binding
+     * @param port port of the socket binding
      */
     @Override
     public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
@@ -3922,7 +3938,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets compression on connection factory.
      *
      * @param connectionFactoryName name of the connection factory
-     * @param value                 true to enable large message compression
+     * @param value true to enable large message compression
      */
     @Override
     public void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value) {
@@ -3963,7 +3979,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Set old(true) or new failover model(false)
      *
-     * @param keepOldFailover          false to activate it
+     * @param keepOldFailover false to activate it
      * @param nodeStateRefreshInterval after which time will be node's timestamp updated in database
      */
     @Override
@@ -3975,8 +3991,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Whether to retyr connection to database
      *
      * @param retryOnConnectionFailure true for retry
-     * @param retryInterval            interval in miliseconds
-     * @param maxRetry                 how many times to retry before giving up
+     * @param retryInterval interval in miliseconds
+     * @param maxRetry how many times to retry before giving up
      */
     @Override
     public void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry) {
@@ -3987,7 +4003,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Sets TUNNEL protocol for jgroups
      *
      * @param gossipRouterHostname ip address of gosship router
-     * @param gossipRouterPort     port of gosship router
+     * @param gossipRouterPort port of gosship router
      */
     @Override
     public void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort) {
@@ -3998,7 +4014,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Set database.
      *
      * @param databaseHostname hostname
-     * @param databasePort     port
+     * @param databasePort port
      */
     @Override
     public void setDatabase(String databaseHostname, int databasePort) {
@@ -4008,9 +4024,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates in-vm connector
      *
-     * @param name     name of the remote connetor
+     * @param name name of the remote connetor
      * @param serverId set server id
-     * @param params   params for connector
+     * @param params params for connector
      */
     @Override
     public void createInVmConnector(String name, int serverId, Map<String, String> params) {
@@ -4039,9 +4055,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates in-vm connector
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the remote connector
-     * @param serverId   set server id
-     * @param params     params for connector
+     * @param name name of the remote connector
+     * @param serverId set server id
+     * @param params params for connector
      */
     @Override
     public void createInVmConnector(String serverName, String name, int serverId, Map<String, String> params) {
@@ -4072,9 +4088,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates remote acceptor
      *
-     * @param name          name of the remote acceptor
+     * @param name name of the remote acceptor
      * @param socketBinding
-     * @param params        source queue
+     * @param params source queue
      */
     @Override
     public void createRemoteAcceptor(String name, String socketBinding, Map<String, String> params) {
@@ -4084,10 +4100,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates remote acceptor
      *
-     * @param serverName    set name of hornetq server
-     * @param name          name of the remote acceptor
+     * @param serverName set name of hornetq server
+     * @param name name of the remote acceptor
      * @param socketBinding
-     * @param params        params
+     * @param params params
      */
     @Override
     public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params) {
@@ -4140,9 +4156,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Creates in-vm acceptor
      *
-     * @param name     name of the connector
+     * @param name name of the connector
      * @param serverId set server id
-     * @param params   params for connector
+     * @param params params for connector
      */
     @Override
     public void createInVmAcceptor(String name, int serverId, Map<String, String> params) {
@@ -4153,9 +4169,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Creates in-vm acceptor
      *
      * @param serverName set name of hornetq server
-     * @param name       name of the connector
-     * @param serverId   set server id
-     * @param params     params for connector
+     * @param name name of the connector
+     * @param serverId set server id
+     * @param params params for connector
      */
     @Override
     public void createInVmAcceptor(String serverName, String name, int serverId, Map<String, String> params) {
@@ -4222,7 +4238,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Adds new logging category.
      *
      * @param category like "org.hornetq"
-     * @param level    like DEBUG, WARN, FINE,...
+     * @param level like DEBUG, WARN, FINE,...
      */
     @Override
     public void addLoggerCategory(String category, String level) {
@@ -4291,8 +4307,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
      * <p/>
-     * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
-     * TODO remove this when ^ is fixed
+     * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server
      */
@@ -4311,52 +4326,51 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-//    /**
-//     * Adds new messaging subsystem/new hornetq server to configuration
-//     *
-//     * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
-//     * TODO remove this when ^ is fixed
-//     * @param serverName name of the new hornetq server
-//     */
-//    @Override
-//    public void addMessagingSubsystem(String serverName) {
-//
-//        String jbossHome = null;
-//        if (HornetQTestCase.CONTAINER1_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER1_NAME);
-//        } else if (HornetQTestCase.CONTAINER2_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER2_NAME);
-//        } else if (HornetQTestCase.CONTAINER3_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER3_NAME);
-//        } else if (HornetQTestCase.CONTAINER4_IP.equalsIgnoreCase(hostname)) {
-//            jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER4_NAME);
-//        }
-//
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(jbossHome).append(File.separator).append("standalone").append(File.separator);
-//        sb.append("configuration").append(File.separator).append("standalone-full-ha.xml");
-//        String configurationFile = sb.toString();
-//
-//        try {
-//
-//            Document doc = XMLManipulation.getDOMModel(configurationFile);
-//
-//            XPath xpathInstance = XPathFactory.newInstance().newXPath();
-//            Node node = (Node) xpathInstance.evaluate("//hornetq-server", doc, XPathConstants.NODE);
-//            Node parent = node.getParentNode();
-//
-//            Element e = doc.createElement(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER);
-//            e.setAttribute("name", serverName);
-//
-//            parent.appendChild(e);
-//            XMLManipulation.saveDOMModel(doc, configurationFile);
-//
-//
-//        } catch (Exception e) {
-//            logger.error(e.getMessage(), e);
-//        }
-//    }
-
+    // /**
+    // * Adds new messaging subsystem/new hornetq server to configuration
+    // *
+    // * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
+    // * TODO remove this when ^ is fixed
+    // * @param serverName name of the new hornetq server
+    // */
+    // @Override
+    // public void addMessagingSubsystem(String serverName) {
+    //
+    // String jbossHome = null;
+    // if (HornetQTestCase.CONTAINER1_IP.equalsIgnoreCase(hostname)) {
+    // jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER1_NAME);
+    // } else if (HornetQTestCase.CONTAINER2_IP.equalsIgnoreCase(hostname)) {
+    // jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER2_NAME);
+    // } else if (HornetQTestCase.CONTAINER3_IP.equalsIgnoreCase(hostname)) {
+    // jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER3_NAME);
+    // } else if (HornetQTestCase.CONTAINER4_IP.equalsIgnoreCase(hostname)) {
+    // jbossHome = HornetQTestCase.getJbossHome(HornetQTestCase.CONTAINER4_NAME);
+    // }
+    //
+    // StringBuilder sb = new StringBuilder();
+    // sb.append(jbossHome).append(File.separator).append("standalone").append(File.separator);
+    // sb.append("configuration").append(File.separator).append("standalone-full-ha.xml");
+    // String configurationFile = sb.toString();
+    //
+    // try {
+    //
+    // Document doc = XMLManipulation.getDOMModel(configurationFile);
+    //
+    // XPath xpathInstance = XPathFactory.newInstance().newXPath();
+    // Node node = (Node) xpathInstance.evaluate("//hornetq-server", doc, XPathConstants.NODE);
+    // Node parent = node.getParentNode();
+    //
+    // Element e = doc.createElement(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER);
+    // e.setAttribute("name", serverName);
+    //
+    // parent.appendChild(e);
+    // XMLManipulation.saveDOMModel(doc, configurationFile);
+    //
+    //
+    // } catch (Exception e) {
+    // logger.error(e.getMessage(), e);
+    // }
+    // }
 
     @Override
     public void reload(boolean isAdminOnlyMode) {
@@ -4370,7 +4384,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } else {
             model.get("admin-only").set("false");
         }
-
 
         try {
             this.applyUpdate(model);
@@ -4472,8 +4485,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Set whether environment property replacement is avaible or not.
      *
      * @param propertyName "annotation-property-replacement", "ear-subdeployments-isolated",
-     *                     "jboss-descriptor-property-replacement",  "spec-descriptor-property-replacement"
-     * @param isEnabled    whether to enable it or not
+     *        "jboss-descriptor-property-replacement", "spec-descriptor-property-replacement"
+     * @param isEnabled whether to enable it or not
      */
     @Override
     public void setPropertyReplacement(String propertyName, boolean isEnabled) {
@@ -4486,7 +4499,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            //throw new RuntimeException(e);
+            // throw new RuntimeException(e);
             logger.error("Set property replacement could not be set.", e);
         }
 
@@ -4516,7 +4529,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             model.get("attributes").add(key, attributes.get(key));
         }
 
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -4534,7 +4546,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @return number of nodes in cluster
      */
     public int getNumberOfNodesInCluster(String clusterName) {
-        ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
+        // /subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("get-nodes");
@@ -4555,7 +4567,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
-        ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
+        // /subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
         int counter = 0;
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
@@ -4639,7 +4651,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         readTransactionModel.get(ClientConstants.OP_ADDR).add("subsystem", "transactions");
         readTransactionModel.get(ClientConstants.OP_ADDR).add("log-store", "log-store");
 
-
         ModelNode result;
         try {
             result = this.applyUpdate(readTransactionModel);
@@ -4648,7 +4659,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
         return result.get("result").get("transactions").isDefined();
 
-
     }
 
     @Override
@@ -4656,7 +4666,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode closeOperation = createModelNode();
         closeOperation.get(ClientConstants.OP).set("close-consumer-connections-for-address");
         closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         closeOperation.get("address-match").set(address);
 
         ModelNode result;
@@ -4674,7 +4685,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode closeOperation = createModelNode();
         closeOperation.get(ClientConstants.OP).set("close-connections-for-user");
         closeOperation.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        closeOperation.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         closeOperation.get("user").set(username);
 
         ModelNode result;
@@ -4731,14 +4743,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode undefineConnector = new ModelNode();
         undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
         undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         undefineConnector.get("name").set("connector");
 
         ModelNode setDiscoveryGroup = new ModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         setDiscoveryGroup.get("name").set("discovery-group-name");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
@@ -4788,16 +4802,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
-
     }
-
 
     @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+                NAME_OF_MESSAGING_DEFAULT_SERVER);
         removeMessagesFromQueue.get(ClientConstants.OP_ADDR).add(DESTINATION_TYPE_QUEUE, queueName);
         removeMessagesFromQueue.get("message-id").set(jmsMessageID);
 
@@ -4839,7 +4852,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     public static void main(String[] args) {
         ActiveMQAdminOperationsEAP7 jmsAdminOperations = new ActiveMQAdminOperationsEAP7();
         try {
@@ -4854,52 +4866,57 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.removeDiscoveryGroup("dg-group1");
             jmsAdminOperations.setNodeIdentifier(1234567);
 
-//            Map<String, String> params = new HashMap<String, String>();
-//            params.put("java.naming.provider.url", "jnp://localhost:5599");
-//            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
-//            params.put("java.naming.factory.initial", "org.jboss.legacy.jnp.factory.WatchfulContextFactory");
-//            jmsAdminOperations.addExternalContext("java:global/client-context2", "javax.naming.InitialContext", "org.jboss.legacy.naming.spi", "external-context", params);
-//            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
-//            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+            // Map<String, String> params = new HashMap<String, String>();
+            // params.put("java.naming.provider.url", "jnp://localhost:5599");
+            // params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
+            // params.put("java.naming.factory.initial", "org.jboss.legacy.jnp.factory.WatchfulContextFactory");
+            // jmsAdminOperations.addExternalContext("java:global/client-context2", "javax.naming.InitialContext",
+            // "org.jboss.legacy.naming.spi", "external-context", params);
+            // System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
+            // jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
-//            String jmsServerBindingAddress = "192.168.40.1";
-//            String inVmConnectorName = "in-vm";
-//            String remoteConnectorName = "netty-remote";
-//            String messagingGroupSocketBindingName = "messaging-group";
-//            String inVmHornetRaName = "local-hornetq-ra";
+            // String jmsServerBindingAddress = "192.168.40.1";
+            // String inVmConnectorName = "in-vm";
+            // String remoteConnectorName = "netty-remote";
+            // String messagingGroupSocketBindingName = "messaging-group";
+            // String inVmHornetRaName = "local-hornetq-ra";
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
-//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
-//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
-//            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
-//            jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
-//            jmsAdminOperations.reload();
-//
-//            // create new in-vm pooled connection factory and configure it as default for inbound communication
-//            jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/JmsXA", inVmConnectorName);
-//            eap6AdmOps.createSocketBinding("messaging2", 5445);
+            // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
+            // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+            // jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+            // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
+            // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
+            // jmsAdminOperations.reload();
+            //
+            // // create new in-vm pooled connection factory and configure it as default for inbound communication
+            // jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/JmsXA", inVmConnectorName);
+            // eap6AdmOps.createSocketBinding("messaging2", 5445);
 
-//            String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
-//
-//            Map<String, String> props = new HashMap<String, String>();
-//            props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-//            props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.truststore"));
-//            props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
-//            props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("server.keystore"));
-//            props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
-//            props.put("need-client-auth", "true");
-//            eap6AdmOps.createRemoteAcceptor("netty2", "messaging2", props);
-//
-//
-//            Map<String, String> props2 = new HashMap<String, String>();
-//            props2.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-//            props2.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.truststore"));
-//            props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
-//            props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, pathToCertificates.concat(File.separator).concat("client.keystore"));
-//            props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
-////
-//            jmsAdminOperations.createRemoteConnector("netty2", "messaging2", props2);
+            // String pathToCertificates = "/home/mnovak/tmp/tools_for_patches/tmp";
+            //
+            // Map<String, String> props = new HashMap<String, String>();
+            // props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+            // props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME,
+            // pathToCertificates.concat(File.separator).concat("server.truststore"));
+            // props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+            // props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME,
+            // pathToCertificates.concat(File.separator).concat("server.keystore"));
+            // props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+            // props.put("need-client-auth", "true");
+            // eap6AdmOps.createRemoteAcceptor("netty2", "messaging2", props);
+            //
+            //
+            // Map<String, String> props2 = new HashMap<String, String>();
+            // props2.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+            // props2.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME,
+            // pathToCertificates.concat(File.separator).concat("client.truststore"));
+            // props2.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, "123456");
+            // props2.put(TransportConstants.KEYSTORE_PATH_PROP_NAME,
+            // pathToCertificates.concat(File.separator).concat("client.keystore"));
+            // props2.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, "123456");
+            // //
+            // jmsAdminOperations.createRemoteConnector("netty2", "messaging2", props2);
 
             jmsAdminOperations.close();
         } finally {
@@ -4917,4 +4934,3 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 }
-

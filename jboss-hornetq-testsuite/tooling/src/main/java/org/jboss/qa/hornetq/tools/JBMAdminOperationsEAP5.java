@@ -578,6 +578,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createHttpConnector(String name, String socketBinding, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createConnector(String name, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -746,6 +756,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeRemoteAcceptor(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHttpConnector(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHttpConnector(String serverName, String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

@@ -551,6 +551,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createHttpConnector(String name, String socketBinding, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @param name   name of the connector f.e.: "netty-remote"
      * @param params map of params
@@ -786,6 +796,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void removeHttpConnector(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHttpConnector(String serverName, String name) {
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override

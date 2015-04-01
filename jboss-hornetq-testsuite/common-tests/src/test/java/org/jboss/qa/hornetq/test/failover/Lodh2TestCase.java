@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -798,12 +799,38 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(3).stop();
     }
 
+    public void prepareRemoteJcaTopology(Container inServer, Container outServer) throws Exception {
+        if (inServer.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+            prepareRemoteJcaTopologyEAP6(inServer, outServer);
+        } else {
+            prepareRemoteJcaTopologyEAP7(inServer, outServer);
+        }
+    }
+
     /**
      * Prepare two servers in simple dedecated topology.
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopology(Container inServer, Container outServer) throws Exception {
+    public void prepareRemoteJcaTopologyEAP7(Container inServer, Container outServer) throws Exception {
+
+
+        prepareJmsServerEAP7(container(1));
+        prepareMdbServerEAP7(container(2), container(1), inServer, outServer);
+
+        prepareJmsServerEAP7(container(3));
+        prepareMdbServerEAP7(container(4), container(3), inServer, outServer);
+
+        copyApplicationPropertiesFiles();
+
+    }
+
+    /**
+     * Prepare two servers in simple dedecated topology.
+     *
+     * @throws Exception
+     */
+    public void prepareRemoteJcaTopologyEAP6(Container inServer, Container outServer) throws Exception {
 
 
         prepareJmsServerEAP6(container(1));
@@ -846,6 +873,54 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
+        jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
+        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+        jmsAdminOperations.close();
+
+        container.restart();
+        jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", groupAddress, 55874);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares jms server for remote jca topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareJmsServerEAP7(Container container) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String groupAddress = "233.6.88.3";
+        String httpSocketBindingName = "http";
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        container.start();
+
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+
+        jmsAdminOperations.createHttpConnector(connectorName, httpSocketBindingName, null);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
@@ -954,6 +1029,99 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
+
+            jmsAdminOperations.close();
+            container.restart();
+            jmsAdminOperations = container.getJmsOperations();
+
+            // create new in-vm pooled connection factory and configure it as default for inbound communication
+            jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/JmsXA", inVmConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(inVmHornetRaName, -1);
+        }
+
+        jmsAdminOperations.close();
+        container.stop();
+
+    }
+
+    /**
+     * Prepares mdb server for remote jca topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareMdbServerEAP7(Container container, Container jmsServer, Container inServer, Container outServer) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String groupAddress = "233.6.88.5";
+
+        String inVmConnectorName = "in-vm";
+        String remoteConnectorName = "http-connector";
+        String httpSocketBinding = "http-remote-connector";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String inVmHornetRaName = "local-activemq-ra";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.createHttpConnector(connectorName, httpSocketBinding, null);
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+        jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+//            jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
+//            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+
+        // enable trace logging
+//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+//            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
+        // both are remote
+        if (isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
+            jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+        }
+        // local InServer and remote OutServer
+        if (!isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
+            jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+
+            // create new in-vm pooled connection factory and configure it as default for inbound communication
+            jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/LocalJmsXA", inVmConnectorName);
+            jmsAdminOperations.setDefaultResourceAdapter(inVmHornetRaName);
+        }
+
+        // remote InServer and local OutServer
+        if (isServerRemote(inServer.getName()) && !isServerRemote(outServer.getName())) {
+
+            // now reconfigure hornetq-ra which is used for inbound to connect to remote server
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
+            jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+            jmsAdminOperations.setJndiNameForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, "java:/remoteJmsXA");
 
             jmsAdminOperations.close();
             container.restart();

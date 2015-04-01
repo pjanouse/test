@@ -378,6 +378,10 @@ public interface JMSOperations {
      */
     void createRemoteConnector(String name, String socketBinding, Map<String, String> params);
 
+    void createHttpConnector(String name, String socketBinding, Map<String, String> params);
+
+    void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params);
+
     void createConnector(String name, Map<String, String> params);
 
     void createAcceptor(String name, Map<String, String> params);
@@ -530,6 +534,10 @@ public interface JMSOperations {
      * @param name name of the remote acceptor
      */
     void removeRemoteAcceptor(String name);
+
+    void removeHttpConnector(String name);
+
+    void removeHttpConnector(String serverName, String name);
 
     /**
      * Remove remote connector
