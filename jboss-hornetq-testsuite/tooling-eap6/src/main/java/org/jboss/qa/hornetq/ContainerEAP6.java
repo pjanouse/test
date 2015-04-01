@@ -3,7 +3,7 @@ package org.jboss.qa.hornetq;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
-import java.util.StringTokenizer;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -14,6 +14,7 @@ import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
@@ -36,15 +37,6 @@ public class ContainerEAP6 implements Container {
 
     private static final String EAP_VERSION_PATTERN =
             "(?i)((Red Hat )?JBoss Enterprise Application Platform - Version )(.+?)(.[a-zA-Z]+[0-9]*)";
-
-    private static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
-    private static final int JNDI_PORT_DEFAULT_EAP6 = 4447;
-    private static int PORT_HORNETQ_DEFAULT_EAP6 = 5445;
-    private static int PORT_HORNETQ_BACKUP_DEFAULT_EAP6 = 5446;
-    private static final int BYTEMAN_PORT = 9091;
-    private static final int DEFAULT_PORT_OFFSET_INTERVAL = 1000;
-    private static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
-
 
     private JmxUtils jmxUtils = null;
     private JournalExportImportUtils journalExportImportUtils = null;
@@ -80,20 +72,20 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getPort() {
-        return MANAGEMENT_PORT_DEFAULT_EAP6 + getPortOffset();
+        return Constants.MANAGEMENT_PORT_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getJNDIPort() {
-        return JNDI_PORT_DEFAULT_EAP6 + getPortOffset();
+        return Constants.JNDI_PORT_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getPortOffset() {
 
-        return (containerIndex - 1) * DEFAULT_PORT_OFFSET_INTERVAL;
+        return (containerIndex - 1) * Constants.DEFAULT_PORT_OFFSET_INTERVAL;
     }
 
 
@@ -112,20 +104,20 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
+        return Constants.PORT_HORNETQ_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
+        return Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6 + getPortOffset();
     }
 
 
     @Override
     public int getBytemanPort() {
 
-        return BYTEMAN_PORT + getPortOffset();
+        return Constants.DEFAULT_BYTEMAN_PORT + getPortOffset();
     }
 
     @Override
@@ -187,7 +179,7 @@ public class ContainerEAP6 implements Container {
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
         javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
-        javaVmArguments = javaVmArguments.replace(String.valueOf(BYTEMAN_PORT), String.valueOf(getBytemanPort()));
+        javaVmArguments = javaVmArguments.replace(String.valueOf(Constants.DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
         start(containerProperties);
@@ -430,7 +422,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public String getConnectionFactoryName() {
-        return CONNECTION_FACTORY_JNDI_EAP6;
+        return Constants.CONNECTION_FACTORY_JNDI_EAP6;
     }
 
 
