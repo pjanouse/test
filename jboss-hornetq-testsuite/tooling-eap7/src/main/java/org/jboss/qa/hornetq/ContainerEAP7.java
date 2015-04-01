@@ -107,13 +107,13 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return Constants.PORT_HORNETQ_DEFAULT + getPortOffset();
+        return Constants.PORT_HORNETQ_DEFAULT_EAP7 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return Constants.PORT_HORNETQ_DEFAULT_BACKUP + getPortOffset();
+        return Constants.PORT_HORNETQ_DEFAULT_BACKUP_EAP7 + getPortOffset();
     }
 
 

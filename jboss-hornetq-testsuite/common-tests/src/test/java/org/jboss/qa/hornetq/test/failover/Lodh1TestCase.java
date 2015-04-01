@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -365,21 +366,23 @@ public class Lodh1TestCase extends HornetQTestCase {
                 .checkThatFileContainsUnfinishedTransactionsString(new File(workingDirectory, journalFile1), stringToFind));
 
         // copy tx-objectStore to container 2 and check there are no unfinished arjuna transactions
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
-                + "tx-object-store"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
-                + File.separator + "tx-object-store"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
-                + "messagingbindings"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
-                + File.separator + "messagingbindings"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
-                + "messagingjournal"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
-                + File.separator + "messagingjournal"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
-                + "messaginglargemessages"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
-                + File.separator + "messaginglargemessages"));
-        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
-                + "messagingpaging"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
-                + File.separator + "messagingpaging/"));
+        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator),
+                new File(container(2).getServerHome(), "standalone" + File.separator + "data"));
+//        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+//                + "tx-object-store"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+//                + File.separator + "tx-object-store"));
+//        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+//                + "messagingbindings"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+//                + File.separator + "messagingbindings"));
+//        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+//                + "messagingjournal"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+//                + File.separator + "messagingjournal"));
+//        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+//                + "messaginglargemessages"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+//                + File.separator + "messaginglargemessages"));
+//        FileUtils.copyDirectory(new File(container(1).getServerHome(), "standalone" + File.separator + "data" + File.separator
+//                + "messagingpaging"), new File(container(2).getServerHome(), "standalone" + File.separator + "data"
+//                + File.separator + "messagingpaging/"));
 
         container(2).start();
         Assert.assertFalse("There are unfinished Arjuna transactions in node-2. Failing the test.",
@@ -588,10 +591,12 @@ public class Lodh1TestCase extends HornetQTestCase {
                     + File.separator + "configuration" + File.separator + "application-roles.properties");
             FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
-            // stopServer(CONTAINER1_NAME_NAME);
-            //
-            // controller.start(CONTAINER1_NAME_NAME);
-            String connectionFactoryName = "hornetq-ra";
+            String connectionFactoryName = null;
+            if (container.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER)) {
+                connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP7;
+            } else {
+                connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP6;
+            }
             jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
             jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
 

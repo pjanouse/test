@@ -14,14 +14,20 @@ public class Constants {
     public static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
     public static final int JNDI_PORT_DEFAULT_EAP6 = 4447;
     public static final int DEFAULT_BYTEMAN_PORT = 9091;
-    public static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
+    public static final String CONNECTION_FACTORY_EAP6 = "RemoteConnectionFactory";
+    public static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/" + CONNECTION_FACTORY_EAP6;
+    public static final String POOLED_CONNECTION_FACTORY_JNDI_EAP6 = "java:/JmsXA";
+    public static final String RESOURCE_ADAPTER_NAME_EAP6 = "hornetq-ra";
 
     // EAP 7
     public static final int MANAGEMENT_PORT_DEFAULT_EAP7 = 9990;
     public static final int BYTEMAN_PORT = 9091;
-    public static final int PORT_HORNETQ_DEFAULT = 9990;
-    public static final int PORT_HORNETQ_DEFAULT_BACKUP = 9990;
+    public static final int PORT_HORNETQ_DEFAULT_EAP7 = 9990;
+    public static final int PORT_HORNETQ_DEFAULT_BACKUP_EAP7 = 9990;
     public static final int JNDI_PORT_DEFAULT_EAP7 = 8080;
-    public static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/RemoteConnectionFactory";
+    public static final String CONNECTION_FACTORY_EAP7 = "RemoteConnectionFactory";
+    public static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/" + CONNECTION_FACTORY_EAP7;
+    public static final String POOLED_CONNECTION_FACTORY_JNDI_EAP7 = "java:/JmsXA";
+    public static final String RESOURCE_ADAPTER_NAME_EAP7 = "activemq-ra";
 
 }
