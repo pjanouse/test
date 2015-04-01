@@ -174,7 +174,7 @@ public class ContainerEAP7 implements Container {
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
         javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
-        javaVmArguments = javaVmArguments.replace(String.valueOf(Constants.BYTEMAN_PORT), String.valueOf(getBytemanPort()));
+        javaVmArguments = javaVmArguments.replace(String.valueOf(Constants.DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
         start(containerProperties);
