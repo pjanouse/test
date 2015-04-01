@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -283,7 +284,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
-        int socketBindingPort = container.getHornetqBackupPort();
+        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
