@@ -637,7 +637,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("name").set("connectors");
         ModelNode modelnew = createModelNode();
         modelnew.set(connectorName);
-        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] {modelnew}, 1);
+        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] { modelnew }, 1);
         model.get("value").set(connectors);
 
         System.out.println(model.toString());
@@ -667,10 +667,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         model.get("entries").add(jndiName);
 
-        model.get("name").set("connector");
         ModelNode modelnew = createModelNode();
-        modelnew.get(connectorName).clear();
-        model.get("connector").set(modelnew);
+        modelnew.set(connectorName);
+        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] { modelnew }, 1);
+        model.get("connectors").set(connectors);
 
         System.out.println(model.toString());
 
@@ -748,12 +748,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
-        model.get("name").set("connector");
-        ModelNode modelnew = createModelNode();
-        for (String connectorName : connectorNames) {
-            modelnew.get(connectorName).clear();
+        model.get("name").set("connectors");
+        List<ModelNode> listOfConnectors = new ArrayList<ModelNode>();
+        for (String s : connectorNames) {
+            ModelNode modelnew = createModelNode();
+            modelnew.set(s);
+            listOfConnectors.add(modelnew);
         }
-        model.get("value").set(modelnew);
+
+        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>((ModelNode[])listOfConnectors.toArray(), listOfConnectors.size());
+        model.get("value").set(connectors);
 
         System.out.println(model.toString());
 
@@ -888,7 +892,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         try {
             removeJmsDestination(destinationType, destinationName);
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             // ignore
         }
 
@@ -2076,7 +2080,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
 
         model.get("cluster-connection-address").set(address);
-        model.get("discovery-group-name").set(discoveryGroupRef);
+        model.get("discovery-group").set(discoveryGroupRef);
         model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
         model.get("max-hops").set(maxHops);
         model.get("retry-interval").set(retryInterval);
@@ -4859,13 +4863,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
-//            jmsAdminOperations.setPersistenceEnabled(true);
-//            jmsAdminOperations.removeAddressSettings("#");
-//            jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-//            jmsAdminOperations.removeClusteringGroup("my-cluster");
-//            jmsAdminOperations.removeBroadcastGroup("bg-group1");
-//            jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-//            jmsAdminOperations.setNodeIdentifier(1234567);
+            // jmsAdminOperations.setPersistenceEnabled(true);
+            // jmsAdminOperations.removeAddressSettings("#");
+            // jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
+            // jmsAdminOperations.removeClusteringGroup("my-cluster");
+            // jmsAdminOperations.removeBroadcastGroup("bg-group1");
+            // jmsAdminOperations.removeDiscoveryGroup("dg-group1");
+            // jmsAdminOperations.setNodeIdentifier(1234567);
 
             // Map<String, String> params = new HashMap<String, String>();
             // params.put("java.naming.provider.url", "jnp://localhost:5599");
@@ -4885,7 +4889,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", "http-connector");
+            // jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", "http-connector");
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
             // jmsAdminOperations.reload();

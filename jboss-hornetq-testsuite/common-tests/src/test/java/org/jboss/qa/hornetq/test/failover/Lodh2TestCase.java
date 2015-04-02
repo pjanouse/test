@@ -1058,8 +1058,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         String groupAddress = "233.6.88.5";
 
         String inVmConnectorName = "in-vm";
-        String remoteConnectorName = "http-connector";
-        String httpSocketBinding = "http-remote-connector";
+        String remoteConnectorName = "http-connector-to-jms-server";
+        String httpSocketBinding = "http";
         String messagingGroupSocketBindingName = "messaging-group";
         String inVmHornetRaName = "local-activemq-ra";
 
@@ -1121,7 +1121,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
-            jmsAdminOperations.setJndiNameForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, "java:/remoteJmsXA");
+            jmsAdminOperations.setJndiNameForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, "java:jboss/DefaultJMSConnectionFactory");
 
             jmsAdminOperations.close();
             container.restart();

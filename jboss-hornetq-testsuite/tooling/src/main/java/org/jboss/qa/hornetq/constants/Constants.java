@@ -22,8 +22,8 @@ public class Constants {
 
     // EAP 7
     public static final int MANAGEMENT_PORT_DEFAULT_EAP7 = 9990;
-    public static final int PORT_HORNETQ_DEFAULT_EAP7 = 9990;
-    public static final int PORT_HORNETQ_DEFAULT_BACKUP_EAP7 = 9990;
+    public static final int PORT_HORNETQ_DEFAULT_EAP7 = 8080;
+    public static final int PORT_HORNETQ_DEFAULT_BACKUP_EAP7 = 8080;
     public static final int JNDI_PORT_DEFAULT_EAP7 = 8080;
     public static final String CONNECTION_FACTORY_EAP7 = "RemoteConnectionFactory";
     public static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/" + CONNECTION_FACTORY_EAP7;
