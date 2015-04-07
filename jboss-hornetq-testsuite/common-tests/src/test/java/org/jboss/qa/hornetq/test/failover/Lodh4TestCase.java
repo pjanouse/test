@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -252,11 +253,9 @@ public class Lodh4TestCase extends HornetQTestCase {
         // give some time to server4 to really start
         Thread.sleep(3000);
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1).getContainerType().toString(),
-                container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4).getContainerType().toString(),
-                container(4).getHostname(), container(4).getJNDIPort(), relativeJndiOutQueueName + 0, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4), relativeJndiOutQueueName + 0, 20000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -312,18 +311,40 @@ public class Lodh4TestCase extends HornetQTestCase {
         }
     }
 
+    public void prepareServers()    {
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+            prepareServersEAP6();
+        } else {
+            prepareServersEAP7();
+        }
+    }
     /**
      * Prepares servers.
      * <p/>
      * Container1,3 - source servers in cluster A. Container2,4 - source servers
      * in cluster B.
      */
-    public void prepareServers() {
+    public void prepareServersEAP7() {
 
-        prepareSourceServer(container(1), container(2));
-        prepareSourceServer(container(3), container(4));
-        prepareTargetServer(container(2));
-        prepareTargetServer(container(4));
+        prepareSourceServerEAP7(container(1), container(2));
+        prepareSourceServerEAP7(container(3), container(4));
+        prepareTargetServerEAP7(container(2));
+        prepareTargetServerEAP7(container(4));
+
+    }
+
+    /**
+     * Prepares servers.
+     * <p/>
+     * Container1,3 - source servers in cluster A. Container2,4 - source servers
+     * in cluster B.
+     */
+    public void prepareServersEAP6() {
+
+        prepareSourceServerEAP6(container(1), container(2));
+        prepareSourceServerEAP6(container(3), container(4));
+        prepareTargetServerEAP6(container(2));
+        prepareTargetServerEAP6(container(4));
 
     }
 
@@ -332,14 +353,14 @@ public class Lodh4TestCase extends HornetQTestCase {
      *  @param container             test container - defined in arquillian.xml
      * @param targetServer target container
      */
-    private void prepareSourceServer(Container container,
-                                     Container targetServer) {
+    private void prepareSourceServerEAP6(Container container,
+                                         Container targetServer) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP6;
         String messagingGroupSocketBindingName = "messaging-group";
 
         String udpGroupAddress = "231.43.21.36";
@@ -380,7 +401,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
-        jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminOperations.createHttpConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
@@ -404,13 +425,13 @@ public class Lodh4TestCase extends HornetQTestCase {
      *
      * @param container      test container - defined in arquillian.xml
      */
-    private void prepareTargetServer(Container container) {
+    private void prepareTargetServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP6;
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
@@ -446,5 +467,124 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.close();
         container.stop();
     }
+
+    /**
+     * Prepares source server for bridge.
+     *  @param container             test container - defined in arquillian.xml
+     * @param targetServer target container
+     */
+    private void prepareSourceServerEAP7(Container container,
+                                         Container targetServer) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP7;
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        String udpGroupAddress = "231.43.21.36";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        try {
+            jmsAdminOperations.removeRemoteSocketBinding("messaging-bridge");
+        } catch (Exception ex)    {
+            // ignore
+        }
+        jmsAdminOperations.close();
+        container.restart();
+
+        jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
+        jmsAdminOperations.createHttpConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminOperations.setIdCacheSize(500000);
+        jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
+            jmsAdminOperations.createQueue("default", hornetqInQueueName + queueNumber, relativeJndiInQueueName + queueNumber, true);                 }
+        jmsAdminOperations.close();
+
+        container.restart();
+
+        jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
+        for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
+            jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
+        }
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepare target server for bridge
+     *
+     * @param container      test container - defined in arquillian.xml
+     */
+    private void prepareTargetServerEAP7(Container container) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP7;
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.setIdCacheSize(500000);
+        jmsAdminOperations.disableSecurity();
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
+            jmsAdminOperations.createQueue("default", hornetqOutQueueName + queueNumber, relativeJndiOutQueueName + queueNumber, true);
+        }
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
 
 }

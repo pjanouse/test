@@ -253,7 +253,7 @@ public class ClusterTestCase extends HornetQTestCase {
     // @RestoreConfigBeforeTest
     // public void clusterTestWitDuplicateId() throws Exception {
     //
-    // prepareServers();
+    // prepareServersEAP6();
     //
     // controller.start(CONTAINER2_NAME);
     //
