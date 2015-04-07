@@ -1,8 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
-import com.sun.javafx.UnmodifiableArrayList;
 import org.apache.log4j.Logger;
-
 import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -637,7 +635,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("name").set("connectors");
         ModelNode modelnew = createModelNode();
         modelnew.set(connectorName);
-        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] { modelnew }, 1);
+        Collection<ModelNode> connectors = new ArrayList<ModelNode>();
+        connectors.add(modelnew);
         model.get("value").set(connectors);
 
         System.out.println(model.toString());
@@ -669,7 +668,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         ModelNode modelnew = createModelNode();
         modelnew.set(connectorName);
-        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>(new ModelNode[] { modelnew }, 1);
+
+        Collection<ModelNode> connectors = new ArrayList<ModelNode>();
+        connectors.add(modelnew);
         model.get("connectors").set(connectors);
 
         System.out.println(model.toString());
@@ -749,14 +750,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
 
         model.get("name").set("connectors");
-        List<ModelNode> listOfConnectors = new ArrayList<ModelNode>();
+        List<ModelNode> connectors = new ArrayList<ModelNode>();
         for (String s : connectorNames) {
             ModelNode modelnew = createModelNode();
             modelnew.set(s);
-            listOfConnectors.add(modelnew);
+            connectors.add(modelnew);
         }
 
-        Collection<ModelNode> connectors = new UnmodifiableArrayList<ModelNode>((ModelNode[])listOfConnectors.toArray(), listOfConnectors.size());
         model.get("value").set(connectors);
 
         System.out.println(model.toString());
@@ -4889,7 +4889,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-            // jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", "http-connector");
+            List<String> list = new ArrayList<String>();
+            list.add("http-connector");
+             jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
             // jmsAdminOperations.reload();
