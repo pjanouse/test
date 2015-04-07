@@ -43,7 +43,15 @@ public class AdministrationTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testConfiguration() throws IOException {
-        configure(container(1), JOURNAL_DIRECTORY_A);
+        prepareServer(container(1), JOURNAL_DIRECTORY_A);
+    }
+
+    public void prepareServer(Container container, String journalDirectory) throws IOException {
+        if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER)  {
+            prepareServerEAP6(container, journalDirectory);
+        } else {
+            prepareServerEAP7(container, journalDirectory);
+        }
     }
 
     /**
@@ -52,7 +60,7 @@ public class AdministrationTestCase extends HornetQTestCase {
      * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    public void configure(Container container, String journalDirectory) throws IOException {
+    public void prepareServerEAP6(Container container, String journalDirectory) throws IOException {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -70,6 +78,113 @@ public class AdministrationTestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
 
         jmsAdminOperations.setSharedStore(true);
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setSecurityEnabled(false);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        jmsAdminOperations.createInVmAcceptor("my-acceptor", 32, null);
+        jmsAdminOperations.createRemoteAcceptor("remote-acceptor", "messaging", null);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, container.MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), container.MCAST_ADDRESS, udpGroupPort, 10000);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", container.getHostname(), container.getHornetqPort());
+        jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        // set security permissions for roles admin,users - user is already there
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
+        jmsAdminOperations.addRoleToSecuritySettings("#", "users");
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", false);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
+
+        // TODO it's hard to write admin operation for security so this hack
+        // copy application-users.properties
+        // copy application-roles.properties
+        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-users.properties");
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+
+        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-roles.properties");
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+
+        for (int queueNumber = 0; queueNumber < 3; queueNumber++) {
+            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < 3; topicNumber++) {
+            jmsAdminOperations.createTopic(serverName, topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+        }
+
+        container.stop();
+    }
+
+    /**
+     * Test all possible things. Failed operation simply throw RuntimeException
+     *
+     * @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
+     */
+    public void prepareServerEAP7(Container container, String journalDirectory) throws IOException {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        int udpGroupPort = 9875;
+        int broadcastBindingPort = 56880;
+        String serverName = "default";
+
+        container.start();
+
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);

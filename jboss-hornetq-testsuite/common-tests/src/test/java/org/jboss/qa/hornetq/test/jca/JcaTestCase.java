@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -119,11 +120,11 @@ public class JcaTestCase extends HornetQTestCase {
     public void testJca(MessageBuilder messageBuilder) throws Exception {
 
         // we use only the first server
-        prepareServer();
+        prepareServer(container(1));
 
         container(1).start();
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -134,7 +135,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -169,13 +170,11 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).stop();
     }
 
-    /**
-     * Prepare server in simple topology.
-     *
-     * @throws Exception
-     */
-    public void prepareServer() throws Exception {
-        prepareJmsServer(container(1));
+
+    private void prepareServer(Container container) {
+        String connectionFactoryName =
+                container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER ? Constants.RESOURCE_ADAPTER_NAME_EAP6 : Constants.RESOURCE_ADAPTER_NAME_EAP7;
+        prepareJmsServer(container, connectionFactoryName);
     }
 
     /**
@@ -183,18 +182,12 @@ public class JcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(Container container) {
-
-        String connectionFactoryName = "hornetq-ra";
+    private void prepareJmsServer(Container container, String connectionFactoryName) {
 
         container.start();
+
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setClustered(false);
-
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
@@ -202,7 +195,6 @@ public class JcaTestCase extends HornetQTestCase {
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
         jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
         jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 20);
-
 
         try {
             jmsAdminOperations.removeQueue(inQueueName);

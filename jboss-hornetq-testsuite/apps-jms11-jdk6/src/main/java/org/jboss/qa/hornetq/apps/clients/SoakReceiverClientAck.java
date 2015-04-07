@@ -34,6 +34,7 @@ public class SoakReceiverClientAck extends Client {
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
      */
+    @Deprecated
     public SoakReceiverClientAck(String hostname, int port, String queueJndiName) {
 
         this(hostname, port, queueJndiName, 30000, 10, 30);
@@ -50,6 +51,7 @@ public class SoakReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public SoakReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
         this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
@@ -66,6 +68,7 @@ public class SoakReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public SoakReceiverClientAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
         super(container);
@@ -80,8 +83,13 @@ public class SoakReceiverClientAck extends Client {
 
     public SoakReceiverClientAck(Container container, String queueJndiName, long receiveTimeOut,
                                  int ackAfter, int maxRetries) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueJndiName, receiveTimeOut, ackAfter, maxRetries);
-
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.queueNameJndi = queueJndiName;
+        this.receiveTimeOut = receiveTimeOut;
+        this.ackAfter = ackAfter;
+        this.maxRetries = maxRetries;
     }
 
     @Override

@@ -125,7 +125,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     public Archive getDeploymentMdbWithPropertiesName() {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithPropertiesName + ".jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
         logger.info(mdbJar.toString(true));
 

@@ -109,4 +109,6 @@ public final class JdbcUtils {
         return String.format("%d.%d.%d", major, minor, micro);
     }
 
+
+
 }
