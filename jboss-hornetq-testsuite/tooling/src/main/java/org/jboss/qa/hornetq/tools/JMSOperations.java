@@ -528,6 +528,10 @@ public interface JMSOperations {
      */
     void removeQueue(String queueName);
 
+    void createHttpAcceptor(String name, String httpListener, Map<String, String> params);
+
+    void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params);
+
     /**
      * Remove remote acceptor
      *
@@ -536,6 +540,10 @@ public interface JMSOperations {
     void removeRemoteAcceptor(String name);
 
     void removeHttpConnector(String name);
+
+    void removeHttpAcceptor(String serverName, String name);
+
+    void removeHttpAcceptor(String name);
 
     void removeHttpConnector(String serverName, String name);
 
@@ -1474,4 +1482,32 @@ public interface JMSOperations {
      * @param isAdminOnlyMode
      */
     void reload(boolean isAdminOnlyMode);
+
+    void removeHAPolicy(String serverName);
+
+    void addHAPolicySharedStoreMaster(long failbackDelay, boolean failoverOnServerShutdown);
+
+    void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown);
+
+    void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
+                                     boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                     List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName);
+
+    void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
+                                     boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                     List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName);
+
+    void addHAPolicyReplicationMaster(boolean checkForLiveServer, String clusterName, String groupName);
+
+    void addHAPolicyReplicationMaster(String serverName, boolean checkForLiveServer, String clusterName, String groupName);
+
+    void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay,
+                                     String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
+                                     boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+                                     String scaleDownDiscoveryGroup, String scaleDownGroupName);
+
+    void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
+                                     String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
+                                     boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+                                     String scaleDownDiscoveryGroup, String scaleDownGroupName);
 }

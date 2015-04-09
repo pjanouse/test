@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.Assert;
@@ -71,8 +72,8 @@ public final class JMSTools {
      */
     public static Context getEAP6Context(String hostName, int port) throws NamingException {
         final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", hostName, port));
+        env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
+        env.put(Context.PROVIDER_URL, String.format("%s%s:%s",Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, hostName, port));
         return new InitialContext(env);
     }
 
@@ -188,8 +189,8 @@ public final class JMSTools {
 
     public static Context getEAP7Context(String hostname, int jndiPort) throws NamingException {
         final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("http-remoting://%s:%s", hostname, jndiPort));
+        env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+        env.put(Context.PROVIDER_URL, String.format("%s%s:%s",Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
         return new InitialContext(env);
     }
     /**

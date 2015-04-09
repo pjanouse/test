@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -66,7 +67,7 @@ public class AdministrationTestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP6;
         int udpGroupPort = 9875;
         int broadcastBindingPort = 56880;
         String serverName = "default";
@@ -176,8 +177,8 @@ public class AdministrationTestCase extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectorName = "http-connector";
+        String connectionFactoryName = Constants.CONNECTION_FACTORY_EAP7;
         int udpGroupPort = 9875;
         int broadcastBindingPort = 56880;
         String serverName = "default";

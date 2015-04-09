@@ -71,7 +71,7 @@ public interface Container {
     JmxNotificationListener createJmxNotificationListener();
     JMSOperations getJmsOperations();
 
-    void update(ContainerController controller, Deployer deployer);
+    void update(ContainerController controller);
 
     ContainerDef getContainerDefinition();
     PrintJournal getPrintJournal();

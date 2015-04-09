@@ -18,8 +18,14 @@ public interface HornetQTestCaseConstants {
     public static final String SERVER_GROUP4 = "server-group-4";
 
     // Name of the connection factory in JNDI
+    @Deprecated
     public static String CONNECTION_FACTORY_JNDI_EAP5 = "ConnectionFactory";
+    @Deprecated
+    /**
+     * @deprecated replaced by Contants.CONNECTION_FACTORY_JNDI_EAP6
+     */
     public static String CONNECTION_FACTORY_JNDI_EAP6 = "jms/RemoteConnectionFactory";
+    @Deprecated
     public static String CONNECTION_FACTORY_JNDI_EAP6_FULL_NAME = "java:/jboss/exported/jms/RemoteConnectionFactory";
 
     // Port for remote JNDI

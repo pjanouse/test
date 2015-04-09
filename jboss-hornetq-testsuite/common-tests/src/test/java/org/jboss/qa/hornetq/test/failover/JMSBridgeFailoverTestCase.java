@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -17,14 +18,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.naming.Context;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Tests JMS bridge
- * failover
- * deploy/un-deploy
+ * Tests JMS bridge failover deploy/un-deploy
  *
  */
 @RunWith(Arquillian.class)
@@ -72,10 +72,11 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
                     JOURNAL_DIRECTORY_A + File.separator + "journal", outputJournalFile);
             // check that there are failed transactions
             String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
-//            String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() : System.getenv("WORKSPACE");
+            // String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() :
+            // System.getenv("WORKSPACE");
 
-            Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils().checkThatFileContainsUnfinishedTransactionsString(
-                    new File(outputJournalFile), stringToFind));
+            Assert.assertFalse("There are unfinished HornetQ transactions in node-1. Failing the test.", new TransactionUtils()
+                    .checkThatFileContainsUnfinishedTransactionsString(new File(outputJournalFile), stringToFind));
 
             container(1).start();
         }
@@ -83,7 +84,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         container(3).stop();
     }
 
-    /////////////////// Test Initial Failover /////////////////
+    // ///////////////// Test Initial Failover /////////////////
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -117,7 +118,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         testInitialFailover();
     }
 
-    /////////////////// Test Failover ////////////////////////////////////
+    // ///////////////// Test Failover ////////////////////////////////////
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -184,7 +185,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         testFailoverWithBridge(true, false, ONCE_AND_ONLY_ONCE);
     }
 
-    ////////////////////////////////////// Test Failback ///////////////// ///////////////////
+    // //////////////////////////////////// Test Failback ///////////////// ///////////////////
 
     @Test
     @RunAsClient
@@ -252,136 +253,142 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         testFailoverWithBridge(true, true, ONCE_AND_ONLY_ONCE);
     }
 
-    //////////////////////////////// Test Redeploy live -> backup ////////////////////////////
+    // ////////////////////////////// Test Redeploy live -> backup ////////////////////////////
 
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testKillDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, AT_MOST_ONCE);
-//
-//        deployBridge(CONTAINER2_NAME, AT_MOST_ONCE);
-//
-//        testDeployBridgeLiveThenBackup(false, AT_MOST_ONCE);
-//
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testKillDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, DUPLICATES_OK);
-//
-//        deployBridge(CONTAINER2_NAME, DUPLICATES_OK);
-//
-//        testDeployBridgeLiveThenBackup(false, DUPLICATES_OK);
-//
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testKillDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, ONCE_AND_ONLY_ONCE);
-//
-//        deployBridge(CONTAINER2_NAME, ONCE_AND_ONLY_ONCE);
-//
-//        testDeployBridgeLiveThenBackup(false);
-//
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testShutdownDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, AT_MOST_ONCE);
-//
-//        deployBridge(CONTAINER2_NAME, AT_MOST_ONCE);
-//
-//        testDeployBridgeLiveThenBackup(true, AT_MOST_ONCE);
-//
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testShutdownDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, DUPLICATES_OK);
-//
-//        deployBridge(CONTAINER2_NAME, DUPLICATES_OK);
-//
-//        testDeployBridgeLiveThenBackup(true, DUPLICATES_OK);
-//
-//    }
-//
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    @Ignore // not valid test scenario
-//    public void testShutdownDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
-//
-//        deployBridge(CONTAINER1_NAME_NAME, ONCE_AND_ONLY_ONCE);
-//
-//        deployBridge(CONTAINER2_NAME, ONCE_AND_ONLY_ONCE);
-//
-//        testDeployBridgeLiveThenBackup(true);
-//
-//    }
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testKillDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, AT_MOST_ONCE);
+    //
+    // deployBridge(CONTAINER2_NAME, AT_MOST_ONCE);
+    //
+    // testDeployBridgeLiveThenBackup(false, AT_MOST_ONCE);
+    //
+    // }
+    //
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testKillDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, DUPLICATES_OK);
+    //
+    // deployBridge(CONTAINER2_NAME, DUPLICATES_OK);
+    //
+    // testDeployBridgeLiveThenBackup(false, DUPLICATES_OK);
+    //
+    // }
+    //
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testKillDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, ONCE_AND_ONLY_ONCE);
+    //
+    // deployBridge(CONTAINER2_NAME, ONCE_AND_ONLY_ONCE);
+    //
+    // testDeployBridgeLiveThenBackup(false);
+    //
+    // }
+    //
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testShutdownDeployBridgeLiveThenBackup_AT_MOST_ONCE() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, AT_MOST_ONCE);
+    //
+    // deployBridge(CONTAINER2_NAME, AT_MOST_ONCE);
+    //
+    // testDeployBridgeLiveThenBackup(true, AT_MOST_ONCE);
+    //
+    // }
+    //
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testShutdownDeployBridgeLiveThenBackup_DUPLICATES_OK() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, DUPLICATES_OK);
+    //
+    // deployBridge(CONTAINER2_NAME, DUPLICATES_OK);
+    //
+    // testDeployBridgeLiveThenBackup(true, DUPLICATES_OK);
+    //
+    // }
+    //
+    // @Test
+    // @RunAsClient
+    // @RestoreConfigBeforeTest
+    // @CleanUpBeforeTest
+    // @Ignore // not valid test scenario
+    // public void testShutdownDeployBridgeLiveThenBackup_ONCE_AND_ONLY_ONCE() throws Exception {
+    //
+    // deployBridge(CONTAINER1_NAME_NAME, ONCE_AND_ONLY_ONCE);
+    //
+    // deployBridge(CONTAINER2_NAME, ONCE_AND_ONLY_ONCE);
+    //
+    // testDeployBridgeLiveThenBackup(true);
+    //
+    // }
 
-    //////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////
 
     protected void deployBridge(Container container, String qualityOfService) {
         deployBridge(container, qualityOfService, -1);
     }
 
     protected void deployBridge(Container container, String qualityOfService, int maxRetries) {
+        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+            deployBridgeEAP6(container, qualityOfService, maxRetries);
+        } else {
+            deployBridgeEAP7(container, qualityOfService, maxRetries);
+        }
+    }
+
+    protected void deployBridgeEAP6(Container container, String qualityOfService, int maxRetries) {
 
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
-//        String sourceConnectionFactory = "jms/RemoteConnectionFactory";
         String sourceDestination = inQueueJndiName;
-
-//        Map<String,String> sourceContext = new HashMap<String, String>();
-//        sourceContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-//        sourceContext.put("java.naming.provider.url", "remote://" + getHostname(containerName) + ":4447");
-
-        String targetConnectionFactory = "jms/RemoteConnectionFactory";
+        String targetConnectionFactory = Constants.CONNECTION_FACTORY_JNDI_EAP6;
         String targetDestination = outQueueJndiName;
-        Map<String,String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
+
+        Map<String, String> targetContext = new HashMap<String, String>();
+        targetContext.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
+
         if (CONTAINER1_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 1 then target is container 3
 
-            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + container(3).getJNDIPort());
+            targetContext
+                    .put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + container(3).getHostname() + ":" + container(3).getJNDIPort());
 
-        } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is container 3
+        } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is
+                                                                            // container 3
 
-            targetContext.put("java.naming.provider.url", "remote://" + container(3).getHostname() + ":" + container(3).getJNDIPort());
+            targetContext
+                    .put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + container(3).getHostname() + ":" + container(3).getJNDIPort());
 
-        } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is container 1 and 2
+        } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is
+                                                                            // container 1 and 2
 
-            targetContext.put("java.naming.provider.url", "remote://" + container(1).getHostname() + ":" + container(1).getJNDIPort() +
-                    ",remote://" + container(2).getHostname() + ":" + container(2).getJNDIPort());
-//            targetContext.put("java.naming.provider.url", "remote://" + CONTAINER1_NAME_IP + ":4447");
+            targetContext.put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + container(1).getHostname() + ":" + container(1).getJNDIPort()
+                    + "," + Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + container(2).getHostname() + ":" + container(2).getJNDIPort());
         }
 
-        if (qualityOfService == null || "".equals(qualityOfService))
-        {
+        if (qualityOfService == null || "".equals(qualityOfService)) {
             qualityOfService = "ONCE_AND_ONLY_ONCE";
         }
 
@@ -404,4 +411,54 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         container.stop();
     }
 
+    protected void deployBridgeEAP7(Container container, String qualityOfService, int maxRetries) {
+
+        String bridgeName = "myBridge";
+        String sourceConnectionFactory = "java:/ConnectionFactory";
+        String sourceDestination = inQueueJndiName;
+
+        String targetConnectionFactory = Constants.CONNECTION_FACTORY_JNDI_EAP7;
+        String targetDestination = outQueueJndiName;
+
+        Map<String, String> targetContext = new HashMap<String, String>();
+        targetContext.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+
+        if (CONTAINER1_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 1 then target is container 3
+            targetContext.put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + container(3).getHostname()
+                    + ":" + container(3).getJNDIPort());
+
+        } else if (CONTAINER2_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 2 then target is
+            // container 3
+            targetContext.put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + container(3).getHostname()
+                    + ":" + container(3).getJNDIPort());
+
+        } else if (CONTAINER3_NAME.equalsIgnoreCase(container.getName())) { // if deployed to container 3 then target is
+            // container 1 and 2
+            targetContext.put(Context.PROVIDER_URL, Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + container(1).getHostname()
+                    + ":" + container(1).getJNDIPort() + "," + Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7
+                    + container(2).getHostname() + ":" + container(2).getJNDIPort());
+        }
+
+        if (qualityOfService == null || "".equals(qualityOfService)) {
+            qualityOfService = "ONCE_AND_ONLY_ONCE";
+        }
+
+        long failureRetryInterval = 1000;
+        long maxBatchSize = 10;
+        long maxBatchTime = 100;
+        boolean addMessageIDInHeader = true;
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        // set XA on sourceConnectionFactory
+        jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
+
+        jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, null,
+                targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,
+                maxBatchSize, maxBatchTime, addMessageIDInHeader);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
 }

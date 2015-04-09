@@ -17,8 +17,12 @@ public class Constants {
 
     public static final String CONNECTION_FACTORY_EAP6 = "RemoteConnectionFactory";
     public static final String CONNECTION_FACTORY_JNDI_EAP6 = "jms/" + CONNECTION_FACTORY_EAP6;
+    public static final String CONNECTION_FACTORY_JNDI_FULL_NAME_EAP6 = "java:jboss/exported/jms/" + CONNECTION_FACTORY_EAP6;
     public static final String POOLED_CONNECTION_FACTORY_JNDI_EAP6 = "java:/JmsXA";
     public static final String RESOURCE_ADAPTER_NAME_EAP6 = "hornetq-ra";
+
+    public static final String INITIAL_CONTEXT_FACTORY_EAP6 = "org.jboss.naming.remote.client.InitialContextFactory";
+    public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP6 = "remote://";
 
     // EAP 7
     public static final int MANAGEMENT_PORT_DEFAULT_EAP7 = 9990;
@@ -27,7 +31,11 @@ public class Constants {
     public static final int JNDI_PORT_DEFAULT_EAP7 = 8080;
     public static final String CONNECTION_FACTORY_EAP7 = "RemoteConnectionFactory";
     public static final String CONNECTION_FACTORY_JNDI_EAP7 = "jms/" + CONNECTION_FACTORY_EAP7;
+    public static final String CONNECTION_FACTORY_JNDI_FULL_NAME_EAP7 = "java:jboss/exported/jms/" + CONNECTION_FACTORY_EAP7;
     public static final String POOLED_CONNECTION_FACTORY_JNDI_EAP7 = "java:/JmsXA";
     public static final String RESOURCE_ADAPTER_NAME_EAP7 = "activemq-ra";
+
+    public static final String INITIAL_CONTEXT_FACTORY_EAP7 = "org.jboss.naming.remote.client.InitialContextFactory";
+    public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP7 = "http-remoting://";
 
 }

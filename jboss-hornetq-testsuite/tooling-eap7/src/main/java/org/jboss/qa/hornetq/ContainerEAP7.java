@@ -50,7 +50,6 @@ public class ContainerEAP7 implements Container {
     private int containerIndex = 0;
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
-    private Deployer deployer = null;
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
@@ -394,13 +393,9 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
-    public void update(ContainerController controller, Deployer deployer) {
+    public void update(ContainerController controller) {
         if (containerController == null) {
             this.containerController = controller;
-        }
-
-        if (deployer == null) {
-            this.deployer = deployer;
         }
     }
 

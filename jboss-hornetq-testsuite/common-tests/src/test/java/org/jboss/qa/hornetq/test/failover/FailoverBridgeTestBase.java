@@ -408,8 +408,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
-        jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);

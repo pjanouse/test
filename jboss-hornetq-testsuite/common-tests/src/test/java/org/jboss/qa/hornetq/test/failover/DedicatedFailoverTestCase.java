@@ -137,7 +137,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
-            container(1).kill();
+            container(1).waitForKill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
@@ -1185,40 +1185,58 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+    public void prepareSimpleDedicatedTopology() throws Exception {
+
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+            prepareSimpleDedicatedTopologyEAP6();
+        } else {
+            prepareSimpleDedicatedTopologyEAP7();
+        }
+
+    }
+
     /**
      * Prepare two servers in simple dedicated topology.
      *
      * @throws Exception
      */
-    public void prepareSimpleDedicatedTopology() throws Exception {
+    public void prepareSimpleDedicatedTopologyEAP6() throws Exception {
 
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
+
+    }
+
+    /**
+     * Prepare two servers in simple dedicated topology.
+     *
+     * @throws Exception
+     */
+    public void prepareSimpleDedicatedTopologyEAP7() throws Exception {
+
+        prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A);
+        prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A);
 
     }
 
     /**
      * Prepares live server for dedicated topology.
-     *
-     * @param container        The container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
+     *  @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
-        prepareLiveServer(container, bindingAddress, journalDirectory, "ASYNCIO", false);
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory) {
+        prepareLiveServerEAP6(container, journalDirectory, "ASYNCIO", false);
     }
 
     /**
      * Prepares live server for dedicated topology.
-     *
      * @param container        The container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      * @param journalType       ASYNCIO, NIO
      * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
      *
      */
-    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1230,9 +1248,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setFailoverOnShutdown(true);
 
@@ -1297,16 +1312,96 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Prepares backup server for dedicated topology.
-     *
+     * Prepares live server for dedicated topology.
      * @param container        The container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
+     *
      */
-    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory) {
+        prepareLiveServerEAP7(container, journalDirectory, "ASYNCIO", false);
+    }
 
-        prepareBackupServer(container, bindingAddress, journalDirectory, "ASYNCIO", false);
+    /**
+     * Prepares live server for dedicated topology.
+     * @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
+     * @param journalType       ASYNCIO, NIO
+     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     *
+     */
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String connectionFactoryName = "RemoteConnectionFactory";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setJournalType(journalType);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeHttpConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createHttpConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeHttpAcceptor(connectorName);
+            jmsAdminOperations.createHttpAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+
+        jmsAdminOperations.addHAPolicySharedStoreMaster(1000, true);
+
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
+        jmsAdminOperations.close();
+
+        container.stop();
     }
 
     /**
@@ -1315,10 +1410,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @param container        The container - defined in arquillian.xml
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
+     */
+    protected void prepareBackupServerEAP6(Container container, String bindingAddress, String journalDirectory) {
+
+        prepareBackupServerEAP6(container, journalDirectory, "ASYNCIO", false);
+
+    }
+
+    /**
+     * Prepares backup server for dedicated topology.
+     *  @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
      * @param journalType       ASYNCIO, NIO
      * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
      */
-    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1330,10 +1436,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         if (useNIOConnectors)   {
             // add connector with NIO
@@ -1401,6 +1503,101 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.close();
 
         container.stop();
+    }
+
+    /**
+     * Prepares backup server for dedicated topology.
+     *  @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
+     * @param journalType       ASYNCIO, NIO
+     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     */
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        if (useNIOConnectors)   {
+            // add connector with NIO
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            Map<String,String> connectorParams = new HashMap<String,String>();
+            connectorParams.put("use-nio","true");
+            connectorParams.put("use-nio-global-worker-pool","true");
+            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+
+            // add acceptor wtih NIO
+            Map<String,String> acceptorParams = new HashMap<String,String>();
+            acceptorParams.put("use-nio","true");
+            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+
+        }
+
+        jmsAdminOperations.setJournalType(journalType);
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+
+        jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000, true, false, false, null, null, null, null);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
+        jmsAdminOperations.close();
+
+        container.stop();
+    }
+
+    /**
+     * Prepares backup server for dedicated topology.
+     *
+     * @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
+     */
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory) {
+
+        prepareBackupServerEAP7(container, journalDirectory, "ASYNCIO", false);
+
     }
 
     /**
@@ -1503,8 +1700,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -1516,8 +1713,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -1529,8 +1726,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -1542,8 +1739,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 

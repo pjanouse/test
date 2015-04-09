@@ -1,3 +1,4 @@
+// TODO - change prefix names of operations - use just set/add/get/is(for boolean)/remove, remove "create" prefix
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;

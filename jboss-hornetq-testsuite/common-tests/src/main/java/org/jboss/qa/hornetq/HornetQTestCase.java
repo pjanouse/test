@@ -203,7 +203,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
         org.jboss.qa.hornetq.Container container = containers.get(index);
 
-        container.update(controller, deployer);
+        container.update(controller);
 
         return container;
     }

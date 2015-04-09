@@ -1,3 +1,4 @@
+// TODO - change prefix names of operations - use just set/add/get/is(for boolean)/remove, remove "create" prefix
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
@@ -19,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
+
+import javax.jms.*;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -989,6 +992,24 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         return model;
     }
+
+    /**
+     * Creates model node which contains list of strings
+     * @param list list of strings
+     * @return list of model nodes containing string value
+     */
+    private ModelNode createModelNodeForList(List<String> list)   {
+
+        List<ModelNode> connectors = new ArrayList<ModelNode>();
+        for (String s : list) {
+            ModelNode modelnew = createModelNode();
+            modelnew.set(s);
+            connectors.add(modelnew);
+        }
+
+        return createModelNode().set(connectors);
+    }
+
 
     /**
      * Sets persistence-enabled attribute in servers configuration.
@@ -2396,20 +2417,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
-
-        ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
-        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-        model.get("name").set("failover-on-server-shutdown");
-        model.get("value").set(value);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("Set failover on shutdown is not available in EAP 7.");
     }
 
     /**
@@ -2444,20 +2452,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdownOnPooledConnectionFactory(String connectionFactoryName, boolean value) {
-
-        ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
-        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
-        model.get("name").set("failover-on-server-shutdown");
-        model.get("value").set(value);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("Set failover on shutdown is not available in EAP 7.");
     }
 
     /**
@@ -2467,7 +2462,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdown(boolean value) {
-        setFailoverOnShutdown(true, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        throw new UnsupportedOperationException("Set failover on shutdown is not available in EAP 7.");
     }
 
     /**
@@ -2477,19 +2472,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setFailoverOnShutdown(boolean value, String serverName) {
-
-        ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get("name").set("failover-on-shutdown");
-        model.get("value").set(value);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("Set failover on shutdown is not available in EAP 7.");
     }
 
     /**
@@ -3476,7 +3459,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-retries").set(maxRetries);
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
-        model.get("module").set("org.hornetq");
+        model.get("module").set("org.apache.activemq");
 
         try {
             this.applyUpdate(model);
@@ -3627,12 +3610,31 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void removeHttpAcceptor(String serverName, String name) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-acceptor", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void removeHttpAcceptor(String name) {
+        removeHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
+    }
+
+    @Override
     public void removeHttpConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
+        model.get(ClientConstants.OP_ADDR).add("http-acceptor", name);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -4123,6 +4125,57 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
         model.get("socket-binding").set(socketBinding);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("param").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Creates remote acceptor
+     *
+     * @param name name of the remote acceptor
+     * @param httpListener
+     * @param params source queue
+     */
+    @Override
+    public void createHttpAcceptor(String name, String httpListener, Map<String, String> params) {
+        createHttpAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name, httpListener, params);
+    }
+
+    /**
+     * Creates remote acceptor
+     *
+     * @param serverName set name of hornetq server
+     * @param name name of the remote acceptor
+     * @param httpListener
+     * @param params params
+     */
+    @Override
+    public void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params) {
+        try {
+            removeRemoteAcceptor(serverName, name);
+        } catch (Exception ex) {
+            logger.warn("Removing remote acceptor failed: ", ex);
+        }
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-acceptor", name);
+
+        if (isEmpty(httpListener)) { // put there default
+            model.get("http-listener").set("default");
+        } else {
+            model.get("http-listener").set(httpListener);
+        }
+
         if (params != null) {
             for (String key : params.keySet()) {
                 model.get("param").add(key, params.get(key));
@@ -4857,6 +4910,191 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+
+    // HA CONFIGURATION - START
+
+    @Override
+    public void removeHAPolicy(String serverName)   {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        String haPolicy = null;
+        try {
+            haPolicy = result.get("result").get("ha-policy").keys().iterator().next();
+            logger.info(haPolicy);
+        } catch (IllegalArgumentException ex)   {
+            // no ha-policy
+        }
+
+        if (!isEmpty(haPolicy)) {
+            model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+            model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+            model.get(ClientConstants.OP_ADDR).add("ha-policy", haPolicy);
+
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(long failbackDelay, boolean failoverOnServerShutdown) {
+        addHAPolicySharedStoreMaster(NAME_OF_MESSAGING_DEFAULT_SERVER, failbackDelay, failoverOnServerShutdown);
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown)  {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "shared-store-master");
+        model.get("failback-delay").set(failbackDelay);
+        model.get("failover-on-server-shutdown").set(failoverOnServerShutdown);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
+                                            boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        addHAPolicySharedStoreSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, failbackDelay, failoverOnServerShutdown, restartBackup,
+                scaleDown, scaleDownClusterName, scaleDownConnectors, scaleDownDiscoveryGroup, scaleDownGroupName);
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
+                                            boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "shared-store-slave");
+        model.get("allow-failback").set(allowFailback);
+        model.get("failback-delay").set(failbackDelay);
+        model.get("failover-on-server-shutdown").set(failoverOnServerShutdown);
+        model.get("restart-backup").set(restartBackup);
+        model.get("scale-down").set(scaleDown);
+        if (!isEmpty(scaleDownClusterName)) {
+            model.get("scale-down-cluster-name").set(scaleDownClusterName);
+        }
+        if (!isEmpty(scaleDownConnectors)) {
+            model.get("scale-down-connectors").set(createModelNodeForList(scaleDownConnectors));
+        }
+        if (!isEmpty(scaleDownDiscoveryGroup)) {
+            model.get("scale-down-discovery-group").set(scaleDownDiscoveryGroup);
+        }
+        if (!isEmpty(scaleDownGroupName)) {
+            model.get("scale-down-group-name").set(scaleDownGroupName);
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(boolean checkForLiveServer, String clusterName, String groupName) {
+        addHAPolicyReplicationMaster(NAME_OF_MESSAGING_DEFAULT_SERVER, checkForLiveServer, clusterName, groupName);
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(String serverName, boolean checkForLiveServer, String clusterName, String groupName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "replication-master");
+        model.get("check-for-live-server").set(checkForLiveServer);
+        model.get("cluster-name").set(clusterName);
+        model.get("group-name").set(groupName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay,
+                                            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
+                                            boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+                                            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+
+        addHAPolicyReplicationSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, clusterName, failbackDelay,
+                groupName, maxSavedReplicatedJournalSize, restartBackup, scaleDown, scaleDownClusterName,
+                scaleDownConnectors, scaleDownDiscoveryGroup, scaleDownGroupName);
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
+                                            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
+                                            boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+                                            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "replication-slave");
+        model.get("allow-failback").set(allowFailback);
+        model.get("failback-delay").set(failbackDelay);
+        model.get("cluster-name").set(clusterName);
+        model.get("group-name").set(groupName);
+        model.get("group-name").set(groupName);
+        model.get("max-saved-replicated-journal-size").set(maxSavedReplicatedJournalSize);
+        model.get("restart-backup").set(restartBackup);
+        model.get("scale-down").set(scaleDown);
+        if (!isEmpty(scaleDownClusterName)) {
+            model.get("scale-down-cluster-name").set(scaleDownClusterName);
+        }
+        if (!isEmpty(scaleDownConnectors)) {
+            model.get("scale-down-connectors").set(createModelNodeForList(scaleDownConnectors));
+        }
+        if (!isEmpty(scaleDownDiscoveryGroup)) {
+            model.get("scale-down-discovery-group").set(scaleDownDiscoveryGroup);
+        }
+        if (!isEmpty(scaleDownGroupName)) {
+            model.get("scale-down-group-name").set(scaleDownGroupName);
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // HA CONFIGURATION - END
+
+
     public static void main(String[] args) {
         ActiveMQAdminOperationsEAP7 jmsAdminOperations = new ActiveMQAdminOperationsEAP7();
         try {
@@ -4891,7 +5129,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             List<String> list = new ArrayList<String>();
             list.add("http-connector");
-             jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
+//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
+
+            jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
+            jmsAdminOperations.removeHAPolicy("default");
+            jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
+            jmsAdminOperations.removeHAPolicy("default");
+            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
+            jmsAdminOperations.removeHAPolicy("default");
+            jmsAdminOperations.addHAPolicyReplicationMaster(true, "my-cluster", "my-group");
+            jmsAdminOperations.removeHAPolicy("default");
+            jmsAdminOperations.addHAPolicyReplicationSlave(true, "my-cluster", 3000, "my-group", 3, true, false, null, null, null, null);
+
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
             // jmsAdminOperations.reload();

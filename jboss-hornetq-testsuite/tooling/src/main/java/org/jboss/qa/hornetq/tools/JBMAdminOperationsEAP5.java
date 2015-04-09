@@ -755,12 +755,32 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createHttpAcceptor(String name, String httpListener, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeRemoteAcceptor(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void removeHttpConnector(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHttpAcceptor(String serverName, String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHttpAcceptor(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2067,6 +2087,51 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void reload(boolean isAdminOnlyMode) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHAPolicy(String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(long failbackDelay, boolean failoverOnServerShutdown) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(boolean checkForLiveServer, String clusterName, String groupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(String serverName, boolean checkForLiveServer, String clusterName, String groupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay, String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

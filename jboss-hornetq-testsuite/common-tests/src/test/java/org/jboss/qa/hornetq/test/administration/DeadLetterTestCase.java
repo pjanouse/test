@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.administration;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -58,18 +59,9 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToExistingDLQ() throws Exception {
+
+        prepareServer(container(1), "#", true);
         container(1).start();
-
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
-        ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
-        ops.removeAddressSettings("#");
-        ops.addAddressSettings("default", "#",
-                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
-                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
-        ops.close();
-
-        container(1).restart();
         this.testDLQDelivery();
         container(1).stop();
     }
@@ -83,17 +75,8 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToSubaddressDLQ() throws Exception {
+        prepareServer(container(1), "jms.queue.test.dlq.#", true);
         container(1).start();
-
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
-        ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
-        ops.addAddressSettings("default", "jms.queue.test.dlq.#",
-                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
-                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
-        ops.close();
-
-        container(1).restart();
         this.testDLQDelivery();
         container(1).stop();
     }
@@ -109,16 +92,8 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDeliveryToNonExistantDLQ() throws Exception {
+        prepareServer(container(1), "#", false);
         container(1).start();
-
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
-        ops.removeAddressSettings("#");
-        ops.addAddressSettings("default", "#",
-                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
-                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
-
-        container(1).restart();
         this.testDLQDelivery();
         container(1).stop();
     }
@@ -129,17 +104,8 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDLQDeployedDuringProcessing() throws Exception {
+        prepareServer(container(1), "#", false);
         container(1).start();
-
-        // No DLQ deployed during initial setup
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
-        ops.removeAddressSettings("#");
-        ops.addAddressSettings("default", "#",
-                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
-                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
-
-        container(1).restart();
 
         try {
             this.testDLQDelivery();
@@ -148,7 +114,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             // test couldn't find DLQ to read lost message from it
         }
 
-        ops = container(1).getJmsOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
         ops.close();
 
@@ -217,6 +183,22 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 ctx.close();
             }
         }
+    }
+
+    private void prepareServer(Container container, String address, boolean isDLQDeployed) {
+
+        container.start();
+        JMSOperations ops = container(1).getJmsOperations();
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
+        if (isDLQDeployed) {
+            ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
+        }
+        ops.removeAddressSettings("#");
+        ops.addAddressSettings("default", address,
+                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
+                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
+        ops.close();
+        container.stop();
     }
 
 }
