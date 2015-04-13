@@ -528,8 +528,24 @@ public interface JMSOperations {
      */
     void removeQueue(String queueName);
 
+    /**
+     * Creates http acceptor.
+     *
+     * @param name name of the acceptor
+     * @param httpListener if null then "default" is used.
+     * @param params parameters for the acceptor
+     */
     void createHttpAcceptor(String name, String httpListener, Map<String, String> params);
 
+    /**
+     * Creates http acceptor.
+     *
+     * @param serverName name of the server
+     * @param name name of the acceptor
+     * @param httpListener if null then "default" is used.
+     * @param params parameters for the acceptor
+     *
+     */
     void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params);
 
     /**

@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.remote.jca;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
-import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
@@ -24,6 +23,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,7 +52,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     private final Archive mdb1 = getMdb1();
     private final Archive mdb1OnNonDurable = getMdb1OnNonDurable();
     private final Archive mdb2 = getMdb2();
-    private final Archive mdbWithConnectionParameters = getMdbWithConnectionParameters();
 
     // queue to send messages in 
     static String inQueueName = "InQueue";
@@ -94,37 +93,20 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    public Archive getMdbWithConnectionParameters() {
+    public JavaArchive getMdbWithConnectionParameters() {
 
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdbWithConnectionParameters + ".jar");
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithConnectionParameters.jar");
         mdbJar.addClasses(MdbWithConnectionParameters.class);
-        mdbJar.addAsManifestResource(new StringAsset(createHornetqJmsXml()), "hornetq-jms.xml");
+
         logger.info(mdbJar.toString(true));
+
+        // Uncomment when you want to see what's in the servlet
+         File target = new File("/tmp/mdb.jar");
+         if (target.exists()) {
+         target.delete();
+         }
+         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
-    }
-
-    public static String createHornetqJmsXml() {
-
-        StringBuilder hornetqJmsXml = new StringBuilder();
-
-        hornetqJmsXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
-        hornetqJmsXml.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
-        hornetqJmsXml.append("<hornetq-server>\n");
-        hornetqJmsXml.append("<jms-destinations>\n");
-        hornetqJmsXml.append("<jms-queue name=\"InQueue\">\n");
-        hornetqJmsXml.append("<entry name=\"jms/queue/InQueue\" />\n");
-        hornetqJmsXml.append("<entry name=\"java:jboss/exported/jms/queue/InQueue\" />\n");
-        hornetqJmsXml.append("</jms-queue>\n");
-        hornetqJmsXml.append("<jms-queue name=\"OutQueue\">\n");
-        hornetqJmsXml.append("<entry name=\"jms/queue/OutQueue\" />\n");
-        hornetqJmsXml.append("<entry name=\"java:jboss/exported/jms/queue/OutQueue\" />\n");
-        hornetqJmsXml.append("</jms-queue>\n");
-        hornetqJmsXml.append("</jms-destinations>\n");
-        hornetqJmsXml.append("</hornetq-server>\n");
-        hornetqJmsXml.append("</messaging-deployment>\n");
-        hornetqJmsXml.append("\n");
-
-        return hornetqJmsXml.toString();
     }
 
 
@@ -337,15 +319,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRAConfiguredByMdbInRemoteJcaTopology() throws Exception {
 
-        prepareJmsServer(container(1)); // jms server
-        prepareMdbServer(container(2), container(1)); // mdb server
-        prepareJmsServer(container(3));
+        prepareRemoteJcaTopology();
 
         // cluster A
         container(1).start();
-        deployDestinations(container(1));
         container(3).start();
-        deployDestinations(container(3));
 
         // get container properties for node 2 and modify them
         String s = null;
@@ -354,12 +332,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
             s = containerDef.getContainerProperties().get("javaVmArguments");
             s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
+            if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+                s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
+            } else {
+                s = s.concat(" -Dconnector.factory.class=org.apache.activemq.core.remoting.impl.netty.NettyConnectorFactory");
+            }
             containerDef.getContainerProperties().put("javaVmArguments", s);
         }
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
         container(2).start(properties);
 
+        JavaArchive mdbWithConnectionParameters = getMdbWithConnectionParameters();
         container(2).deploy(mdbWithConnectionParameters);
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -367,8 +351,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         producer1.start();
         producer2.start();
-
-        //        Thread.sleep(10 * 60 * 1000); // min
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(3), outQueueJndiName, 10000, 10, 10);
@@ -414,26 +396,45 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
+    public void prepareRemoteJcaTopology()  throws Exception {
+
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+            prepareRemoteJcaTopologyEAP6();
+        } else {
+            prepareRemoteJcaTopologyEAP7();
+        }
+    }
+
     /**
      * Prepare two servers in simple dedecated topology.
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopology() throws Exception {
+    public void prepareRemoteJcaTopologyEAP6() throws Exception {
 
-        prepareJmsServer(container(1));
-        prepareMdbServer(container(2), container(1));
+        prepareJmsServerEAP6(container(1));
+        prepareMdbServerEAP6(container(2), container(1));
 
-        prepareJmsServer(container(3));
-        prepareMdbServer(container(4), container(1));
+        prepareJmsServerEAP6(container(3));
+        prepareMdbServerEAP6(container(4), container(1));
 
-        container(1).start();
-        deployDestinations(container(1));
-        container(1).stop();
 
-        container(3).start();
-        deployDestinations(container(3));
-        container(3).stop();
+        copyApplicationPropertiesFiles();
+
+    }
+
+    /**
+     * Prepare two servers in simple dedecated topology.
+     *
+     * @throws Exception
+     */
+    public void prepareRemoteJcaTopologyEAP7() throws Exception {
+
+        prepareJmsServerEAP7(container(1));
+        prepareMdbServerEAP7(container(2), container(1));
+
+        prepareJmsServerEAP7(container(3));
+        prepareMdbServerEAP7(container(4), container(1));
 
         copyApplicationPropertiesFiles();
 
@@ -444,7 +445,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServer(Container container) {
+    private void prepareJmsServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -475,6 +476,61 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         map.put("use-nio", "true");
         jmsAdminOperations.createRemoteAcceptor("netty", "messaging", map);
 
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+
+        jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares jms server for remote jca topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareJmsServerEAP7(Container container) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("use-nio", "true");
+        jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
+
+        jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
         jmsAdminOperations.close();
         container.stop();
     }
@@ -484,7 +540,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServer(Container container, Container remoteSever) {
+    private void prepareMdbServerEAP6(Container container, Container remoteSever) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -493,32 +549,54 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
         jmsAdminOperations.setClustered(true);
-
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
-
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-//        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-//        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-//        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", remoteSever.getHostname(),
                 remoteSever.getHornetqPort());
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares mdb server for remote jca topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareMdbServerEAP7(Container container, Container remoteSever) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String remoteConnectorName = "http-remote-connector";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
+        jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
+        jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", remoteSever.getHostname(),
+                remoteSever.getHornetqPort());
+        jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", remoteConnectorName);
         jmsAdminOperations.close();
         container.stop();
     }
@@ -547,37 +625,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
             FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         }
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param container Test container
-     */
-    private void deployDestinations(Container container) {
-        deployDestinations(container, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param serverName server name of the hornetq server
-     */
-    private void deployDestinations(Container container, String serverName) {
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        jmsAdminOperations.createQueue(serverName, inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue(serverName, outQueueName, outQueueJndiName, true);
-
-        jmsAdminOperations.createTopic(serverName, inTopicName, inTopicJndiName);
-
-
-        jmsAdminOperations.close();
     }
 
 }

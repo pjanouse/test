@@ -4160,7 +4160,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params) {
         try {
-            removeRemoteAcceptor(serverName, name);
+            removeHttpAcceptor(serverName, name);
         } catch (Exception ex) {
             logger.warn("Removing remote acceptor failed: ", ex);
         }

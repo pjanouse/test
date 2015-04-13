@@ -67,6 +67,7 @@ public class SubscriberTransAck extends Client {
      * @param commitAfter    send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public SubscriberTransAck(String hostname, int port, String topicJndiName, long receiveTimeOut,
                               int commitAfter, int maxRetries, String clientId, String subscriberName) {
         this(EAP6_CONTAINER, hostname, port, topicJndiName, receiveTimeOut, commitAfter, maxRetries, clientId, subscriberName);
@@ -83,8 +84,17 @@ public class SubscriberTransAck extends Client {
      */
     public SubscriberTransAck(Container container, String topicJndiName, long receiveTimeOut,
                               int commitAfter, int maxRetries, String clientId, String subscriberName) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(),
-                topicJndiName, receiveTimeOut, commitAfter, maxRetries, clientId, subscriberName);
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.topicNameJndi = topicJndiName;
+        this.receiveTimeOut = receiveTimeOut;
+        this.commitAfter = commitAfter;
+        this.maxRetries = maxRetries;
+        this.clientId = clientId;
+        this.subscriberName = subscriberName;
+
+        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     /**
@@ -98,6 +108,7 @@ public class SubscriberTransAck extends Client {
      * @param commitAfter    send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
+    @Deprecated
     public SubscriberTransAck(String container, String hostname, int port, String topicJndiName, long receiveTimeOut,
                               int commitAfter, int maxRetries, String clientId, String subscriberName) {
 

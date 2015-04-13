@@ -44,9 +44,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger log = Logger.getLogger(HornetQTestCase.class);
-    
+
     private static final String BYTEMAN_KILL_MSG = "Byteman is going to kill JVM...now";
-    
+
     private static final String BYTEMAN_KILL_ACTION = "System.out.println(\""+BYTEMAN_KILL_MSG+"\");killJVM();";
 
     private static final String TEST_QUEUE = "dummyQueue";
@@ -54,13 +54,13 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     private static final String TEST_QUEUE_JNDI_NEW = "java:jboss/exported/jms/queue/dummyQueue_new_name";
     private static final String TEST_QUEUE_JNDI_CLIENT = "jms/queue/dummyQueue_new_name";
     private static final String CONNECTION_FACTORY = "RemoteConnectionFactory";
-    
+
     @Before
     public void preActionPrepareServers() throws Exception {
         container(1).stop();
         container(1).start();
     }
-    
+
     /**
      * Stops all servers
      */
@@ -68,7 +68,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     public void postActionStopAllServers() throws Exception {
         container(1).stop();
     }
-    
+
     /**
      * Dummy smoke test which sends and receives messages
      *
@@ -86,12 +86,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
 
         SimpleJMSClient client = new SimpleJMSClient(
-                container(1).getHostname(),
-                container(1).getJNDIPort(),
+                container(1),
                 MESSAGES,
                 Session.AUTO_ACKNOWLEDGE,
                 false);
-        
+
         client.sendMessages(TEST_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringSend());
         assertEquals(MESSAGES, client.getSentMessages());
@@ -117,26 +116,31 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
     /**
      * Server is killed before transactional data are written into the journal during send
-     * 
+     *
      * @throws InterruptedException is something is wrong
      * @id commit02
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before transactional data are written into journal - send",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeMessageTransactional",
+                    action = BYTEMAN_KILL_ACTION)
+    })
     public void commitAtSendingBeforeOperationWrittenTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -154,21 +158,26 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after transactional data are written into journal - send",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeMessageTransactional",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void commitAtSendingAfterOperationWrittenTest()
     {
     	int numMessagesSent = 1;
     	// Should be 0 message because server is killed before commit
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -184,19 +193,24 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = BYTEMAN_KILL_ACTION)
+    })
     public void commitAtSendingBeforeWriteCommitTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -212,20 +226,25 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void commitAtSendingAfterWriteCommitTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 1;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -242,19 +261,23 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = BYTEMAN_KILL_ACTION)})
     public void commitAtReceivingBeforeWriteCommitTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -271,20 +294,25 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after transaction commit is written into journal - receive",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void commitAtReceivingAfterWriteCommitTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -295,54 +323,31 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     /**
      * TODO - check this scenario whether it's correct
      * Server is killed after is message deleted from journal after receive
-     * 
-     * @id commit14 
+     *
+     * @id commit14
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteMessage",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after message is deleted from journal - receive",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "deleteMessage",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void commitAtReceivingAfterDeleteMessageFromJournalTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
-    	executeWithCommit(
-    			numMessagesSent,
-    			expectedNumMessagesOnQueue,
-    			expectedNumMessagesRecieved,
-    			isFaultOnReceive);
-    }
-    
-    /**
-     * Kill before delivering message to the consumer.
-     *
-     * @id commit09
-     */
-    @Test  @CleanUpBeforeTest
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before delivered to the consumer - recieve",
-            targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
-            targetMethod = "deliverStandardMessage",
-            action = BYTEMAN_KILL_ACTION))
-    public void commitAtReceivingBeforeDeliveringToConsumerTest() 
-    {
-    	int numMessagesSent = 1;
-    	int expectedNumMessagesOnQueue = 1;
-    	int expectedNumMessagesRecieved = 0;
-    	
-    	boolean isFaultOnReceive = true;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -351,34 +356,71 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
-   	 * Kill after delivering a message to the consumer. 
+     * Kill before delivering message to the consumer.
      *
-     * @id commit10
+     * @id commit09
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after delivered to the consumer - recieve",
-    		targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
-    		targetMethod = "deliverStandardMessage",
-    		targetLocation = "EXIT",
-    		action = BYTEMAN_KILL_ACTION))
-    public void commitAtReceivingAfterDeliveringToConsumerTest() 
+    @BMRules({
+            @BMRule(name = "Kill before delivered to the consumer - recieve",
+                targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
+                targetMethod = "deliverStandardMessage",
+                action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before delivered to the consumer - recieve",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerConsumerImpl",
+                    targetMethod = "deliverStandardMessage",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void commitAtReceivingBeforeDeliveringToConsumerTest()
     {
     	int numMessagesSent = 1;
-    	int expectedNumMessagesOnQueue = 1;    	
+    	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithCommit(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
     			isFaultOnReceive);
     }
-    
+
+    /**
+   	 * Kill after delivering a message to the consumer.
+     *
+     * @id commit10
+     */
+    @Test  @CleanUpBeforeTest
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @BMRules({
+            @BMRule(name = "Kill after delivered to the consumer - recieve",
+                targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
+                targetMethod = "deliverStandardMessage",
+                targetLocation = "EXIT",
+                action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after delivered to the consumer - recieve",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerConsumerImpl",
+                    targetMethod = "deliverStandardMessage",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void commitAtReceivingAfterDeliveringToConsumerTest()
+    {
+    	int numMessagesSent = 1;
+    	int expectedNumMessagesOnQueue = 1;
+    	int expectedNumMessagesRecieved = 0;
+
+    	boolean isFaultOnReceive = true;
+
+    	executeWithCommit(
+    			numMessagesSent,
+    			expectedNumMessagesOnQueue,
+    			expectedNumMessagesRecieved,
+    			isFaultOnReceive);
+    }
+
     //============================================================================================================
     //============================================================================================================
     // Transactional session - rollback
@@ -394,19 +436,23 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before do rollback - send",
+                    targetClass = "org.apache.activemq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    action = BYTEMAN_KILL_ACTION)})
     public void rollbackAtSendingBeforeDoRollbackTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -422,20 +468,25 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after do rollback - send",
+                    targetClass = "org.apache.activemq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void rollbackAtSendingAfterDoRollbackTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -451,19 +502,23 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before do rollback - receive",
+                    targetClass = "org.apache.activemq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    action = BYTEMAN_KILL_ACTION)})
     public void rollbackAtReceivingBeforeDoRollbackTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -479,20 +534,25 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after do rollback - receive",
+                    targetClass = "org.apache.activemq.core.transaction.impl.TransactionImpl",
+                    targetMethod = "doRollback",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
     public void rollbackAtReceivingAfterDoRollbackTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
@@ -503,123 +563,142 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     /**
      * Server is killed before record is written into the journal.
      * Rollback-only transaction.
-     *  
+     *
      * @id rollback02
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before record is written into the journal - send",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     targetLocation = "INVOKE org.hornetq.core.persistence.StorageManager.storeMessageTransactional",
-                    action = BYTEMAN_KILL_ACTION))
-    public void rollbackAtSendingBeforeWrittenToJournalTest() 
-    {
-    	int numMessagesSent = 1;
-    	int expectedNumMessagesOnQueue = 0;
-    	int expectedNumMessagesRecieved = 0;
-    	
-    	boolean isFaultOnReceive = false;
-    	
-    	executeWithRollback(
-    			numMessagesSent,
-    			expectedNumMessagesOnQueue,
-    			expectedNumMessagesRecieved,
-    			isFaultOnReceive);
-    }
-    
-    /**
-     * Server is killed after record is written into the journal.
-     * Rollback-only transaction. 
-     * 
-     * @id rollback03
-     */
-    @Test  @CleanUpBeforeTest
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after record is written into a journal - send",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before record is written into the journal - send",
+                    targetClass = "org.apache.activemq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
-                    targetLocation = "EXIT",
-                    action = BYTEMAN_KILL_ACTION))
-    public void rollbackAtSendingAfterWrittenToJournalTest() 
+                    targetLocation = "INVOKE org.apache.activemq.core.persistence.StorageManager.storeMessageTransactional",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void rollbackAtSendingBeforeWrittenToJournalTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 0;
     	int expectedNumMessagesRecieved = 0;
 
     	boolean isFaultOnReceive = false;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
     			isFaultOnReceive);
-    }    
- 
-    
+    }
+
+    /**
+     * Server is killed after record is written into the journal.
+     * Rollback-only transaction.
+     *
+     * @id rollback03
+     */
+    @Test  @CleanUpBeforeTest
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @BMRules({
+            @BMRule(name = "Kill after record is written into a journal - send",
+                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after record is written into a journal - send",
+                    targetClass = "org.apache.activemq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void rollbackAtSendingAfterWrittenToJournalTest()
+    {
+    	int numMessagesSent = 1;
+    	int expectedNumMessagesOnQueue = 0;
+    	int expectedNumMessagesRecieved = 0;
+
+    	boolean isFaultOnReceive = false;
+
+    	executeWithRollback(
+    			numMessagesSent,
+    			expectedNumMessagesOnQueue,
+    			expectedNumMessagesRecieved,
+    			isFaultOnReceive);
+    }
+
+
     /**
      * Kill before message is delivered to the client.
      * Rollback-only transaction.
-     * 
+     *
      * @id rollback09
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill before delivered to the consumer - recieve",
                     targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
-                    action = BYTEMAN_KILL_ACTION))
-    public void rollbackAtReceivingBeforeDeliveredToConsumerTest() 
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before delivered to the consumer - recieve",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerConsumerImpl",
+                    targetMethod = "deliverStandardMessage",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void rollbackAtReceivingBeforeDeliveredToConsumerTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
     			isFaultOnReceive);
     }
-    
+
     /**
-     * Kill after delivering message to the client. 
+     * Kill after delivering message to the client.
      * Rollback-only transaction.
-     * 
+     *
      * @id rollback10
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after delivered to the consumer - recieve",
             		targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
             		targetMethod = "deliverStandardMessage",
             		targetLocation = "EXIT",
-            		action = BYTEMAN_KILL_ACTION))
-    public void rollbackAtReceivingAfterDeliveredToConsumerTest() 
+            		action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill after delivered to the consumer - recieve",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerConsumerImpl",
+                    targetMethod = "deliverStandardMessage",
+                    targetLocation = "EXIT",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void rollbackAtReceivingAfterDeliveredToConsumerTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithRollback(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
     			isFaultOnReceive);
     }
-    
+
     //============================================================================================================
     //============================================================================================================
     // No-transactional session - client ack mode
@@ -642,6 +721,14 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             @BMRule(name = "Kill before ack is written in journal",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledgeTransactional",
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before ack is written in journal",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeAcknowledge",
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before ack is written in journal",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "storeAcknowledgeTransactional",
                     action = BYTEMAN_KILL_ACTION)}
     )
     public void clientAckAtReceivingBeforeWriteAckTest()
@@ -649,14 +736,14 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
+
     	boolean isFaultOnReceive = true;
-    	
+
     	executeWithClientAck(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
-    			isFaultOnReceive);  
+    			isFaultOnReceive);
     }
 
     /**
@@ -665,80 +752,89 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @Test  @CleanUpBeforeTest
     @RunAsClient
     @RestoreConfigBeforeTest
-    @BMRules(
+    @BMRules({
             @BMRule(name = "Kill after acknowledge()",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "acknowledge",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();"),
+            @BMRule(name = "Kill after acknowledge()",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerSessionImpl",
+                    targetMethod = "acknowledge",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();")})
     public void clientAckAtReceivingAfterWriteAckTest()
     {
     	int numMessagesSent = 1;
     	int expectedNumMessagesOnQueue = 1;
     	int expectedNumMessagesRecieved = 0;
-    	
-    	boolean isFaultOnReceive = true;
-    	
-    	executeWithClientAck(
-    			numMessagesSent,
-    			expectedNumMessagesOnQueue,
-    			expectedNumMessagesRecieved,
-    			isFaultOnReceive);  
-    }
 
-    /**
-     * Server is killed before the record is written into the journal 
-     * during sending to the server.
-     * 
-     * @id nonTrans02
-     */
-    @Test  @CleanUpBeforeTest
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before the record is written into the journal - send",
-                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
-                    targetMethod = "appendRecord",
-                    action = BYTEMAN_KILL_ACTION))
-    public void clientAckAtSendingBeforeWrittenToJournalTest() 
-    {
-    	int numMessagesSent = 1;
-    	int expectedNumMessagesRecieved = 0;
-    	int expectedNumMessagesOnQueue = 0;
-    	
-    	boolean isFaultOnReceive = false;
-    	
+    	boolean isFaultOnReceive = true;
+
     	executeWithClientAck(
     			numMessagesSent,
     			expectedNumMessagesOnQueue,
     			expectedNumMessagesRecieved,
     			isFaultOnReceive);
     }
-    
+
+    /**
+     * Server is killed before the record is written into the journal
+     * during sending to the server.
+     *
+     * @id nonTrans02
+     */
+    @Test  @CleanUpBeforeTest
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @BMRules({
+            @BMRule(name = "Kill before the record is written into the journal - send",
+                    targetClass = "org.apache.activemq.core.journal.impl.JournalImpl",
+                    targetMethod = "appendRecord",
+                    action = BYTEMAN_KILL_ACTION),
+            @BMRule(name = "Kill before the record is written into the journal - send",
+                    targetClass = "org.apache.activemq.core.journal.impl.JournalImpl",
+                    targetMethod = "appendRecord",
+                    action = BYTEMAN_KILL_ACTION)})
+    public void clientAckAtSendingBeforeWrittenToJournalTest()
+    {
+    	int numMessagesSent = 1;
+    	int expectedNumMessagesRecieved = 0;
+    	int expectedNumMessagesOnQueue = 0;
+
+    	boolean isFaultOnReceive = false;
+
+    	executeWithClientAck(
+    			numMessagesSent,
+    			expectedNumMessagesOnQueue,
+    			expectedNumMessagesRecieved,
+    			isFaultOnReceive);
+    }
+
     //============================================================================================================
     //============================================================================================================
     // Protected methods
     //============================================================================================================
     //============================================================================================================
-    
+
     /**
      * Executes next test sequence:
      * 	<li>preparing server</li>
      *  <li>sending messages	:producer->server</li>
-     *  <li>receiving messages	:server->consumer</li>  
-     *  <li><b>test: </b>none exception during sending</li>  
+     *  <li>receiving messages	:server->consumer</li>
+     *  <li><b>test: </b>none exception during sending</li>
      *  <li><b>test: </b>exception during receiving</li>
      *  <li><b>test: </b>comparing counts(expected values)</li>
-     *  
-     *  <p>  
-     *  
-     * Transactions are NOT marked as 'rollback-only'. 
-     * 
-     * @param numMessagesSent 
+     *
+     *  <p>
+     *
+     * Transactions are NOT marked as 'rollback-only'.
+     *
+     * @param numMessagesSent
      * 				number of messages to be send by a producer
-     * @param expectedNumMessagesRecieved 
+     * @param expectedNumMessagesRecieved
      * 				expected number of messages to be received by a receiver
-     * @param expectedNumMessagesOnQueue 
+     * @param expectedNumMessagesOnQueue
      * 				expected number of messages to be on queue
      * 				(not delivered to a receiver)
      */
@@ -750,35 +846,35 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     {
     	boolean isRollbackOnly = false;
     	boolean isTransacted = true;
-    	
+
     	executeTestSequence(
                 expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
     			isRollbackOnly,
     			isTransacted,
     			isFaultOnReceive);
-    }    
-    
+    }
+
     /**
      * Executes next test sequence:
      * 	<li>preparing server</li>
      *  <li>sending messages</li>
      *  <li>marking consumer as	rollback-only</li>
-     *  <li>receiving messages</li>  
-     *  <li><b>test: </b>none exception during sending</li>  
+     *  <li>receiving messages</li>
+     *  <li><b>test: </b>none exception during sending</li>
      *  <li><b>test: </b>exception during receiving</li>
      *  <li><b>test: </b>comparing counts(expected values)</li>
-     *    
-     *  <p>  
-     *  
+     *
+     *  <p>
+     *
      * Transactions ARE marked as 'rollback-only'.
-     *  
-     * @param numMessagesSent 
+     *
+     * @param numMessagesSent
      * 				number of messages to be send by a producer
-     * @param expectedNumMessagesOnQueue 
+     * @param expectedNumMessagesOnQueue
      * 				expected number of messages to be on queue
      * 				(not delivered to a receiver)
-     * @param expectedNumMessagesRecieved 
+     * @param expectedNumMessagesRecieved
      * 				expected number of messages to be received by a receiver
      */
     protected void executeWithRollback(
@@ -788,25 +884,25 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     		boolean isFaultOnReceive)
     {
     	boolean isRollbackOnly = true;
-    	boolean isTransacted = true; 
-    	
+    	boolean isTransacted = true;
+
     	executeTestSequence(
                 expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
     			isRollbackOnly,
     			isTransacted,
     			isFaultOnReceive);
-    }   
-    
+    }
+
     /**
-     * 
+     *
      * TODO update javadoc
-     *  
-     * @param numMessagesSent 
+     *
+     * @param numMessagesSent
      * 				number of messages to be send by a producer
-     * @param expectedNumMessagesRecieved 
+     * @param expectedNumMessagesRecieved
      * 				expected number of messages to be received by a receiver
-     * @param expectedNumMessagesOnQueue 
+     * @param expectedNumMessagesOnQueue
      * 				expected number of messages to be on queue
      * 				(not delivered to a receiver)
      */
@@ -818,7 +914,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     {
     	boolean isRollbackOnly = false;
     	boolean isTransacted = false;
-    	
+
     	executeTestSequence(
                 expectedNumMessagesRecieved,
     			expectedNumMessagesOnQueue,
@@ -826,7 +922,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     			isTransacted,
     			isFaultOnReceive);
     }
-    
+
     /**
      * TODO javadoc expected here
      */
@@ -837,39 +933,39 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             boolean isTransacted,
             boolean isFaultOnReceive)
     {
-    	int ackMode = isTransacted 
-    			? Session.SESSION_TRANSACTED 
-    			: Session.CLIENT_ACKNOWLEDGE; // was requested AUTO_ACK according to the NTT document 
+    	int ackMode = isTransacted
+    			? Session.SESSION_TRANSACTED
+    			: Session.CLIENT_ACKNOWLEDGE; // was requested AUTO_ACK according to the NTT document
 
         SimpleJMSClient client = createFaultInjection(
-        		ackMode, 
-        		isTransacted, 
-        		isFaultOnReceive, 
+        		ackMode,
+        		isTransacted,
+        		isFaultOnReceive,
         		isRollbackOnly);
-        
+
        	JMSOperations jmsAdminOperations = container(1).getJmsOperations();
        	long numMessagesOnQueue = jmsAdminOperations.getCountOfMessagesOnQueue(TEST_QUEUE);
        	jmsAdminOperations.close();
-        
+
         if (isFaultOnReceive)
         {
         	assertNotNull("Expected exception on receive was not thrown",
         				  client.getExceptionDuringReceive());
-        } else 
+        } else
         {
         	assertNotNull("Expected exception on send was not thrown",
         				  client.getExceptionDuringSend());
         }
-        
+
         assertEquals("Incorrect number of messages received:",
-        			 expectedNumMessagesRecieved,     
+        			 expectedNumMessagesRecieved,
         			 client.getReceivedMessages());
-        
-        assertEquals("Incorrect number of messages on the queue:", 
-        			 expectedNumMessagesOnQueue,  
+
+        assertEquals("Incorrect number of messages on the queue:",
+        			 expectedNumMessagesOnQueue,
         			 numMessagesOnQueue);
     }
-    
+
     //============================================================================================================
     //============================================================================================================
     // Private methods
@@ -889,9 +985,9 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     }
 
     /**
-     * Creates fault injection client and sends and receives one message. 
-     * If parameter <code>ruleBeforeReceive</code> is true, 
-     * server is not killed and calling method can evaluate results and 
+     * Creates fault injection client and sends and receives one message.
+     * If parameter <code>ruleBeforeReceive</code> is true,
+     * server is not killed and calling method can evaluate results and
      * has to kill server.
      *
      * @param ackMode           acknowledge mode for JMS client
@@ -901,10 +997,10 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * @return instance of {@link org.jboss.qa.hornetq.apps.clients.SimpleJMSClient}
      */
     private SimpleJMSClient createFaultInjection(
-    		int ackMode, 
-    		boolean transacted, 
-    		boolean ruleBeforeReceive, 
-    		boolean rollbackOnly) 
+    		int ackMode,
+    		boolean transacted,
+    		boolean ruleBeforeReceive,
+    		boolean rollbackOnly)
     {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
@@ -912,10 +1008,10 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
         jmsAdminOperations.close();
 
-        SimpleJMSClient client = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), 1, ackMode, transacted);
+        SimpleJMSClient client = new SimpleJMSClient(container(1), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
-            
+
             log.info("Installing Byteman rule before sending message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             client.sendMessages(TEST_QUEUE_JNDI);
@@ -923,12 +1019,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             container(1).kill();
             container(1).start();
 
-            try 
+            try
             {
                 Thread.sleep(10000);
             } catch (Exception e) {
             }
-            
+
             client.receiveMessages(TEST_QUEUE_JNDI);
         } else {
             log.info("Execution of the client ...");
@@ -936,7 +1032,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
-            
+
             client.receiveMessages(TEST_QUEUE_JNDI);
 
             container(1).kill();
@@ -945,5 +1041,5 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         }
         return client;
     }
-    
+
 }

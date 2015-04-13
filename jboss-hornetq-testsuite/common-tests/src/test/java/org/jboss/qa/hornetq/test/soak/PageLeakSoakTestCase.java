@@ -43,15 +43,15 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        SubscriberTransAck fastSubscriber = new SubscriberTransAck(container(1).getHostname(), container(1).getJNDIPort(), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
+        SubscriberTransAck fastSubscriber = new SubscriberTransAck(container(1), inTopicJndiName, 30000, 10, 10, "fastSubscriber-connid", "fastSubscriber");
         fastSubscriber.subscribe();
         fastSubscriber.setTimeout(0);
 
-        SubscriberTransAck slowSubscriber = new SubscriberTransAck(container(1).getHostname(), container(1).getJNDIPort(), inTopicJndiName, 30000, 1, 10, "slowSubscriber-connid", "slowSubscriber");
+        SubscriberTransAck slowSubscriber = new SubscriberTransAck(container(1), inTopicJndiName, 30000, 1, 10, "slowSubscriber-connid", "slowSubscriber");
         slowSubscriber.subscribe();
         slowSubscriber.setTimeout(1000);
 
-        PublisherTransAck publisher = new PublisherTransAck(container(1).getHostname(), container(1).getJNDIPort(), inTopicJndiName, numberOfMessages, "publisherID");
+        PublisherTransAck publisher = new PublisherTransAck(container(1), inTopicJndiName, numberOfMessages, "publisherID");
         MessageBuilder builder = new ClientMixMessageBuilder(30, 30);
         builder.setAddDuplicatedHeader(true);
         publisher.setMessageBuilder(builder);
@@ -104,7 +104,6 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(false);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 250857600, 0, 0, 25085760);
         jmsAdminOperations.removeClusteringGroup("my-cluster");

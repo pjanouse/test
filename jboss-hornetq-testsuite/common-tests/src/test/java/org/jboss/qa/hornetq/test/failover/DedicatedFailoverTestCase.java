@@ -113,7 +113,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received",
+                    targetClass = "org.apache.activemq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>120",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+    })
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
         prepareSimpleDedicatedTopology();
@@ -1180,7 +1195,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         container(2).stop();
 
-//        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
+//        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
 
     }

@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "setupAttempts", propertyValue = "-1"),
                 @ActivationConfigProperty(propertyName = "reconnectAttempts", propertyValue = "-1"),
-                @ActivationConfigProperty(propertyName = "connectorClassName", propertyValue = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"),
+                @ActivationConfigProperty(propertyName = "connectorClassName", propertyValue = "${connector.factory.class}"),
                 @ActivationConfigProperty(propertyName = "connectionParameters", propertyValue = "${connection.parameters}"),
                 @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})

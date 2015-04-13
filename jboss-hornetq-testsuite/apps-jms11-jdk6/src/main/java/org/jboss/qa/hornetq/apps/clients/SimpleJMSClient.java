@@ -128,22 +128,22 @@ public class SimpleJMSClient extends Client {
         this(container, messages, ackMode, transactionSession, new ByteMessageBuilder());
     }
 
-    /**
-     * Returns context
-     *
-     * @return context
-     * @throws javax.naming.NamingException if something is wrong
-     */
-    private Context getContext() throws NamingException {
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, this.initialContextClass);
-        if (this.initialContextClass != null && !this.initialContextClass.contains("jnp")) {
-            env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
-        } else {
-            env.put(Context.PROVIDER_URL, String.format("jnp://%s:%s", this.hostname, this.port));
-        }
-        return new InitialContext(env);
-    }
+//    /**
+//     * Returns context
+//     *
+//     * @return context
+//     * @throws javax.naming.NamingException if something is wrong
+//     */
+//    private Context getContext() throws NamingException {
+//        final Properties env = new Properties();
+//        env.put(Context.INITIAL_CONTEXT_FACTORY, this.initialContextClass);
+//        if (this.initialContextClass != null && !this.initialContextClass.contains("jnp")) {
+//            env.put(Context.PROVIDER_URL, String.format("remote://%s:%s", this.hostname, this.port));
+//        } else {
+//            env.put(Context.PROVIDER_URL, String.format("jnp://%s:%s", this.hostname, this.port));
+//        }
+//        return new InitialContext(env);
+//    }
 
     /**
      * Sends messages to server
@@ -158,7 +158,7 @@ public class SimpleJMSClient extends Client {
             this.messageBuilder = new ByteMessageBuilder();
         }
         try {
-            context = getContext();
+            context = getContext(hostname, port);
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);
             Queue queue = (Queue) context.lookup(queueJNDIName);
             connection = cf.createConnection();
@@ -218,7 +218,7 @@ public class SimpleJMSClient extends Client {
         Connection connection = null;
         Session session = null;
         try {
-            context = getContext();
+            context = getContext(hostname, port);
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);
             Queue queue = (Queue) context.lookup(queueJNDIName);
             connection = cf.createConnection();

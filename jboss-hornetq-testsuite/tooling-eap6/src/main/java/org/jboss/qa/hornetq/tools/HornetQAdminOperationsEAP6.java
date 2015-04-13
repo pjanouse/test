@@ -175,6 +175,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         removeJmsDestination(DESTINATION_TYPE_QUEUE, queueName);
     }
 
+    @Override
+    public void createHttpAcceptor(String name, String httpListener, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
 
     /**
      * Removes topic
@@ -4134,6 +4144,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void removeHttpAcceptor(String serverName, String name) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void removeHttpAcceptor(String name) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
     public void removeHttpConnector(String serverName, String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -4777,6 +4797,51 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void reload(boolean isAdminOnlyMode) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeHAPolicy(String serverName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(long failbackDelay, boolean failoverOnServerShutdown) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(boolean checkForLiveServer, String clusterName, String groupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicyReplicationMaster(String serverName, boolean checkForLiveServer, String clusterName, String groupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay, String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 
     @Override
