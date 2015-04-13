@@ -8,20 +8,22 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
+import org.kohsuke.MetaInfServices;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.kohsuke.MetaInfServices;
-
-import javax.jms.*;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -1148,33 +1150,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Sets clustered attribute.
+     * This is not necessary any more
      *
      * @param clustered set true to allow server to create cluster
      */
     @Override
     public void setClustered(boolean clustered) {
-        setClustered(NAME_OF_MESSAGING_DEFAULT_SERVER, clustered);
+
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**
      * Sets clustered attribute.
+     * This is not necessary any more
      *
      * @param serverName sets name of the hornetq server to be changed
      * @param clustered set true to allow server to create cluster
      */
     @Override
     public void setClustered(String serverName, boolean clustered) {
-        final ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get("name").set("clustered");
-        model.get("value").set(clustered);
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            logger.error("Setting clustered attribute failed.", e);
-        }
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**
@@ -3460,7 +3455,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
         model.get("module").set("org.apache.activemq");
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
