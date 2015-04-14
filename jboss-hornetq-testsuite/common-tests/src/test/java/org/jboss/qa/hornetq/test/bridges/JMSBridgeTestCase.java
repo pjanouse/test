@@ -10,6 +10,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -140,20 +142,36 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     }
 
     private void prepareServers(Container inServer, Container outServer, String qualityOfService) {
-        prepareServer(inServer);
-        prepareServer(outServer);
-        deployBridge(inServer, outServer, qualityOfService, -1);
+        if (ContainerUtils.isEAP6(inServer))    {
+            prepareServersEAP6(inServer, outServer, qualityOfService);
+        } else {
+            prepareServersEAP7(inServer, outServer, qualityOfService);
+        }
     }
 
-    protected void prepareServer(Container container) {
+    private void prepareServersEAP6(Container inServer, Container outServer, String qualityOfService) {
+        prepareServerEAP6(inServer);
+        prepareServerEAP6(outServer);
+        deployBridgeEAP6(inServer, outServer, qualityOfService, -1);
+    }
+
+    private void prepareServersEAP7(Container inServer, Container outServer, String qualityOfService) {
+        prepareServerEAP7(inServer);
+        prepareServerEAP7(outServer);
+        deployBridgeEAP7(inServer, outServer, qualityOfService, -1);
+    }
+
+    protected void prepareServerEAP6(Container container) {
 
         String inVmConnectionFactory = "InVmConnectionFactory";
         String connectionFactoryName = "RemoteConnectionFactory";
+        String clusterName = "my-cluster";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(false);
+        jmsAdminOperations.removeClusteringGroup(clusterName);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setFactoryType(inVmConnectionFactory, "XA_GENERIC");
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
@@ -172,7 +190,36 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    private void deployBridge(Container containerToDeploy, Container outServer, String qualityOfService, int maxRetries) {
+    protected void prepareServerEAP7(Container container) {
+
+        String inVmConnectionFactory = "InVmConnectionFactory";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String clusterName = "my-cluster";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.removeClusteringGroup(clusterName);
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setFactoryType(inVmConnectionFactory, "XA_GENERIC");
+        jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
+        jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        // Random TX ID for TM
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
+
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+
+    private void deployBridgeEAP6(Container containerToDeploy, Container outServer, String qualityOfService, int maxRetries) {
 
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
@@ -186,7 +233,43 @@ public class JMSBridgeTestCase extends HornetQTestCase {
 
         if (qualityOfService == null || "".equals(qualityOfService))
         {
-            qualityOfService = "ONCE_AND_ONLY_ONCE";
+            qualityOfService = ONCE_AND_ONLY_ONCE;
+        }
+
+        long failureRetryInterval = 1000;
+        long maxBatchSize = 10;
+        long maxBatchTime = 100;
+        boolean addMessageIDInHeader = true;
+
+        containerToDeploy.start();
+        JMSOperations jmsAdminOperations = containerToDeploy.getJmsOperations();
+
+        // set XA on sourceConnectionFactory
+        jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
+
+        jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, null,
+                targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,
+                maxBatchSize, maxBatchTime, addMessageIDInHeader);
+
+        jmsAdminOperations.close();
+        containerToDeploy.stop();
+    }
+
+    private void deployBridgeEAP7(Container containerToDeploy, Container outServer, String qualityOfService, int maxRetries) {
+
+        String bridgeName = "myBridge";
+        String sourceConnectionFactory = "java:/ConnectionFactory";
+        String sourceDestination = inQueueJndiName;
+
+        String targetConnectionFactory = "jms/RemoteConnectionFactory";
+        String targetDestination = outQueueJndiName;
+        Map<String,String> targetContext = new HashMap<String, String>();
+        targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
+        targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + outServer.getHostname() + ":" + outServer.getJNDIPort());
+
+        if (qualityOfService == null || "".equals(qualityOfService))
+        {
+            qualityOfService = ONCE_AND_ONLY_ONCE;
         }
 
         long failureRetryInterval = 1000;
