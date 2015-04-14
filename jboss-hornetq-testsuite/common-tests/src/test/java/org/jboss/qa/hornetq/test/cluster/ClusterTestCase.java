@@ -85,11 +85,7 @@ import java.util.UUID;
  * export MYTESTIP_2=$MYTESTIPV6_2 export MCAST_ADDR=$MCAST_ADDRIPV6
  * <p/>
  * This test also serves
- * @tpChapter Integration testing
- * @tpSubChapter HornetQ cluster - test scenarios
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -109,14 +105,14 @@ public class ClusterTestCase extends HornetQTestCase {
     private final JavaArchive MDB_ON_QUEUE1_SECURITY = createDeploymentMdbOnQueueWithSecurity();
     private final JavaArchive MDB_ON_QUEUE1_SECURITY2 = createDeploymentMdbOnQueueWithSecurity2();
 
-    private final JavaArchive MDB_ON_TEMPQUEUE1 = createDeploymentMdbOnTempQueue1();
-    private final JavaArchive MDB_ON_TEMPQUEUE2 = createDeploymentMdbOnTempQueue2();
+    private final JavaArchive MDB_ON_TEMPQUEUE1 = createDeploymentMdbOnTempQueue1(container(1));
+    private final JavaArchive MDB_ON_TEMPQUEUE2 = createDeploymentMdbOnTempQueue2(container(2));
 
     private final JavaArchive MDB_ON_TOPIC1 = createDeploymentMdbOnTopic1();
     private final JavaArchive MDB_ON_TOPIC2 = createDeploymentMdbOnTopic2();
 
-    private final JavaArchive MDB_ON_TEMPTOPIC1 = createDeploymentMdbOnTempTopic1();
-    private final JavaArchive MDB_ON_TEMPTOPIC2 = createDeploymentMdbOnTempTopic2();
+    private final JavaArchive MDB_ON_TEMPTOPIC1 = createDeploymentMdbOnTempTopic1(container(1));
+    private final JavaArchive MDB_ON_TEMPTOPIC2 = createDeploymentMdbOnTempTopic2(container(2));
 
     private final JavaArchive MDB_ON_QUEUE1_TEMP_QUEUE = createDeploymentMdbOnQueue1Temp();
 
@@ -1778,57 +1774,65 @@ public class ClusterTestCase extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
+        String connectorName = container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER ? "netty" : "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
-
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+        try {
 
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
-                connectorName);
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
-        jmsAdminOperations.disableSecurity();
-        // jmsAdminOperations.setLoggingLevelForConsole("INFO");
-        // jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        if (createDestinations) {
-            for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-                jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+            if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+                jmsAdminOperations.setClustered(true);
+                jmsAdminOperations.setSharedStore(true);
             }
+            jmsAdminOperations.setPersistenceEnabled(true);
 
-            for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-                jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+
+
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
+                    connectorName);
+
+            jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+            jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+            jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+            jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+            jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+            jmsAdminOperations.disableSecurity();
+            // jmsAdminOperations.setLoggingLevelForConsole("INFO");
+            // jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
+
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+            if (createDestinations) {
+                for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+                    jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+                }
+
+                for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+                    jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+                }
+
+                jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
+                jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
+                jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
+                jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
             }
-
-            jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
-            jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
-            jmsAdminOperations.createTopic(inTopicNameForMdb, inTopicJndiNameForMdb);
-            jmsAdminOperations.createTopic(outTopicNameForMdb, outTopicJndiNameForMdb);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        } finally {
+            jmsAdminOperations.close();
+            container.stop();
         }
 
-        jmsAdminOperations.close();
-        container.stop();
     }
 
     @Before
@@ -1845,7 +1849,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueue1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
@@ -1855,11 +1858,10 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    public static JavaArchive createDeploymentMdbOnTempQueue1() {
+    public static JavaArchive createDeploymentMdbOnTempQueue1(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithQueues()), "hornetq-jms.xml");
+        mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithQueues(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         File target = new File("/tmp/mdbOnQueue1.jar");
         if (target.exists()) {
@@ -1872,7 +1874,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueue2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
         // if (target.exists()) {
@@ -1882,11 +1883,10 @@ public class ClusterTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-    public static JavaArchive createDeploymentMdbOnTempQueue2() {
+    public static JavaArchive createDeploymentMdbOnTempQueue2(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithQueues()), "hornetq-jms.xml");
+        mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithQueues(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
         // if (target.exists()) {
@@ -1899,7 +1899,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueueWithSecurity() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security.jar");
         mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
@@ -1912,7 +1911,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueueWithSecurity2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security2.jar");
         mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
@@ -1930,7 +1928,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnTopic1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic1.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -1939,12 +1936,12 @@ public class ClusterTestCase extends HornetQTestCase {
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
      * @return mdb
+     * @param container
      */
-    public static JavaArchive createDeploymentMdbOnTempTopic1() {
+    public static JavaArchive createDeploymentMdbOnTempTopic1(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic1.jar");
         mdbJar.addClass(LocalMdbFromTopicToTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithTopic()), "hornetq-jms.xml");
+        mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithTopic(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         File target = new File("/tmp/mdb.jar");
         if (target.exists()) {
@@ -1958,12 +1955,12 @@ public class ClusterTestCase extends HornetQTestCase {
      * This mdb reads messages from jms/queue/InQueue and sends to jms/queue/OutQueue
      *
      * @return mdb
+     * @param container
      */
-    public static JavaArchive createDeploymentMdbOnTempTopic2() {
+    public static JavaArchive createDeploymentMdbOnTempTopic2(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic2.jar");
         mdbJar.addClass(LocalMdbFromTopicToTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        mdbJar.addAsManifestResource(new StringAsset(getHornetqJmsXmlWithTopic()), "hornetq-jms.xml");
+        mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithTopic(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -1976,7 +1973,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnTopic2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopic2.jar");
         mdbJar.addClass(LocalMdbFromTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -1989,7 +1985,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnTopicWithSub1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTopicWithSub1.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigTopic.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // Uncomment when you want to see what's in the servlet
         // File target = new File("/tmp/mdb.jar");
@@ -2010,7 +2005,6 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1withTempQueue.jar");
         mdbJar.addClass(LocalMdbFromQueueToTempQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
@@ -2021,72 +2015,140 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     // jms/queue/InQueue
-    public static String getHornetqJmsXmlWithQueues() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
-        sb.append("<hornetq-server>\n");
-        sb.append("<jms-destinations>\n");
-        sb.append("<jms-queue name=\"");
-        sb.append(inQueueNameForMdb);
-        sb.append("\">\n");
-        sb.append("<entry name=\"java:jboss/exported/");
-        sb.append(inQueueJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("<entry name=\"");
-        sb.append(inQueueJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("</jms-queue>\n");
-        sb.append("<jms-queue name=\"");
-        sb.append(outQueueNameForMdb);
-        sb.append("\">\n");
-        sb.append("<entry name=\"java:jboss/exported/");
-        sb.append(outQueueJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("<entry name=\"");
-        sb.append(outQueueJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("</jms-queue>\n");
-        sb.append("</jms-destinations>\n");
-        sb.append("</hornetq-server>\n");
-        sb.append("</messaging-deployment>\n");
-        log.info(sb.toString());
-        return sb.toString();
+    public static String getJmsXmlWithQueues(Container container) {
+        if(container.getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+            StringBuilder sb = new StringBuilder();
+            sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
+            sb.append("<hornetq-server>\n");
+            sb.append("<jms-destinations>\n");
+            sb.append("<jms-queue name=\"");
+            sb.append(inQueueNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(inQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(inQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-queue>\n");
+            sb.append("<jms-queue name=\"");
+            sb.append(outQueueNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(outQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(outQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-queue>\n");
+            sb.append("</jms-destinations>\n");
+            sb.append("</hornetq-server>\n");
+            sb.append("</messaging-deployment>\n");
+            log.info(sb.toString());
+            return sb.toString();
+
+        }else{
+            StringBuilder sb = new StringBuilder();
+            sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-activemq-deployment:1.0\">\n");
+            sb.append("<server>\n");
+            sb.append("<jms-destinations>\n");
+            sb.append("<jms-queue name=\"");
+            sb.append(inQueueNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(inQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(inQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-queue>\n");
+            sb.append("<jms-queue name=\"");
+            sb.append(outQueueNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(outQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(outQueueJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-queue>\n");
+            sb.append("</jms-destinations>\n");
+            sb.append("</server>\n");
+            sb.append("</messaging-deployment>\n");
+            log.info(sb.toString());
+            return sb.toString();
+        }
+
     }
 
-    public static String getHornetqJmsXmlWithTopic() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
-        sb.append("<hornetq-server>\n");
-        sb.append("<jms-destinations>\n");
-        sb.append("<jms-topic name=\"");
-        sb.append(inTopicNameForMdb);
-        sb.append("\">\n");
-        sb.append("<entry name=\"java:jboss/exported/");
-        sb.append(inTopicJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("<entry name=\"");
-        sb.append(inTopicJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("</jms-topic>\n");
-        sb.append("<jms-topic name=\"");
-        sb.append(outTopicNameForMdb);
-        sb.append("\">\n");
-        sb.append("<entry name=\"java:jboss/exported/");
-        sb.append(outTopicJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("<entry name=\"");
-        sb.append(outTopicJndiNameForMdb);
-        sb.append("\"/>\n");
-        sb.append("</jms-topic>\n");
-        sb.append("</jms-destinations>\n");
-        sb.append("</hornetq-server>\n");
-        sb.append("</messaging-deployment>\n");
-        log.info(sb.toString());
-        return sb.toString();
-    }
+    public static String getJmsXmlWithTopic(Container container) {
+        if(container.getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+            StringBuilder sb = new StringBuilder();
+            sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
+            sb.append("<hornetq-server>\n");
+            sb.append("<jms-destinations>\n");
+            sb.append("<jms-topic name=\"");
+            sb.append(inTopicNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(inTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(inTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-topic>\n");
+            sb.append("<jms-topic name=\"");
+            sb.append(outTopicNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(outTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(outTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-topic>\n");
+            sb.append("</jms-destinations>\n");
+            sb.append("</hornetq-server>\n");
+            sb.append("</messaging-deployment>\n");
+            log.info(sb.toString());
+            return sb.toString();
+        }else{
+            StringBuilder sb = new StringBuilder();
+            sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-activemq-deployment:1.0\">\n");
+            sb.append("<server>\n");
+            sb.append("<jms-destinations>\n");
+            sb.append("<jms-topic name=\"");
+            sb.append(inTopicNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(inTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(inTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-topic>\n");
+            sb.append("<jms-topic name=\"");
+            sb.append(outTopicNameForMdb);
+            sb.append("\">\n");
+            sb.append("<entry name=\"java:jboss/exported/");
+            sb.append(outTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("<entry name=\"");
+            sb.append(outTopicJndiNameForMdb);
+            sb.append("\"/>\n");
+            sb.append("</jms-topic>\n");
+            sb.append("</jms-destinations>\n");
+            sb.append("<server>\n");
+            sb.append("</messaging-deployment>\n");
+            log.info(sb.toString());
+            return sb.toString();
+        }
 
+    }
     public ArrayList<File> getAllPagingFiles(String pagingDirectoryPath) {
         File mainPagingDirectoryPath = new File(pagingDirectoryPath);
         ArrayList<File> out = new ArrayList<File>();

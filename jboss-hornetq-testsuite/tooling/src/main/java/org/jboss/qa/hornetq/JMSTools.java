@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+
 import org.junit.Assert;
 
 import javax.jms.Connection;
@@ -322,4 +323,5 @@ public final class JMSTools {
             return true;
         }
     }
+
 }
