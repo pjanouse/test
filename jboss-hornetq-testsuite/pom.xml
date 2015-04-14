@@ -481,9 +481,9 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>org.jboss.qa.hornetq</groupId>
-                    <artifactId>qa-hornetq-testplan-generator-annotation-processor</artifactId>
-                    <version>0.0.1</version>
+                    <groupId>org.jboss.qa</groupId>
+                    <artifactId>qa-testplan-generator-annotation-processor</artifactId>
+                    <version>0.0.2</version>
                 </dependency>
 
                 <!-- TODO remove activemq client dep once it's in jboss-client.jar -->
@@ -499,12 +499,34 @@
                 </dependency>
                 <!-- TODO remove activemq client dep once it's in jboss-client.jar -->
 
-
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>
                     <version>${eap7.client}</version>
                     <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-as-controller-client</artifactId>
+                    <version>${eap7.controller.client}</version>
+                    <type>jar</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-cli</artifactId>
+                    <version>${eap7.cli.client}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.wildfly.arquillian</groupId>

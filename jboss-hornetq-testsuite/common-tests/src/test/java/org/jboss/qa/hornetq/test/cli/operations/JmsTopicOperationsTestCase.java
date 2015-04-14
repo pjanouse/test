@@ -69,7 +69,9 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     String expireCoreQueueName = "Expire";
     String expireQueueJndiName = "jms/queue/" + expireCoreQueueName;
 
-    private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/jms-topic=" + coreTopicName;
+    private final String ADDRESS_EAP6 = "/subsystem=messaging/hornetq-server=default/jms-topic=" + coreTopicName;
+    private final String ADDRESS_EAP7 = "/subsystem=messaging-activemq/server=default/jms-topic=" + coreTopicName;
+
 
 
     @Before
@@ -94,18 +96,18 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
-
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getContainerType().toString(),
-                container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
+        logger.info("Starting subscriber");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1),topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
+        logger.info("Starting publisher");
         PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
         List<Client> producers = new ArrayList<Client>();
         producers.add(publisher);
-
+        logger.info("Waiting for messages");
         ClientUtils.waitForProducersUntil(producers, 10, 60000);
 
         Result r1 = runOperation("add-jndi ", "jndi-binding=" + topicJndiName + "2");
@@ -129,7 +131,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         logger.info("Result drop-all-subscriptions: " + r22.getResponse().asString());
         CliTestUtils.assertSuccess(r22);
 
-        subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, clientId, subscriberName);
+        subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 
@@ -168,7 +170,12 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     }
 
     private Result runOperation(final String operation, final String... params) {
-        String cmd = CliUtils.buildCommand(ADDRESS, ":" + operation, params);
+        String cmd;
+        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+            cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
+        }else{
+            cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
+        }
         return this.cli.executeCommand(cmd);
     }
 
@@ -178,7 +185,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
-        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setSecurityEnabled(false);
         try {
             jmsAdminOperations.removeTopic(coreTopicName);
         } catch (Exception ex) { // ignore
