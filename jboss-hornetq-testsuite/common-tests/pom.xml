@@ -20,7 +20,6 @@
                     <name>!eap</name>
                 </property>
             </activation>
-
             <build>
                 <plugins>
                     <plugin>
@@ -91,24 +90,6 @@
                     <value>7x</value>
                 </property>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire-version}</version>
-                        <configuration>
-                            <systemProperties>
-                                <property>
-                                    <name>arquillian.xml</name>
-                                    <value>arquillian-4-nodes-eap7.xml</value>
-                                </property>
-                            </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.qa.hornetq</groupId>
@@ -116,6 +97,22 @@
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>arquillian.xml</name>
+                                    <value>arquillian-4-nodes-eap7.xml</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
