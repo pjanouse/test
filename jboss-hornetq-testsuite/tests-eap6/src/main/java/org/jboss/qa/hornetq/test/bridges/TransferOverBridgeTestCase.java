@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -390,7 +391,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
         long startTime = System.currentTimeMillis();
         while (jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT) != messages
-                && System.currentTimeMillis() - startTime < DEFAULT_TEST_TIMEOUT/2) {
+                && System.currentTimeMillis() - startTime < HornetQTestCaseConstants.DEFAULT_TEST_TIMEOUT/2) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -579,7 +580,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         // wait a while for bridge to process all messages
         long startTime = System.currentTimeMillis();
         while (jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT) < messages
-                && DEFAULT_TEST_TIMEOUT > (System.currentTimeMillis() - startTime)) {
+                && HornetQTestCaseConstants.DEFAULT_TEST_TIMEOUT > (System.currentTimeMillis() - startTime)) {
             Thread.sleep(1000);
         }
 
@@ -722,6 +723,5 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         container(1).stop();
         container(2).stop();
     }
-
 
 }

@@ -33,6 +33,11 @@
     <dependencies>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>common-tests</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>tooling</artifactId>
             <version>${project.version}</version>
         </dependency>
