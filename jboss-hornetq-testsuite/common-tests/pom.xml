@@ -14,7 +14,6 @@
     <profiles>
         <profile>
             <id>eap6x</id>
-
             <activation>
                 <property>
                     <name>!eap</name>
