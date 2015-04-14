@@ -85,7 +85,11 @@ import java.util.UUID;
  * export MYTESTIP_2=$MYTESTIPV6_2 export MCAST_ADDR=$MCAST_ADDRIPV6
  * <p/>
  * This test also serves
- *
+ * @tpChapter Integration testing
+ * @tpSubChapter HornetQ cluster - test scenarios
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
