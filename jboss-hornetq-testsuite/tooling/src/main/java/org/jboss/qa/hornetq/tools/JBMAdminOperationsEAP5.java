@@ -676,6 +676,12 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public String getJournalLargeMessageDirectoryPath() {
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
+
+    @Override
     public void reload() {
         logger.info("This operation is not supported: " + getMethodName());
     }

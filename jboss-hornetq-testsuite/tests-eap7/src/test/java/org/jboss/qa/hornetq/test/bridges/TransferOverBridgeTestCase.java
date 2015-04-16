@@ -335,6 +335,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final String TEST_QUEUE_IN_JNDI = "/queue/dummyQueueIn";
         final String TEST_QUEUE_OUT = "dummyQueueOut";
         final String TEST_QUEUE_OUT_JNDI = "/queue/dummyQueueOut";
+        final String CLUSTER_NAME = "my-cluster";
 
         // Start servers
         container(1).start();
@@ -351,12 +352,15 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
         jmsAdminContainer1.disableSecurity();
         jmsAdminContainer2.disableSecurity();
+        jmsAdminContainer1.removeClusteringGroup(CLUSTER_NAME);
+        jmsAdminContainer2.removeClusteringGroup(CLUSTER_NAME);
 
         jmsAdminContainer1.removeRemoteConnector("bridge-connector");
         jmsAdminContainer1.removeBridge("myBridge");
         jmsAdminContainer1.removeRemoteSocketBinding("messaging-bridge");
         jmsAdminContainer1.close();
 
+        container(2).restart();
         container(1).restart();
 
         jmsAdminContainer1 = container(1).getJmsOperations();
@@ -456,18 +460,19 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         controllableProxy.start();
         jmsAdminContainer1.close();
 
+        container(2).restart();
         container(1).restart();
 
         // direct remote socket to proxy
         jmsAdminContainer1 = container(1).getJmsOperations();
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", "localhost", proxyPort);
-        jmsAdminContainer1.createHttpConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminContainer1.createHttpConnector(BRIDGE_CONNECTOR_NAME, "messaging-bridge", null);
         jmsAdminContainer1.close();
 
         container(1).restart();
 
         jmsAdminContainer1 = container(1).getJmsOperations();
-        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, "bridge-connector");
+        jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE_IN, "jms.queue." + TEST_QUEUE_OUT, -1, BRIDGE_CONNECTOR_NAME);
         jmsAdminContainer1.close();
 
         // Send messages into input node and read from output node
@@ -520,6 +525,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
         final String TEST_QUEUE_OUT = "dummyQueueOut";
         final String TEST_QUEUE_OUT_JNDI = "/queue/dummyQueueOut";
+        final String CLUSTER_NAME = "my-cluster";
 
         // Start servers
         container(1).start();
@@ -534,14 +540,19 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer2.createQueue(TEST_QUEUE_OUT, TEST_QUEUE_OUT_JNDI);
         jmsAdminContainer1.disableSecurity();
         jmsAdminContainer2.disableSecurity();
+        jmsAdminContainer1.removeClusteringGroup(CLUSTER_NAME);
+        jmsAdminContainer2.removeClusteringGroup(CLUSTER_NAME);
 
         jmsAdminContainer1.addRemoteSocketBinding("messaging-bridge", container(2).getHostname(), container(2).getHornetqPort());
         jmsAdminContainer1.createHttpConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminContainer1.close();
+        jmsAdminContainer2.close();
 
+        container(2).restart();
         container(1).restart();
 
         jmsAdminContainer1 = container(1).getJmsOperations();
+        jmsAdminContainer2 = container(2).getJmsOperations();
 
         assertEquals(0, jmsAdminContainer1.getCountOfMessagesOnQueue(TEST_QUEUE));
         assertEquals(0, jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT));
@@ -615,6 +626,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final String targetQueue = "targetQueue";
         final String targetQueueJndiName = "jms/queue/" + targetQueue;
         final int messages = 100;
+        final String CLUSTER_NAME = "my-cluster";
 
         // Start servers
         container(1).start();
@@ -627,6 +639,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         // Create queue
         jmsAdminContainer1.disableSecurity();
         jmsAdminContainer2.disableSecurity();
+        jmsAdminContainer1.removeClusteringGroup(CLUSTER_NAME);
+        jmsAdminContainer2.removeClusteringGroup(CLUSTER_NAME);
         jmsAdminContainer1.createQueue(sourceQueue, sourceQueueJndiName);
         jmsAdminContainer2.createQueue(targetQueue, targetQueueJndiName);
 
@@ -679,6 +693,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
         final int messages = 50;
+        final String CLUSTER_NAME = "my-cluster";
 
         // Start servers
         container(1).start();
@@ -691,6 +706,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         // Create queue
         jmsAdminContainer1.disableSecurity();
         jmsAdminContainer2.disableSecurity();
+        jmsAdminContainer1.removeClusteringGroup(CLUSTER_NAME);
+        jmsAdminContainer2.removeClusteringGroup(CLUSTER_NAME);
         jmsAdminContainer1.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminContainer2.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
 

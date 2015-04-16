@@ -8,6 +8,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
@@ -3418,14 +3419,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("source-destination").set(sourceDestination);
         if (sourceContext != null) {
             for (String key : sourceContext.keySet()) {
-                model.get("source-context").add(key, sourceContext.get(key));
+                model.get("source-context-property").add(key, sourceContext.get(key));
             }
         }
         model.get("target-connection-factory").set(targetConnectionFactory);
         model.get("target-destination").set(targetDestination);
         if (targetContext != null) {
             for (String key : targetContext.keySet()) {
-                model.get("target-context").add(key, targetContext.get(key));
+                model.get("target-context-property").add(key, targetContext.get(key));
             }
         }
         model.get("quality-of-service").set(qualityOfService);
@@ -3435,6 +3436,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
         model.get("module").set("org.apache.activemq");
+
+        logger.info(model);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -4447,6 +4450,31 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      *
+     * @return relatetive path to large mesage journal directory relative to jboss.data.dir
+     */
+    @Override
+    public String getJournalLargeMessageDirectoryPath() {
+
+        ModelNode model = new ModelNode();
+
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
+        model.get("name").set("path");
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asString();
+    }
+
+
+    /**
+     *
      */
     @Override
     public void reload() {
@@ -5097,23 +5125,43 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // String remoteConnectorName = "netty-remote";
             // String messagingGroupSocketBindingName = "messaging-group";
             // String inVmHornetRaName = "local-hornetq-ra";
+//            String bridgeName = "myBridge";
+//            String sourceConnectionFactory = "java:/ConnectionFactory";
+//            String sourceDestination = "jms/queue/InQueue";
+//
+//            String targetConnectionFactory = "jms/RemoteConnectionFactory";
+//            String targetDestination = "jms/queue/OutQueue";
+//            Map<String,String> targetContext = new HashMap<String, String>();
+//            targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+//            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:9080");
+//
+//            Map<String,String> sourceContext = new HashMap<String, String>();
+//            sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+//            sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:8080");
+//            String qualityOfService = "ONCE_AND_ONLY_ONCE";
+//
+//            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
+//                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1,
+//                    10, 100, true);
+
+            System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-            List<String> list = new ArrayList<String>();
-            list.add("http-connector");
+//            List<String> list = new ArrayList<String>();
+//            list.add("http-connector");
 //            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
 
-            jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
-            jmsAdminOperations.removeHAPolicy("default");
-            jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
-            jmsAdminOperations.removeHAPolicy("default");
-            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
-            jmsAdminOperations.removeHAPolicy("default");
-            jmsAdminOperations.addHAPolicyReplicationMaster(true, "my-cluster", "my-group");
-            jmsAdminOperations.removeHAPolicy("default");
-            jmsAdminOperations.addHAPolicyReplicationSlave(true, "my-cluster", 3000, "my-group", 3, true, false, null, null, null, null);
+//            jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
+//            jmsAdminOperations.removeHAPolicy("default");
+//            jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
+//            jmsAdminOperations.removeHAPolicy("default");
+//            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
+//            jmsAdminOperations.removeHAPolicy("default");
+//            jmsAdminOperations.addHAPolicyReplicationMaster(true, "my-cluster", "my-group");
+//            jmsAdminOperations.removeHAPolicy("default");
+//            jmsAdminOperations.addHAPolicyReplicationSlave(true, "my-cluster", 3000, "my-group", 3, true, false, null, null, null, null);
 
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");

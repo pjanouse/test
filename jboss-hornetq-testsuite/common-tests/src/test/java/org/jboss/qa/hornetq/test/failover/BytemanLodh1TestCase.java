@@ -17,10 +17,12 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -74,8 +76,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     public JavaArchive createLodh1Deployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
         mdbJar.addClass(LocalMdbFromQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
-                "MANIFEST.MF");
 
         String ejbXml = createEjbJarXml(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset(ejbXml), "jboss-ejb3.xml");
@@ -93,8 +93,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     public JavaArchive createLodh1CopyDeployment() {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1-copy");
         mdbJar.addClass(LocalCopyMdbFromQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"),
-                "MANIFEST.MF");
 
         String ejbXml = createEjbJarXml(LocalCopyMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset(ejbXml), "jboss-ejb3.xml");
@@ -128,10 +126,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "server kill on transaction start",
-            targetClass = "org.hornetq.ra.HornetQRAXAResource",
-            targetMethod = "start",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+    @BMRules({
+        @BMRule(name = "server kill on transaction start",
+                targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "start",
+                action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+        @BMRule(name = "server kill on transaction start",
+                targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                targetMethod = "start",
+                action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionStart() throws Exception {
         this.generalLodh1Test();
     }
@@ -155,11 +158,17 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "server kill after transaction start",
+    @BMRules({
+            @BMRule(name = "server kill after transaction start",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "start",
             targetLocation = "EXIT",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill after transaction start",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "start",
+                    targetLocation = "EXIT",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillAfterTransactionStart() throws Exception {
         this.generalLodh1Test();
     }
@@ -183,10 +192,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "server kill on transaction end",
+    @BMRules({
+            @BMRule(name = "server kill on transaction end",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "end",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on transaction end",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "end",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionEnd() throws Exception {
         this.generalLodh1Test();
     }
@@ -210,11 +224,17 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill after transaction end",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "end",
             targetLocation = "EXIT",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill after transaction end",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "end",
+                    targetLocation = "EXIT",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillAfterTransactionEnd() throws Exception {
         this.generalLodh1Test();
     }
@@ -238,10 +258,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on transaction prepare",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "prepare",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on transaction prepare",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "prepare",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionPrepare() throws Exception {
         this.generalLodh1Test();
     }
@@ -265,11 +290,17 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill after transaction prepare",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "prepare",
             isAfter = true,
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill after transaction prepare",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "prepare",
+                    isAfter = true,
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillAfterTransactionPrepare() throws Exception {
         this.generalLodh1Test();
     }
@@ -293,10 +324,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on transaction commit",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "commit",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on transaction commit",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "commit",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -320,11 +356,17 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill after transaction commit",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "commit",
             targetLocation = "EXIT",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill after transaction commit",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillAfterTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -348,10 +390,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on transaction commit",
             targetClass = "org.hornetq.ra.HornetQRAXAResource",
             targetMethod = "commit",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on transaction commit",
+                    targetClass = "org.apache.activemq.ra.HornetQRAXAResource",
+                    targetMethod = "commit",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillWithLargeMessagesOnTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -375,10 +422,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on large message create",
             targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
             targetMethod = "createLargeMessage",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on large message create",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "createLargeMessage",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnCreatingLargeMessage() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -402,6 +454,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
 //    @BMRule(name = "server kill on large message file send",
 //            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
 //            targetMethod = "sendLargeMessageFiles",
@@ -409,7 +462,11 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @BMRule(name = "server kill on large message file send",
             targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
             targetMethod = "sendContinuations",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on large message file send",
+                    targetClass = "org.apache.activemq.core.server.impl.ServerSessionImpl",
+                    targetMethod = "sendContinuations",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnSendingLargeMessage() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -433,10 +490,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on large message file create",
             targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
             targetMethod = "createFileForLargeMessage",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on large message file create",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "createFileForLargeMessage",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnCreatingLargeMessageFile() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -460,10 +522,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on large message file delete",
             targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
             targetMethod = "deleteLargeMessageFile",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on large message file delete",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "deleteLargeMessageFile",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     @Ignore
     public void testServerKillOnDeletingLargeMessageFilePassThrough() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
@@ -474,10 +541,15 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @BMRules({
     @BMRule(name = "server kill on large message file delete",
             targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
             targetMethod = "deleteLargeMessageFile",
-            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+            action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+            @BMRule(name = "server kill on large message file delete",
+                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "deleteLargeMessageFile",
+                    action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     @Ignore
     public void testServerKillOnDeletingLargeMessageFile() throws Exception {
         this.generalLodh1Test(mdb1Lodh1, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
@@ -530,10 +602,11 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
-        container(1).stop();
-
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
         assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
+
+        container(1).stop();
+
         Assert.assertEquals("Number of prepared transactions must be 0", 0, numberOfPreparedTransaction);
 
     }
@@ -588,13 +661,16 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
      * @param container Test container - defined in arquillian.xml
      */
     private void prepareJmsServer(Container container) {
+            prepareJmsServerEAP6EAP7(container);
+    }
+
+    private void prepareJmsServerEAP6EAP7(Container container) {
+
         container.start();
+
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setClustered(false);
-
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");
@@ -623,9 +699,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         container.stop();
     }
 
-
-
     private static String createEjbJarXml(final Class<?> mdbClass) {
+
         StringBuilder ejbXml = new StringBuilder();
         ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
         ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
@@ -671,7 +746,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         String path = container(1).getServerHome() + File.separator
                 + "standalone" + File.separator
                 + "data" + File.separator
-                + "messaginglargemessages";
+                + container(1).getJmsOperations().getJournalLargeMessageDirectoryPath();
+
         File largeMessagesDir = new File(path);
 
         if (!largeMessagesDir.isDirectory() || !largeMessagesDir.canRead()) {

@@ -292,6 +292,25 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
     }
 
+    @Override
+    public String getJournalLargeMessageDirectoryPath() {
+        ModelNode model = new ModelNode();
+
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
+        model.get("name").set("path");
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asString();
+    }
+
     /**
      * Remove messages from queue
      *

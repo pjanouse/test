@@ -465,6 +465,8 @@ public interface JMSOperations {
      */
     long getCountOfMessagesOnQueue(String queueName);
 
+    String getJournalLargeMessageDirectoryPath();
+
     /**
      *
      */
