@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq;
 
-import java.io.IOException;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
+
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
@@ -10,6 +11,7 @@ import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.IOException;
 
 
 /**
@@ -25,16 +27,19 @@ public class JmsServerInfo {
 
     private final int managementPort;
 
-    private final String hornetqServerName;
+    private final String messagingServerName;
 
-    public JmsServerInfo(final String hostname, final int managementPort) {
-        this(hostname, managementPort, "default");
+    private Container container;
+
+
+    public JmsServerInfo(Container container){
+        this(container, "default");
     }
-
-    public JmsServerInfo(final String hostname, final int managementPort, final String hornetqServerName) {
-        this.hostname = hostname;
-        this.managementPort = managementPort;
-        this.hornetqServerName = hornetqServerName;
+    public JmsServerInfo(Container container, String serverName){
+        this.hostname=container.getHostname();
+        this.managementPort= container.getPort()    ;
+        this.messagingServerName = serverName;
+        this.container=container;
     }
 
 
@@ -62,12 +67,22 @@ public class JmsServerInfo {
 
 
     private ObjectName getServerControlObjectName() throws MalformedObjectNameException {
-        return new ObjectName("jboss.as:hornetq-server=" + this.hornetqServerName + ",subsystem=messaging");
+        if(ContainerUtils.isEAP6(container)){
+            return new ObjectName("jboss.as:hornetq-server=" + this.messagingServerName + ",subsystem=messaging");
+        }else{
+            return new ObjectName("jboss.as:server=" + this.messagingServerName + ",subsystem=messaging-activemq");
+        }
+
     }
 
 
     private String getConnectionUrl() {
-        return "service:jmx:remoting-jmx://" + this.hostname + ":" + this.managementPort;
+        if(ContainerUtils.isEAP6(container)){
+            return "service:jmx:remoting-jmx://" + this.hostname + ":" + this.managementPort;
+        }else{
+            return "service:jmx:http-remoting-jmx://" + this.hostname + ":" + this.managementPort;
+        }
+
     }
 
 

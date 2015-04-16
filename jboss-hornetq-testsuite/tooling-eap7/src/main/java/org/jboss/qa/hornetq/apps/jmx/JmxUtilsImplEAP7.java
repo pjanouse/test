@@ -1,19 +1,24 @@
 // TODO REFACTOR FOR EAP 7
 package org.jboss.qa.hornetq.apps.jmx;
 
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
+import org.apache.activemq.api.core.management.ObjectNameBuilder;
+import org.hornetq.api.core.management.HornetQServerControl;
+import org.jboss.qa.hornetq.Container;
+import org.kohsuke.MetaInfServices;
 
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MBeanServerConnection;
+import javax.management.MBeanServerInvocationHandler;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-
-import org.hornetq.api.core.management.HornetQServerControl;
-import org.hornetq.api.core.management.ObjectNameBuilder;
-import org.hornetq.api.jms.management.JMSServerControl;
-import org.jboss.qa.hornetq.Container;
-import org.kohsuke.MetaInfServices;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 
 
 /**
@@ -57,15 +62,26 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
     }
 
     @Override
-    public HornetQServerControl getHornetQServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
-        return (HornetQServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
-                HornetQServerControl.class);
+    public HornetQServerControl getHornetQServerMBean(MBeanServerConnection mbeanServer) throws Exception {
+        throw new UnsupportedOperationException("This operation is not supported in EAP7 test suite, use generic variant instead");
     }
 
     @Override
-    public JMSServerControl getJmsServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
-        return (JMSServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
-                JMSServerControl.class);
+    public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
+                mbeanType);
+    }
+
+    @Override
+    public org.hornetq.api.jms.management.JMSServerControl getJmsServerMBean(MBeanServerConnection mbeanServer) throws Exception {
+        throw new UnsupportedOperationException("This operation is not supported in EAP7 test suite, use generic variant instead");
+    }
+
+
+    @Override
+    public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
+                jmsServerMbeanType);
     }
 
     @Override

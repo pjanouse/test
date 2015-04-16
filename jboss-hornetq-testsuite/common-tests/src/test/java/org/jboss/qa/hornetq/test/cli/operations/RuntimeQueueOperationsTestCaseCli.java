@@ -26,6 +26,7 @@ import javax.naming.Context;
 
 /**
  * Created by okalman on 2/9/15.
+ * // TODO EAP7 list-delivering-messages operation missing
  */
 
 @RunWith(Arquillian.class)
@@ -35,7 +36,8 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     String queueName = "testQueue";
     String queueJndiName = "jms/queue/" + queueName;
 
-    private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/runtime-queue=jms.queue." + queueName;
+    private final String ADDRESS_EAP6 = "/subsystem=messaging/hornetq-server=default/runtime-queue=jms.queue." + queueName;
+    private final String ADDRESS_EAP7 = "/subsystem=messaging-activemq/server=default/runtime-queue=jms.queue." + queueName;
     private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(),
             container(1).getUsername(), container(1).getPassword()));
 
@@ -65,7 +67,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         int numberOfMessages = 100;
         int commitAfter = 50;
 
-        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), queueJndiName, numberOfMessages);
         producer.start();
         producer.join();
 
@@ -125,7 +127,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         prepareServer(container(1));
 
         container(1).start();
-        ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, numberOfMessages);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), queueJndiName, numberOfMessages);
         DelayedTextMessageBuilder delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();
@@ -159,7 +161,13 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     }
 
     private CLI.Result runOperation(final String operation, final String... params) {
-        String cmd = CliUtils.buildCommand(ADDRESS, ":" + operation, params);
+        String cmd;
+        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+           cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
+        }else{
+            cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
+        }
+
         return this.cli.executeCommand(cmd);
     }
 

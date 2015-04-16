@@ -1210,7 +1210,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setSharedStore(boolean sharedStore) {
-        setSharedStore(NAME_OF_MESSAGING_DEFAULT_SERVER, sharedStore);
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**
@@ -1221,18 +1221,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setSharedStore(String serverName, boolean sharedStore) {
-        final ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("write-attribute");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get("name").set("shared-store");
-        model.get("value").set(sharedStore);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**
@@ -1242,7 +1231,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addSharedStore(boolean sharedStore) {
-        addSharedStore(NAME_OF_MESSAGING_DEFAULT_SERVER, sharedStore);
+
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**
@@ -1253,17 +1243,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void addSharedStore(String serverName, boolean sharedStore) {
-        final ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get("shared-store").set(sharedStore);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
     }
 
     /**

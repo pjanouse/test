@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -102,7 +103,8 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     private static final Logger logger = Logger.getLogger(HornetQServerCliOperationsTestCase.class);
 
 
-    private static final String MODULE = "/subsystem=messaging/hornetq-server=default";
+    private static final String MODULE_EAP6 = "/subsystem=messaging/hornetq-server=default";
+    private static final String MODULE_EAP7 = "/subsystem=messaging-activemq/server=default";
 
     private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(),
             container(1).getUsername(), container(1).getPassword()));
@@ -113,16 +115,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     String coreTopicName = "testTopic";
     String queueJndiName = "jms/queue/" + coreQueueName;
     String topicJndiName = "jms/topic/" + coreTopicName;
-
-    @Before
-    public void startServer() {
-        container(1).start();
-    }
-
-    @After
-    public void stopServer() {
-        container(1).stop();
-    }
 
     private void prepareServerForXATransactions() {
 
@@ -302,6 +294,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         logger.info("Result list-heuristic-rolled-back-transactions: " + r12.getResponse().asString());
         Assert.assertEquals("base64 must be " + base64ToRollback, "[\"" + base64ToRollback + "\"]", r12.getResponse().get("result").asString());
         CliTestUtils.assertSuccess(r12);
+        container(1).stop();
 
     }
 
@@ -323,6 +316,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         // check that backup started
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
+
     }
 
     @Test
@@ -333,16 +327,15 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         // setup server
         prepareServer(container(1));
-
+        container(1).start();
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1).getContainerType().toString(),
-                container(1).getHostname(), container(1).getJNDIPort(), queueJndiName);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiName);
         receiver.setTimeout(1000);
 
         // start org.jboss.qa.hornetq.apps.clients
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, "testSubscriberClientId-hornetqCliOperations", "testSubscriber-hqServerCliOperations");
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
         PublisherClientAck publisher = new PublisherClientAck(container(1).getContainerType().toString(),
@@ -454,6 +447,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         publisher.stopSending();
         receiver.join();
         subscriberClientAck.join();
+        container(1).stop();
 
 
     }
@@ -469,6 +463,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.createTopic(coreTopicName, topicJndiName);
 
         jmsAdminOperations.close();
+        container.stop();
     }
 
     @Test
@@ -476,6 +471,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingConnectors() {
+        container(1).start();
         Result response = this.runOperation("get-connectors-as-json");
         assertTrue("Operation should not fail", response.isSuccess());
 
@@ -495,7 +491,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingAddressSettings() {
-
+        container(1).start();
         JMSOperations jmsOperations = container(1).getJmsOperations();
         jmsOperations.removeAddressSettings("#");
         jmsOperations.addAddressSettings("#", "PAGE", 10485760, 0, 1000, 2097152);
@@ -545,6 +541,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingRoles() {
+        container(1).start();
         CliTestUtils.assertSuccess(this.runOperation("get-roles-as-json", "address-match=#"));
 
         Result response = this.runOperation("get-roles", "address-match=#");
@@ -565,6 +562,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
                 result.get("create-non-durable-queue").asBoolean());
         assertTrue("Deleting non-durable queue permission should be enabled",
                 result.get("delete-non-durable-queue").asBoolean());
+        container(1).stop();
     }
 
 
@@ -573,8 +571,10 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingConnectionInfo() throws Exception {
+        container(1).start();
         this.runOperation("list-connection-ids");
         this.runOperation("list-connections-as-json");
+        container(1).stop();
     }
 
     @Test
@@ -582,10 +582,12 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingConnectionIds() throws Exception {
+        container(1).start();
         int numberOfExpectedConnections = this.runOperation("list-remote-addresses").getResponse().get("result").asList().size();
         Result response = this.runOperation("list-connection-ids");
         assertTrue("Operation should not fail", response.isSuccess());
         assertEquals("Incorrect response size", numberOfExpectedConnections, response.getResponse().get("result").asList().size());
+        container(1).stop();
     }
 
     @Test
@@ -594,7 +596,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     @CleanUpBeforeTest
     public void testListingSessions() throws Exception {
         this.prepareQueueOnServer();
-
+        container(1).start();
         Context ctx = container(1).getContext();
         ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
         Connection conn = cf.createConnection();
@@ -606,7 +608,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         Message msg = session.createTextMessage("test message");
         producer.send(msg);
 
-        JmsServerInfo serverInfo = new JmsServerInfo(container(1).getHostname(), container(1).getPort(), "default");
+        JmsServerInfo serverInfo = new JmsServerInfo(container(1), "default");
         String[] connectionIds = serverInfo.getConnectionIds();
 
         //assertEquals("Incorrect number of client connections to server", 1, connectionIds.length);
@@ -620,19 +622,27 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         session.close();
         conn.stop();
         conn.close();
+        container(1).stop();
     }
 
 
     private Result runOperation(final String operation, final String... params) {
-        String cmd = CliUtils.buildCommand(MODULE, ":" + operation, params);
+        String cmd;
+        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+            cmd = CliUtils.buildCommand(MODULE_EAP6, ":" + operation, params);
+        }else{
+            cmd = CliUtils.buildCommand(MODULE_EAP7, ":" + operation, params);
+        }
         return this.cli.executeCommand(cmd);
     }
 
 
     private void prepareQueueOnServer() {
+        container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue("testQueue", "jms/testQueue");
         ops.close();
+        container(1).stop();
     }
 
     /**
@@ -647,39 +657,55 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
+        String connectorNameEAP6 = "netty";
+        String connectorNameEAP7 = "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setFailoverOnShutdown(true);
-
-        jmsAdminOperations.setClustered(true);
+        if(ContainerUtils.isEAP6(container)) {
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setFailoverOnShutdown(true);
+            jmsAdminOperations.setSharedStore(true);
+            jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+        }else{
+            jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
+        }
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP6, "");
+        }else{
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP7, "");
+        }
+
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP6);
+        }else{
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP7);
+        }
+
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -699,18 +725,24 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
+        String connectorNameEAP6 = "netty";
+        String connectorNameEAP7 = "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+        if(ContainerUtils.isEAP6(container)) {
+            jmsAdminOperations.setBackup(true);
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setFailoverOnShutdown(true);
+            jmsAdminOperations.setSharedStore(true);
+            jmsAdminOperations.setAllowFailback(true);
+            jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+        }else{
+            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000,true,false,false,null,null,null,null);
+        }
 
-        jmsAdminOperations.setBackup(true);
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setSharedStore(true);
-
-        jmsAdminOperations.setFailoverOnShutdown(true);
         jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -719,23 +751,31 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setAllowFailback(true);
+
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP6, "");
+        }else{
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP7, "");
+        }
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP6);
+        }else{
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP7);
+        }
+
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");

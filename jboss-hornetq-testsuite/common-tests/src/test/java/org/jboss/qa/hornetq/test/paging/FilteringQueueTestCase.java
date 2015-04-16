@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.ColoredMessagesBuilder;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -199,10 +200,11 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setClustered(false);
-
+        if(ContainerUtils.isEAP6(container)) {
+            jmsAdminOperations.setClustered(false);
+            jmsAdminOperations.setSharedStore(true);
+        }
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 100 * 1024);
         jmsAdminOperations.removeClusteringGroup("my-cluster");

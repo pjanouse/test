@@ -88,7 +88,8 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
     String expireCoreQueueName = "Expire";
     String expireQueueJndiName = "jms/queue/" + expireCoreQueueName;
 
-    private final String ADDRESS = "/subsystem=messaging/hornetq-server=default/jms-queue=" + coreQueueName;
+    private final String ADDRESS_EAP6 = "/subsystem=messaging/hornetq-server=default/jms-queue=" + coreQueueName;
+    private final String ADDRESS_EAP7 = "/subsystem=messaging-activemq/server=default/jms-queue=" + coreQueueName;
 
     @Before
     public void startServer() {
@@ -158,7 +159,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         prepareServer(container(1));
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         List<Client> producers = new ArrayList<Client>();
@@ -257,8 +258,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         logger.info("Result send-messages-to-dead-letter-address: " + r19.getResponse().asString());
         CliTestUtils.assertSuccess(r19);
 
-        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1).getContainerType().toString(),
-                container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1), queueJndiName, 10000, 100, 10);
         receiverClientAck.start();
 
         List<Client> receivers = new ArrayList<Client>();
@@ -275,7 +275,13 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
     }
 
     private Result runOperation(final String operation, final String... params) {
-        String cmd = CliUtils.buildCommand(ADDRESS, ":" + operation, params);
+        String cmd;
+        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+            cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
+        }else{
+            cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
+        }
+
         return this.cli.executeCommand(cmd);
     }
 

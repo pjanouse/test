@@ -1,7 +1,11 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
 
-import java.io.IOException;
+import org.hornetq.api.core.management.HornetQServerControl;
+import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.hornetq.api.jms.management.JMSServerControl;
+import org.jboss.qa.hornetq.Container;
+import org.kohsuke.MetaInfServices;
 
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
@@ -9,13 +13,7 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-
-import org.hornetq.api.core.management.HornetQServerControl;
-import org.hornetq.api.core.management.ObjectNameBuilder;
-import org.hornetq.api.jms.management.JMSServerControl;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
-import org.kohsuke.MetaInfServices;
+import java.io.IOException;
 
 
 /**
@@ -67,9 +65,19 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
     }
 
     @Override
+    public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
+        return null;
+    }
+
+    @Override
     public JMSServerControl getJmsServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
         return (JMSServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
                 JMSServerControl.class);
+    }
+
+    @Override
+    public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
+        return null;
     }
 
     @Override

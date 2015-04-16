@@ -18,9 +18,15 @@ public interface JmxUtils {
 
     JMXConnector getJmxConnectorForEap(String host, int port) throws IOException;
 
+    @Deprecated
     HornetQServerControl getHornetQServerMBean(MBeanServerConnection mbeanServer) throws Exception;
 
+    <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception;
+
+    @Deprecated
     JMSServerControl getJmsServerMBean(MBeanServerConnection mbeanServer) throws Exception;
+
+    <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception;
 
     Object getHornetQMBean(MBeanServerConnection mbeanServer, ObjectName mbeanName,
                            Class<?> mbeanClass);
