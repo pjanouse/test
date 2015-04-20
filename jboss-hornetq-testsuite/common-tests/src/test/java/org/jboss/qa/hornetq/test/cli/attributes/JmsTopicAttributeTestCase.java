@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliClient;
@@ -55,7 +56,8 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
     String topicJndiName = "jms/topic/" + topicCoreName;
 
-    private final String address = "/subsystem=messaging/hornetq-server=default/jms-topic=" + topicCoreName;
+    private final String address_EAP6 = "/subsystem=messaging/hornetq-server=default/jms-topic=" + topicCoreName;
+    private final String address_EAP7 = "/subsystem=messaging-activemq/server=default/jms-topic=" + topicCoreName;
 
     private Properties attributes;
 
@@ -67,7 +69,12 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
         // deploy queue
         CliClient cliClient = new CliClient(cliConf);
-        cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
+        if(ContainerUtils.isEAP6(container(1))){
+            cliClient.executeForSuccess(address_EAP6 + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
+        }else{
+            cliClient.executeForSuccess(address_EAP7 + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
+        }
+
 
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, "testSubscriberClientId", "testSubscriber");
         subscriberClientAck.subscribe();
@@ -105,8 +112,12 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
             value = attributes.getProperty(attributeName);
             log.info("Test attribute " + attributeName + " with value: " + value);
+            if(ContainerUtils.isEAP6(container(1))){
+                writeReadAttributeTest(cliClient, address_EAP6, attributeName, value);
+            }else{
+                writeReadAttributeTest(cliClient, address_EAP7, attributeName, value);
+            }
 
-            writeReadAttributeTest(cliClient, address, attributeName, value);
 
         }
     }
