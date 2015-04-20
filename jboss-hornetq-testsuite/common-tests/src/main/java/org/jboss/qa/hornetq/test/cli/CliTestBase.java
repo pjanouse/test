@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.cli;
 import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.cli.attributes.AddressSettingsAttributesTestCase;
 import org.jboss.qa.management.cli.CliClient;
 
 /**
@@ -11,7 +10,7 @@ import org.jboss.qa.management.cli.CliClient;
  */
 public class CliTestBase extends HornetQTestCase {
 
-    private static final Logger log = Logger.getLogger(AddressSettingsAttributesTestCase.class);
+    private static final Logger log = Logger.getLogger(CliTestBase.class);
 
     public void writeReadAttributeTest(CliClient cliClient, String address, String attributeName, String value) throws Exception {
 
