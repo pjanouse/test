@@ -6,10 +6,10 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
-import org.jboss.qa.management.cli.CliClient;
-import org.jboss.qa.management.cli.CliConfiguration;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.management.cli.CliClient;
+import org.jboss.qa.management.cli.CliConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -94,9 +94,8 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void writeReadAttributePooledConnectionFactoryTest() throws Exception {
-
-        String address = "/subsystem=messaging/hornetq-server=default/pooled-connection-factory=hornetq-ra";
-
+        String address;
+        address = "/subsystem=messaging/hornetq-server=default/pooled-connection-factory=hornetq-ra";
         writeReadAttributeTest(address, "/pooledConnectionFactotryAttributes.txt");
     }
 
@@ -105,7 +104,9 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void writeReadAttributeJmsConnectionFactoryTest() throws Exception {
-        String address = "/subsystem=messaging/hornetq-server=default/connection-factory=RemoteConnectionFactory";
+        String address;
+        address = "/subsystem=messaging/hornetq-server=default/connection-factory=RemoteConnectionFactory";
+
 
         writeReadAttributeTest(address,"/connectionFactoryAttributes.txt");
     }
