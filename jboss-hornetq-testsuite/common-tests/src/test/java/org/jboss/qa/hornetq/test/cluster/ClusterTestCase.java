@@ -20,7 +20,6 @@ import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
@@ -1652,14 +1651,6 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         testedContainer.stop();
-    }
-
-    private SecurityClient createConsumerReceiveAndRollback(Container cont, String queue) throws Exception {
-
-        SecurityClient securityClient = new SecurityClient(cont, queue, NUMBER_OF_MESSAGES_PER_PRODUCER, null, null);
-        securityClient.initializeClient();
-        securityClient.consumeAndRollback(200);
-        return securityClient;
     }
 
     private void sendMessages(Container cont, String queue, MessageBuilder messageBuilder) throws InterruptedException {

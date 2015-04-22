@@ -1,15 +1,15 @@
-package org.jboss.qa.hornetq.apps.clients;
+package org.jboss.qa.hornetq.test.security;
 
-import org.apache.log4j.Logger;
-import org.hornetq.api.core.HornetQException;
 import org.hornetq.api.core.TransportConfiguration;
+import org.hornetq.api.core.client.HornetQClient;
 import org.hornetq.api.core.client.ClientSession;
 import org.hornetq.api.core.client.ClientSessionFactory;
-import org.hornetq.api.core.client.HornetQClient;
 import org.hornetq.api.core.client.ServerLocator;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
+import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -55,7 +55,7 @@ public class SecurityClient extends Client {
      * @param username      username
      * @param password      password
      */
-    public SecurityClient(Container container,String queueNameJndi, int messages, String username, String password) {
+    public SecurityClient(Container container, String queueNameJndi, int messages, String username, String password) {
         super(container);
         this.hostname = container.getHostname();
         this.port = container.getJNDIPort();
@@ -100,8 +100,8 @@ public class SecurityClient extends Client {
      * Initializes client with auto_ack session - creates connection and
      * session.
      *
-     * @throws javax.naming.NamingException
-     * @throws javax.jms.JMSException
+     * @throws NamingException
+     * @throws JMSException
      */
     public void initializeClient() throws NamingException, JMSException, Exception {
 
@@ -280,7 +280,7 @@ public class SecurityClient extends Client {
             if (coreClientSession != null) {
                 coreClientSession.close();
             }
-        } catch (HornetQException ex) {
+        } catch (Exception ex) {
             // ignore
         }
 
@@ -292,27 +292,27 @@ public class SecurityClient extends Client {
      *
      * @param queueName
      * @return
-     * @throws javax.jms.JMSException *
+     * @throws JMSException *
      */
-    public void createDurableQueue(String queueName) throws HornetQException {
+    public void createDurableQueue(String queueName) throws Exception {
 
         coreClientSession.createQueue(queueName, queueName, true);
 
     }
 
-    public void createNonDurableQueue(String queueName) throws HornetQException {
+    public void createNonDurableQueue(String queueName) throws Exception {
 
         coreClientSession.createQueue(queueName, queueName, false);
 
     }
 
-    public void deleteDurableQueue(String queueName) throws HornetQException {
+    public void deleteDurableQueue(String queueName) throws Exception {
 
         deleteNonDurableQueue(queueName);
 
     }
 
-    public void deleteNonDurableQueue(String queueName) throws HornetQException {
+    public void deleteNonDurableQueue(String queueName) throws Exception {
 
         coreClientSession.deleteQueue("jms.queue." + queueName);
 
@@ -392,7 +392,7 @@ public class SecurityClient extends Client {
      * Returns connection.
      *
      * @return connection
-     * @throws javax.jms.JMSException
+     * @throws JMSException
      */
     private Connection getConnection() throws JMSException {
 

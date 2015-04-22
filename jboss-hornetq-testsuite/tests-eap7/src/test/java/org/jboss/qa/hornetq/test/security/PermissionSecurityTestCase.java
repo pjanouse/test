@@ -1,24 +1,22 @@
 package org.jboss.qa.hornetq.test.security;
 
 import org.apache.commons.io.FileUtils;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.shrinkwrap.api.Archive;
-import org.junit.After;
-import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.apps.clients.SecurityClient;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -54,6 +52,13 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(PermissionSecurityTestCase.class);
 
+    private static final String USER_ROLE = "users";
+    private static final String USER_NAME = "user";
+    private static final String USER_PASSWORD = "useruser";
+
+    private static final String ADMIN_ROLES = "admin";
+    private static final String ADMIN_NAME = "admin";
+    private static final String ADMIN_PASSWORD = "adminadmin";
 
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -294,33 +299,16 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     }
 
     public void prepareServer() throws Exception {
-
-
-        prepareLiveServer(container(1), JOURNAL_DIRECTORY_A);
-
-        container(1).start();
-
-        deployDestinations(container(1));
-
-        container(1).stop();
-
-
+        prepareServer(container(1));
     }
 
     /**
-     * Prepares live server for dedicated topology.
      *
-     * @param container        test container - defined in arquillian.xml
-     * @param journalDirectory path to journal directory
+     * @param container        test container
      */
-    private void prepareLiveServer(Container container, String journalDirectory) throws IOException {
+    private void prepareServer(Container container) throws IOException {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setBindingsDirectory(journalDirectory);
-        jmsAdminOperations.setPagingDirectory(journalDirectory);
-        jmsAdminOperations.setJournalDirectory(journalDirectory);
-        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setPersistenceEnabled(true);
@@ -361,55 +349,40 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
 
+        for (
+                int queueNumber = 0; queueNumber < 3; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+        }
+        jmsAdminOperations.createQueue(inQueueNameForMdb, inQueueJndiNameForMdb, true);
+        jmsAdminOperations.createQueue(outQueueNameForMdb, outQueueJndiNameForMdb, true);
+
+
+        UsersSettings.forDefaultEapServer()
+                .withUser("guest", null, "guest")
+                .withUser(USER_NAME, USER_PASSWORD, USER_ROLE)
+                .withUser(ADMIN_NAME, ADMIN_PASSWORD, ADMIN_ROLES)
+                .create();
+
         jmsAdminOperations.close();
 
         // TODO it's hard to write admin operation for security so this hack
         // copy application-users.properties
         // copy application-roles.properties
-        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
-                + "configuration" + File.separator + "application-users.properties");
-        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
-
-        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
-                + "configuration" + File.separator + "application-roles.properties");
-        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+//        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+//        File applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+//                + "configuration" + File.separator + "application-users.properties");
+//        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+//
+//        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+//        File applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_1") + File.separator + "standalone" + File.separator
+//                + "configuration" + File.separator + "application-roles.properties");
+//        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
         container.stop();
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param container test container
-     */
-    private void deployDestinations(Container container) {
-        deployDestinations(container, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param container  test container
-     * @param serverName server name of the hornetq server
-     */
-    private void deployDestinations(Container container, String serverName) {
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        for (
-                int queueNumber = 0; queueNumber < 3; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
-        }
-        jmsAdminOperations.createQueue(serverName, inQueueNameForMdb, inQueueJndiNameForMdb, true);
-        jmsAdminOperations.createQueue(serverName, outQueueNameForMdb, outQueueJndiNameForMdb, true);
-        jmsAdminOperations.close();
     }
 
     public JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "localMdbFromQueue.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 //        File target = new File("/tmp/mdbOnQueue1.jar");
 //        if (target.exists()) {
