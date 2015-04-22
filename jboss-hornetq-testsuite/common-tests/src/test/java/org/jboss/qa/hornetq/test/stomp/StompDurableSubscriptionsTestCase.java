@@ -1,20 +1,18 @@
 package org.jboss.qa.hornetq.test.stomp;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.fusesource.stomp.client.Stomp;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
-import org.jboss.qa.hornetq.apps.clients.HighLoadStompProducerWithSemaphores;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
+import org.jboss.qa.hornetq.apps.clients.HighLoadStompProducerWithSemaphores;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,7 +21,6 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Session;
 import javax.jms.Topic;
 import javax.naming.Context;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -39,7 +36,6 @@ import static org.junit.Assert.fail;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Ignore
 public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
 
     // Logger
@@ -98,7 +94,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
                            int receiveTimeout, int messageSize,
                            int maxSizeBytes, int pageSizeBytes) {
         final String TOPIC = "pageTopic";
-        final String TOPIC_JNDI = "/topic/pageTopic";
+        final String TOPIC_JNDI = "jms/topic/pageTopic";
         final String ADDRESS = "#";
         final String STOMP_SOCKET_BINDING_NAME = "messaging-stomp";
 
@@ -112,7 +108,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         // Create HQ acceptor for Stomp
         jmsAdminOperations.createSocketBinding(STOMP_SOCKET_BINDING_NAME, STOMP_PORT);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("protocol", "stomp");
+        params.put("protocols", "STOMP");
         jmsAdminOperations.createRemoteAcceptor("stomp-acceptor", "messaging-stomp", params);
 
         // Disable security on HQ
@@ -171,7 +167,6 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
 
-        jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
         container(1).stop();
     }

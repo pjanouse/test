@@ -1,0 +1,8 @@
+RULE Disconnect client when new page is created
+CLASS org.hornetq.core.paging.impl.PagingStoreImpl
+METHOD createPage(int)
+AFTER WRITE $page
+DO debug("CALL Disconnect client when new page is being created");
+Thread.sleep(1000);
+user
+ENDRULE

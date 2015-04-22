@@ -5,11 +5,11 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -188,23 +188,36 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
      * @param container Test container - defined in arquillian.xml
      */
     private void prepareServer(Container container, int reconnectAttempts) {
+        String connectorName;
+        if(ContainerUtils.isEAP6(container)){
+            connectorName = "netty";
+        }else{
+            connectorName = "http-connector";
+        }
 
-        String connectorName = "netty";
         String socketBindingToProxyName = "messaging-proxy";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setClustered(false);
-
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setClustered(false);
+            jmsAdminOperations.removeRemoteConnector(connectorName);
+            jmsAdminOperations.addRemoteSocketBinding(socketBindingToProxyName, "127.0.0.1", proxyPort);
+            jmsAdminOperations.createRemoteConnector(connectorName, socketBindingToProxyName, null);
+        }else{
+            jmsAdminOperations.removeHttpConnector(connectorName);
+            jmsAdminOperations.addRemoteSocketBinding(socketBindingToProxyName, "127.0.0.1", proxyPort);
+            jmsAdminOperations.createHttpConnector(connectorName,socketBindingToProxyName,null);
+        }
         jmsAdminOperations.setPersistenceEnabled(true);
 
 
         // every can connect to this server through proxy on 127.0.0.1:proxyPortIn
-        jmsAdminOperations.removeRemoteConnector(connectorName);
-        jmsAdminOperations.addRemoteSocketBinding(socketBindingToProxyName, "127.0.0.1", proxyPort);
-        jmsAdminOperations.createRemoteConnector(connectorName, socketBindingToProxyName, null);
+
+
+
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, reconnectAttempts);
         jmsAdminOperations.disableSecurity();
 

@@ -8,7 +8,6 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
@@ -3611,7 +3610,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get(ClientConstants.OP_ADDR).add("http-acceptor", name);
+        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -4104,7 +4103,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("socket-binding").set(socketBinding);
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key, params.get(key));
+                model.get("params").add(key, params.get(key));
             }
         }
         try {
