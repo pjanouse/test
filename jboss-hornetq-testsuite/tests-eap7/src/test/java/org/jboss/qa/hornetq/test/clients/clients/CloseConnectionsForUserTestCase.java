@@ -1,7 +1,7 @@
-package org.jboss.qa.hornetq.test.clients;
+package org.jboss.qa.hornetq.test.clients.clients;
 
 
-import org.hornetq.api.core.management.HornetQServerControl;
+import org.apache.activemq.api.core.management.ActiveMQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
@@ -118,11 +118,11 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
                 jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
                 jmxConnector.connect();
                 MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
-                HornetQServerControl serverControl = container(1).getJmxUtils().getHornetQServerMBean(connection);
+                ActiveMQServerControl serverControl = container(1).getJmxUtils().getServerMBean(connection, ActiveMQServerControl.class);
 
                 // This is workaround for direct method call, that would make the TS non-compilable
                 // with older client versions. Throws NoSuchMethod on older org.jboss.qa.hornetq.apps.clients thus failing the test
-                Class<? extends HornetQServerControl> controlClass = serverControl.getClass();
+                Class<? extends ActiveMQServerControl> controlClass = serverControl.getClass();
                 Method closeMethod = controlClass.getMethod("closeConnectionsForUser", String.class);
                 return (Boolean) closeMethod.invoke(serverControl, username);
             } finally {
