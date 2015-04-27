@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.cluster;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -56,16 +57,20 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
+        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
 
         container.start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setClustered(true);
+        if(ContainerUtils.isEAP6(container)){
+            jmsAdminOperations.setClustered(true);
+            jmsAdminOperations.setSharedStore(true);
+        }
+
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
+
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "udp", "udp", 2000, connectorName);

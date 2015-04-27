@@ -40,6 +40,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.test.security.PermissionGroup;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -1765,7 +1766,7 @@ public class ClusterTestCase extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER ? "netty" : "http-connector";
+        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
@@ -1822,6 +1823,7 @@ public class ClusterTestCase extends HornetQTestCase {
         } finally {
             jmsAdminOperations.close();
             container.stop();
+
         }
 
     }
