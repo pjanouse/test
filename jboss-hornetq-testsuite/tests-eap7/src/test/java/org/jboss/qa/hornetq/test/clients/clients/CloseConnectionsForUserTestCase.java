@@ -149,7 +149,7 @@ public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase
             CliClient cliClient = new CliClient(config);
 
             CLI.Result result = cliClient.executeCommand(CliUtils.buildCommand(
-                    "/subsystem=messaging/hornetq-server=default",
+                    "/subsystem=messaging-activemq/server=default",
                     ":close-connections-for-user", "user=" + username));
             return result.getResponse().asBoolean();
         }

@@ -1,7 +1,6 @@
 // TODO Modify it for EAP 7
 package org.jboss.qa.hornetq.tools.journal;
 
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,52 +10,44 @@ import java.io.InputStreamReader;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.EapVersion;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.kohsuke.MetaInfServices;
 
-
 /**
- * Utilities to work with HornetQ's journal export/import tool in EAP 7.
+ * Utilities to work with ActiveMQ's journal export/import tool in EAP 7.
  */
 @MetaInfServices
 public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtils {
 
     private static final Logger LOG = Logger.getLogger(JournalExportImportUtilsImplEAP7.class);
 
-    private static final String HORNETQ_MODULE_PATH = "org/hornetq".replaceAll("/", File.separator);
-    private static final String NETTY_MODULE_PATH = "org/jboss/netty".replaceAll("/", File.separator);
+    private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq".replaceAll("/", File.separator);
+    private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", File.separator);
     private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", File.separator);
 
-    private static final String EXPORT_TOOL_MAIN_CLASS = "org.hornetq.jms.persistence.impl.journal.XmlDataExporter";
-    private static final String IMPORT_TOOL_MAIN_CLASS = "org.hornetq.jms.persistence.impl.journal.XmlDataImporter";
-
-    private static final String EAP_60_EXPORT_TOOL_MAIN_CLASS = "org.hornetq.core.persistence.impl.journal.XmlDataExporter";
-    private static final String EAP_60_IMPORT_TOOL_MAIN_CLASS = "org.hornetq.core.persistence.impl.journal.XmlDataImporter";
+    private static final String EAP_70_EXPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.XmlDataExporter";
+    private static final String EAP_70_IMPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.XmlDataImporter";
 
     private String pathToJournal = null;
 
     /**
-     * Export HornetQ journal from the given container to the given file.
+     * Export ActiveMQ journal from the given container to the given file.
      *
-     * @param container        Container where the journal is exported from.
+     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      * @throws IOException
      * @throws InterruptedException
      */
     @Override
-    public boolean exportHornetQJournal(Container container, final String exportedFileName)
-            throws IOException, InterruptedException {
+    public boolean exportJournal(Container container, final String exportedFileName) throws IOException, InterruptedException {
 
         LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
 
-        // TODO: move standalone/domain path to ContainerInfo
         if (pathToJournal == null || pathToJournal.equals("")) {
-            pathToJournal = getHornetQJournalDirectory(container.getServerHome(), "standalone");
+            pathToJournal = getJournalDirectory(container.getServerHome(), "standalone");
         }
         File journalDirectory = new File(pathToJournal);
         if (!(journalDirectory.exists() && journalDirectory.isDirectory() && journalDirectory.canRead())) {
@@ -64,22 +55,14 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
             return false;
         }
 
-
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
         processBuilder.addClasspathEntry(journalToolClassPath(container));
-
-        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
-        if (eapVersion.compareToString("6.0.1") <= 0) {
-            processBuilder.setMainClass(EAP_60_EXPORT_TOOL_MAIN_CLASS);
-        } else {
-            processBuilder.setMainClass(EXPORT_TOOL_MAIN_CLASS);
-        }
-
-        processBuilder.addArgument(pathToJournal + File.separator + "messagingbindings");
-        processBuilder.addArgument(pathToJournal + File.separator + "messagingjournal");
-        processBuilder.addArgument(pathToJournal + File.separator + "messagingpaging");
-        processBuilder.addArgument(pathToJournal + File.separator + "mesaaginglargemessages");
+        processBuilder.setMainClass(EAP_70_EXPORT_TOOL_MAIN_CLASS);
+        processBuilder.addArgument(pathToJournal + File.separator + "bindings");
+        processBuilder.addArgument(pathToJournal + File.separator + "journal");
+        processBuilder.addArgument(pathToJournal + File.separator + "paging");
+        processBuilder.addArgument(pathToJournal + File.separator + "large-messages");
 
         Process exportProcess = processBuilder.startProcess();
 
@@ -118,33 +101,27 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         return retval == 0;
     }
 
-
     /**
-     * Import HornetQ journal from the given container to the given file.
+     * Import ActiveMQ journal from the given container to the given file.
      *
-     * @param container        Container where the journal is exported from.
+     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      * @throws IOException
      * @throws InterruptedException
      */
     @Override
-    public boolean importHornetQJournal(Container container, final String exportedFileName)
-            throws IOException, InterruptedException {
+    public boolean importJournal(Container container, final String exportedFileName) throws IOException, InterruptedException {
 
         LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
 
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        //processBuilder.mergeErrorStreamWithOutput(false);
+        // processBuilder.mergeErrorStreamWithOutput(false);
         processBuilder.addClasspathEntry(journalToolClassPath(container));
 
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
-        if (eapVersion.compareToString("6.0.1") <= 0) {
-            processBuilder.setMainClass(EAP_60_IMPORT_TOOL_MAIN_CLASS);
-        } else {
-            processBuilder.setMainClass(IMPORT_TOOL_MAIN_CLASS);
-        }
+        processBuilder.setMainClass(EAP_70_IMPORT_TOOL_MAIN_CLASS);
 
         processBuilder.addArgument(new File(exportedFileName).getAbsolutePath());
         processBuilder.addArgument(container.getHostname());
@@ -175,24 +152,20 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         this.pathToJournal = path;
     }
 
-
     private static String journalToolClassPath(Container container) throws IOException {
-        String classpath = getModuleJarsClasspath(container, HORNETQ_MODULE_PATH) + File.pathSeparator
+        String classpath = getModuleJarsClasspath(container, ACTIVEMQ_MODULE_PATH) + File.pathSeparator
                 + getModuleJarsClasspath(container, NETTY_MODULE_PATH) + File.pathSeparator
                 + getModuleJarsClasspath(container, LOGGING_MODULE_PATH);
         LOG.info("Setting up classpath for the export tool: " + classpath);
         return classpath;
     }
 
-
     private static String getModuleJarsClasspath(Container container, final String modulePath) throws IOException {
         return ServerPathUtils.getModuleDirectory(container, modulePath).getAbsolutePath() + File.separator + "*";
     }
 
-
-    private static String getHornetQJournalDirectory(final String jbossHome, final String profile) {
-        return jbossHome + File.separator + profile + File.separator + "data";
+    private static String getJournalDirectory(final String jbossHome, final String profile) {
+        return jbossHome + File.separator + profile + File.separator + "data" + File.separator + "activemq";
     }
 
 }
-

@@ -47,6 +47,7 @@ public class CliClient {
         log.info("Executed command " + result.getCliCommand() + " ended with response " + result.getResponse());
         cli.disconnect();
         log.debug("Successfully disconnected");
+
         return result;
     }
 

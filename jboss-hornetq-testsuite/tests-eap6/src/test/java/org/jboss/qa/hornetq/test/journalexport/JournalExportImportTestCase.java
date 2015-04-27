@@ -83,14 +83,14 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        boolean exported = journalExportImportUtils.exportHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
+        boolean exported = journalExportImportUtils.exportJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
         FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
         container(1).start();
 
-        boolean imported = journalExportImportUtils.importHornetQJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
+        boolean imported = journalExportImportUtils.importJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be imported successfully", imported);
 
         Message received;

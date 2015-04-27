@@ -6,10 +6,10 @@ import org.jboss.qa.hornetq.Container;
  * @author mnovak@redhat.com
  */
 public interface JournalExportImportUtils {
-    boolean exportHornetQJournal(Container container, String exportedFileName)
+    boolean exportJournal(Container container, String exportedFileName)
             throws Exception;
 
-    boolean importHornetQJournal(Container container, String exportedFileName)
+    boolean importJournal(Container container, String exportedFileName)
                     throws Exception;
 
     /**

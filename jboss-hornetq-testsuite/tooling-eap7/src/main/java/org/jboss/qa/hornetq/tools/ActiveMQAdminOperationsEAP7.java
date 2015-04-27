@@ -3689,7 +3689,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
 
         for (String key : params.keySet()) {
-            model.get("param").add(key, params.get(key));
+            model.get("params").add(key, params.get(key));
         }
 
         try {
@@ -3730,7 +3730,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("socket-binding").set(socketBinding);
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key, params.get(key));
+                model.get("params").add(key, params.get(key));
             }
         }
         try {
@@ -4058,7 +4058,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("server-id").set(serverId);
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key, params.get(key));
+                model.get("params").add(key, params.get(key));
             }
         }
         try {
@@ -4154,9 +4154,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key, params.get(key));
+                model.get("params").add(key, params.get(key));
             }
         }
+
+        logger.info(model);
+
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -4217,7 +4220,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("server-id").set(serverId);
         if (params != null) {
             for (String key : params.keySet()) {
-                model.get("param").add(key, params.get(key));
+                model.get("params").add(key, params.get(key));
             }
         }
         try {
@@ -5151,6 +5154,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 //            List<String> list = new ArrayList<String>();
 //            list.add("http-connector");
 //            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
+
 
 //            jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
 //            jmsAdminOperations.removeHAPolicy("default");

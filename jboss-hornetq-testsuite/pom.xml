@@ -28,7 +28,7 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.preDR1-activemq
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.DR0-activemq-2
         </eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
@@ -331,13 +331,18 @@
                     <!--<artifactId>groovy</artifactId>-->
                 <!--</exclusion>-->
                 <!--<exclusion>-->
-                    <!--<groupId>org.codehaus.groovy</groupId>-->
+                    <!--<groupId>org.codehaus.groovy</gr
+
+
+
+
+
+
+                    oupId>-->
                     <!--<artifactId>groovy-xml</artifactId>-->
                 <!--</exclusion>-->
             <!--</exclusions>-->
         <!--</dependency>-->
-
-
 
         <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>
