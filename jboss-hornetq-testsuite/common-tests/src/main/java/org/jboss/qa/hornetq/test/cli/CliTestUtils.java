@@ -3,7 +3,10 @@ package org.jboss.qa.hornetq.test.cli;
 import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.*;
 import org.jboss.dmr.*;
-import org.jboss.qa.management.cli.*;
+import org.jboss.qa.management.cli.CliClient;
+import org.jboss.qa.management.cli.CliUtils;
+import org.jboss.qa.management.cli.ModelNodeUtils;
+
 import static org.junit.Assert.*;
 
 /**
@@ -89,7 +92,7 @@ public class CliTestUtils {
         try {
             String undefineAttributeCommand = CliUtils.buildCommand(address, ":undefine-attribute", new String[]{"name="+attribute});
             assertTrue("Failed to undefine attribute " + attribute + " at address " + address, cliClient.executeForSuccess(undefineAttributeCommand));
-            verifyAttributeValueIgnoringDefaults(cliClient, address, attribute, CliConstants.UNDEFINED);
+            verifyAttributeValueIgnoringDefaults(cliClient, address, attribute, "undefined");
         } finally {
             cliClient.writeAttribute(address, attribute, originalValue);
         }

@@ -43,7 +43,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean exportHornetQJournal(Container container, final String exportedFileName)
+    public boolean exportJournal(Container container, final String exportedFileName)
             throws IOException, InterruptedException {
 
         if (pathToJournal == null || pathToJournal.equals("")) {
@@ -121,7 +121,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean importHornetQJournal(Container container, final String exportedFileName)
+    public boolean importJournal(Container container, final String exportedFileName)
             throws IOException, InterruptedException {
 
         LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());

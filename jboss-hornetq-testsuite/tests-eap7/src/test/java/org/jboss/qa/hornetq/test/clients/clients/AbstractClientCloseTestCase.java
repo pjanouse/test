@@ -1,22 +1,24 @@
-package org.jboss.qa.hornetq.test.clients;
+package org.jboss.qa.hornetq.test.clients.clients;
 
-
+import org.apache.activemq.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
-import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
-import org.jboss.qa.hornetq.test.journalreplication.utils.FileUtil;
+import org.jboss.qa.hornetq.test.security.UsersSettings;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 
 import javax.jms.*;
 import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
 import javax.management.Notification;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.naming.Context;
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +74,8 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
 
             LOG.info("Attaching notification listener to JMX server");
-            connection.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
+
+            connection.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
                     notificationListener, null, null);
 
             LOG.info("Setting up error listener for JMS org.jboss.qa.hornetq.apps.clients");
@@ -137,7 +140,15 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
         }
     }
 
-    private void prepareServer(boolean secured) {
+    private void prepareServer(boolean secured) throws Exception {
+        if (ContainerUtils.isEAP6(container(1)))    {
+            prepareServerEAP6(secured);
+        } else {
+            prepareServerEAP7(secured);
+        }
+    }
+
+    private void prepareServerEAP6(boolean secured) throws Exception {
         container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
 
@@ -164,28 +175,53 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
         ops.close();
 
         if (secured) {
-            copyUsersAndRolesFiles();
+            createUsersAndRoles();
         }
 
         container(1).stop();
         container(1).start();
     }
 
-    private void copyUsersAndRolesFiles() {
-        String usersFileName = "application-users.properties";
-        String rolesFileName = "application-roles.properties";
-        File resourcesDirectory = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator
-                + this.getClass().getPackage().getName().replaceAll("\\.", File.separator));
-        File serverConfDirectory = new File(container(1).getServerHome() + File.separator + "standalone"
-                + File.separator + "configuration");
+    private void prepareServerEAP7(boolean secured) throws Exception {
+        container(1).start();
+        JMSOperations ops = container(1).getJmsOperations();
 
-        File usersFile = new File(resourcesDirectory, usersFileName);
-        File usersTarget = new File(serverConfDirectory, usersFileName);
-        FileUtil.copyFile(usersFile, usersTarget);
+        // enable JMX on hornetq for notifications (and potentially calling the management operation too)
+        ops.setJmxManagementEnabled(true);
 
-        File rolesFile = new File(resourcesDirectory, rolesFileName);
-        File rolesTarget = new File(serverConfDirectory, rolesFileName);
-        FileUtil.copyFile(rolesFile, rolesTarget);
+        // we have to restart server for JMX to activate after config change
+        container(1).stop();
+        container(1).start();
+
+        // disable clustering
+        ops.removeClusteringGroup("my-cluster");
+        ops.removeBroadcastGroup("bg-group1");
+        ops.removeDiscoveryGroup("dg-group1");
+        ops.setNodeIdentifier(987654);
+
+        // lower the paging threshold to force server into paging mode
+        ops.removeAddressSettings("#");
+        ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 8192);
+        ops.setReconnectAttemptsForConnectionFactory("RemoteConnectionFactory", 0);
+
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
+        ops.close();
+
+        if (secured) {
+            createUsersAndRoles();
+        }
+
+        container(1).stop();
+        container(1).start();
+    }
+
+    private void createUsersAndRoles() throws Exception {
+
+        UsersSettings.forDefaultEapServer()
+                .withUser("guest", null, "guest")
+                .withUser("user", "useruser", "users")
+                .withUser("admin", "adminadmin", "admins")
+                .create();
     }
 
     private static class TestClients {

@@ -83,6 +83,9 @@ public class JavaProcessBuilder {
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(argumentsList.toArray(new String[argumentsList.size()]));
+        for (String s : processBuilder.command())   {
+            System.out.print(s + " ");
+        }
         processBuilder.redirectErrorStream(true);
         processBuilder.directory(new File(this.workingDirectory));
         return processBuilder.start();

@@ -103,7 +103,7 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
                 jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
                 jmxConnector.connect();
                 MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
-                HornetQServerControl serverControl = container(1).getJmxUtils().getHornetQServerMBean(connection);
+                HornetQServerControl serverControl = container(1).getJmxUtils().getServerMBean(connection, HornetQServerControl.class);
 
                 // This is workaround for direct method call, that would make the TS non-compilable
                 // with older client versions. Throws NoSuchMethod on older org.jboss.qa.hornetq.apps.clients thus failing the test
