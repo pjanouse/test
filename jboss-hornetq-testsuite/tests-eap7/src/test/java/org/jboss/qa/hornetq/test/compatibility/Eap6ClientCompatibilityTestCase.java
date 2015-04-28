@@ -16,9 +16,9 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @author ochaloup@redhat.com
  * @author msvehla@redhat.com
  */
-public class Eap7ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
+public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
 
-    private static final Logger log = Logger.getLogger(Eap7ClientCompatibilityTestCase.class);
+    private static final Logger log = Logger.getLogger(Eap6ClientCompatibilityTestCase.class);
 
     /**
      * Set all jms binding which will be needed for tests.
@@ -29,15 +29,11 @@ public class Eap7ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         String broadCastGroupName = "bg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
         String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
+        String connectorName = "netty";
 
         container(1).start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", container(1).getHostname());
-        jmsAdminOperations.setInetAddress("unsecure", container(1).getHostname());
-        jmsAdminOperations.setInetAddress("management", container(1).getHostname());
 
         jmsAdminOperations.setBindingsDirectory(JOURNAL_DIR);
         jmsAdminOperations.setPagingDirectory(JOURNAL_DIR);
@@ -47,7 +43,7 @@ public class Eap7ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         jmsAdminOperations.setPersistenceEnabled(true);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName,"");
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);

@@ -1,0 +1,17 @@
+active=true
+async-connection-execution-enabled=true
+create-bindings-dir=true
+create-journal-dir=true
+jmx-management-enabled=false
+journal-sync-non-transactional=true
+journal-sync-transactional=true
+log-journal-write-rate=false
+persist-delivery-count-before-delivery=false
+persist-id-cache=true
+persistence-enabled=true
+run-sync-speed-test=false
+security-enabled=false
+started=true
+wild-card-routing-enabled=true
+statistics-enabled=false
+

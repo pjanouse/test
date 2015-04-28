@@ -1,0 +1,12 @@
+id-cache-size=2000
+journal-compact-min-files=1
+journal-compact-percentage=3
+journal-max-io=100
+journal-min-files=20
+memory-warning-threshold=250
+message-counter-max-day-history=100
+message-expiry-thread-priority=30
+page-max-concurrent-io=50
+perf-blast-pages=-1
+scheduled-thread-pool-max-size=50
+thread-pool-max-size=300
