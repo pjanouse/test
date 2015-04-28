@@ -27,8 +27,8 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
     private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", File.separator);
     private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", File.separator);
 
-    private static final String EAP_70_EXPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.XmlDataExporter";
-    private static final String EAP_70_IMPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.XmlDataImporter";
+    private static final String EAP_70_EXPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.Main";
+    private static final String EAP_70_IMPORT_TOOL_MAIN_CLASS = "org.apache.activemq.tools.Main";
 
     private String pathToJournal = null;
 
@@ -59,10 +59,11 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
         processBuilder.addClasspathEntry(journalToolClassPath(container));
         processBuilder.setMainClass(EAP_70_EXPORT_TOOL_MAIN_CLASS);
+        processBuilder.addArgument("export");
         processBuilder.addArgument(pathToJournal + File.separator + "bindings");
         processBuilder.addArgument(pathToJournal + File.separator + "journal");
         processBuilder.addArgument(pathToJournal + File.separator + "paging");
-        processBuilder.addArgument(pathToJournal + File.separator + "large-messages");
+        processBuilder.addArgument(pathToJournal + File.separator + "largemessages");
 
         Process exportProcess = processBuilder.startProcess();
 
@@ -123,6 +124,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         processBuilder.setMainClass(EAP_70_IMPORT_TOOL_MAIN_CLASS);
 
+        processBuilder.addArgument("import");
         processBuilder.addArgument(new File(exportedFileName).getAbsolutePath());
         processBuilder.addArgument(container.getHostname());
         processBuilder.addArgument(String.valueOf(container.getHornetqPort() + container.getPortOffset()));
