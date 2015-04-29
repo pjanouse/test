@@ -7,6 +7,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
@@ -19,6 +20,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -141,8 +143,8 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            ObjectName objectName = new ObjectName(
-                    "jboss.as:subsystem=messaging,hornetq-server=default,runtime-queue=jms.queue." + queueName);
+            ObjectName objectName = getObjectName(queueName);
+
             resultMap = (CompositeData[]) mbeanServer.invoke(objectName, "listScheduledMessages", new Object[] {},
                     new String[] {});
         } finally {
@@ -154,6 +156,16 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         return resultMap.length;
     }
 
+    private ObjectName getObjectName(String queueName) throws Exception {
+        ObjectName objectName = null;
+        if (ContainerUtils.isEAP6(container(1))) {
+            objectName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,runtime-queue=jms.queue." + queueName);
+        } else {
+            objectName = new ObjectName("jboss.as:subsystem=messaging-activemq,server=default,runtime-queue=jms.queue." + queueName);
+        }
+        return objectName;
+    }
+
 
     public int getListDeliveringMessagesSize(String queueName) throws Exception {
         JMXConnector connector = null;
@@ -162,8 +174,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
 
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            ObjectName objectName = new ObjectName(
-                    "jboss.as:subsystem=messaging,hornetq-server=default,runtime-queue=jms.queue." + queueName);
+            ObjectName objectName = getObjectName(queueName);
             CompositeData[] resultMap = (CompositeData[]) mbeanServer.invoke(objectName, "listDeliveringMessages",
                     new Object[] {}, new String[] {});
             elements = (CompositeData[]) resultMap[0].get("elements");

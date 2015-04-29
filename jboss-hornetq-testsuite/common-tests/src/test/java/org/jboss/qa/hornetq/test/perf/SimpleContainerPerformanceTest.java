@@ -204,7 +204,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
         container(1).stop();
         container(1).start();
 
-
         Context context = null;
         Connection connection = null;
         Session session = null;
