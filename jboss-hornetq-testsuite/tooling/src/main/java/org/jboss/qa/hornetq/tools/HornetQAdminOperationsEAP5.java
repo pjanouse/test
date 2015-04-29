@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
+import org.jboss.shrinkwrap.api.Archive;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -2354,6 +2355,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown,
             String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup,
             String scaleDownGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void deploy(Archive archive) throws Exception {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

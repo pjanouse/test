@@ -87,7 +87,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        // prepare connection factory
+       //  prepare connection factory
         jmsAdminOperations.createConnectionFactory(JGROUPS_CONNECTION_FACTORY, "java:jboss/exported/jms/" + JGROUPS_CONNECTION_FACTORY, connectorName);
         jmsAdminOperations.setDiscoveryGroupOnConnectionFactory(JGROUPS_CONNECTION_FACTORY, discoveryGroupName);
 

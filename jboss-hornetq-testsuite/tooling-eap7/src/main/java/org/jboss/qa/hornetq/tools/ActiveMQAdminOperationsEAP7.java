@@ -706,8 +706,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         // model.get("name").set("connector");
         ModelNode modelnew = createModelNode();
-        modelnew.get(connectorName).clear();
-        model.get("connector").set(modelnew);
+        modelnew.set(connectorName);
+        Collection<ModelNode> connectors = new ArrayList<ModelNode>();
+        connectors.add(modelnew);
+        model.get("connectors").set(connectors);
 
         System.out.println(model.toString());
 
@@ -4520,6 +4522,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         this.timeout = timeout;
     }
 
+    @Override
     public void deploy(Archive archive) throws Exception {
 
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
@@ -4808,7 +4811,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
                 NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-        undefineConnector.get("name").set("connector");
+        undefineConnector.get("name").set("connectors");
 
         ModelNode setDiscoveryGroup = new ModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
@@ -4816,7 +4819,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
                 NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-        setDiscoveryGroup.get("name").set("discovery-group-name");
+        setDiscoveryGroup.get("name").set("discovery-group");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
         composite.get(ClientConstants.STEPS).add(undefineConnector);
         composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);

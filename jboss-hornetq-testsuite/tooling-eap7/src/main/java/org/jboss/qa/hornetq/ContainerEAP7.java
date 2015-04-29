@@ -310,14 +310,9 @@ public class ContainerEAP7 implements Container {
     @Override
     public void deploy(Archive archive) {
 
-        ActiveMQAdminOperationsEAP7 eap7AdmOps = new ActiveMQAdminOperationsEAP7();
+        ActiveMQAdminOperationsEAP7 eap7AdmOps = (ActiveMQAdminOperationsEAP7) this.getJmsOperations();
         try {
-
-            eap7AdmOps.setHostname(getHostname());
-            eap7AdmOps.setPort(getPort());
-            eap7AdmOps.connect();
             eap7AdmOps.deploy(archive);
-
         } catch (Exception ex) {
             log.error("Could not deploy archive " + archive.getName(), ex);
         } finally {

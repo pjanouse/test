@@ -471,13 +471,15 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("PREPARING SERVERS");
         boolean passed = false;
         prepareServers(true);
-        container(1).start();
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         try {
-            container(1).deploy(MDB_ON_TEMPTOPIC1);
+            jmsAdminOperations.deploy(MDB_ON_TEMPTOPIC1);
             passed = true;
 
         } catch (Exception e) {
             // this is correct behavior
+        }finally {
+            jmsAdminOperations.close();
         }
         Assert.assertFalse("Deployment of already existing topic didn't failed", passed);
         container(1).undeploy(MDB_ON_TEMPTOPIC1);
@@ -1776,7 +1778,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
             if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
                 jmsAdminOperations.setClustered(true);
-                jmsAdminOperations.setSharedStore(true);
+
             }
             jmsAdminOperations.setPersistenceEnabled(true);
 
@@ -1941,6 +1943,7 @@ public class ClusterTestCase extends HornetQTestCase {
             target.delete();
         }
         mdbJar.as(ZipExporter.class).exportTo(target, true);
+
         return mdbJar;
     }
 
@@ -2135,7 +2138,7 @@ public class ClusterTestCase extends HornetQTestCase {
             sb.append("\"/>\n");
             sb.append("</jms-topic>\n");
             sb.append("</jms-destinations>\n");
-            sb.append("<server>\n");
+            sb.append("</server>\n");
             sb.append("</messaging-deployment>\n");
             log.info(sb.toString());
             return sb.toString();

@@ -4466,6 +4466,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         this.timeout = timeout;
     }
 
+    @Override
     public void deploy(Archive archive) throws Exception {
 
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);

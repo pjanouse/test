@@ -4,6 +4,8 @@
  */
 package org.jboss.qa.hornetq.tools;
 
+import org.jboss.shrinkwrap.api.Archive;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1528,4 +1530,5 @@ public interface JMSOperations {
                                      String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
                                      boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
                                      String scaleDownDiscoveryGroup, String scaleDownGroupName);
+    void deploy(Archive archive) throws Exception;
 }
