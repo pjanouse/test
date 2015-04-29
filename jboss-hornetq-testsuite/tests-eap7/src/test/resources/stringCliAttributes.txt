@@ -1,0 +1,7 @@
+cluster-user=test.cluster.user
+jmx-domain=org.qa.hornetq
+journal-type=ASYNCIO
+management-address=jms.queue.hornetq.testmanagement
+management-notification-address=hornetq.testnotifications
+version=2.3.x.test.version
+security-domain=other

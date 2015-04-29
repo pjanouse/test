@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -7,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JavaProcessBuilder {
+
+    private static final Logger log = Logger.getLogger(JavaProcessBuilder.class);
+
 
     private String mainClass;
     private int startingHeapSizeInMegabytes = 400;
@@ -83,9 +88,11 @@ public class JavaProcessBuilder {
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(argumentsList.toArray(new String[argumentsList.size()]));
+        StringBuilder str = new StringBuilder("Command:");
         for (String s : processBuilder.command())   {
-            System.out.print(s + " ");
+            str.append(s).append(" ");
         }
+        log.info(str);
         processBuilder.redirectErrorStream(true);
         processBuilder.directory(new File(this.workingDirectory));
         return processBuilder.start();
