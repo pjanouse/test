@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -29,11 +30,11 @@ import java.util.Properties;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
-public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
+public class CoreBridgeAttributesTestCase extends CliTestBase {
 
-    private static final Logger logger = Logger.getLogger(HornetQCoreBridgeAttributesTestCase.class);
+    private static final Logger logger = Logger.getLogger(CoreBridgeAttributesTestCase.class);
 
-    private static final String HORNETQ_CORE_BRIDGE_NAME = "myBridge";
+    private static final String CORE_BRIDGE_NAME = "myBridge";
     private static final String CLUSTER_PASSWORD = "password";
 
     // queue to send messages in
@@ -43,8 +44,6 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
-
-
     @Rule
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
@@ -52,7 +51,7 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
-    private void prepareServerWithHornetQCoreBridge(Container container, Container targetContainer) {
+    private void prepareServerWithCoreBridge(Container container, Container targetContainer) {
 
         String messagingBridgeConnectorAndSocketBindingName = "messaging-bridge";
 
@@ -66,7 +65,7 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
         container.restart();
 
         jmsAdminContainer1 = container.getJmsOperations();
-        jmsAdminContainer1.createCoreBridge(HORNETQ_CORE_BRIDGE_NAME, "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1,
+        jmsAdminContainer1.createCoreBridge(CORE_BRIDGE_NAME, "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1,
                 messagingBridgeConnectorAndSocketBindingName);
         jmsAdminContainer1.close();
     }
@@ -87,7 +86,7 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
         container(1).start();
         container(2).start();
 
-        prepareServerWithHornetQCoreBridge(container(1), container(2));
+        prepareServerWithCoreBridge(container(1), container(2));
         prepareTargetServerForHornetQCoreBridge(container(2));
     }
 
@@ -105,9 +104,19 @@ public class HornetQCoreBridgeAttributesTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     public void writeReadAttributeHornetqCoreBridgeTest() throws Exception {
 
-        String address = "/subsystem=messaging/hornetq-server=default/bridge=" + HORNETQ_CORE_BRIDGE_NAME;
+        String address = getAddress();
 
         writeReadAttributeTest(address, "/hornetqCoreBridgeAttributes.txt");
+    }
+
+    private String getAddress() {
+        String address = null;
+        if (ContainerUtils.isEAP6(container(1))) {
+            address = "/subsystem=messaging/hornetq-server=default/bridge=" + CORE_BRIDGE_NAME;
+        } else {
+            address = "/subsystem=messaging-activemq/server=default/bridge=" + CORE_BRIDGE_NAME;
+        }
+        return address;
     }
 
     public void writeReadAttributeTest(String address, String attributeFileName) throws Exception {
