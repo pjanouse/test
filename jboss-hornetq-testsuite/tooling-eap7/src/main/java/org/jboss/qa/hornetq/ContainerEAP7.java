@@ -421,25 +421,6 @@ public class ContainerEAP7 implements Container {
         return iterator.next();
     }
 
-    /**
-     * Initializes LargeMessagePacketInterceptor instance based on used container. Creates new instance for every call.
-     * <p/>
-     * returns LargeMessagePacketInterceptor instance
-     */
-    @Override
-    public LargeMessagePacketInterceptor getLargeMessagePacketInterceptor() {
-        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
-        Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
-
-        if (!iterator.hasNext()) {
-            throw new RuntimeException("No implementation found for JmxUtils.");
-        }
-
-        LargeMessagePacketInterceptor largeMessagePacketInterceptor = iterator.next();
-
-        return largeMessagePacketInterceptor;
-    }
-
 
     private ContainerDef getContainerDefinition(String containerName, ArquillianDescriptor descriptor) {
         for (GroupDef groupDef : descriptor.getGroups()) {

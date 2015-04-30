@@ -1,9 +1,9 @@
 package org.jboss.qa.hornetq.apps.interceptors;
 
-import org.hornetq.api.core.HornetQException;
-import org.hornetq.api.core.Interceptor;
-import org.hornetq.core.protocol.core.Packet;
-import org.hornetq.spi.core.protocol.RemotingConnection;
+import org.apache.activemq.api.core.ActiveMQException;
+import org.apache.activemq.api.core.Interceptor;
+import org.apache.activemq.core.protocol.core.Packet;
+import org.apache.activemq.spi.core.protocol.RemotingConnection;
 
 /**
  * Created by mnovak on 3/17/15.
@@ -15,5 +15,5 @@ public interface LargeMessagePacketInterceptor extends Interceptor {
     public static final String RECEIVED_AS_LARGE_MSG_PROP = "received-as-large-message";
 
     @Override
-    boolean intercept(Packet packet, RemotingConnection connection) throws HornetQException;
+    boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException;
 }

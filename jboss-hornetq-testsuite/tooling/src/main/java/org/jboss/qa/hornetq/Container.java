@@ -10,7 +10,6 @@ import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.arquillian.container.test.api.Deployer;
-import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -24,7 +23,6 @@ public interface Container {
     // multicast address is shared across all containers
     public static String MCAST_ADDRESS = MulticastAddressUtils.getMulticastAddress();
 
-    LargeMessagePacketInterceptor getLargeMessagePacketInterceptor();
 
     void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
             ContainerController containerController);

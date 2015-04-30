@@ -2,13 +2,13 @@
 package org.jboss.qa.hornetq.apps.interceptors;
 
 
-import org.hornetq.api.core.HornetQException;
-import org.hornetq.core.protocol.core.Packet;
-import org.hornetq.core.protocol.core.impl.wireformat.SessionReceiveLargeMessage;
-import org.hornetq.core.protocol.core.impl.wireformat.SessionReceiveMessage;
-import org.hornetq.core.protocol.core.impl.wireformat.SessionSendLargeMessage;
-import org.hornetq.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.hornetq.spi.core.protocol.RemotingConnection;
+import org.apache.activemq.api.core.ActiveMQException;
+import org.apache.activemq.core.protocol.core.Packet;
+import org.apache.activemq.core.protocol.core.impl.wireformat.SessionReceiveLargeMessage;
+import org.apache.activemq.core.protocol.core.impl.wireformat.SessionReceiveMessage;
+import org.apache.activemq.core.protocol.core.impl.wireformat.SessionSendLargeMessage;
+import org.apache.activemq.core.protocol.core.impl.wireformat.SessionSendMessage;
+import org.apache.activemq.spi.core.protocol.RemotingConnection;
 import org.kohsuke.MetaInfServices;
 
 
@@ -26,7 +26,7 @@ import org.kohsuke.MetaInfServices;
 public class LargeMessagePacketInterceptorImplEAP7 implements LargeMessagePacketInterceptor {
 
     @Override
-    public boolean intercept(final Packet packet, final RemotingConnection connection) throws HornetQException {
+    public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
         if (packet instanceof SessionSendMessage) {
             SessionSendMessage msgPacket = (SessionSendMessage) packet;
             msgPacket.getMessage().putBooleanProperty(SENT_AS_LARGE_MSG_PROP, false);

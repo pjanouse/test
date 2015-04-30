@@ -22,8 +22,10 @@ import org.junit.runner.RunWith;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -139,7 +141,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             locator.setCompressLargeMessage(true);
 
             // need to use deprecated method to work with EAP 5 / HQ 2.2.x
-            locator.addInterceptor(container(1).getLargeMessagePacketInterceptor());
+            locator.addInterceptor(getLargeMessagePacketInterceptor());
 
             ClientSessionFactory sf = locator.createSessionFactory();
             session = sf.createSession();
@@ -194,6 +196,18 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
         JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(QUEUE_NAME, QUEUE_NAME);
         ops.close();
+    }
+    private LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
+        ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
+        Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();
+
+        if (!iterator.hasNext()) {
+            throw new RuntimeException("No implementation found for JmxUtils.");
+        }
+
+        LargeMessagePacketInterceptor largeMessagePacketInterceptor = iterator.next();
+
+        return largeMessagePacketInterceptor;
     }
 
 }
