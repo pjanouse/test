@@ -132,7 +132,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                 targetMethod = "start",
                 action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
         @BMRule(name = "server kill on transaction start",
-                targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "start",
                 action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionStart() throws Exception {
@@ -165,7 +165,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill after transaction start",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "start",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
@@ -198,7 +198,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "end",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on transaction end",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "end",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionEnd() throws Exception {
@@ -231,7 +231,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill after transaction end",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "end",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
@@ -264,7 +264,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "prepare",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on transaction prepare",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "prepare",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionPrepare() throws Exception {
@@ -297,7 +297,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             isAfter = true,
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill after transaction prepare",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "prepare",
                     isAfter = true,
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
@@ -330,7 +330,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on transaction commit",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "commit",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnTransactionCommit() throws Exception {
@@ -363,7 +363,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetLocation = "EXIT",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill after transaction commit",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
@@ -396,7 +396,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "commit",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on transaction commit",
-                    targetClass = "org.apache.activemq.ra.ActiveMQRAXAResource",
+                    targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "commit",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillWithLargeMessagesOnTransactionCommit() throws Exception {
@@ -428,7 +428,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "createLargeMessage",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on large message create",
-                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "createLargeMessage",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnCreatingLargeMessage() throws Exception {
@@ -464,7 +464,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "sendContinuations",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on large message file send",
-                    targetClass = "org.apache.activemq.core.server.impl.ServerSessionImpl",
+                    targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "sendContinuations",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnSendingLargeMessage() throws Exception {
@@ -496,7 +496,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "createFileForLargeMessage",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on large message file create",
-                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "createFileForLargeMessage",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     public void testServerKillOnCreatingLargeMessageFile() throws Exception {
@@ -528,7 +528,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "deleteLargeMessageFile",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on large message file delete",
-                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteLargeMessageFile",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     @Ignore
@@ -547,7 +547,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             targetMethod = "deleteLargeMessageFile",
             action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
             @BMRule(name = "server kill on large message file delete",
-                    targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteLargeMessageFile",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
     @Ignore

@@ -2,13 +2,13 @@
 package org.jboss.qa.hornetq.apps.interceptors;
 
 
-import org.apache.activemq.api.core.ActiveMQException;
-import org.apache.activemq.core.protocol.core.Packet;
-import org.apache.activemq.core.protocol.core.impl.wireformat.SessionReceiveLargeMessage;
-import org.apache.activemq.core.protocol.core.impl.wireformat.SessionReceiveMessage;
-import org.apache.activemq.core.protocol.core.impl.wireformat.SessionSendLargeMessage;
-import org.apache.activemq.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.apache.activemq.spi.core.protocol.RemotingConnection;
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.core.protocol.core.Packet;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionReceiveLargeMessage;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionReceiveMessage;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendLargeMessage;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
+import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.kohsuke.MetaInfServices;
 
 

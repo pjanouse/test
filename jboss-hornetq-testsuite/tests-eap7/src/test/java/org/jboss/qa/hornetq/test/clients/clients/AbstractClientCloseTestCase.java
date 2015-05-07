@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.clients.clients;
 
-import org.apache.activemq.api.core.management.ObjectNameBuilder;
+import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;

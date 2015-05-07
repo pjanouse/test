@@ -202,16 +202,16 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @BMRules(
             {
                     @BMRule(name = "Initialization of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             action = "createCounter(\"counter\")"),
                     @BMRule(name = "Incrementation of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             action = "incrementCounter(\"counter\"); " +
                                     "System.out.println(\"Current counter - \" + readCounter(\"counter\"));"),
                     @BMRule(name = "Killing server rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
@@ -233,16 +233,16 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @BMRules(
             {
                     @BMRule(name = "Initialization of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             action = "createCounter(\"counter\")"),
                     @BMRule(name = "Incrementation of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             action = "incrementCounter(\"counter\"); " +
                                     "System.out.println(\"Current counter - \" + readCounter(\"counter\"));"),
                     @BMRule(name = "Killing server rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
@@ -264,16 +264,16 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @BMRules(
             {
                     @BMRule(name = "Initialization of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             action = "createCounter(\"counter\")"),
                     @BMRule(name = "Incrementation of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             action = "incrementCounter(\"counter\"); " +
                                     "System.out.println(\"Current counter - \" + readCounter(\"counter\"));"),
                     @BMRule(name = "Killing server rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "deleteMessage",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +
@@ -295,16 +295,16 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @BMRules(
             {
                     @BMRule(name = "Initialization of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             action = "createCounter(\"counter\")"),
                     @BMRule(name = "Incrementation of the counter rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             action = "incrementCounter(\"counter\"); " +
                                     "System.out.println(\"Current counter - \" + readCounter(\"counter\"));"),
                     @BMRule(name = "Killing server rule",
-                            targetClass = "org.apache.activemq.core.persistence.impl.journal.JournalStorageManager",
+                            targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                             targetMethod = "commit",
                             condition = "readCounter(\"counter\")>5",
                             action = "System.out.println(\"!!! Killing server!!!\"); " +

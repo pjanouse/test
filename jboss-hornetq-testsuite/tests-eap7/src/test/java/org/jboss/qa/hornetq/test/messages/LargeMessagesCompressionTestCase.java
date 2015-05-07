@@ -1,10 +1,10 @@
 package org.jboss.qa.hornetq.test.messages;
 
-import org.apache.activemq.api.core.Message;
-import org.apache.activemq.api.core.TransportConfiguration;
-import org.apache.activemq.api.core.client.*;
-import org.apache.activemq.core.remoting.impl.netty.NettyConnectorFactory;
-import org.apache.activemq.core.remoting.impl.netty.TransportConstants;
+import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.TransportConfiguration;
+import org.apache.activemq.artemis.api.core.client.*;
+import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory;
+import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;

@@ -90,7 +90,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
 
         javaProcessBuilder.setWorkingDirectory(workingDirectory);
         javaProcessBuilder.addClasspathEntry(buildClasspath(container));
-        javaProcessBuilder.setMainClass("org.apache.activemq.core.persistence.impl.journal.PrintData");
+        javaProcessBuilder.setMainClass("org.apache.activemq.artemis.core.persistence.impl.journal.PrintData");
         javaProcessBuilder.addArgument(messagingbindingsDirectory);
         javaProcessBuilder.addArgument(messagingjournalDirectory);
 

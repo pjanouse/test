@@ -76,10 +76,10 @@ public class MulticastProxy extends Thread {
 
                 sourceMulticastSocket.receive(pkt);
 
-                log.trace("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
-                        + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
-                        + " content: " + Arrays.toString(line) + " dest host:port - "
-                        + pkt.getAddress() + ":" + pkt.getPort());
+//                log.trace("Packet received from source: " + sourceMulticastGroup + ":" + sourceMulticastPort
+//                        + " will be sent to " + destinationMulticastGroup + ":" + destinationMulticastPort
+//                        + " content: " + Arrays.toString(line) + " dest host:port - "
+//                        + pkt.getAddress() + ":" + pkt.getPort());
 
                 // if we sent this packet before then don't send it again to prevent multicast packet flooding
                 for (byte[] content : sendPackets)  {

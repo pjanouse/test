@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.security;
 
 
-import org.apache.activemq.core.remoting.impl.netty.TransportConstants;
+import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;

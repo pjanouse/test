@@ -382,6 +382,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(2).deploy(MDB_ON_QUEUE2);
 
         // Send messages into input node and read from output node
+
         ProducerClientAck producer = new ProducerClientAck(container(1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ReceiverClientAck receiver = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
 

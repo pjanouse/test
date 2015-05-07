@@ -1,7 +1,7 @@
 // TODO REFACTOR FOR EAP 7
 package org.jboss.qa.hornetq.apps.jmx;
 
-import org.apache.activemq.api.core.management.ObjectNameBuilder;
+import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.qa.hornetq.Container;
 import org.kohsuke.MetaInfServices;

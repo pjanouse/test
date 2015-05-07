@@ -335,7 +335,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
             } else {
-                s = s.concat(" -Dconnector.factory.class=org.apache.activemq.core.remoting.impl.netty.NettyConnectorFactory");
+                s = s.concat(" -Dconnector.factory.class=org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory");
             }
             containerDef.getContainerProperties().put("javaVmArguments", s);
         }

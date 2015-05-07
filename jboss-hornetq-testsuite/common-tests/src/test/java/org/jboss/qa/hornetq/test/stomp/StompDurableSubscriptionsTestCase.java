@@ -63,7 +63,7 @@ public class StompDurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void normalByteMessagesTest() throws Exception {
-        testLogic(5000, 30000, 10, 10000, 512, 1024 * 50, 1024 * 10);
+        testLogic(5000, 30000, 1, 10000, 512, 1024 * 50, 1024 * 10);
     }
 
     /**

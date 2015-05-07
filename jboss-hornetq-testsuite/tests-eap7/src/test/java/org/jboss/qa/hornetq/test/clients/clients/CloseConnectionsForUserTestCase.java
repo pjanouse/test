@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.clients.clients;
 
 
-import org.apache.activemq.api.core.management.ActiveMQServerControl;
+import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
