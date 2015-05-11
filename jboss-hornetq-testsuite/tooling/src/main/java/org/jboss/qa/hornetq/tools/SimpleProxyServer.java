@@ -124,7 +124,7 @@ public class SimpleProxyServer implements ControllableProxy {
         ServerSocket ss = null;
         try {
             ss = new ServerSocket(this.localPort);
-
+            log.log(Level.SEVERE, String.valueOf(this.localPort));
             while (!this.terminateRequest) {
                 ss.setSoTimeout(500);
                 try {
@@ -292,7 +292,7 @@ public class SimpleProxyServer implements ControllableProxy {
      */
     private static class ProxyThread extends Thread {
 
-        private static final int BUFFER_SIZE = 32768;
+        private static final int BUFFER_SIZE = 32768*10;
 
         private Socket clientSocket = null;
 
@@ -341,6 +341,7 @@ public class SimpleProxyServer implements ControllableProxy {
 
                 try {
                     serverSocket = new Socket(host, this.remotePort);
+                    serverSocket.setKeepAlive(true);
                 } catch (IOException e) {
                     String msg = "Proxy server cannot connect to " + host + ":" + this.remotePort + ":\n" + e + "\n";
                     PrintWriter out = new PrintWriter(to_client);
@@ -362,17 +363,20 @@ public class SimpleProxyServer implements ControllableProxy {
                         int bytes_read;
                         try {
                             while ((bytes_read = from_client.read(request)) != -1 && !controllableProxy.isTerminateRequest()) {
-
-                                if (!controllableProxy.isBlockCommunicationToServer()) {
-                                    to_server.write(request, 0, bytes_read);
-                                    to_server.flush();
-                                    if (debugCommunication) {
-                                        controllableProxy.debug(request, "to server");
+                                try {
+                                    if (!controllableProxy.isBlockCommunicationToServer()) {
+                                        to_server.write(request, 0, bytes_read);
+                                        to_server.flush();
+                                        if (debugCommunication) {
+                                            controllableProxy.debug(request, "to server");
+                                        }
                                     }
+                                }catch (IOException e){
+                                    log.log(Level.SEVERE, e.getMessage(), e);
                                 }
                             }
                         } catch (IOException e) {
-                            log.log(Level.SEVERE, e.getMessage(), e);
+                           log.log(Level.SEVERE, e.getMessage(), e);
                         }
 
                         try {
