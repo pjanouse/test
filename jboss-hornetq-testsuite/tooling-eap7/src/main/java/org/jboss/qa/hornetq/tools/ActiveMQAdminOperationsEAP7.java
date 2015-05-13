@@ -3475,7 +3475,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("transport", "UDP");
         model.get("name").set("type");
         model.get("value").set(transport);
         try {
@@ -3501,7 +3501,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("transport", "UDP");
         model.get("name").set("shared");
         model.get("value").set(false);
         try {
@@ -3514,7 +3514,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("transport", "UDP");
         model.get(ClientConstants.OP_ADDR).add("property", "gossip_router_hosts");
         model.get("value").set(gosshipRouterAddress + "[" + gosshipRouterPort + "]");
 
@@ -3528,7 +3528,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
         model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-        model.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        model.get(ClientConstants.OP_ADDR).add("transport", "UDP");
         model.get(ClientConstants.OP_ADDR).add("property", "enable_bundling");
         model.get("value").set(false);
 

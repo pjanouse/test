@@ -36,6 +36,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      * @param numberOfFails number of fails
      */
+    @Override
     protected void executeNetworkFails(long timeBetweenFails, int numberOfFails)
             throws Exception {
 
@@ -68,7 +69,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         }
 
         StringBuilder command = new StringBuilder();
-        command.append("java -cp ").append(JBOSS_HOME_1).append(File.separator).append("bin").append(File.separator).append("client")
+        command.append("java -cp ").append(container(1).getServerHome()).append(File.separator).append("bin").append(File.separator).append("client")
                 .append(File.separator).append("jboss-client.jar").append("  org.jgroups.stack.GossipRouter ").append("-port ").append(gosshipPort)
                 .append(" -bindaddress ").append(gosshipAddress);
 
@@ -93,6 +94,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
     }
 
+    @Override
     protected void startProxies() throws Exception {
 
         log.info("Start all proxies.");
@@ -112,7 +114,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
 
     }
-
+    @Override
     protected void stopProxies() throws Exception {
         log.info("Stop all proxies.");
         if (proxy1 != null) {
@@ -139,8 +141,8 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
-        String connectorNameForClients = "http-connector-throughput";
+        String connectorName = "connector-to-proxy-directing-to-this-server";
+        String connectorNameForClients = "http-connector";
         String connectionFactoryName = "RemoteConnectionFactory";
         String connectionFactoryJndiName = "java:jboss/exported/jms/" + connectionFactoryName;
 
@@ -171,8 +173,7 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
         jmsAdminOperations.setReconnectAttemptsForClusterConnection(clusterGroupName, reconnectAttempts);
 
-        jmsAdminOperations.removeConnectionFactory(connectionFactoryName);
-        jmsAdminOperations.createConnectionFactory(connectionFactoryName, connectionFactoryJndiName, connectorNameForClients);
+       
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);

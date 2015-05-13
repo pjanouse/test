@@ -479,7 +479,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         // every can connect to this server through proxy on 127.0.0.1:proxyPortIn
         jmsAdminOperations.addRemoteSocketBinding("binding-connect-to-this-server-through-remote-proxy", "127.0.0.1", proxyPortIn);
-        jmsAdminOperations.createRemoteConnector("connector-to-proxy-directing-to-this-server", "binding-connect-to-this-server-through-remote-proxy", null);
+        jmsAdminOperations.createHttpConnector("connector-to-proxy-directing-to-this-server", "binding-connect-to-this-server-through-remote-proxy", null);
 
         jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, broadcastGroupAddress);
         jmsAdminOperations.setMulticastPortOnSocketBinding(messagingGroupSocketBindingName, broadcastGroupPort);
@@ -494,7 +494,6 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, "connector-to-proxy-directing-to-this-server");
         jmsAdminOperations.setReconnectAttemptsForClusterConnection(clusterGroupName, reconnectAttempts);
-
         jmsAdminOperations.createQueue(hornetqInQueueName, relativeJndiInQueueName, true);
 
 //        jmsAdminOperations.setConnectionTtlOverride("default", 8000);

@@ -292,7 +292,7 @@ public class SimpleProxyServer implements ControllableProxy {
      */
     private static class ProxyThread extends Thread {
 
-        private static final int BUFFER_SIZE = 32768*10;
+        private static final int BUFFER_SIZE = 32768;
 
         private Socket clientSocket = null;
 
@@ -427,9 +427,9 @@ public class SimpleProxyServer implements ControllableProxy {
     }
 
     public static void main(String args[]) {
-        SimpleProxyServer proxy = new SimpleProxyServer("127.0.0.1", 7445, 56831);
-        proxy.start();
-//        SimpleProxyServer proxy1 = new SimpleProxyServer("10.34.3.115", 5445, 43812);
-//        proxy1.start();
+//        SimpleProxyServer proxy = new SimpleProxyServer("127.0.0.1", 7445, 56831);
+//        proxy.start();
+        SimpleProxyServer proxy1 = new SimpleProxyServer("127.0.0.1", 8080, 43812);
+        proxy1.start();
     }
 }
