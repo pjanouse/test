@@ -9,7 +9,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.annotations.TestPlan;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
@@ -48,7 +47,6 @@ import static org.junit.Assert.assertTrue;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-xa-transactions
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional
  */
-@TestPlan
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class BytemanLodh1TestCase extends HornetQTestCase {

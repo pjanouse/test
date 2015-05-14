@@ -218,11 +218,6 @@
             <artifactId>log4j</artifactId>
             <version>${version.log4j}</version>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.qa.hornetq</groupId>
-            <artifactId>qa-hornetq-testplan-generator-annotations</artifactId>
-            <version>0.0.1</version>
-        </dependency>
 
         <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
             <groupId>org.jboss.jbossts.jta</groupId>
@@ -510,7 +505,7 @@
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
                     <artifactId>qa-testplan-generator-annotation-processor</artifactId>
-                    <version>0.0.2</version>
+                    <version>0.0.4</version>
                 </dependency>
 
                 <!-- TODO remove activemq client dep once it's in jboss-client.jar -->
