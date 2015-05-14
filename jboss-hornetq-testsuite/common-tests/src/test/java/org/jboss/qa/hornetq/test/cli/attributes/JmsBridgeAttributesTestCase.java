@@ -5,8 +5,10 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -33,6 +35,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     private static final Logger logger = Logger.getLogger(JmsBridgeAttributesTestCase.class);
 
     private static final String BRIDGE_NAME = "myBridge";
+    private String address = "/subsystem=" + (ContainerUtils.isEAP6(container(1)) ? "messaging" : "messaging-activemq") + "/jms-bridge=" + BRIDGE_NAME;
 
     // queue to send messages in
     String inQueueName = "InQueue";
@@ -48,7 +51,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
-    private void prepareServerWithHornetQCoreBridge(Container container, Container targetServer) {
+    private void prepareServerWithJMSBridge(Container container, Container targetServer) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
         String bridgeConnectionFactoryJndiName = "java:/jms/RemoteConnectionFactory";
@@ -57,8 +60,8 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         String targetDestination = outQueueJndiName;
 
         Map<String,String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
+        targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+        targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
@@ -77,7 +80,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     }
 
 
-    private void prepareTargetServerForHornetQCoreBridge(Container container) {
+    private void prepareTargetServerForJMSBridge(Container container) {
 
         String connectionFactoryName = "RemoteConnectionFactory";
 
@@ -93,8 +96,8 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         container(1).start();
         container(2).start();
 
-        prepareServerWithHornetQCoreBridge(container(1), container(2));
-        prepareTargetServerForHornetQCoreBridge(container(2));
+        prepareTargetServerForJMSBridge(container(2));
+        prepareServerWithJMSBridge(container(1), container(2));
 
         container(1).stop();
         container(2).stop();
@@ -115,8 +118,6 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     public void writeReadAttributeHornetqCoreBridgeTest() throws Exception {
         container(1).start();
         container(2).start();
-
-        String address = "/subsystem=messaging/jms-bridge=" + BRIDGE_NAME;
 
         writeReadAttributeTest(address, "/hornetqJmsBridgeAttributes.txt");
 

@@ -84,7 +84,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         container(1).stop();
 
         boolean exported = journalExportImportUtils.exportJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
-        assertTrue("Journal should be exported successfully", exported);
+        assertTrue("Journal should be exported successfully.", exported);
 
         // delete the journal file before we import it again
         FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
@@ -123,7 +123,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         String connectorName = "http-connector";
         String groupAddress = "233.6.88.3";
-
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
@@ -133,7 +132,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.setLargeMessagesDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setBindingsDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setPagingDirectory(DIRECTORY_WITH_JOURNAL);
-
         ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
         ops.removeDiscoveryGroup(discoveryGroupName);
         ops.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
@@ -141,7 +139,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.disableSecurity();
         ops.removeClusteringGroup(clusterGroupName);
         ops.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
         ops.close();
         container.stop();
     }
