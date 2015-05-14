@@ -37,9 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author mnovak@redhat.com
- * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
- * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
  * @tpJobLink 
  *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
  *            /
@@ -150,14 +149,15 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy 21 MDBs which reads messages
-     *             from InQueue and sends them to OutQueue in XA transaction. MDB is using limited connection pool and for sending of
-     *             messages it's using different users to create managed connection.
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy 21 MDBs which
+     *                reads messages from InQueue and send them to OutQueue in XA transaction. MDB use limited
+     *                connection pool and use different users to create managed connections.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
      *              <li>start first server with deployed InQueue and OutQueue</li>
      *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy 21 MDBs which reads messages from InQueue and sends to OutQueue (connection pool limited to 10, and uses different user for creating connection)</li>
+     *              <li>deploy 21 MDBs which reads messages from InQueue and sends to OutQueue (connection pool
+     *                  limited to 10, and uses different user for creating connection)</li>
      *              <li>receive messages from OutQueue</li>
      *              </ul>
      * @tpPassCrit receiver consumes all messages
@@ -208,15 +208,15 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     *             from InQueue and sends them to OutQueue in XA transaction. Kill the server when MDB is processing messages
-     *             and restart it. Read messages from OutQueue
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
+     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Kill
+     *                the server when MDB is processing messages and restart it. Read messages from OutQueue.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
      *              <li>start first server with deployed InQueue and OutQueue</li>
      *              <li>start producer which sends messages to InQueue</li>
      *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>during processing messages kill/shutdown the server</li>
+     *              <li>during processing messages kill the server</li>
      *              <li>restart the server</li>
      *              <li>receive messages from OutQueue</li>
      *              </ul>
@@ -231,20 +231,19 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     *             from InQueue and sends them to OutQueue in XA transaction. Shutdown the server when MDB is processing
-     *             messages and restart it. Read messages from OutQueue
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
+     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Shutdown
+     *                the server when MDB is processing messages and restart it. Read messages from OutQueue.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
      *              <li>start first server with deployed InQueue and OutQueue</li>
      *              <li>start producer which sends messages to InQueue</li>
      *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>during processing messages kill/shutdown the server</li>
+     *              <li>during processing messages shutdown the server</li>
      *              <li>restart the server</li>
      *              <li>receive messages from OutQueue</li>
      *              </ul>
      * @tpPassCrit receiver consumes all messages
-     * @throws Exception
      */
     @RunAsClient
     @Test
@@ -309,17 +308,18 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     *             from InQueue and cleanly shut-down the server. Check there are no unfinished transactions.
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
+     *                which reads messages from InQueue and cleanly shut-down the server. Check there are
+     *                no unfinished transactions.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
      *              <li>start first server with deployed InQueue and OutQueue</li>
      *              <li>start producer which sends messages to InQueue</li>
      *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
      *              <li>cleanly shutdown server</li>
-     *              <li>check there are no unfinished HQ or Arjuna transactions</li>
+     *              <li>check there are no unfinished transactions</li>
      *              </ul>
-     * @tpPassCrit no unfinished HQ or Arjuna transactionsCheck there are no unfinished transactions
+     * @tpPassCrit there are no unfinished transactions
      */
     @Test
     @CleanUpBeforeTest
@@ -392,8 +392,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpScenario Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads messages
-     *             from InQueue and sends them to OutQueue in XA transaction. Read messages from OutQueue
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
+     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Read messages
+     *                from OutQueue
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
      *              <li>start first server with deployed InQueue and OutQueue</li>
