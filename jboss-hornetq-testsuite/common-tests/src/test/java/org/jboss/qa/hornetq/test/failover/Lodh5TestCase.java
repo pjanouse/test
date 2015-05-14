@@ -30,7 +30,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @author mnovak@redhat.com
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink
+ *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
+ *            /
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -69,7 +74,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Sybase ASE 15.7 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -81,7 +97,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to IBM DB2 Enterprise e10.5 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.4.0
      */
     @RunAsClient
     @Test
@@ -92,7 +120,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -103,7 +142,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.3 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.4.0
      */
     @RunAsClient
     @Test
@@ -114,7 +165,20 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.1.0
      */
     @RunAsClient
     @Test
@@ -125,7 +189,20 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.3 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.4.0
      */
     @RunAsClient
     @Test
@@ -136,7 +213,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 11g R1 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -146,9 +234,19 @@ public class Lodh5TestCase extends HornetQTestCase {
         testFail(ORACLE11GR1);
     }
 
-
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 11g R2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -159,7 +257,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 12c database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.2.0
      */
     @RunAsClient
     @Test
@@ -182,7 +292,19 @@ public class Lodh5TestCase extends HornetQTestCase {
 //    }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2014 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.4.0
      */
     @RunAsClient
     @Test
@@ -193,7 +315,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2012 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.0.1
      */
     @RunAsClient
     @Test
@@ -204,7 +338,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.5 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -215,7 +360,19 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.7 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.4.0
      */
     @RunAsClient
     @Test
@@ -341,6 +498,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction start phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the start of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -354,6 +527,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction start phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the start phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -368,6 +557,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction end phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the end of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -381,6 +586,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction end phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the end phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -395,6 +616,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction prepare phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the prepare phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -408,6 +645,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction prepare phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the prepare phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -422,6 +675,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction commit phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the commit phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -439,6 +708,22 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction commit phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the commit phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
