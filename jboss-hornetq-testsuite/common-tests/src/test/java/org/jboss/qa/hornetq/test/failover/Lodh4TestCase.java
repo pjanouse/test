@@ -26,13 +26,15 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
- * repeatedly.
- * <p/>
- * Topology - container1 - source server container2 - target server container3 -
- * source server container4 - target server
+ * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B repeatedly
+ * Topology - 1,3 - source containers, 2,4 - target containers
  *
- * @author mnovak@redhat.com
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink
+ *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
+ *            /
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -76,6 +78,22 @@ public class Lodh4TestCase extends HornetQTestCase {
      *
      * @throws InterruptedException if something is wrong
      */
+
+    /**
+     * @tpTestDetails Test whether the kill of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends byte messages to InQueue to container 1 and consumer which
+     *                  reads messages from OutQueue from container 4</li>
+     *              <li>kill and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
+     */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest
@@ -85,9 +103,19 @@ public class Lodh4TestCase extends HornetQTestCase {
     }
 
     /**
-     * Normal message (not large message), byte message
-     *
-     * @throws InterruptedException if something is wrong
+     * @tpTestDetails Test whether the shutdown of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends byte messages to InQueue to container 1 and consumer which
+     *                  reads messages from OutQueue from container 4</li>
+     *              <li>shutdown and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
      */
     @RunAsClient
     @Test
@@ -103,9 +131,19 @@ public class Lodh4TestCase extends HornetQTestCase {
     }
 
     /**
-     * Large message, byte message
-     *
-     * @throws InterruptedException if something is wrong
+     * @tpTestDetails Test whether the kill of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends large byte messages to InQueue to container 1 and consumer which
+     *                  reads messages from OutQueue from container 4</li>
+     *              <li>kill and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
      */
     @RunAsClient
     @Test
@@ -121,9 +159,19 @@ public class Lodh4TestCase extends HornetQTestCase {
     }
 
     /**
-     * Large message, byte message
-     *
-     * @throws InterruptedException if something is wrong
+     * @tpTestDetails Test whether the shutdown of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends large byte messages to InQueue to container 1 and consumer which
+     *                  reads messages from OutQueue from container 4</li>
+     *              <li>shutdown and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
      */
     @RunAsClient
     @Test
@@ -138,6 +186,21 @@ public class Lodh4TestCase extends HornetQTestCase {
         testLogicLargeMessages(new ByteMessageBuilder(300 * 1024), killSequence, true);
     }
 
+    /**
+     * @tpTestDetails Test whether the kill of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends large messages of various types to InQueue to container 1 and
+     *                  consumer which reads messages from OutQueue from container 4</li>
+     *              <li>kill and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -151,6 +214,21 @@ public class Lodh4TestCase extends HornetQTestCase {
         testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence, false);
     }
 
+    /**
+     * @tpTestDetails Test whether the shutdown of the server in a cluster with a core bridge results
+     *                in a message loss or duplication.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends large messages of various types to InQueue to container 1 and
+     *                  consumer which reads messages from OutQueue from container 4</li>
+     *              <li>shutdown and restart server containers in this order - 2, 3, 3, 3</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
