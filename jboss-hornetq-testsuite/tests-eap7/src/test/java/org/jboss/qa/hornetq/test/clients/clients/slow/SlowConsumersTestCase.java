@@ -135,7 +135,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
                     notificationListener, null, null);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -204,9 +204,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
 
-            SubscriberAutoAck fastConsumer = new SubscriberAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            SubscriberAutoAck fastConsumer = new SubscriberAutoAck(container(1),
                     TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-1", "test-fast-subscriber");
-            SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1),
                     TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-2", "test-slow-subscriber");
             slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
             slowConsumer.setMaxRetries(1);
@@ -254,7 +254,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            ProducerAutoAck producer = new ProducerAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            ProducerAutoAck producer = new ProducerAutoAck(container(1),
                     QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -308,7 +308,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(100); // producer only sends 10 message/second - lower than slow consumer threshold
@@ -356,7 +356,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -407,7 +407,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -438,7 +438,6 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         JMSOperations ops = container(1).getJmsOperations();
 
         // disable clustering
-        ops.setClustered(false);
         ops.removeClusteringGroup("my-cluster");
         ops.removeBroadcastGroup("bg-group1");
         ops.removeDiscoveryGroup("dg-group1");
@@ -463,7 +462,6 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.setJmxManagementEnabled(true);
 
         // disable clustering
-        ops.setClustered(false);
         ops.removeClusteringGroup("my-cluster");
         ops.removeBroadcastGroup("bg-group1");
         ops.removeDiscoveryGroup("dg-group1");

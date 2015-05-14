@@ -28,6 +28,14 @@ public class CliTestBase extends HornetQTestCase {
                     Thread.sleep(1000);
                     cliClient.reload();
                 }
+                long startTime = System.currentTimeMillis();
+                while (!cliClient.executeCommand("/:read-attribute(name=server-state)").isSuccess())   {
+                    Thread.sleep(500);
+                    if (startTime - System.currentTimeMillis() > 15000) {
+                        log.error("Problem with reload of the server. Server did not start in 15 seconds.");
+                        break;
+                    }
+                }
             }
         } else {
             cliClient.readAttribute(address, attributeName);

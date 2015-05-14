@@ -154,7 +154,7 @@ public class CliClient {
      * @return Result <code>true</code>, if :add system property was successful, <code>false</code> otherwise.
      */
     public boolean addSystemProperty(String name, String value) {
-        String command = CliUtils.buildCommand("/system-property=" + name, ":add", new String[] { "value=" + value });
+        String command = CliUtils.buildCommand("/system-property=" + name, ":add", new String[]{"value=" + value});
         return executeForSuccess(command);
     }
 
@@ -195,7 +195,9 @@ public class CliClient {
             e.printStackTrace();
         }
         try {
+
             return CheckServerAvailableUtils.waitHornetQToAlive(cliConfig.getHost(), cliConfig.getPort(), 15000);
+
         } catch (InterruptedException e) {
             log.error("Problem with reload of the server.", e);
             return false;

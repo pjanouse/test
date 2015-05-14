@@ -8,6 +8,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
@@ -3420,14 +3421,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("source-destination").set(sourceDestination);
         if (sourceContext != null) {
             for (String key : sourceContext.keySet()) {
-                model.get("source-context-property").add(key, sourceContext.get(key));
+                model.get("source-context").add(key, sourceContext.get(key));
             }
         }
         model.get("target-connection-factory").set(targetConnectionFactory);
         model.get("target-destination").set(targetDestination);
         if (targetContext != null) {
             for (String key : targetContext.keySet()) {
-                model.get("target-context-property").add(key, targetContext.get(key));
+                model.get("target-context").add(key, targetContext.get(key));
             }
         }
         model.get("quality-of-service").set(qualityOfService);
@@ -3436,7 +3437,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-retries").set(maxRetries);
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
-        model.get("module").set("org.apache.activemq");
+        model.get("module").set("org.apache.activemq.artemis");
 
         logger.info(model);
         try {
@@ -5130,26 +5131,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // String remoteConnectorName = "netty-remote";
             // String messagingGroupSocketBindingName = "messaging-group";
             // String inVmHornetRaName = "local-hornetq-ra";
-//            String bridgeName = "myBridge";
-//            String sourceConnectionFactory = "java:/ConnectionFactory";
-//            String sourceDestination = "jms/queue/InQueue";
-//
-//            String targetConnectionFactory = "jms/RemoteConnectionFactory";
-//            String targetDestination = "jms/queue/OutQueue";
-//            Map<String,String> targetContext = new HashMap<String, String>();
-//            targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-//            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:9080");
-//
-//            Map<String,String> sourceContext = new HashMap<String, String>();
-//            sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-//            sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:8080");
-//            String qualityOfService = "ONCE_AND_ONLY_ONCE";
-//
-//            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
-//                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1,
-//                    10, 100, true);
+            String bridgeName = "myBridge";
+            String sourceConnectionFactory = "java:/ConnectionFactory";
+            String sourceDestination = "jms/queue/InQueue";
 
-            System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
+            String targetConnectionFactory = "jms/RemoteConnectionFactory";
+            String targetDestination = "jms/queue/OutQueue";
+            Map<String,String> targetContext = new HashMap<String, String>();
+            targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:10080");
+
+            Map<String,String> sourceContext = new HashMap<String, String>();
+            sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+            sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:8080");
+//            Map<String,String> sourceContext = null;
+            String qualityOfService = "ONCE_AND_ONLY_ONCE";
+
+            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
+                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1,
+                    10, 100, true);
+
+//            System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
