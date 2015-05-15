@@ -9,16 +9,40 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 
+
 /**
+ * @author mnovak@redhat.com
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter Network failure of core bridges - test scenarios
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSince EAP6
+ * @tpTestCaseDetails This test has the same test scenarios as NetworkFailuresHornetQCoreBridges
+ * <br/>
+ * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
+ * repeatedly.
+ * <br/>
+ * Topology - container1 - source server container2 - target server container3 -
+ * source server container4 - target server
+ * <br/>
+ * IMPORTANT:
+ * There is only one type of proxy : TCP
+ * <br/>
+ * TCP/UDP proxy listen on localhost:localport and send packets received to other specified remoteHost:remotePort.
+ * (for example 233.1.2.4)
+ * <br/>
+ * Tests are using proxies in following way:
+ * Broadcasted connectors from server A points to proxy to server A so each server in cluster connects to server A by connecting
+ * it proxy resending messages to server A
+ * <br/>
+ * For JGroups is network failure simulated by gossip router, which can be started/stopped according to need.
+ * <br/>
+ * STEPS 1. AND 2. ARE THE SAME FOR ALL NODES IN ONE CLUSTER. THERE are 2^(n-1) MULTICAST PROXIES PER per n nodes.
+ * STEP 3 IS SPECIFIC FOR EACH NODE IN CLUSTER. THERE IS ONE TCP/UDP PROXY PER NODE.er
+ * <br/>
+ * We use two configurations of failsequence: long - network stays disconnected for 2 minutes, short - network stays
+ * disconnected for 20 seconds
  *
- * Tests network failures of HornetQ core bridges which are using JGroups to broadcast and accept connectors.
- *
- * Both of the servers in cluster are configured to use JGroups to create HornetQ cluster.
- * Then there is started gosship router which is used to connect and disconnect cluster. This is not enough because
- * once there must be destroyed also HQ core cluster connection. For this purpose all connectors points to TCP proxy
- * which are used to destroy those connections as well.
- *
- * @author Miroslav Novak (mnovak@redhat.com)
  */
 public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailuresHornetQCoreBridges{
 

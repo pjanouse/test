@@ -72,7 +72,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -87,7 +87,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -104,7 +104,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -120,7 +120,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -136,7 +136,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -152,7 +152,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -168,7 +168,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -184,7 +184,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -200,7 +200,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
      * messages.
      * @tpPassCrit number of sent messages and received messages have to match
@@ -212,6 +212,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     public void testMessageGroupLargeMessages5recAttempts() throws Exception {
         testNetworkFailureWithMessageGrouping(120000, new MixMessageGroupMessageBuilder(1024, 1024, "messageGroupId1"), 5, 2);
     }
+
 
     @Test
     @RunAsClient
@@ -240,7 +241,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart
@@ -256,7 +257,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart
@@ -272,7 +273,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart
@@ -288,7 +289,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart
@@ -304,7 +305,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart
@@ -320,7 +321,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
     /**
      * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 5.
      * Message grouping is enabled, node A has LOCAL handler and node B REMOTE. Producer starts sending normal and large
-     * messages on node A, consumer consumes these messages on node B. During this time is executed two times network
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
      * failure sequence (network goes down and then up). After last failure sequence network stays disconnected and
      * both nodes are restarted. Messages are consumed from node A.
      * @tpPassCrit number of sent messages and received messages have to match, servers have to make cluster after restart

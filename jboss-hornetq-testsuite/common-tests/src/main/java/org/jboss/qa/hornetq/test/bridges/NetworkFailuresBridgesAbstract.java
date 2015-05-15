@@ -17,10 +17,16 @@ import org.junit.runner.RunWith;
 
 import java.rmi.RemoteException;
 
-/**
- * Created by okalman on 1/19/15.
- */
 
+/**
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter Network failure of HornetQ core bridges - test scenarios
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSince EAP6
+ * @tpTestCaseDetails This test case is implemented by NetworkFailuresHornetQCoreBridges and
+ * NetworkFailuresHornetQCoreBridgesWithJGroups implementation details are specified there.
+ */
 @RunWith(Arquillian.class)
 public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
@@ -80,7 +86,13 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     }
 
 
-
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
+     * Message grouping is disabled. Producer starts sending normal and large messages on node A, consumer consumes
+     * these messages on node B. During this time is executed twice network failure sequence (network goes down
+     * and then up). After that, producer stops and receiver receives all rest messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -89,6 +101,13 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
     }
 
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
+     * Message grouping is disabled. Producer starts sending normal messages on node A, consumer consumes
+     * these messages on node B. During this time is executed twice network failure sequence (network goes down
+     * and then up). After that, producer stops and receiver receives all rest messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -97,6 +116,13 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
     }
 
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is unlimited.
+     * Message grouping is disabled. Producer starts sending large messages on node A, consumer consumes
+     * these messages on node B. During this time is executed twice network failure sequence (network goes down
+     * and then up). After that, producer stops and receiver receives all rest messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
@@ -104,6 +130,15 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
     }
 
+
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
+     * Message grouping is disabled. Producer starts sending normal and large
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
+     * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
+     * messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
@@ -111,6 +146,15 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 1, 2);
     }
 
+
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
+     * Message grouping is disabled. Producer starts sending normal
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
+     * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
+     * messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
@@ -118,12 +162,21 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 2, 2);
     }
 
+    /**
+     * @tpTestDetails Cluster with node A and B is started. Number of reconnect attempts for cluster connection is 1.
+     * Message grouping is disabled. Producer starts sending large
+     * messages on node A, consumer consumes these messages on node B. During this time is executed twice network
+     * failure sequence (network goes down and then up). After that, producer stops and receiver receives all rest
+     * messages.
+     * @tpPassCrit number of sent messages and received messages have to match
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailureLargeMessages1recAttempts() throws Exception {
         testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 1, 2);
     }
+
 
     @Test
     @RunAsClient
