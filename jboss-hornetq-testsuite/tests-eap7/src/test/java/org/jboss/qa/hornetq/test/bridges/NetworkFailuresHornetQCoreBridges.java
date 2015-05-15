@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 
 /**
  * @author mnovak@redhat.com
- * @tpChapter Recovery/Failover testing
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter Network failure of HornetQ core bridges - test scenarios
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
