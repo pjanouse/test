@@ -2147,5 +2147,15 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void stopDeliveryToMdb(String deploymentName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void startDeliveryToMdb(String deploymentName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
 }

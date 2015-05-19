@@ -3407,6 +3407,38 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void stopDeliveryToMdb(String deploymentName) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("stop-delivery");
+        model.get(ClientConstants.OP_ADDR).add("deployment", deploymentName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        model.get(ClientConstants.OP_ADDR).add("message-driven-bean", "mdb");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            //throw new RuntimeException(e);
+            logger.error("Set property replacement could not be set.", e);
+        }
+    }
+
+    @Override
+    public void startDeliveryToMdb(String deploymentName) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("start-delivery");
+        model.get(ClientConstants.OP_ADDR).add("deployment", deploymentName);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        model.get(ClientConstants.OP_ADDR).add("message-driven-bean", "mdb");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            //throw new RuntimeException(e);
+            logger.error("Set property replacement could not be set.", e);
+        }
+    }
+
+    @Override
     public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination,
             Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination,
             Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries,

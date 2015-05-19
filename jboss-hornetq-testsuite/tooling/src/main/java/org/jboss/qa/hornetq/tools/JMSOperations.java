@@ -1531,4 +1531,8 @@ public interface JMSOperations {
                                      boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
                                      String scaleDownDiscoveryGroup, String scaleDownGroupName);
     void deploy(Archive archive) throws Exception;
+
+    void stopDeliveryToMdb(String deploymentName);
+
+    void startDeliveryToMdb(String deploymentName);
 }

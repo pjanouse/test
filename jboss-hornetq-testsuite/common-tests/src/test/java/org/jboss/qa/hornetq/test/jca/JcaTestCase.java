@@ -5,7 +5,9 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -18,6 +20,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 /**
  * @author mnovak@redhat.com
@@ -54,8 +59,6 @@ public class JcaTestCase extends HornetQTestCase {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
 
         mdbJar.addClass(LocalMdbFromQueue.class);
-
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 
         StringBuffer ejbXml = new StringBuffer();
 
@@ -97,11 +100,11 @@ public class JcaTestCase extends HornetQTestCase {
         logger.info(ejbXml);
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-//        File target = new File("/tmp/mdb.jar");
-//        if (target.exists()) {
-//            target.delete();
-//        }
-//        mdbJar.as(ZipExporter.class).exportTo(target, true);
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -154,10 +157,65 @@ public class JcaTestCase extends HornetQTestCase {
         Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
 
 
-        container(1).undeploy("mdbDeployment");
+        container(1).undeploy(mdbDeployment);
         container(1).stop();
 
     }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    public void testJcaWithDoubleStartOfDelivery() throws Exception {
+
+        int numberOfMessages = 100;
+        // we use only the first server
+        prepareServer(container(1));
+
+        container(1).start();
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        producer1.setCommitAfter(100);
+        producer1.setMessageBuilder(new TextMessageBuilder(10));
+        producer1.setTimeout(0);
+        producer1.join();
+        logger.info("Start producer.");
+        producer1.start();
+
+        container(1).deploy(mdbDeployment);
+
+        new JMSTools().waitForNumberOfMessagesInQueue(container(1), outQueueName, numberOfMessages/10, 60000);
+
+        // call stop delivery
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+
+        jmsOperations.startDeliveryToMdb("mdb-lodh1");
+        jmsOperations.startDeliveryToMdb("mdb-lodh1");
+
+        jmsOperations.close();
+
+        logger.info("Start receiver.");
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
+        receiver1.start();
+        receiver1.join();
+
+
+        logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getCount());
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(),
+                receiver1.getCount());
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+
+
+        container(1).undeploy(mdbDeployment);
+        container(1).stop();
+
+    }
+
 
     /**
      * Be sure that both of the servers are stopped before and after the test.

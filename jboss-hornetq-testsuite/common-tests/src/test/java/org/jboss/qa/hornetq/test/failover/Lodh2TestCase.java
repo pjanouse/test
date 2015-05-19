@@ -41,11 +41,15 @@ import java.util.*;
  * testing remote jca in cluster and have remote inqueue and outqueue.
  * This test can work with EAP 5.
  *
- * @author mnovak@redhat.com
- * @tpChapter 2.6 RECOVERY/FAILOVER TESTING
- * @tpSub XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSince EAP6
+ * @tpTestCaseDetails Test case simulates server crashes and capability to recover with XA transaction.
+ * There are 4 servers. First 2 servers are in (jms) cluster and queues/topics are deployed to them. Other 2 servers are connected
+ * to first 2 servers through resource adapter. MDB deployed to other 2 servers is resending messaging from one destination to another.
+ * During this process one of the servers is killed or cleanly shutdowned.
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -166,7 +170,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     /////////////////////////////// START - Local -> Remote
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -179,7 +190,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -192,7 +210,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -205,7 +230,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -217,24 +249,19 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, true, false, container(2), container(1));
     }
 
-    /**
-     * Kills mdbs servers.
-     */
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    @RunAsClient
-    public void testSimpleLodh2killLocalRemote() throws Exception {
-        List<Container> failureSequence = new ArrayList<Container>();
-        failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false, false, container(2), container(1));
-    }
     /////////////////////////////// END - Local -> Remote
 
     /////////////////////////////// START - Remote -> Local
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -246,6 +273,16 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, false, false, container(1), container(2));
     }
 
+    /**
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -256,6 +293,16 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, false, false, container(1), container(2));
     }
 
+    /**
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -266,6 +313,16 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, true, false, container(1), container(2));
     }
 
+    /**
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -279,7 +336,14 @@ public class Lodh2TestCase extends HornetQTestCase {
 
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -292,7 +356,16 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Each message has set property color to RED or GREEN.
+     * Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). MDB on node-2 reads only RED messages and on node-4 only GREEN messages.
+     * When MDBs are processing messages, kill node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -305,7 +378,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills jms servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -318,7 +398,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Shutdown jms servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -331,7 +418,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill and restart nodes in following sequence 2,2,4,2,4.
+     * Wait until all messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -348,7 +442,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and topic InTopic and queue OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start publisher which sends 5000 messages
+     * (mix of small and large messages) to InTopic. Once producer finishes, deploy MDB which creates non-durable subscription on InTopic and sends messages
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -362,7 +463,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Shutdown mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 2,2,4,2,4.
+     * Wait until all messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -379,7 +487,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Shutdown mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 1,2.
+     * Wait until all messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -393,7 +508,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill and restart nodes in following sequence 1,3,1,3,1.
+     * Wait until all messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -410,7 +532,14 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 1,3,1,3,1.
+     * Wait until all messages are processed and consume messages from OutQueue.
+     *
+     * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
     @CleanUpBeforeTest
@@ -594,10 +723,13 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
-     */
-    /**
-     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and 4.
+     *
+     * @tpPassCrit Verify there are no unfished XA transactions.
      */
     @Test
     @CleanUpBeforeTest
@@ -672,7 +804,13 @@ public class Lodh2TestCase extends HornetQTestCase {
 
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails There are 2 nodes. node 1 and 2 are started and queues InQueue and OutQueue are deployed to node 1.
+     * Start producer which sends 500 messages (mix of small and large messages) to InQueue.
+     * Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to node 2. MDB is using property replacement in @Resource(name=${property}) and activation config properties.
+     *
+     * @tpPassCrit number of sent and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
@@ -683,7 +821,13 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails There are 2 nodes. node 1 and 2 are started and queues InQueue and OutQueue are deployed to node 1.
+     * Start producer which sends 500 messages (mix of small and large messages) to InQueue.
+     * Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to node 2. MDB is using property replacement in @Resource(mappedName=${property}) and activation config properties.
+     *
+     * @tpPassCrit number of sent and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
