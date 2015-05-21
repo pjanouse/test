@@ -36,6 +36,12 @@ import static org.junit.Assert.*;
  * compressed size goes below min-large-message-size parameter.
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ * @tpChapter Functional testing
+ * @tpSubChapter MESSAGE COMPRESSION - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSince EAP6
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -63,6 +69,18 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     *
+     * @throws Exception
+     * @tpTestDetails
+     * @tpInfo Normal message should be received as normal message
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send normal message to queue</li>
+     *     <li>start consumer which reads message</li>
+     * </ul>
+     * @tpPassCrit check that message was received as normal message
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -83,6 +101,18 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
                 receivedMsg.getBooleanProperty(LargeMessagePacketInterceptor.RECEIVED_AS_LARGE_MSG_PROP));
     }
 
+    /**
+     *
+     * @throws Exception
+     * @tpTestDetails
+     * @tpInfo Large messages should be compressed down, but not enough to be under min-large-message-size threshold.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send large message messages to queue</li>
+     *     <li>start consumer which reads compressed message</li>
+     * </ul>
+     * @tpPassCrit check that message was received as large message
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -101,6 +131,18 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
                 receivedMsg.getBooleanProperty(LargeMessagePacketInterceptor.RECEIVED_AS_LARGE_MSG_PROP));
     }
 
+    /**
+     *
+     * @throws Exception
+     * @tpTestDetails
+     * @tpInfo Large messages should be compressed down, compressed sizer should be under min-large-message-size threshold.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send large message messages to queue</li>
+     *     <li>start consumer which reads compressed message</li>
+     * </ul>
+     * @tpPassCrit check that message was received as normal message
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

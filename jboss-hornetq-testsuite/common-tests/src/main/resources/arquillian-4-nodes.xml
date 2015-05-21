@@ -25,6 +25,7 @@
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true
+
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
@@ -47,6 +48,7 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
+                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
