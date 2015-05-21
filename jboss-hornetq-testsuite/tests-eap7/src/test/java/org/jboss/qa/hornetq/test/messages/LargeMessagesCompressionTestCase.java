@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
- * @tpSince EAP6
+ * @tpSince EAP 6.3
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -72,8 +72,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     /**
      *
      * @throws Exception
-     * @tpTestDetails
-     * @tpInfo Normal message should be received as normal message
+     * @tpTestDetails Normal message should be received as normal message
      * @tpProcedure <ul>
      *     <li>start one server with deployed queue</li>
      *     <li>send normal message to queue</li>
@@ -104,8 +103,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     /**
      *
      * @throws Exception
-     * @tpTestDetails
-     * @tpInfo Large messages should be compressed down, but not enough to be under min-large-message-size threshold.
+     * @tpTestDetails Large messages should be compressed down, but not enough to be under min-large-message-size threshold.
      * @tpProcedure <ul>
      *     <li>start one server with deployed queue</li>
      *     <li>send large message messages to queue</li>
@@ -134,8 +132,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     /**
      *
      * @throws Exception
-     * @tpTestDetails
-     * @tpInfo Large messages should be compressed down, compressed sizer should be under min-large-message-size threshold.
+     * @tpTestDetails Large messages should be compressed down, compressed sizer should be under min-large-message-size threshold.
      * @tpProcedure <ul>
      *     <li>start one server with deployed queue</li>
      *     <li>send large message messages to queue</li>

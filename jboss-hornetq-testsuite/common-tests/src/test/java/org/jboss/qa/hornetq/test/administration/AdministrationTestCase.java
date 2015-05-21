@@ -19,9 +19,13 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Test administration console - cli
- *
- * @author mnovak@rehat.com
+ * @author mnovak@redhat.com
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ * @tpTestCaseDetails See current coverage: https://mojo.redhat.com/docs/DOC-185811
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -40,6 +44,20 @@ public class AdministrationTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     *
+     * @tpTestDetails Server is started. Using model-node commands try to set different values on messaging subsystem or call
+     * operations. Optionally validate for operations whether they are working correctly.
+     * @tpProcedure <ul>
+     *     <li>start one server</li>
+     *     <li>connect to model-node</li>
+     *     <li>Try to set attribute or invoke operation</li>
+     *     <li>Optional: Validate that operation is working as expected</li>
+     *     <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit configuration of server was successful
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest

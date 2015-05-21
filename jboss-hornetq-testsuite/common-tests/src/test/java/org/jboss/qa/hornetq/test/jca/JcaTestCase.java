@@ -33,6 +33,10 @@ import java.io.File;
 
 /**
  * @author mnovak@redhat.com
+ * @tpChapter Integration testing
+ * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -108,6 +112,19 @@ public class JcaTestCase extends HornetQTestCase {
         return mdbJar;
 
     }
+
+    /**
+     *
+     * @tpTestDetails Start server. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue. Read messages from OutQueue
+     * @tpProcedure <ul>
+     *     <li>start server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest @CleanUpBeforeTest
@@ -163,7 +180,20 @@ public class JcaTestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails Start server. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue. Call twice "start-delivery" on MDB.
+     * Read messages from OutQueue
+     * @tpInfo https://bugzilla.redhat.com/show_bug.cgi?id=1159572
+     * @tpProcedure <ul>
+     *     <li>start server with deployed InQueue and OutQueue</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>wait for producer to send few messages</li>
+     *     <li>call operation "start-delivery" on MDB via model-node twice<li/>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes same amount of messages as was sent
      */
     @Test
     @RunAsClient
