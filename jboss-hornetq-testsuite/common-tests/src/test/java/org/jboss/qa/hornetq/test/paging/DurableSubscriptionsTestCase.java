@@ -34,6 +34,11 @@ import static org.junit.Assert.fail;
  * <p/>
  *
  * @author pslavice@redhat.com
+ * @tpChapter Functional testing
+ * @tpSubChapter PAGING - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -56,6 +61,18 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * Normal message (not large message), byte message
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails Start server with topic. Create number of durable subscription and start sending normal byte
+     * messages to this topic. Wait until messages in subscription are paged to disk. Start subscribers one by one with
+     * gaps so there is huge difference in number of messages between subscriptions. All subscribers must receive
+     * correct number of messages.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed topic</li>
+     *     <li>create subscription on topic</li>
+     *     <li>send normal byte messages to topic so it gets paged</li>
+     *     <li>start subscribers one by one so there is a huge difference in number of messages between subscriptions</li>
+     * </ul>
+     * @tpPassCrit subscribers must receive correct number of messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -69,6 +86,18 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * Normal message (not large message), text message
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails Start server with topic. Create number of durable subscription and start sending normal text
+     * messages to this topic. Wait until messages in subscription are paged to disk. Start subscribers one by one with
+     * gaps so there is huge difference in number of messages between subscriptions. All subscribers must receive
+     * correct number of messages.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed topic</li>
+     *     <li>create subscription on topic</li>
+     *     <li>send normal text messages to topic so it gets paged</li>
+     *     <li>start subscribers one by one so there is a huge difference in number of messages between subscriptions</li>
+     * </ul>
+     * @tpPassCrit subscribers must receive correct number of messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -82,6 +111,18 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * Large message, byte message
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails Start server with topic. Create number of durable subscription and start sending large byte
+     * messages to this topic. Wait until messages in subscription are paged to disk. Start subscribers one by one with
+     * gaps so there is huge difference in number of messages between subscriptions. All subscribers must receive
+     * correct number of messages.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed topic</li>
+     *     <li>create subscription on topic</li>
+     *     <li>send large byte messages to topic so it gets paged</li>
+     *     <li>start subscribers one by one so there is a huge difference in number of messages between subscriptions</li>
+     * </ul>
+     * @tpPassCrit subscribers must receive correct number of messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -95,6 +136,18 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * Large message, text message
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails Start server with topic. Create number of durable subscription and start sending large text
+     * messages to this topic. Wait until messages in subscription are paged to disk. Start subscribers one by one with
+     * gaps so there is huge difference in number of messages between subscriptions. All subscribers must receive
+     * correct number of messages.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed topic</li>
+     *     <li>create subscription on topic</li>
+     *     <li>send large text messages to topic so it gets paged</li>
+     *     <li>start subscribers one by one so there is a huge difference in number of messages between subscriptions</li>
+     * </ul>
+     * @tpPassCrit subscribers must receive correct number of messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient

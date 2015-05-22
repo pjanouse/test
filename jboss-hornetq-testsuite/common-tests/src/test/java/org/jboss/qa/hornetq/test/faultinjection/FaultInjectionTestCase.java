@@ -35,6 +35,11 @@ import static org.junit.Assert.*;
  *
  * @author pslavice@redhat.com
  * @author dpogrebn@redhat.com
+ * @tpChapter Functional testing
+ * @tpSubChapter FAULT INJECTION - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5537/hornetq-fault-injection#testcases
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -73,6 +78,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Dummy smoke test which sends and receives messages
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails Start server, then send 10 messages and receive them
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>receive all messages</li>
+     *     <li>start subscribers one by one so there is a huge difference in number of messages between subscriptions</li>
+     * </ul>
+     * @tpPassCrit Producer sends successfully 10 messages, consumer gets 10 messages, no messages left on server.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -119,6 +133,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException is something is wrong
      * @id commit02
+     * @tpTestDetails Start server and send messages in transacted session. Kill before transactional data are written
+     * into journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
+     *     <li>send commit</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit receiver will not consume any messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -154,6 +179,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException is something is wrong
      * @id commit03
+     * @tpTestDetails  Start server and send messages in transacted session. Kill after transactional data are written
+     * into journal but transaction is not commited.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
+     *     <li>send commit</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit receiver will not consume any messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -189,6 +225,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed before is commit written into the journal during send
      *
      * @id commit05
+     * @tpTestDetails  Start server and send messages in transacted session. Kill before commit is written into journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
+     *     <li>send commit</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit receiver will not consume any messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -222,6 +268,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed after is commit written into the journal during send
      *
      * @id commit06
+     * @tpTestDetails Start server and send messages in transacted session. Kill after commit is written into journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
+     *     <li>send commit</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit receiver will consume messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -257,6 +313,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException is something is wrong
      * @id commit12
+     * @tpTestDetails Start server and send messages. Receive messages and kill before commit is written into journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
+     *     <li>receive messages and call session.commit()</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit calling commit() will throw exception and receiver does not get any messages, after restart messages
+     * can be read again
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -290,6 +357,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException is something is wrong
      * @id commit13
+     * @tpTestDetails  Start server and send messages. Receive messages and kill after commit is written into journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
+     *     <li>receive messages and call session.commit()</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  calling commit() will throw exception and receiver does not get any messages, after restart
+     * messages can not be read again
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -325,6 +403,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed after is message deleted from journal after receive
      *
      * @id commit14
+     * @tpTestDetails  Start server and send messages. Receive messages and kill after message is deleted from journal.
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill after message is deleted from journal</li>
+     *     <li>receive messages</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  Message will not be received when server is killed
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -359,6 +447,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Kill before delivering message to the consumer.
      *
      * @id commit09
+     * @tpTestDetails Start server and send messages. Receive messages and kill before message is delivered to consumer
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill before message is delivered to consumer</li>
+     *     <li>receive messages</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit Message will no be received, there will be messages in queue after restart
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -391,6 +489,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
    	 * Kill after delivering a message to the consumer.
      *
      * @id commit10
+     * @tpTestDetails Start server and send messages. Receive messages and kill after message is delivered to consumer
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill after message is delivered to consumer</li>
+     *     <li>receive messages</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  Message will be received, there will be no messages in queue after restart
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -432,6 +540,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *
      * @throws InterruptedException is something is wrong
      * @id rollback05
+     * @tpTestDetails Start server and send messages. Kill before rollback is written to journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill before rollback is written to journal</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. No messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -464,6 +581,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed after transactional data are written into the journal during send
      *
      * @id rollback06
+     * @tpTestDetails Start server and send messages. Kill after rollback is written to journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill after rollback is written to journal</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. No messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -498,6 +624,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed before transactional data are written into the journal during send
      *
      * @id rollback12
+     * @tpTestDetails Start server and send messages. Receive messages and kill before rollback is written to journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill before rollback is written to journal for receive</li>
+     *     <li>receive messages and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -530,6 +666,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed after transactional data are written into the journal during send
      *
      * @id rollback13
+     * @tpTestDetails  Start server and send messages. Receive messages and kill after rollback is written to journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill after rollback is written to journal for receive</li>
+     *     <li>receive messages and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -565,6 +711,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Rollback-only transaction.
      *
      * @id rollback02
+     * @tpTestDetails  Start server and send messages and call rollback. Kill before record is written into the journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>deploy byteman rule which kill before record is written into the journal</li>
+     *     <li>send messages to queue and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. No messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -600,6 +755,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Rollback-only transaction.
      *
      * @id rollback03
+     * @tpTestDetails   Start server and send messages and call rollback. Kill after record is written into a journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>deploy byteman rule which kill after record is written into a journal</li>
+     *     <li>send messages to queue and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. No messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -636,6 +800,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Rollback-only transaction.
      *
      * @id rollback09
+     * @tpTestDetails Start server and send messages and call rollback. Kill before delivered to the consumer
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill before delivered to the consumer</li>
+     *     <li>receive message from queue and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -669,6 +843,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Rollback-only transaction.
      *
      * @id rollback10
+     * @tpTestDetails Start server and send messages and call rollback. Kill after delivered to the consumer
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kill after delivered to the consumer</li>
+     *     <li>receive message from queue and rollback</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit  No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -709,6 +893,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * Server is killed before ack is stored into the journal
      *
      * @id ack08
+     * @tpTestDetails Start server and send messages. Receive messages and server is killed before ack is stored
+     * into the journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kills server before ack is stored into the journal</li>
+     *     <li>receive message from queue and acknowledge</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -748,6 +943,17 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
     /**
      * Server is killed after QueueImpl.acknowledge
+     * @tpTestDetails Start server and send messages. Receive messages and server is killed after ack is stored
+     * into the journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kills server after ack is stored into the journal</li>
+     *     <li>receive message from queue and acknowledge</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit No message will be received. Messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient
@@ -783,6 +989,16 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      * during sending to the server.
      *
      * @id nonTrans02
+     * @tpTestDetails Start server and send messages. Server is killed before the record is written into the journal
+     * @tpProcedure <ul>
+     *     <li>start one server with deployed queue</li>
+     *     <li>send messages to queue</li>
+     *     <li>deploy byteman rule which kills server before the record is written into the journal</li>
+     *     <li>receive message from queue and acknowledge</li>
+     *     <li>restart server/li>
+     * </ul>
+     * @tpPassCrit No message will be received. No messages in queue after restart.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test  @CleanUpBeforeTest
     @RunAsClient

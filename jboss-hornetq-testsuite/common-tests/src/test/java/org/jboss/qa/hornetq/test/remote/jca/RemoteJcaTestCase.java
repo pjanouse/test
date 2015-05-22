@@ -41,6 +41,10 @@ import java.util.Map;
  * have remote inqueue and outqueue.
  *
  * @author mnovak@redhat.com
+ * @tpChapter Integration testing
+ * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 @RunWith(Arquillian.class)
 public class RemoteJcaTestCase extends HornetQTestCase {
@@ -112,6 +116,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
+     * @tpTestDetails Start  4 servers(1, 2, 3, 4). Deploy InQueue and OutQueue to 1,2. Configure ActiveMQ RA on
+     * sever 3,4 to connect to 1,2 server. Send messages to InQueue to 1,2. Deploy MDB to 3,4 servers which reads
+     * messages from InQueue and sends them to OutQueue. Read messages from OutQueue from 1,2
+     * @tpProcedure <ul>
+     *     <li>start 2 servers with deployed InQueue and OutQueue</li>
+     *     <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
+     *     <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>start producer which sends messagese to InQueue to first 2 server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @RunAsClient
     @Test
@@ -168,7 +184,20 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
+     * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first. Configure HornetQ RA on second sever to
+     * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
+     * and sends them to OutQueue. Read messages from OutQueue
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
+
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -209,8 +238,21 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
+
     /**
      * @throws Exception
+     * @tpTestDetails Start two servers. Deploy InQueue OutQueue and InTopic to first. Configure HornetQ RA on second
+     * sever to connect to first server. Send messages to InQueue. Deploy MDB do second server which creates non durable
+     * subscription on InTopic and sends them to OutQueue. Restart first server. Check log for errors.
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
+     *     <li>deploy MDB do 2nd server which creates non durable subscription on InTopic</li>
+     *     <li>restart 1st server and wait for complete boot</li>
+     *     <li>check 1st server logs for error "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"</li>
+     * </ul>
+     * @tpPassCrit "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists" is not in log
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @RunAsClient
     @Test
@@ -260,8 +302,24 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
 
+
     /**
      * @throws Exception
+     * @tpTestDetails tart two servers. Deploy InQueue and OutQueue to first. Configure HornetQ RA on second sever to
+     * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
+     * and sends them to OutQueue. Undeploy MDB and restart the servers. Deploy MDB again. Read messages from OutQueue
+     * @tpProcedure <ul>
+     *     <li>start first server with deployed InQueue and OutQueue</li>
+     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
+     *     <li>start producer which sends messages to InQueue</li>
+     *     <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     *     <li>undeploy MDB</li>
+     *     <li>stop both of the servers and restart them</li>
+     *     <li>deploy MDB to 2nd server</li>
+     *     <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @RunAsClient
     @Test
@@ -313,6 +371,23 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @throws Exception
+     * @tpTestDetails Start three servers in cluster.Deploy InQueue and OutQueue to first. Server 2 is started with
+     * container properties including connection parameters for MDB. Deploy MDB which reads messages from InQueue and sends
+     * them to OutQueue to server 2. Start producer which sends messages to InQueue to server 1 and receiver which reads
+     * them from OutQueue on server2.
+     * messages to inQueue
+     * @tpProcedure <ul>
+     *     <li>start 3 servers in cluster with deployed InQueue and OutQueue</li>
+     *     <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
+     *     <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
+     *     <li>start producer which sends messages to InQueue to server 1</li>
+     *     <li>receive messages from OutQueue on server 3</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
