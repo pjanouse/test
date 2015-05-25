@@ -41,7 +41,7 @@ import java.util.*;
  * testing remote jca in cluster and have remote inqueue and outqueue.
  * This test can work with EAP 5.
  *
- * @tpChapter Recovery/Failover testing
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases

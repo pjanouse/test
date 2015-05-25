@@ -13,6 +13,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.naming.Context;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
@@ -44,12 +45,26 @@ abstract class AbstractMessageConsumer extends Client {
 
     protected MessageConsumer consumer;
 
+    @Deprecated
     protected AbstractMessageConsumer(String containerType, String hostname, int port,
             String destinationJndiName, long receiveTimeout, int maxRetries) {
 
         super(containerType);
         this.hostname = hostname;
         this.port = port;
+        this.destinationJndiName = destinationJndiName;
+        this.maxRetries = maxRetries;
+        this.receiveTimeout = receiveTimeout;
+
+        setTimeout(0); // set default receive timeout to 0 to read with max speed
+    }
+
+    protected AbstractMessageConsumer(Container container,
+                                      String destinationJndiName, long receiveTimeout, int maxRetries) {
+
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
         this.destinationJndiName = destinationJndiName;
         this.maxRetries = maxRetries;
         this.receiveTimeout = receiveTimeout;

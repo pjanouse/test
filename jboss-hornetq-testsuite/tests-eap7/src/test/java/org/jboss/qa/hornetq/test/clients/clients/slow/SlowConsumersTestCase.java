@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.clients.clients.slow;
 
 import org.apache.log4j.Logger;
-import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -57,9 +57,6 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES = 10000;
 
-    private final String hostname = container(1).getHostname();
-    private final int jndiPort = container(1).getJNDIPort();
-
     @After
     public void shutdownServerAfterTest() {
         container(1).stop();
@@ -97,15 +94,15 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
 
             NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME);
+                    container(1), TOPIC_JNDI_NAME);
             NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1);
             slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
 
             connection.start();
@@ -170,7 +167,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
             jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = jmxConnector.getMBeanServerConnection();
-            mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
+            mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
                     notificationListener, null, null);
 
             PublisherAutoAck producer = new PublisherAutoAck(container(1),
@@ -179,9 +176,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             producer.setTimeout(0);
 
             NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME);
+                    container(1), TOPIC_JNDI_NAME);
             NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1);
             slowConsumer.setTimeout(100); // slow consumer reads only one message per second
 
             connection.start();
@@ -252,7 +249,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             connection = cf.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            PublisherAutoAck producer = new PublisherAutoAck(container(1),
                     TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
@@ -330,7 +327,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
             //ReceiverAutoAck fastReceiver = new ReceiverAutoAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME),
             //        QUEUE_JNDI_NAME, 30000, 1);
-            ReceiverAutoAck slowReceiver = new ReceiverAutoAck(container(1).getHostname(), container(1).getJNDIPort(),
+            ReceiverAutoAck slowReceiver = new ReceiverAutoAck(container(1),
                     QUEUE_JNDI_NAME);
             slowReceiver.setTimeout(1000); // slow consumer reads only one message per second
             slowReceiver.setMaxRetries(1);
@@ -401,9 +398,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             producer.setTimeout(100); // producer only sends 10 message/second - lower than slow consumer threshold
 
             NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME);
+                    container(1), TOPIC_JNDI_NAME);
             NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1);
             slowConsumer.setTimeout(100); // slow consumer reads only 10 messages per second
 
             connection.start();
@@ -466,10 +463,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             producer.setTimeout(0);
 
             NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1);
             fastConsumer.setTimeout(30);
             NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1);
             slowConsumer.setTimeout(1000); // slow consumer reads only 10 messages per second
 
             connection.start();
@@ -532,7 +529,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             producer.setTimeout(0);
 
             NonDurableTopicSubscriber consumer = new NonDurableTopicSubscriberTransAck(
-                    hostname, jndiPort, TOPIC_JNDI_NAME, 30000, 1000, 1);
+                    container(1), TOPIC_JNDI_NAME, 30000, 1000, 1);
             consumer.setTimeout(25);
 
             connection.start();

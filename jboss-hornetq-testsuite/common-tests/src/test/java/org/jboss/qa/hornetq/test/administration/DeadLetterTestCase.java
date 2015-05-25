@@ -25,6 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ *
+ * @tpChapter FUNCTIONAL TESTING
+ * @tpSubChapter DEAD LETTER ADDRESS - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSince EAP6
+ * @tpTestCaseDetails Verifies correct behavior of dead letter queueu.
+ *
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -53,6 +61,13 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
     /**
      * Tests reading lost message from DLQ after max-deliver-attempts was reached.
+     *
+     * @tpTestDetails To server are deployed two queues. TestQueue and DLQ. Address settings is configured for all address (#) configured to use DLQ as
+     *  dead letter queue for testQueue and max delivery attempts is set to 2.
+     *  Start producer which sends 1 message to testQueue. Then start consumer which receives message from testQueue in transacted session and
+     *  roll-backs this session. Repeat the last operation with consumer. ( message should be sent to DLQ )
+     *
+     * @tpPassCrit message is in DLQ
      */
     @Test
     @RunAsClient
@@ -69,6 +84,13 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
     /**
      * Tests reading lost message with max-deliver-attempts being set only for specific subaddress.
+     *
+     * @tpTestDetails To server are deployed two queues. TestQueue and DLQ. Address settings is just for testQueue to use DLQ as
+     *  dead letter queue for testQueue and max delivery attempts is set to 2.
+     *  Start producer which sends 1 message to testQueue. Then start consumer which receives message from testQueue in transacted session and
+     *  roll-backs this session. Repeat the last operation with consumer. ( message should be sent to DLQ )
+     *
+     * @tpPassCrit message is in DLQ
      */
     @Test
     @RunAsClient
@@ -86,6 +108,14 @@ public class DeadLetterTestCase extends HornetQTestCase {
      * Tests reading lost message from undefined DLQ.
      *
      * DLQ is defined in address-settings for test queue, but DLQ itself is not deployed on the server.
+     *
+     * @tpTestDetails To server is deployed just testQueue. Address settings is configured to use DLQ as
+     *  dead letter queue for testQueue and max delivery attempts is set to 2.
+     *  Start producer which sends 1 message to testQueue. Then start consumer which receives message from testQueue in transacted session and
+     *  roll-backs this session. Repeat the last operation with consumer. ( message should be sent to DLQ )
+     *
+     * @tpPassCrit there is no DLQ confgirud so message will be dropped
+     *
      */
     @Test(expected = NameNotFoundException.class)
     @RunAsClient
@@ -99,6 +129,18 @@ public class DeadLetterTestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails To server is deployed queue testQueue. Address settings is configured for all addresses (#) to use DLQ as
+     *  dead letter queue for testQueue and max delivery attempts is set to 2.
+     *  Start producer which sends 1 message to testQueue. Then start consumer which receives message from testQueue in transacted session and
+     *  roll-backs this session. Repeat the last operation with consumer. Message will be dropped as DLQ is not deployed.
+     *  Deploy DLQ and start producer which sends 1 message to testQueue. Then start consumer which receives message from testQueue in transacted session and
+     *  roll-backs this session. Repeat the last operation with consumer. ( message should be sent to DLQ )
+     *
+     * @tpPassCrit message is in DLQ
+     *
+     * @throws Exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
