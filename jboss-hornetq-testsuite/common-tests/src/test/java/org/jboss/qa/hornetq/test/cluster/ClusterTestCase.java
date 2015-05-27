@@ -15,12 +15,14 @@ import org.jboss.qa.hornetq.apps.clients.ProducerResp;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
+import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
@@ -85,8 +87,11 @@ import java.util.UUID;
  * export MYTESTIP_2=$MYTESTIPV6_2 export MCAST_ADDR=$MCAST_ADDRIPV6
  * <p/>
  * This test also serves
- *
- * @author mnovak@redhat.com
+ * @tpChapter  Integration testing
+ * @tpSubChapter HORNETQ CLUSTER - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -136,9 +141,22 @@ public class ClusterTestCase extends HornetQTestCase {
     static String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails  Start two server in HornetQ cluster and deploy queue and topic to each. Queue and topic are load-balanced.
+     * Start producer which sends messages to queue on first server. Start publisher which sends messages to topic on second
+     * server. Start consumer which reads messages from queue on second server. Start subscriber, which reads messages
+     * from topic on first server. Verify that all messages were received.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster with one queue and one topic </li>
+     *     <li>producer starts to send messages to queue on node-1</li>
+     *     <li>publisher starts to send messages to topic on node-2</li>
+     *     <li>consumer reads messages from queue on node-2</li>
+     *     <li>subscriber reads messages from topic on node-1</li>
+     *     <li>start consumer on node-2 which reads messages from queue</li>
+     *     <li>wait for producer to receiver to finish and for consumer and subscriber to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver and subscriber read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -152,18 +170,22 @@ public class ClusterTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        Clients queueClients = createClients(Session.SESSION_TRANSACTED, false);
-        Clients topicClients = createClients(Session.SESSION_TRANSACTED, true);
+        Client queueProducer = new ProducerTransAck(container(1),queueJndiNamePrefix+"0",NUMBER_OF_MESSAGES_PER_PRODUCER);
+        Client topicProducer = new PublisherTransAck(container(2),topicJndiNamePrefix+"0",NUMBER_OF_MESSAGES_PER_PRODUCER,"producer");
+        Client queueConsumer = new ReceiverTransAck(container(2),queueJndiNamePrefix+"0");
+        Client topicSubscriber = new SubscriberTransAck(container(1),topicJndiNamePrefix+"0",60000,100,10,"subs","name");
 
-        queueClients.startClients();
-        topicClients.startClients();
-        JMSTools.waitForClientsToFinish(queueClients);
-        JMSTools.waitForClientsToFinish(topicClients);
+        queueProducer.start();
+        topicProducer.start();
+        queueConsumer.start();
+        topicSubscriber.start();
+        queueProducer.join();
+        topicProducer.join();
+        queueConsumer.join();
+        topicSubscriber.join();
 
-        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.",
-                queueClients.evaluateResults());
-        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.",
-                topicClients.evaluateResults());
+        Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());
+        Assert.assertEquals("Number of received messages form topic does not match: ",topicProducer.getCount(), topicSubscriber.getCount());
 
         container(1).stop();
 
@@ -175,6 +197,18 @@ public class ClusterTestCase extends HornetQTestCase {
      * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
      * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
      * queue/topic.
+     * @tpTestDetails  Start two server in HornetQ cluster and deploy queue to each. Queue is load-balanced.
+     * Start producer which sends messages to first server and kill second server during this sending. Start second
+     * server again and read all messages from it. Verify that all messages were received.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster with one queue</li>
+     *     <li>producer starts to send messages to queue to node-1</li>
+     *     <li>node-2 is killed and restarted during sending messages</li>
+     *     <li>start consumer on node-2 which reads messages from queue</li>
+     *     <li>servers are stopped</li>
+     * </ul>
+     * @tpPassCrit receiver/subscriber read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -221,7 +255,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiNameForMdb, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 30000, 1000, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
         // printQueueStatus(CONTAINER1_NAME_NAME, inQueueName);
@@ -281,9 +315,19 @@ public class ClusterTestCase extends HornetQTestCase {
     // }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails  Start two server in HornetQ cluster and deploy queue to each. Queue is load-balanced. Start
+     * producer which sends messages to first server and receiver which will rollback some messages back (does not
+     * consume a single messages). Start consumer on second server and read all messages. Verify that all messages
+     * were received.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster with one queue</li>
+     *     <li>producer sends messages to queue to node-1</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>consume all messages from queue on node-1 and rollback session</li>
+     *     <li>consume messages from queue on node-2</li>
+     * </ul>
+     * @tpPassCrit receiver/subscriber read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -361,9 +405,20 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails  MDBs are deployed on two servers in cluster. Producer sends messages into input queue on node-1
+     * and MDB repost them to output queue. Receiver tries to read messages from output queue on node-2.
+     * were received.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster with deployed destinations</li>
+     *     <li>deploy MDBs to servers/li>
+     *     <li>create producer on node-1 and consumer on node-2</li>
+     *     <li>producer sends several hundred messages to input queue</li>
+     *     <li>MDB on node-1 repost them to output queue</li>
+     *     <li>receiver reads messages from output queue on node-2</li>
+     *     <li>servers are stopped</li>
+     * </ul>
+     * @tpPassCrit  receiver read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -415,9 +470,23 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails   MDBs with queues are deployed on two servers in cluster. Queues created with deploy have the
+     * same name on both servers and are load balanced within cluster. Producer sends messages into input queue
+     * on node-1 and MDB repost them to output queue. MDB on node-2 is undeployed and deployed back. Receiver tries to
+     * read messages from output queue on node-2.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster (without destinations)</li>
+     *     <li>deploy MDBs to servers</li>
+     *     <li>create producer on node-1 and consumer on node-2</li>
+     *     <li>producer sends several hundred messages to input queue</li>
+     *     <li>MDB on node-1 repost them to output queue</li>
+     *     <li>MDB is removed from node-2</li>
+     *     <li>MDB is deployed back to node-2</li>
+     *     <li>receiver reads messages from output queue on node-2</li>
+     *     <li>servers are stopped</li>
+     * </ul>
+     * @tpPassCrit  receiver read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -461,8 +530,14 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start one server A. Start producers/publishers connected to A with client/transaction acknowledge on
-     * queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     * @tpTestDetails MDB with topic is deployed on server. Name of topic distributed with MDB collides
+     * with topic name  already existing on server.
+     * @tpProcedure <ul>
+     *     <li>start one server with destinations</li>
+     *     <li>deploy MDB</li>
+     * </ul>
+     * @tpPassCrit  deploy fails
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -489,8 +564,18 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start one server A. Start producers/publishers connected to A with client/transaction acknowledge on
-     * queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on queue/topic.
+     * @tpTestDetails  One server without destinations is started. MDB with topic is deployed on server. Subscriber creates
+     * durable subscription on this topic. MDB is undeployed and deployed back.
+     * @tpProcedure <ul>
+     *     <li>start one server without destinations</li>
+     *     <li>deploy MDB with topic</li>
+     *     <li>subscriber creates durable subscription on newly deployed topic</li>
+     *     <li>MDB with topic is undeployed</li>
+     *     <li>MDB with topic is deployed back</li>
+     *     <li>check if durable subscription exists</li>
+     * </ul>
+     * @tpPassCrit  durable subscription is not deleted
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -517,9 +602,22 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails  two servers in cluster without destinations are started. MDBs with same topics are deployed
+     * to each of them. Publisher starts sending messages to topic on node-1. Subscriber creates durable subscription on
+     * topic on node-2 and reads messages. Wait until all messages are sent and read. MDB on node-2 is undeplyed and
+     * deployed back.
+     * @tpProcedure <ul>
+     *     <li>start two servers in cluster without destinations</li>
+     *     <li>deploy MDBs with same topics to both servers</li>
+     *     <li>publisher starts sending messages to topic on node-1</li>
+     *     <li>subscriber creates durable subscription on topic on node-2</li>
+     *     <li>wait until all messages are sent and delivered to subscriber</li>
+     *     <li>MDB with topic is undeployed from node-2</li>
+     *     <li>MDB with topic is deployed back to node-2</li>
+     *     <li>check if durable subscription exists on node-2</li>
+     * </ul>
+     * @tpPassCrit  durable subscription is not deleted
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -553,9 +651,22 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails Two servers in cluster are started. First server is started with deployed topic, second server without.
+     * MDBs with same topic as on node-1 is deployed to node-2. Publisher starts sending messages to topic on node-1.
+     * Subscriber creates durable subscription on topic on node-2 and reads messages. Wait until all messages are
+     * sent and read. MDB on node-2 is undeplyed and deployed back.
+     * @tpProcedure <ul>
+     *     <li>start two servers in cluster, first with deployed topic and second without</li>
+     *     <li>deploy MDBs with same topic as is on node-1 to node-2</li>
+     *     <li>publisher starts sending messages to topic on node-1</li>
+     *     <li>subscriber creates durable subscription on topic on node-2</li>
+     *     <li>wait until all messages are sent and delivered to subscriber</li>
+     *     <li>MDB with topic is undeployed from node-2</li>
+     *     <li>MDB with topic is deployed back to node-2</li>
+     *     <li>check if durable subscription exists on node-2</li>
+     * </ul>
+     * @tpPassCrit  durable subscription is not deleted
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -588,6 +699,23 @@ public class ClusterTestCase extends HornetQTestCase {
         container(2).stop();
     }
 
+    /**
+     * @tpTestDetails Two servers in cluster are started with configured destinations in standalone-full-ha.xml.
+     * MDB is deployed on node-1. Client creates temporary queue on node-1 and sends messages to input queue. MDB reads
+     * messages sent by client and sends response to each of them into temporary queue. During this communication is
+     * checked if temporary queue is created on all nodes in cluster. It shouldn’t be.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster</li>
+     *     <li>deploy MDB to node-1</li>
+     *     <li>create producer on node-1</li>
+     *     <li>producer sends several hundred messages to input queue</li>
+     *     <li>MDB on node-1 replies to them into temporary queue</li>
+     *     <li>existence of temporary queue on both nodes is checked</li>
+     *     <li>servers are stopped</li>
+     * </ul>
+     * @tpPassCrit only node-1 should have temporary queue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -613,6 +741,22 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails One server is started. Client creates temporary queue and sends several thousand messages (enough
+     * to trigger paging). Server is forcibly killed and then started again. Paging file should be deleted.
+     * @tpProcedure <ul>
+     *     <li>start one server/li>
+     *     <li>create temporary queue on server</li>
+     *     <li>create producer</li>
+     *     <li>send about ten thousand messages to temporary queue</li>
+     *     <li>check if paging file exists</li>
+     *     <li>kill server</li>
+     *     <li>start server</li>
+     *     <li>check if paging file exists</li>
+     * </ul>
+     * @tpPassCrit  paging file should exists before restart, but should be gone after it.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -626,7 +770,7 @@ public class ClusterTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
         Context context = container(1).getContext();
-        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection();
         Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
         TemporaryQueue tempQueue = session.createTemporaryQueue();
@@ -648,6 +792,22 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails One server is started. Non-durable queue is deployed. Client sends to this queue several thousand
+     * messages (enough to trigger paging). Server is forcibly killed and then started again. Paging file should be deleted.
+     * @tpProcedure <ul>
+     *     <li>start one server/li>
+     *     <li>create non-durable queue on server</li>
+     *     <li>create producer</li>
+     *     <li>send about ten thousand messages to temporary queue</li>
+     *     <li>check if paging file exists</li>
+     *     <li>kill server</li>
+     *     <li>start server</li>
+     *     <li>check if paging file exists</li>
+     * </ul>
+     * @tpPassCrit  paging file should exists before restart, but should be gone after it.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

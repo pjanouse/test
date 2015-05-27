@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.jmx;
 
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
+import org.apache.activemq.artemis.api.jms.management.JMSQueueControl;
 import org.apache.activemq.artemis.api.jms.management.JMSServerControl;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -20,6 +21,7 @@ import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -33,7 +35,13 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for checking that JMX notifications are delivered correctly.
+ * @tpChapter  Functional testing
+ * @tpSubChapter JMX MANAGEMENT BEANS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
+
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class JmxClientNotificationTestCase extends HornetQTestCase {
@@ -51,9 +59,20 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     }
 
     /**
-     * Test that there are proper JMX notifications sent on consumer connect/disconnect.
      *
-     * @throws Exception
+     * @tpTestDetails Test that there are proper JMX notifications sent on consumer connect/disconnect.
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>deploy queue on server</li>
+     *     <li>create and register JmxNotificationListener jmsListener </li>
+     *     <li>create and register JmxNotificationListener coreListener </li>
+     *     <li>start client and sed and receive message</li>
+     *     <li>stop client</li>
+     *     <li>check number of notifications on listeners</li>
+     * </ul>
+     * @tpPassCrit 0 notifications on jmsListener, 1 notification "CONSUMER_CREATED" and 1 notification "CONSUMER_CLOSED"
+     * on coreListener
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -117,7 +136,16 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails Test that queue can not be destroyed if there is connected client.
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>deploy queue on server</li>
+     *     <li>connect clients and start sending and receiving messages from deployed queue</li>
+     *     <li>try to destroy the queue</li>
+     * </ul>
+     * @tpPassCrit queue destruction command should fail and throw exception
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -191,7 +219,18 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails Test that queue can be destroyed when no consumers are connected and after destruction queue cant be
+     * accessed nor by client nor by jms
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>deploy queue on server</li>
+     *     <li>destroy queue</li>
+     *     <li>try to send messages to queue</li>
+     *     <li>try to invoke get count of messages on queue</>
+     * </ul>
+     * @tpPassCrit sending messages should fail and invoking operations on queue too
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -244,7 +283,16 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails Test that topic can not be destroyed if there is connected client.
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>deploy topic on server</li>
+     *     <li>connect clients and start sending and receiving messages from deployed topic</li>
+     *     <li>try to destroy the topic</li>
+     * </ul>
+     * @tpPassCrit topic destruction command should fail and throw exception
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -314,7 +362,18 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     }
 
     /**
-     * @throws Exception
+     *
+     * @tpTestDetails Test that topic can be destroyed when no consumers are connected and after destruction queue cant be
+     * accessed nor by client nor by jms
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>deploy topic on server</li>
+     *     <li>destroy topic</li>
+     *     <li>try to send messages to topic</li>
+     *     <li>try to invoke get count of messages on topic</>
+     * </ul>
+     * @tpPassCrit sending messages should fail and invoking operations on topic too
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -367,6 +426,20 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+
+    /**
+     *
+     * @tpTestDetails Test that we cant define same JNDI name for queue twice
+     * @tpProcedure <ul>
+     *     <li>start 1 server</li>
+     *     <li>create new queue via jmx</li>
+     *     <li>restart server</li>
+     *     <li>try set new  JNDI name for queue twice (same for each attempt)</li>
+     * </ul>
+     * @tpPassCrit second attempt should fail
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
+    @Ignore
     @Test
     @RunAsClient
     @CleanUpBeforeTest
