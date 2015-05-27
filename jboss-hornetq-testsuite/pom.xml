@@ -509,14 +509,14 @@
                 </dependency>
 
                 <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-client</artifactId>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
                     <type>jar</type>
                 </dependency>
                 <dependency>
                     <groupId>eap</groupId>
-                    <artifactId>eap-jboss-as-controller-client</artifactId>
+                    <artifactId>eap-wildfly-controller-client</artifactId>
                     <version>${eap7.controller.client}</version>
                     <type>jar</type>
                     <exclusions>
@@ -527,8 +527,8 @@
                     </exclusions>
                 </dependency>
                 <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-cli</artifactId>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-cli-client</artifactId>
                     <version>${eap7.cli.client}</version>
                     <exclusions>
                         <exclusion>
