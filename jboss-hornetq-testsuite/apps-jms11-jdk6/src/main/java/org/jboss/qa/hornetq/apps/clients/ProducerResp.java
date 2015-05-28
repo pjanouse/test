@@ -146,7 +146,7 @@ public class ProducerResp extends Client {
                 }
                 msg.setJMSReplyTo(tempQueue);
                 if (waitBeforeReceive > 0) {
-                    //ttl of replies will be same es thread sleep before receiving starts, message may expire
+                    //ttl of replies will be same as thread sleep before receiving starts, message may expire
                     msg.setIntProperty("ttl", waitBeforeReceive);
                 }
                 sendMessage(producer, msg);

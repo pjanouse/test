@@ -745,7 +745,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * @tpTestDetails One server is started. Client creates temporary queue and sends several thousand messages (enough
      * to trigger paging). Server is forcibly killed and then started again. Paging file should be deleted.
      * @tpProcedure <ul>
-     *     <li>start one server/li>
+     *     <li>start one server</li>
      *     <li>create temporary queue on server</li>
      *     <li>create producer</li>
      *     <li>send about ten thousand messages to temporary queue</li>
@@ -796,7 +796,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * @tpTestDetails One server is started. Non-durable queue is deployed. Client sends to this queue several thousand
      * messages (enough to trigger paging). Server is forcibly killed and then started again. Paging file should be deleted.
      * @tpProcedure <ul>
-     *     <li>start one server/li>
+     *     <li>start one server</li>
      *     <li>create non-durable queue on server</li>
      *     <li>create producer</li>
      *     <li>send about ten thousand messages to temporary queue</li>
@@ -841,6 +841,20 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+
+    /**
+     * @tpTestDetails  One server is started. Two with different connections are connected to the server. First client
+     *  uses first connection and creates temporary queue and sends  message in to it. Second client uses second connection
+     *  and tries to read these messages from this temporary queue. Second client shouldn’t be able to read from temporary queue.
+     * @tpProcedure <ul>
+     *     <li>start one server</li>
+     *     <li>create one client which creates temporary queue on server and sends message in to it</li>
+     *     <li>create second client (on different connection) which tries to read from this queue</li>
+     *     <li>stop server</li>
+     * </ul>
+     * @tpPassCrit  second client is not able to read from temporary queue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -851,7 +865,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(1).start();
         try {
             Context context = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             Connection connection1 = cf.createConnection();
             Connection connection2 = cf.createConnection();
             Session session1 = connection1.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
@@ -868,9 +882,24 @@ public class ClusterTestCase extends HornetQTestCase {
         } finally {
             stopAllServers();
         }
-        Assert.assertEquals("Sending message didn't failed", true, failed);
+        Assert.assertEquals("Reading message didn't failed", true, failed);
     }
 
+    /**
+     * @tpTestDetails  One server with deployed destinations is started. MDB is deployed. Client creates temp queue for
+     * responses and sends message to server. MDB reads this message and sends it back to temp queue with small ttl. Client tries to
+     * receive message with already expired ttl.
+     * @tpProcedure <ul>
+     *     <li>start one server</li>
+     *     <li>deploy MDB which replies with messages with low TTL</li>
+     *     <li>create one client which creates temporary queue on server and sends message in to it</li>
+     *     <li>MDB take received massage and sends it to temp queue with low ttl</li>
+     *     <li>try to receive response from temp queue</li>
+     *     <li>stop server</li>
+     * </ul>
+     * @tpPassCrit  client doesn't receive any response from temporary queue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -891,6 +920,21 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails  One server with deployed destinations is started. MDB is deployed. Client creates temp queue for
+     * responses and sends LARGE message to server. MDB reads this message and sends it back to temp queue with small ttl. Client tries to
+     * receive message with already expired ttl.
+     * @tpProcedure <ul>
+     *     <li>start one server</li>
+     *     <li>deploy MDB which replies with messages with low TTL</li>
+     *     <li>create one client which creates temporary queue on server and sends large message in to it</li>
+     *     <li>MDB take received massage and sends it to temp queue with low ttl</li>
+     *     <li>try to receive response from temp queue</li>
+     *     <li>stop server</li>
+     * </ul>
+     * @tpPassCrit  client doesn't receive any response from temporary queue
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -912,6 +956,23 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails  One server without deployed destinations is starter. MDB with destinations is deployed. MDB reads
+     * messages from inQueue and sends them to outQueue. Producer sends messages to inQueue deployed with MDB.
+     * The same MDB is deployed again. Receiver receives messages from outQueue
+     * from queue
+     * @tpProcedure <ul>
+     *     <li>start one server without destinations</li>
+     *     <li>deploy MDB with destinations</li>
+     *     <li>create producer which sends messages to inQueue</li>
+     *     <li>wait for producer to finish </li>
+     *     <li>deploy same MDB with destinations again</li>
+     *     <li>create consumer and read messages fom outQueue</li>
+     *     <li>stop server</li>
+     * </ul>
+     * @tpPassCrit  Receiver get all messages which producer send. Re-deployment didn't wiped queues.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -932,6 +993,28 @@ public class ClusterTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails Two servers in cluster are started with this security configuration: sending to InQueue is
+     * allowed for group "guest" and reading from OutQueue is enabled for group "guest". Group named "user" can read and
+     * write to both of these queues. MDB whith messageSelector which filters messages containing red color flag and
+     * login to "user" group is deployed to node-1. MDB reads messages from InQueue and sends them to OutQueue. Three
+     * producers send 100 messages (as guests) in to InQueue two of them send red messages but each of them sets different
+     * JMSXGroupID. Two consumers read messages from OutQueue (as  guests). Each of them should read 100 messages with
+     * one JMSXGroupID. JMSXGroupID shouldn't be mixed between consumers.
+     * @tpProcedure <ul>
+     *     <li>Start two servers with destinations</li>
+     *     <li>Setup security and credentials on both of them</li>
+     *     <li>Deploy MDB on server one</li>
+     *     <li>Create create three producers and configure their message builders to build messages with different
+     *     JMSXGroupID and colors</li>
+     *     <li>Start producers to sending messages to both nodes</li>
+     *     <li>Create two consumers each of them will be connected on different node in cluster</li>
+     *     <li>Start receiving messages</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Each receiver received 100 messages with one JMSXGroupID
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1050,6 +1133,27 @@ public class ClusterTestCase extends HornetQTestCase {
         container(2).stop();
     }
 
+    /**
+     * @tpTestDetails Two servers in cluster are started with different security configuration. First server:  group
+     * "user" can read nad write to any queue, guests can write to InQueue and read from OutQueue. On second server is
+     * not configured any "user group, rest of settings is same as server 1. MDB with "user" group login is deployed on
+     * server one, reads messages from InQueue and sends them to OutQueue. Producer produces messages to InQueue on
+     * server one as "guest" and consumer tries to read them from OutQueue on server two. Consumer should not received
+     * any message because OutQueue on server two should be empty.
+     * @tpProcedure <ul>
+     *     <li>Start two servers with destinations</li>
+     *     <li>Setup security and credentials on both of them</li>
+     *     <li>Deploy MDB on server one</li>
+     *     <li>Create create three producers and configure their message builders to build messages with different
+     *     JMSXGroupID and colors</li>
+     *     <li>Start producers to sending messages to both nodes</li>
+     *     <li>Create two consumers each of them will be connected on different node in cluster</li>
+     *     <li>Start receiving messages</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Each receiver received 0 messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1114,9 +1218,21 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails Two servers in cluster with deployed destinations are started. Two MDB with different subscriptionName
+     * and clientID are deployed on each server where they create durable subscriptions on inTopic and send received messages
+     * to outQueue. Producer sends messages to inTopic. Consumer reads messages fom outQueue.
+     * @tpProcedure <ul>
+     *     <li>Start two servers with destinations in cluster</li>
+     *     <li>deploy MDBs to servers which create durable subscription on inTopic - with different clientId
+     *     and subscriber name</li>
+     *     <li>create publisher on node-1 and receiver on node-2</li>
+     *     <li>Producer sends several hundred messages to inTopic</li>
+     *     <li>MDBs repost them to outQueue</li>
+     *     <li>receiver reads messages from output queue on node-2</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Receiver gets 2x more messages than was send to inTopic
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -1127,9 +1243,21 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers A and B in cluster. Start producers/publishers connected to A with client/transaction
-     * acknowledge on queue/topic. Start consumers/subscribers connected to B with client/transaction acknowledge on
-     * queue/topic.
+     * @tpTestDetails Two servers in cluster with deployed destinations are started. Two MDB with same subscriptionName
+     * and clientID are deployed on each server where they create durable subscriptions on inTopic and send received messages
+     * to outQueue. Producer sends messages to inTopic. Consumer reads messages fom outQueue.
+     * @tpProcedure <ul>
+     *     <li>Start two servers with destinations in cluster</li>
+     *     <li>deploy MDBs to servers which create durable subscription on inTopic - with same clientId
+     *     and subscriber name</li>
+     *     <li>create publisher on node-1 and receiver on node-2</li>
+     *     <li>Producer sends several hundred messages to inTopic</li>
+     *     <li>MDBs repost them to outQueue</li>
+     *     <li>receiver reads messages from output queue on node-2</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Receiver gets as many messages as was send to inTopic
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -1152,7 +1280,7 @@ public class ClusterTestCase extends HornetQTestCase {
             container(1).deploy(MDB_ON_TOPIC1);
             // lets say I don't want to have two mdbs with just different subscription names in test suite, this will do the
             // same
-            container(1).deploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
+            container(2).deploy(MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION);
         } else {
 
             container(1).deploy(MDB_ON_TOPIC1);
@@ -1237,9 +1365,22 @@ public class ClusterTestCase extends HornetQTestCase {
     // }
 
     /**
-     * - Start 4 servers - local and remotes (1,2,3) - Send messages to remote 1 (message group ids 4 types) - Start consumer on
-     * remote 2 - Crash remote 3 - Send messages to remote 1 (message group ids 4 types) - restart remote 3 - chekc consumer
-     * whether it received all messages
+     * @tpTestDetails Start 4 servers in cluster with message grouping. First server is “local” and the others are
+     * “remote”. Producers send messages with different group id to "REMOTE" node-2 and receivers receive them on node-3.
+     * Kill node-4 ("REMOTE") and start it again after 20 seconds. Start few more producers on node-2. Wait until
+     * producers and receivers finish. Read messages from the servers a check whether receiver got all messages
+     * with the same group id.
+     * @tpProcedure <ul>
+     *     <li>Start four servers in cluster with message grouping. First is "LOCAL" other are "REMOTE"</li>
+     *     <li>create group of 4 producers on node-2, each sends messages with different groupID</li>
+     *     <li>create 4 consumers to consume send messages  on node-3</li>
+     *     <li>crash server with REMOTE handler (node-4) and start it again after 20s</li>
+     *     <li>create other group 4 producers on node-2, each sends messages with different groupID (but same as first group)</li>
+     *     <li>wait for all producers and receivers to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Receivers get all messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     // TODO see this
     // http://documentation-devel.engineering.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/6.4/html/Administration_and_Configuration_Guide/Clustered_Grouping.html
@@ -1253,11 +1394,23 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * - Start 4 servers - local and remotes (1,2,3) - Send messages to remote 1 (message group ids 4 types) - Start consumer on
-     * remote 2 - Crash local - Send messages to remote 1 (message group ids 4 types) - restart local - chekc consumer whether
-     * it received all messages
+     * @tpTestDetails Start 4 servers in cluster with message grouping. First server is “local” and the others are
+     * “remote”. Producers send messages with different group id to "REMOTE" node-2 and receivers receive them on node-3.
+     * Kill node-1 ("LOCAL") and start it again after 20 seconds. Start few more producers on node-2. Wait until
+     * producers and receivers finish. Read messages from the servers a check whether receiver got all messages
+     * with the same group id.
+     * @tpProcedure <ul>
+     *     <li>Start four servers in cluster with message grouping. First is "LOCAL" other are "REMOTE"</li>
+     *     <li>create group of 4 producers on node-2, each sends messages with different groupID</li>
+     *     <li>create 4 consumers to consume send messages on node-3</li>
+     *     <li>crash server with LOCAL handler (node-1) and start it again after 20s</li>
+     *     <li>create other group 4 producers on node-2, each sends messages with different groupID (but same as first group)</li>
+     *     <li>wait for all producers and receivers to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit   Receivers get all messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
-
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1380,6 +1533,26 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Start 4 servers in cluster with message grouping. First server is “local” and the others are
+     * “remote”. One producer send 500 messages with different group-id for each to inQueue on node-1. Then for each used
+     * group create own producer and connect him to one of four servers (based on order in sequence), this producer starts
+     * messages with its specific group-id. or each used group-id is also created one consumer, connected
+     * to the same server as producer. During sending and receiving messages is three times executed crash sequence
+     * of node-2.
+     * @tpProcedure <ul>
+     *     <li>Start four servers in cluster with message grouping. First is "LOCAL" other are "REMOTE"</li>
+     *     <li>create  one producer which sends 500 messages to inQueue on node-1,each message has different group-id</li>
+     *     <li>round-robin algorithm on LOCAL handler ensure, that every node in cluster has assigned equal
+     *     amount of groups</li>
+     *     <li>for each used group create own producer and consumer connected to server and start sending/receiving messages</li>
+     *     <li>server election for clients is based on reverted round-robin algorithm</li>
+     *     <li>crash sequence of node-2 is executed in 20s intervals </li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receivers get all messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1503,6 +1676,23 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with message grouping. First server has LOCAL group handler second has REMOTE.
+     * Create one consumer on node-2 and tow producers (one for each server). Producers starts sending messages to
+     * inQueue, each producer uses own group-id. After producers finish, node-1 is killed and started again. Then two new
+     * consumers are created with same configuration as previous one. Wait for consumer and producers to finish
+     * @tpProcedure <ul>
+     *     <li>Start two servers in cluster with message grouping. First is "LOCAL" second is "REMOTE"</li>
+     *     <li>create one consumer on node-2 reading messages from inQueue</li>
+     *     <li>create two producers one for each node sending messages with two different group-ids</li>
+     *     <li>when producer finishes, kill node-1 and start it again</li>
+     *     <li>create two other producers with the same configurations as first couple had</li>
+     *     <li>wait for producers and receiver to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver get all send messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1543,10 +1733,10 @@ public class ClusterTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         producerToInQueue2.join();
 
-        // kill both of the servers
+
         container(1).kill();
 
-        // start 1st server
+
         container(1).start();
         Thread.sleep(5000);
 
@@ -1583,6 +1773,21 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with message grouping. First server has LOCAL group handler second has REMOTE.
+     * Create one consumer on node-2 and producer on node-1. Producer sends messages with same group-id, after producer finishes
+     * consumer starts receiving messages.
+     * @tpProcedure <ul>
+     *     <li>start two servers in cluster with message grouping. First is "LOCAL" second is "REMOTE"</li>
+     *     <li>crate producer on node-1 which starts sending messages with same group-id for every message</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>create one producer on node-2 which consumes all send messages</li>
+     *     <li>wait for consumer to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver get all send messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1624,6 +1829,21 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with deployed destinations and configured exclusive diverts on inQueue
+     * routing messages to outQueue on both servers. Producer sends small messages to inQueue on node-1, two receivers receive
+     * messages from inQueue and outQueue on node-2. When clients finish, number of received messages is verified.
+     * @tpProcedure <ul>
+     *     <li>start two serversin cluster with identically configured diverts on both </li>
+     *     <li>divert configuration: messages from inQueue are routed to outQueue exclusively</li>
+     *     <li>crate producer on node-1 which starts sending small (normal) messages to inQueue</li>
+     *     <li>create two receivers, receiving messages from inQueue and outQueue on node-2</li>
+     *     <li>wait for clients to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver on outQueue gets all send messages, receiver on inQueue gets none.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1632,6 +1852,21 @@ public class ClusterTestCase extends HornetQTestCase {
         clusterTestWithDiverts(true, new ClientMixMessageBuilder(1, 1));
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with deployed destinations and configured non-exclusive diverts on inQueue
+     * routing messages to outQueue on both servers. Producer sends small messages to inQueue on node-1, two receivers receive
+     * messages from inQueue and outQueue on node-2. When clients finish, number of received messages is verified.
+     * @tpProcedure <ul>
+     *     <li>start two serversin cluster with identically configured diverts on both </li>
+     *     <li>divert configuration: messages from inQueue are routed to outQueue non-exclusively</li>
+     *     <li>crate producer on node-1 which starts sending small (normal) messages to inQueue</li>
+     *     <li>create two receivers, receiving messages from inQueue and outQueue on node-2</li>
+     *     <li>wait for clients to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver on outQueue gets all send messages, receiver on inQueue gets none.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1640,6 +1875,21 @@ public class ClusterTestCase extends HornetQTestCase {
         clusterTestWithDiverts(false, new ClientMixMessageBuilder(1, 1));
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with deployed destinations and configured exclusive diverts on inQueue
+     * routing messages to outQueue on both servers. Producer sends large messages to inQueue on node-1, two receivers receive
+     * messages from inQueue and outQueue on node-2. When clients finish, number of received messages is verified.
+     * @tpProcedure <ul>
+     *     <li>start two serversin cluster with identically configured diverts on both </li>
+     *     <li>divert configuration: messages from inQueue are routed to outQueue exclusively</li>
+     *     <li>crate producer on node-1 which starts sending large messages to inQueue</li>
+     *     <li>create two receivers, receiving messages from inQueue and outQueue on node-2</li>
+     *     <li>wait for clients to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver on outQueue gets all send messages, receiver on inQueue gets none.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1648,6 +1898,21 @@ public class ClusterTestCase extends HornetQTestCase {
         clusterTestWithDiverts(true, new ClientMixMessageBuilder(120, 120));
     }
 
+    /**
+     * @tpTestDetails Start 2 servers in cluster with deployed destinations and configured non-exclusive diverts on inQueue
+     * routing messages to outQueue on both servers. Producer sends large messages to inQueue on node-1, two receivers receive
+     * messages from inQueue and outQueue on node-2. When clients finish, number of received messages is verified.
+     * @tpProcedure <ul>
+     *     <li>start two servers in cluster with identically configured diverts on both </li>
+     *     <li>divert configuration: messages from inQueue are routed to outQueue non-exclusively</li>
+     *     <li>crate producer on node-1 which starts sending large messages to inQueue</li>
+     *     <li>create two receivers, receiving messages from inQueue and outQueue on node-2</li>
+     *     <li>wait for clients to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receiver on outQueue gets all send messages, receiver on inQueue gets none.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -1723,9 +1988,19 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start just local and send messages with different groupids. Start consumers on local and check messages.
-     *
-     * @throws Exception
+     * @tpTestDetails Start 2 servers in cluster with deployed destinations and message grouping, first server has LOCAL handler
+     * and second server has REMOTE handler. Start four producers, sending messages to inQueue on first server each producer
+     * uses different group-id. Two consumers are created on the same server as producers and reads messages from inQueue
+     * @tpProcedure <ul>
+     *     <li>start two servers in cluster with message grouping and deployed destinations, first with local handler
+     *     second with remote</li>
+     *     <li>4 producer starts sending messages to inQueue (each producer uses different group-id)</li>
+     *     <li>create two receivers, receiving messages from inQueue and outQueue on node-1</li>
+     *     <li>wait for clients to finish</li>
+     *     <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Receivers get all send messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
     @RunAsClient
@@ -1808,10 +2083,10 @@ public class ClusterTestCase extends HornetQTestCase {
         }
 
         if (serverWithLocalHandler.equals(testedContainer)) {
-            Assert.assertEquals("There is different number of sent and recevied messages.", numberOfSentMessages,
+            Assert.assertEquals("There is different number of sent and received messages.", numberOfSentMessages,
                     numberOfReceivedMessages);
         } else if (serverWithRemoteHandler.equals(testedContainer)) {
-            Assert.assertEquals("There must be 0 messages recevied.", 0, numberOfReceivedMessages);
+            Assert.assertEquals("There must be 0 messages received.", 0, numberOfReceivedMessages);
         }
 
         testedContainer.stop();
