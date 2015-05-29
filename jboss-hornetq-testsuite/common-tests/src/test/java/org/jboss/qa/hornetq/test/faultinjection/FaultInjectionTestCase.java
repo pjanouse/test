@@ -140,7 +140,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
      *     <li>send commit</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit receiver will not consume any messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -186,7 +186,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
      *     <li>send commit</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit receiver will not consume any messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -231,7 +231,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
      *     <li>send commit</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit receiver will not consume any messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -274,7 +274,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
      *     <li>send commit</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit receiver will consume messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -319,7 +319,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server before commit is stored to journal</li>
      *     <li>receive messages and call session.commit()</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit calling commit() will throw exception and receiver does not get any messages, after restart messages
      * can be read again
@@ -363,7 +363,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill server after commit is stored to journal</li>
      *     <li>receive messages and call session.commit()</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  calling commit() will throw exception and receiver does not get any messages, after restart
      * messages can not be read again
@@ -409,7 +409,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill after message is deleted from journal</li>
      *     <li>receive messages</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  Message will not be received when server is killed
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -453,7 +453,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill before message is delivered to consumer</li>
      *     <li>receive messages</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit Message will no be received, there will be messages in queue after restart
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -495,7 +495,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill after message is delivered to consumer</li>
      *     <li>receive messages</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  Message will be received, there will be no messages in queue after restart
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -545,7 +545,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>start one server with deployed queue</li>
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill before rollback is written to journal</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. No messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -586,7 +586,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>start one server with deployed queue</li>
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill after rollback is written to journal</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. No messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -630,7 +630,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill before rollback is written to journal for receive</li>
      *     <li>receive messages and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -672,7 +672,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill after rollback is written to journal for receive</li>
      *     <li>receive messages and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -716,7 +716,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>start one server with deployed queue</li>
      *     <li>deploy byteman rule which kill before record is written into the journal</li>
      *     <li>send messages to queue and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. No messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -760,7 +760,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>start one server with deployed queue</li>
      *     <li>deploy byteman rule which kill after record is written into a journal</li>
      *     <li>send messages to queue and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. No messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -806,7 +806,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill before delivered to the consumer</li>
      *     <li>receive message from queue and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -849,7 +849,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kill after delivered to the consumer</li>
      *     <li>receive message from queue and rollback</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit  No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -900,7 +900,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kills server before ack is stored into the journal</li>
      *     <li>receive message from queue and acknowledge</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -950,7 +950,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kills server after ack is stored into the journal</li>
      *     <li>receive message from queue and acknowledge</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit No message will be received. Messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -995,7 +995,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
      *     <li>send messages to queue</li>
      *     <li>deploy byteman rule which kills server before the record is written into the journal</li>
      *     <li>receive message from queue and acknowledge</li>
-     *     <li>restart server/li>
+     *     <li>restart server</li>
      * </ul>
      * @tpPassCrit No message will be received. No messages in queue after restart.
      * @tpInfo For more information see related test case described in the beginning of this section.

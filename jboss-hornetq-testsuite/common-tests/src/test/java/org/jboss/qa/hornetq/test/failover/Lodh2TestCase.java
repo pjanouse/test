@@ -173,10 +173,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -193,10 +203,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -213,10 +233,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>shutdown node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -233,10 +263,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>shutdown node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -257,10 +297,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -277,10 +327,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -297,10 +357,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>shutdown node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -317,10 +387,20 @@ public class Lodh2TestCase extends HornetQTestCase {
      *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
-     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -342,7 +422,17 @@ public class Lodh2TestCase extends HornetQTestCase {
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -364,7 +454,18 @@ public class Lodh2TestCase extends HornetQTestCase {
      * to OutQueue (in XA transaction) to cluster B (node 2,4). MDB on node-2 reads only RED messages and on node-4 only GREEN messages.
      * When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to InQueue, each message has set property color to RED or GREEN</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDB to node-2 which reads only RED messages and sends them to outQueue</li>
+     *     <li>deploy MDB to node-4 which reads only GREEN messages and sends them to outQueue</li>
+     *     <li>kill node-2 while MDB is processing messages</li>
+     *     <li>start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -374,7 +475,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killWithFilters() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, false,true);
     }
 
     /**
@@ -384,7 +485,17 @@ public class Lodh2TestCase extends HornetQTestCase {
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -404,7 +515,17 @@ public class Lodh2TestCase extends HornetQTestCase {
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>shutdown node-1 while MDB is processing messages</li>
+     *     <li>start node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -424,7 +545,16 @@ public class Lodh2TestCase extends HornetQTestCase {
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill and restart nodes in following sequence 2,2,4,2,4.
      * Wait until all messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     *     <li>kill and start following nodes in this sequence: 2,2,4,2,4</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -448,7 +578,17 @@ public class Lodh2TestCase extends HornetQTestCase {
      * (mix of small and large messages) to InTopic. Once producer finishes, deploy MDB which creates non-durable subscription on InTopic and sends messages
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
-     *
+     * @tpProcedure <ul>
+     *     <li>start cluster one containing node 1 and 3 with deployed inTopic and outQueue</li>
+     *     <li>start cluster two containing node 2 and 4</li>
+     *     <li>producer sends 5000 small and large messages to inTopic</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>deploy MDBs to node-2 and node-4 which  creates non-durable subscription on inTopic and sends messages to
+     *     outQueue in XA transactions</li>
+     *     <li>kill and start node-2</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
