@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 /**
- * Test attributes on Queue:
+ *Test attributes on Topic:
  ATTRIBUTE                      VALUE                                       TYPE
  delivering-count               0                                           INT
  durable-message-count          0                                           INT
@@ -38,8 +38,16 @@ import java.util.Properties;
  temporary                      false                                       BOOLEAN
  topic-address                  jms.topic.testTopic                         STRING
  *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Try to read and write values to topic
+ * attributes. Tested attributes : delivering-count, durable-message-count,
+ * durable-subscription-count, entries, message-count, messages-added,
+ * non-durable-message-count, non-durable-subscription-count,
+ * subscription-count, temporary, topic-address
  */
-
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
@@ -67,14 +75,13 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
     public void startServer() throws InterruptedException {
         container(1).start();
 
-        // deploy queue
+        // deploy topic
         CliClient cliClient = new CliClient(cliConf);
-        if(ContainerUtils.isEAP6(container(1))){
+        if (ContainerUtils.isEAP6(container(1))) {
             cliClient.executeForSuccess(address_EAP6 + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
-        }else{
+        } else {
             cliClient.executeForSuccess(address_EAP7 + ":add(durable=true,entries=[\"java:/" + topicJndiName + "\", \"java:jboss/exported/" + topicJndiName + "\"])");
         }
-
 
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, "testSubscriberClientId", "testSubscriber");
         subscriberClientAck.subscribe();
@@ -92,6 +99,22 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails One server is started and topic is deployed to it.
+     * Publisher publishes 100 messages to topic. Once publisher finishes, try
+     * to read or write values to topic attributes.
+     *
+     * @tpProcedure <ul>
+     * <li>start one server with deployed topic</li>
+     * <li>start publisher and publish messages to topic</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -112,12 +135,11 @@ public class JmsTopicAttributeTestCase extends CliTestBase {
 
             value = attributes.getProperty(attributeName);
             log.info("Test attribute " + attributeName + " with value: " + value);
-            if(ContainerUtils.isEAP6(container(1))){
+            if (ContainerUtils.isEAP6(container(1))) {
                 writeReadAttributeTest(cliClient, address_EAP6, attributeName, value);
-            }else{
+            } else {
                 writeReadAttributeTest(cliClient, address_EAP7, attributeName, value);
             }
-
 
         }
     }

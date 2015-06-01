@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 /**
- * Test attributes on remote connectio factory:
+  * Test attributes on remote connection factory:
  * ATTRIBUTE           VALUE                         TYPE
  auto-group=false
  block-on-acknowledge=true
@@ -62,6 +62,28 @@ import java.util.Properties;
  transaction-batch-size=1048576
  use-global-pools=true
  *
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test attributes on remote connection factory: Tested attributes : auto-group, block-on-acknowledge,
+ * block-on-durable-send, block-on-non-durable-send,
+ * cache-large-message-client, call-failover-timeout, call-timeout,
+ * client-failure-check-period, client-id,
+ * compress-large-messages, confirmation-window-size,
+ * connection-load-balancing-policy-class-name,
+ * connection-ttl, connector, consumer-max-rate,
+ * consumer-window-size, discovery-group-name,
+ * discovery-initial-wait-timeout, dups-ok-batch-size,
+ * entries,
+ * factory-type, failover-on-initial-connection,
+ * failover-on-server-shutdown, group-id, ha,
+ * initial-message-packet-size, max-retry-interval,
+ * min-large-message-size, pre-acknowledge, producer-max-rate,
+ * producer-window-size, reconnect-attempts, retry-interval,
+ * retry-interval-multiplier, scheduled-thread-pool-max-size,
+ * thread-pool-max-size, transaction-batch-size, use-global-pools
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -86,20 +108,37 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
     public void stopServer() {
         container(1).stop();
     }
-
-
-
+    /**
+     * @tpTestDetails Try to read or write different values to pooled connection
+     * factory attributes.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void writeReadAttributePooledConnectionFactoryTest() throws Exception {
         String address;
-            address = "/subsystem=messaging-activemq/server=default/pooled-connection-factory=activemq-ra";
+        address = "/subsystem=messaging-activemq/server=default/pooled-connection-factory=activemq-ra";
 
         writeReadAttributeTest(address, "/pooledConnectionFactotryAttributes.txt");
     }
-
+    /** 
+     * @tpTestDetails Try to read or write different values to Jms connection factory attributes.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -108,10 +147,8 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
         String address;
         address = "/subsystem=messaging-activemq/server=default/connection-factory=RemoteConnectionFactory";
 
-
-        writeReadAttributeTest(address,"/connectionFactoryAttributes.txt");
+        writeReadAttributeTest(address, "/connectionFactoryAttributes.txt");
     }
-
 
     public void writeReadAttributeTest(String address, String attributeFileName) throws Exception {
 

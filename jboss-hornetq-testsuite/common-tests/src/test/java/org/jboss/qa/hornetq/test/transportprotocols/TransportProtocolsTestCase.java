@@ -32,6 +32,20 @@ import java.io.IOException;
 import java.util.HashMap;
 
 /**
+ * @tpChapter Functional testing
+ * @tpSubChapter TRANSPORT PROTOCOLS - TEST SCENARIOS
+ *
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ *
+ * @tpTestCaseDetails Start server and configure one of transport type for
+ * connection factory - TCP, SSL, HTTP transport.Configure server to use one of
+ * journal types - NIO, ASYNCIO. Send messages to queue. Try to receive them in
+ * transacted session.
+ *
+ * @tpInfo: For more information see related test case described in the
+ * beginning of this section.
+ *
  * @author nziakova
  */
 @RunWith(Arquillian.class)
@@ -55,6 +69,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for TCP transport and use
+     * of NIO journal.Try to send and receive messages from queue deployed on
+     * server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, NIO journal type and connection
+     * factory configured for TCP transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -64,6 +90,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for TCP transport and use
+     * of ASYNCIO journal.Try to send and receive messages from queue deployed
+     * on server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, ASYNCIO journal type and connection
+     * factory configured for TCP transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -73,6 +111,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for HTTP transport and use
+     * of NIO journal.Try to send and receive messages from queue deployed on
+     * server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, NIO journal type and connection
+     * factory configured for HTTP transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -82,6 +132,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for HTTP transport and use
+     * of ASYNCIO journal.Try to send and receive messages from queue deployed
+     * on server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, ASYNCIO journal type and connection
+     * factory configured for HTTP transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -91,6 +153,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for SSL transport and use
+     * of NIO journal.Try to send and receive messages from queue deployed on
+     * server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, NIO journal type and connection
+     * factory configured for SSL transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -100,6 +174,18 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         transportProtocolTest();
     }
 
+    /**
+     * @tpTestDetails Start server, and configure it for SSL transport and use
+     * of ASYNCIO journal.Try to send and receive messages from queue deployed
+     * on server.
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue, ASYNCIO journal type and connection
+     * factory configured for SSL transport</li>
+     * <li>send messages to queue</li>
+     * <li>start consumer with transacted session which receive them</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -136,13 +222,14 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     }
 
     /**
-     * Test: starts 1 server, creates producer and consumer, producer sends messages to queue and consumer receives them
+     * Test: starts 1 server, creates producer and consumer, producer sends
+     * messages to queue and consumer receives them
      *
      * @throws Exception
      */
     public void transportProtocolTest() throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER))  {
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             // configure legacy extension
 
             container(1).start();
@@ -183,12 +270,11 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
 
     }
 
-
     /**
      * Configuration of server for TCP transport
      *
-     * @param container     Test container - defined in arquillian.xml
-     * @param journalType   Type of journal
+     * @param container Test container - defined in arquillian.xml
+     * @param journalType Type of journal
      */
     private void prepareServerForTCPTransport(org.jboss.qa.hornetq.Container container, String journalType) {
         container.start();
@@ -203,8 +289,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for HTTP transport
      *
-     * @param container     Test container - defined in arquillian.xml
-     * @param journalType   Type of journal
+     * @param container Test container - defined in arquillian.xml
+     * @param journalType Type of journal
      */
     private void prepareServerForHTTPTransport(org.jboss.qa.hornetq.Container container, String journalType) {
         container.start();
@@ -228,8 +314,8 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
     /**
      * Configuration of server for SSL transport
      *
-     * @param container     Test container - defined in arquillian.xml
-     * @param journalType   Type of journal
+     * @param container Test container - defined in arquillian.xml
+     * @param journalType Type of journal
      * @throws IOException
      */
     private void prepareServerForSSLTransport(org.jboss.qa.hornetq.Container container, String journalType) throws IOException {

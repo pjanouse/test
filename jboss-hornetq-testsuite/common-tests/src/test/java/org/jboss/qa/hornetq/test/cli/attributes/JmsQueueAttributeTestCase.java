@@ -37,6 +37,13 @@ import java.util.Properties;
  selector            undefined                     STRING
  temporary           false                         BOOLEAN
  *
+ * 
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Try to read and write values to queue attributes. Tested attributes : consumer-count, dead-letter-address, delivering-count, durable, entries, expiry-address, message-count, messages-added,
+ * paused, queue-address, scheduled-count, selector, temporary
  */
 
 @RunWith(Arquillian.class)
@@ -81,7 +88,19 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
     public void stopServer() {
         container(1).stop();
     }
-
+    
+    /** 
+     * @tpTestDetails Server is started. Try to read or write values to queue attributes.
+     * @tpProcedure <ul>
+     * <li>start one server with deployed queue</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

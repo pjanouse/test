@@ -18,12 +18,17 @@ import javax.jms.*;
 import javax.naming.Context;
 
 /**
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Goal of this test case is testing of filtering messages which will consumer receive from queue.
  * @author mnovak@redhat.com
  */
 public class FilteringQueueTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(FilteringQueueTestCase.class);
-
 
     // queue to send messages in
     static String inQueueName = "InQueue";
@@ -33,6 +38,25 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
 
+    /**
+     * @tpTestDetails Server with queue is started. Create producer and send 100
+     * messages to queue. Messages contains string property. Once producer
+     * finishes, create consumer with message selector to receive only messages
+     * with specific string property. Start receiving messages. Check number of
+     * received messages.
+     *
+     * @tpProcedure <ul>
+     * <li>Start one server with deployed queue</li>
+     * <li>Create producer and send messages to queue (messages have string
+     * property set)</li>
+     * <li>Wait for producer finish</li>
+     * <li>Create consumer with message selector for message property and start
+     * receiving messages</li>
+     * <li>Check number of received messages</li>
+     * </ul>
+     *
+     * @tpPassCrit Consumer received correct number of messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -87,7 +111,6 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
             logger.error("Filter consumer ended - received NULL - number of received messages: " + counter);
 
-
         } finally {
 
             if (connection != null) {
@@ -105,6 +128,25 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Server with queue is started. Create producer and send 100
+     * messages to queue. Messages contains string property. Once producer
+     * finishes, create two consumers with selectors to receive only messages
+     * with specific string property. Start receiving messages. Check number of
+     * received messages.
+     *
+     * @tpProcedure <ul>
+     * <li>Start one server with deployed queue</li>
+     * <li>Create producer and send messages to queue (messages have string
+     * property set)</li>
+     * <li>Wait for producer finish</li>
+     * <li>Create consumers with message selectors for message property and start
+     * receiving messages</li>
+     * <li>Check number of received messages</li>
+     * </ul>
+     *
+     * @tpPassCrit Consumer received correct number of messages
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -172,7 +214,6 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
             logger.error("Filter consumer ended - received NULL - number of received messages: " + counter);
 
-
         } finally {
 
             if (connection != null) {
@@ -200,7 +241,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if(ContainerUtils.isEAP6(container)) {
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClustered(false);
             jmsAdminOperations.setSharedStore(true);
         }

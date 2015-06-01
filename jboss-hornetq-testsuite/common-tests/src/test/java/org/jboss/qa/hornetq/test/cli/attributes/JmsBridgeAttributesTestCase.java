@@ -27,7 +27,19 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Read and write values to queue attributes. Tested
+ * attributes : add-messageID-in-header, client-id, failure-retry-interval,
+ * max-batch-size, max-batch-time, max-retries, module, quality-of-service,
+ * selector, source-connection-factory, source-context, source-destination,
+ * source-password, source-user, subscription-name, target-connection-factory,
+ * target-context, target-destination, target-password, target-user
+ *
  * @author mnovak@redhat.com
+ *
  */
 @Category(FunctionalTests.class)
 public class JmsBridgeAttributesTestCase extends CliTestBase {
@@ -59,7 +71,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         String sourceDestination = inQueueJndiName;
         String targetDestination = outQueueJndiName;
 
-        Map<String,String> targetContext = new HashMap<String, String>();
+        Map<String, String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
         targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
@@ -78,7 +90,6 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         jmsAdminOperations.close();
 
     }
-
 
     private void prepareTargetServerForJMSBridge(Container container) {
 
@@ -103,14 +114,31 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         container(2).stop();
     }
 
-
     @After
     public void stopServer() {
         container(1).stop();
         container(2).stop();
     }
 
-
+    /**
+     *
+     * @tpTestDetails There are two servers started. Deploy InQueue to Node1
+     * (source server) and OutQueue to Node2 (target server). Configure Jms
+     * Bridge between these two servers. Try to read and write values to jms bridge
+     * attributes. Then send 100 messages to InQueue. Try to receive messages
+     * from OutQueue. Check number of received messages.
+     *
+     * @tpProcedure <ul>
+     * <li>start two servers and configure jms bridge between them and deploy
+     * queues</li>
+     * <li>Write and read jms bridge attributes</li>
+     * <li>Create producer and send messages to InQueue</li>
+     * <li>Once producer finishes, create consumer and receive messages from
+     * OutQueue</li>
+     * </ul>
+     * @tpPassCrit Consumer received correct number of messages, reading and
+     * writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

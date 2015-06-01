@@ -35,6 +35,13 @@ import static org.junit.Assert.*;
 /**
  * Tests for creating and manipulating messages.
  *
+ *
+ * @tpChapter Functional testing
+ * @tpSubChapter MESSAGE CONTENT - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests for creating and manipulating messages.
+ *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
@@ -56,6 +63,21 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     *
+     * @tpTestDetails Server is started and queue is deployed. Send one message
+     * with scheduled delivery time set to 1200 seconds to queue and then try to
+     * remove it. Check whether queue contains no messages.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server and deploy queue</li>
+     * <li>Send one message to queue with scheduled delivery time set to 1200
+     * seconds </li>
+     * <li>Try to remove send message from queue</li>
+     * <li>Check number of messages in queue</li>
+     * </ul>
+     * @tpPassCrit Queue contains correct number of messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -111,6 +133,23 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     *
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Send one message with
+     * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
+     * message from DivertedQueue and check whether message is delivered to
+     * DivertedQueue in correct time range.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send one message to OriginalQueue(scheduled delivery time =
+     * 5sec)</li>
+     * <li>Check message delivery to DivertedQueue in correct time range</li>
+     * </ul>
+     * @tpPassCrit Message is delivered to DivertedQueue in correct time range
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -119,6 +158,23 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoScheduled(true, false);
     }
 
+    /**
+     *
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Send one large message with
+     * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
+     * message from DivertedQueue and check whether message is delivered to
+     * DivertedQueue in correct time range.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send one large message to OriginalQueue(scheduled delivery time =
+     * 5sec)</li>
+     * <li>Check message delivery to DivertedQueue in correct time range</li>
+     * </ul>
+     * @tpPassCrit Message is delivered to DivertedQueue in correct time range
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -127,6 +183,25 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoScheduled(true, true);
     }
 
+    /**
+     *
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Send one message with
+     * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
+     * message from OriginalQueue and DivertedQueue and check whether message is
+     * delivered to DivertedQueue and OriginalQueue in correct time range.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send one message to OriginalQueue(scheduled delivery time =
+     * 5sec)</li>
+     * <li>Check message delivery to OriginalQueue and DivertedQueue in correct
+     * time range</li>
+     * </ul>
+     * @tpPassCrit Message is delivered to both OriginalQueue and DivertedQueue
+     * in correct time range
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -135,6 +210,25 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoScheduled(false, false);
     }
 
+    /**
+     *
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Send one large message with
+     * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
+     * message from OriginalQueue and DivertedQueue and check whether message is
+     * delivered to DivertedQueue and OriginalQueue in correct time range.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send one large message to OriginalQueue(scheduled delivery time =
+     * 5sec)</li>
+     * <li>Check message delivery to OriginalQueue and DivertedQueue in correct
+     * time range</li>
+     * </ul>
+     * @tpPassCrit Message is delivered to both OriginalQueue and DivertedQueue
+     * in correct time range
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -212,7 +306,22 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     }
 
-
+    /**
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create message producer
+     * with time to live set to 1 second. Send message to OriginalQueue. After 2
+     * seconds, create consumer and try to receive message from DivertedQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Create producer(Time to live = 1sec) and send one message to
+     * OriginalQueue</li>
+     * <li>After 2 seconds try to receive message from DivertedQueue</li>
+     * </ul>
+     * @tpPassCrit No messages received by consumer. Message is already expired.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -221,6 +330,24 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoExpired(true, false);
     }
 
+    /**
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create message producer
+     * with time to live set to 1 second. Send message to OriginalQueue. After 2
+     * seconds, create consumers and try to receive message from DivertedQueue
+     * and OriginalQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Create producer(Time to live = 1sec) and send one message to
+     * OriginalQueue</li>
+     * <li>After 2 seconds try to receive message from DivertedQueue and
+     * OriginalQueue</li>
+     * </ul>
+     * @tpPassCrit No messages received by consumer. Message is already expired.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -229,6 +356,23 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoExpired(false, false);
     }
 
+    /**
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create message producer
+     * with time to live set to 1 second. Send large message to OriginalQueue.
+     * After 2 seconds, create consumer and try to receive message from
+     * DivertedQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Create producer(Time to live = 1sec) and send one large message to
+     * OriginalQueue</li>
+     * <li>After 2 seconds try to receive message from DivertedQueue</li>
+     * </ul>
+     * @tpPassCrit No messages received by consumer. Message is already expired.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -237,6 +381,24 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         testThatDivertedMessagesIsAlsoExpired(true, true);
     }
 
+    /**
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create message producer
+     * with time to live set to 1 second. Send large message to OriginalQueue.
+     * After 2 seconds, create consumers and try to receive message from
+     * DivertedQueue and OriginalQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Create producer(Time to live = 1sec) and send one large message to
+     * OriginalQueue</li>
+     * <li>After 2 seconds try to receive message from DivertedQueue and
+     * OriginalQueue</li>
+     * </ul>
+     * @tpPassCrit No messages received by consumer. Message is already expired.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -310,6 +472,22 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
+     * 100 messages to OriginalQueue. Receive messages from DivertedQueue.
+     * Compare send messages to received messages.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send 100 messages to OriginalQueue</li>
+     * <li>Receive messages from DivertedQueue</li>
+     * <li>Compare send messages to received messages</li>
+     * </ul>
+     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -317,7 +495,22 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, false);
     }
-
+    /**
+     * @tpTestDetails Server with configured exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
+     * 100 large messages to OriginalQueue. Receive messages from DivertedQueue.
+     * Compare send messages to received messages.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send 100 large messages to OriginalQueue</li>
+     * <li>Receive messages from DivertedQueue</li>
+     * <li>Compare send messages to received messages</li>
+     * </ul>
+     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -325,7 +518,24 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersExclusiveLargeMessages() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, true);
     }
-
+    /**
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
+     * 100 messages to OriginalQueue. Receive messages from DivertedQueue and OriginalQueue.
+     * Compare send messages to messages received from DivertedQueue and OriginalQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send 100 messages to OriginalQueue</li>
+     * <li>Receive messages from OriginalQueue</li>
+     * <li>Receive messages from DivertedQueue</li>
+     * <li>Compare send messages to messages received from OriginalQueue</li>
+     * <li>Compare send messages to messages received from DivertedQueue</li>
+     * </ul>
+     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue. Messages received from OriginalQueue are same messages as producer send to OriginalQueue.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -333,7 +543,24 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersNonExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, false);
     }
-
+    /**
+     * @tpTestDetails Server with configured non exclusive divert is started and
+     * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
+     * 100 large messages to OriginalQueue. Receive messages from DivertedQueue and OriginalQueue.
+     * Compare send messages to messages received from DivertedQueue and OriginalQueue.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured non exclusive divert and deploy
+     * OriginalQueue and DivertedQueue</li>
+     * <li>Send 100 large messages to OriginalQueue</li>
+     * <li>Receive messages from OriginalQueue</li>
+     * <li>Receive messages from DivertedQueue</li>
+     * <li>Compare send messages to messages received from OriginalQueue</li>
+     * <li>Compare send messages to messages received from DivertedQueue</li>
+     * </ul>
+     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue. Messages received from OriginalQueue are same messages as producer send to OriginalQueue.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -341,7 +568,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersNonExclusiveLargeMessages() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, true);
     }
-
 
     private void testThatDivertedMessagesContainsAllHeaders(boolean isExclusive, boolean isLargeMessage) throws Exception {
 
@@ -394,7 +620,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         log.info("####################################################################################################################");
 
         // compare all diverted messages with sent messages
-        for (int i = 0; i < numberOfMessages; i++)  {
+        for (int i = 0; i < numberOfMessages; i++) {
             Assert.assertTrue(areSameMessages(listOfSentMessages.get(i), listOfReceivedMessagesDiverted.get(i)));
         }
 
@@ -466,31 +692,31 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
                 && !((HornetQTextMessage) sentMessage).getText().equals(((HornetQTextMessage) receivedMessage).getText())) {
 
-            log.info("TextMessage  - There is different body - " +  ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
+            log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
             isSame = false;
         }
 
         if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
                 && ((HornetQBytesMessage) sentMessage).getBodyLength() != (((HornetQBytesMessage) receivedMessage).getBodyLength())) {
 
-            log.info("BytesMessage - There is different body - " +  ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
+            log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
             isSame = false;
         }
 
         if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
                 && !((HornetQObjectMessage) sentMessage).getObject().equals(((HornetQObjectMessage) receivedMessage).getObject())) {
 
-            log.info("ObjectMessage - There is different body - " +  sentMessage + ", " + receivedMessage);
+            log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
             isSame = false;
         }
 
         if (sentMessage instanceof MapMessage && receivedMessage instanceof MapMessage) {
 
             Enumeration sentPropertyNames = ((MapMessage) sentMessage).getMapNames();
-            while (sentPropertyNames.hasMoreElements())  {
+            while (sentPropertyNames.hasMoreElements()) {
                 String sentPropertyName = (String) sentPropertyNames.nextElement();
                 if (!((MapMessage) receivedMessage).itemExists(sentPropertyName)) {
-                    log.info("MapMessage - does not contain key - " +  sentPropertyName + " in the map.");
+                    log.info("MapMessage - does not contain key - " + sentPropertyName + " in the map.");
                     isSame = false;
                 }
             }
@@ -511,7 +737,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         container.stop();
 
-
     }
 
     private void prepareServerWithDivert(Container container, String originalQueue, String divertedQueue, boolean isExclusive) {
@@ -528,7 +753,19 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         container.stop();
     }
-
+    
+    /**
+     * @tpTestDetails Start server. Send MapMessage with null in map and receive it.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start server</li>
+     * <li>Send MapMessage with null in object and 100 in long</li>
+     * <li>Receive message</li>
+     * <li>Check message message</li>
+     * </ul>
+     * @tpPassCrit Received message is MapMessage with correct values
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest

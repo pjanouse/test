@@ -23,10 +23,19 @@ import java.util.Properties;
 /**
  * Test attributes on remote connection factory:
  * ATTRIBUTE           VALUE                         TYPE
-
- *
+ * 
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test address settings attributes: Tested attributes :
+ * address-full-policy, dead-letter-address, expiry-address, last-value-queue,
+ * max-delivery-attempts, max-size-bytes, message-counter-history-day-limit,
+ * page-max-cache-size, page-size-bytes, redelivery-delay, redistribution-delay,
+ * send-to-dla-on-no-route, slow-consumer-threshold, slow-consumer-check-period,
+ * slow-consumer-policy, expiry-delay, max-redelivery-delay,
+ * redelivery-multiplier.
  */
-
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
@@ -60,6 +69,17 @@ public class AddressSettingsAttributesTestCase extends CliTestBase {
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails Try to read or write different values to Address settings
+     * attributes.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

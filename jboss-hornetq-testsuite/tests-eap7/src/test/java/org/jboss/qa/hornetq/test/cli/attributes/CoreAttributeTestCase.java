@@ -87,8 +87,36 @@ import java.util.Properties;
  * remoting-incoming-interceptors         undefined                                       LIST
  * remoting-interceptors                  undefined                                       LIST
  * remoting-outgoing-interceptors         undefined                                       LIST
+ * 
+ * 
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test write, read operation for core messaging attributes: Tested attributes :
+ * active, allow-failback, async-connection-execution-enabled, backup,
+ * check-for-live-server, clustered, create-bindings-dir, create-journal-dir,
+ * failover-on-shutdown, jmx-management-enabled, journal-sync-non-transactional,
+ * journal-sync-transactional, log-journal-write-rate, message-counter-enabled,
+ * persist-delivery-count-before-delivery, persist-id-cache,
+ * persistence-enabled, run-sync-speed-test, security-enabled, shared-store,
+ * started, wild-card-routing-enabled, backup-group-name, cluster-password,
+ * cluster-user, jmx-domain, journal-type, management-address,
+ * management-notification-address, replication-clustername, version,
+ * security-domain, connection-ttl-override, failback-delay,
+ * journal-buffer-size, journal-buffer-timeout, journal-file-size,
+ * memory-measure-interval, message-counter-sample-period,
+ * message-expiry-scan-period, security-invalidation-interval,
+ * server-dump-interval, transaction-timeout, transaction-timeout-scan-period,
+ * id-cache-size, journal-compact-min-files, journal-compact-percentage,
+ * journal-max-io, journal-min-files, memory-warning-threshold,
+ * message-counter-max-day-history, message-expiry-thread-priority,
+ * ,page-max-concurrent-io, perf-blast-pages, scheduled-thread-pool-max-size,
+ * remoting-incoming-interceptors, remoting-interceptors,
+ * remoting-outgoing-interceptors
+ *
+ *
  */
-
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
@@ -114,7 +142,16 @@ public class CoreAttributeTestCase extends CliTestBase {
     public void stopServer() {
         container(1).stop();
     }
-
+    /** 
+     * @tpTestDetails Test write, read operation for core messaging attributes. Type of attribute : String
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -122,7 +159,16 @@ public class CoreAttributeTestCase extends CliTestBase {
     public void stringWriteReadAttributeTest() throws Exception {
         writeReadAttributeTest("/stringCliAttributes.txt");
     }
-
+   /** 
+     * @tpTestDetails Test write, read operation for core messaging attributes. Type of attribute : Long
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -130,7 +176,16 @@ public class CoreAttributeTestCase extends CliTestBase {
     public void longWriteReadAttributeTest() throws Exception {
         writeReadAttributeTest("/longCliAttributes.txt");
     }
-
+    /** 
+     * @tpTestDetails Test write, read operation for core messaging attributes. Type of attribute : int
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -138,7 +193,16 @@ public class CoreAttributeTestCase extends CliTestBase {
     public void intWriteReadAttributeTest() throws Exception {
         writeReadAttributeTest("/intCliAttributes.txt");
     }
-
+    /** 
+     * @tpTestDetails Test write, read operation for core messaging attributes. Type of attribute : boolean
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to read/write attributes</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

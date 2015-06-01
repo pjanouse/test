@@ -57,7 +57,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     /**
      * @tpTestDetails Server with queue is started. Create producer and send 100
      * messages to queue. Once producer finishes, create transacted session
-     * which uses local transactions, create receiver and start receiving
+     * which uses local transactions, create consumer and start receiving
      * messages. Commit transaction after 50 received messages and use CLI
      * operation listDeliveringMessages to check number of delivering messages
      *
@@ -66,7 +66,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
      * <li>Create producer and send messages to queue</li>
      * <li>Wait for producer finish</li>
      * <li>Create transacted session (local transactions)</li>
-     * <li>Create receiver and start receiving messages</li>
+     * <li>Create consumer and start receiving messages</li>
      * <li>After some messages received, commit transaction</li>
      * <li>Use operation listDeliveringMessages to check number of delivering
      * messages</li>

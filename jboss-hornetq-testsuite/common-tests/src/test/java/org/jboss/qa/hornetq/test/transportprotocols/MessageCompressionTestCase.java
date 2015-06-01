@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
-
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -25,6 +24,17 @@ import java.io.IOException;
 /**
  * Testing compression of messages
  *
+ * @tpChapter Functional testing
+ * @tpSubChapter MESSAGE COMPRESSION - TEST SCENARIOS
+ *
+ * @tpJobLink
+ * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink
+ * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink
+ * https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ *
+ *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -38,7 +48,6 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     String queueName = "testQueue";
     String queueJndiName = "jms/queue/testQueue";
 
-
     @After
     public void stopAllServers() {
 
@@ -46,6 +55,21 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     *
+     * @tpTestDetails Start server and send 200 messages to queue (mix of small
+     * and large messages).Once producer finishes, try to receive messages in
+     * transacted session.
+     * @tpProcedure <ul>
+     * <li>start one server with deployed queue and enabled message
+     * compression</li>
+     * <li>send messages to queue - mix of small and large messages</li>
+     * <li>start consumer with transacted session which receives messages</li>
+     * </ul>
+     * @tpPassCrit check that all messages were correctly received
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -69,13 +93,10 @@ public class MessageCompressionTestCase extends HornetQTestCase {
         Assert.assertEquals("Number of sent and received messages is different. Sent: " + producer.getListOfSentMessages().size()
                 + "Received: " + receiver.getListOfReceivedMessages().size(), producer.getListOfSentMessages().size(),
                 receiver.getListOfReceivedMessages().size());
-        Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getListOfSentMessages().size()
-                , producer.getListOfSentMessages().size() == 0);
-        Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size()
-                , receiver.getListOfReceivedMessages().size() == 0);
+        Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getListOfSentMessages().size(), producer.getListOfSentMessages().size() == 0);
+        Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size() == 0);
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
-                + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size()
-                , NUMBER_OF_MESSAGES_PER_PRODUCER);
+                + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         container(1).stop();
     }
@@ -93,7 +114,7 @@ public class MessageCompressionTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if(ContainerUtils.isEAP6(container)) {
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClustered(true);
         }
         jmsAdminOperations.setJournalType("NIO");
