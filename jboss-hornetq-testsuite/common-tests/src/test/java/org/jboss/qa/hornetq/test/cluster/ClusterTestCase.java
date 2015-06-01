@@ -152,7 +152,7 @@ public class ClusterTestCase extends HornetQTestCase {
      *     <li>consumer reads messages from queue on node-2</li>
      *     <li>subscriber reads messages from topic on node-1</li>
      *     <li>start consumer on node-2 which reads messages from queue</li>
-     *     <li>wait for producer to receiver to finish and for consumer and subscriber to finish</li>
+     *     <li>wait for producer and receiver to finish and for consumer and subscriber to finish</li>
      *     <li>verify messages count</li>
      * </ul>
      * @tpPassCrit receiver and subscriber read all messages

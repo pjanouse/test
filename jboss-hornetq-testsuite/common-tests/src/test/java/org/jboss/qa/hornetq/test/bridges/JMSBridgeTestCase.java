@@ -24,6 +24,10 @@ import java.util.Random;
 
 /**
  * @author mnovak@redhat.com
+ * @tpChapter   BACKWARD COMPATIBILITY TESTING
+ * @tpSubChapter COMPATIBILITY OF JMS BRIDGES - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-integration-journal-and-jms-bridge-compatibility-matrix/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 public class JMSBridgeTestCase extends HornetQTestCase {
 
@@ -47,6 +51,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "AT_MOST_ONCE" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is older and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from older to newer server between inQueue and outQueue with "AT_MOST_ONCE" QoS</li>
+     *     <li>producer starts to send messages to inQueue on older server</li>
+     *     <li>receiver receives messages from outQueue on newer server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -56,6 +73,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         testBridge(container(1), container(3), AT_MOST_ONCE);
     }
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "ONCE_AND_ONLY_ONCE" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is older and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from older to newer server between inQueue and outQueue with "ONCE_AND_ONLY_ONCE" QoS</li>
+     *     <li>producer starts to send messages to inQueue on older server</li>
+     *     <li>receiver receives messages from outQueue on newer server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -65,6 +95,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         testBridge(container(1), container(3), ONCE_AND_ONLY_ONCE);
     }
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "DUPLICATES_OK" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is older and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from older to newer server between inQueue and outQueue with "DUPLICATES_OK" QoS</li>
+     *     <li>producer starts to send messages to inQueue on older server</li>
+     *     <li>receiver receives messages from outQueue on newer server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -74,6 +117,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         testBridge(container(1), container(3), DUPLICATES_OK);
     }
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "AT_MOST_ONCE" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is newer and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from newer to older server between inQueue and outQueue with "AT_MOST_ONCE" QoS</li>
+     *     <li>producer starts to send messages to inQueue on newer server</li>
+     *     <li>receiver receives messages from outQueue on older server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -83,6 +139,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         testBridge(container(3), container(1), AT_MOST_ONCE);
     }
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "ONCE_AND_ONLY_ONCE" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is newer and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from newer to older server between inQueue and outQueue with "ONCE_AND_ONLY_ONCE" QoS</li>
+     *     <li>producer starts to send messages to inQueue on newer server</li>
+     *     <li>receiver receives messages from outQueue on older server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -92,6 +161,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         testBridge(container(3), container(1), ONCE_AND_ONLY_ONCE);
     }
 
+    /**
+     * @tpTestDetails  Start two EAP 7.x servers. First is old and second new. Destinations are deployed to both of them
+     * Configure JMS bridge from InQueue to OutQueue(on other server) on one of them with "DUPLICATES_OK" quality of service.
+     * @tpProcedure <ul>
+     *     <li>start two servers with different minor version of EAP7, first is newer and deploy destinations on both of them</li>
+     *     <li>Configure jms bridge from newer to older server between inQueue and outQueue with "DUPLICATES_OK" QoS</li>
+     *     <li>producer starts to send messages to inQueue on newer server</li>
+     *     <li>receiver receives messages from outQueue on older server</li>
+     *     <li>wait for producer and receiver to finish</li>
+     *     <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -104,7 +186,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
-    public void testBridge(Container inServer, Container outServer, String qualityOfService) throws Exception {
+    public void     testBridge(Container inServer, Container outServer, String qualityOfService) throws Exception {
 
         prepareServers(inServer, outServer, qualityOfService);
         inServer.start();

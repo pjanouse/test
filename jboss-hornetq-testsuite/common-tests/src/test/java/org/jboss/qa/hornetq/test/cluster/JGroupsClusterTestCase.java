@@ -26,6 +26,12 @@ import javax.naming.Context;
  * This test also serves
  *
  * @author nziakova@redhat.com
+ * @tpChapter  Integration testing
+ * @tpSubChapter JGROUPS CLUSTER - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-tests
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ * @tpTestCaseDetails This is the same as ClusterTestCase, JGroups is used for cluster nodes discovery.
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
