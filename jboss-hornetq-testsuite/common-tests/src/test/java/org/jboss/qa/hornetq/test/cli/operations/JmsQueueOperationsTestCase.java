@@ -30,39 +30,43 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * OK
  * <p/>
  * Tested operations:
  * <p/>
- * add-jndi - create queue with dlq in address settings     - done
+ * add-jndi - create queue with dlq in address settings - done
  * <p/>
  * Needs some messages:
  * <p/>
- * change-message-priority                                  - done
- * change-messages-priority                                 - done
- * count-messages                                           - done
- * expire-message                                           - done
- * expire-messages                                          - done
- * list-message-counter-as-html                             - done
- * list-message-counter-as-json                             - done
- * list-message-counter-history-as-html                     - done
- * list-message-counter-history-as-json                     - done
- * list-messages                                            - done
- * list-messages-as-json                                    - done
- * move-message                                             - done
- * move-messages                                            - done
- * remove-message                                           - done
- * remove-messages                                          - done
- * reset-message-counter                                    - done
- * send-message-to-dead-letter-address                      - done
- * send-messages-to-dead-letter-address                     - done
+ * change-message-priority - done change-messages-priority - done count-messages
+ * - done expire-message - done expire-messages - done
+ * list-message-counter-as-html - done list-message-counter-as-json - done
+ * list-message-counter-history-as-html - done
+ * list-message-counter-history-as-json - done list-messages - done
+ * list-messages-as-json - done move-message - done move-messages - done
+ * remove-message - done remove-messages - done reset-message-counter - done
+ * send-message-to-dead-letter-address - done
+ * send-messages-to-dead-letter-address - done
  * <p/>
  * Needs org.jboss.qa.hornetq.apps.clients sending/receiving messages:
  * <p/>
- * pause                                                    - done
- * resume                                                   - done
+ * pause - done resume - done
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tested operations : add-jndi, change-message-priority,
+ * change-messages-priority, count-messages, expire-message, expire-messages,
+ * list-message-counter-as-html, list-message-counter-as-json,
+ * list-message-counter-history-as-html, list-message-counter-history-as-json,
+ * list-messages, list-messages-as-json, move-message, move-messages,
+ * remove-message, remove-messages, reset-message-counter,
+ * send-message-to-dead-letter-address, send-messages-to-dead-letter-address,
+ *
+ * For more details see current coverage:
+ * https://mojo.redhat.com/docs/DOC-185811
  *
  * @author Miroslav Novak mnovak@redhat.com
  */
@@ -148,7 +152,24 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 //        CliTestUtils.assertSuccess(r1);
 //
 //    }
-
+    /**
+     *
+     * @tpTestDetails Server is started. Create client which sends messages to
+     * servers queue. Using CLI commands try to call queue operations.
+     * Optionally validate for operations whether they are working correctly.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>create and start message producer for queue deployed on server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to invoke operation</li>
+     * <li>Optional: Validate that operation is working as expected</li>
+     * <li>stop message producer<li/>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit invocation of queue operations was successful
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -276,9 +297,9 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     private Result runOperation(final String operation, final String... params) {
         String cmd;
-        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
-        }else{
+        } else {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
         }
 

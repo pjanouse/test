@@ -25,10 +25,17 @@ import javax.jms.*;
 import javax.naming.Context;
 
 /**
- * Created by okalman on 2/9/15.
- * // TODO EAP7 list-delivering-messages operation missing
+ * Created by okalman on 2/9/15. // TODO EAP7 list-delivering-messages operation
+ * missing
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpSince EAP6
+ * @tpTestCaseDetails Test case simulates using CLI queue operations.There is
+ * only 1 server with deployed queue and CLI queue operations are executed.
  */
-
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
@@ -47,7 +54,27 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         container(1).stop();
     }
 
-
+    /**
+     * @tpTestDetails Server with queue is started. Create producer and send 100
+     * messages to queue. Once producer finishes, create transacted session
+     * which uses local transactions, create receiver and start receiving
+     * messages. Commit transaction after 50 received messages and use CLI
+     * operation listDeliveringMessages to check number of delivering messages
+     *
+     * @tpProcedure <ul>
+     * <li>Start one server with deployed queue</li>
+     * <li>Create producer and send messages to queue</li>
+     * <li>Wait for producer finish</li>
+     * <li>Create transacted session (local transactions)</li>
+     * <li>Create receiver and start receiving messages</li>
+     * <li>After some messages received, commit transaction</li>
+     * <li>Use operation listDeliveringMessages to check number of delivering
+     * messages</li>
+     * </ul>
+     *
+     * @tpPassCrit CLI operation listDeliveringMessages returns list which
+     * contains correct number of delivering messages
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -104,7 +131,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
             e.printStackTrace();
             Assert.assertTrue("Exception was caught", false);
 
-
         } finally {
             session.commit();
             session.close();
@@ -115,7 +141,22 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
 
     }
 
-
+    /**
+     * @tpTestDetails Server with queue is started. Create producer and send 10
+     * messages to queue. Once producer finishes, use CLI operation
+     * listScheduledMessages to check number of scheduled messages.
+     *
+     * @tpProcedure <ul>
+     * <li>start one server with deployed queue</li>
+     * <li>create producer and send messages to queue</li>
+     * <li>Wait for producer finish</li>
+     * <li>Use CLI operation listScheduledMessages to check number of scheduled
+     * messages</li>
+     * </ul>
+     * 
+     * @tpPassCrit CLI operation listScheduledMessages returns list which
+     * contains correct number of scheduled messages
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -149,7 +190,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         container.stop();
     }
 
-
     public int getListScheduledMessagesSize() throws Exception {
         CLI.Result r = runOperation("list-scheduled-messages");
         return r.getResponse().get("result").asList().size();
@@ -162,9 +202,9 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
 
     private CLI.Result runOperation(final String operation, final String... params) {
         String cmd;
-        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
-           cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
-        }else{
+        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+            cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
+        } else {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
         }
 

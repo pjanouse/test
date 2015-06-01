@@ -27,23 +27,22 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * Tested operations:
- * All done:
- * add-jndi
- * count-messages-for-subscription
- * drop-all-subscriptions
- * drop-durable-subscription
- * list-all-subscriptions
- * list-all-subscriptions-as-json
- * list-durable-subscriptions
- * list-durable-subscriptions-as-json
- * list-messages-for-subscription
- * list-messages-for-subscription-as-json
- * list-non-durable-subscriptions
- * list-non-durable-subscriptions-as-json
- * remove-messages
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tested operations: All done: add-jndi count-messages-for-subscription
+ * drop-all-subscriptions drop-durable-subscription list-all-subscriptions
+ * list-all-subscriptions-as-json list-durable-subscriptions
+ * list-durable-subscriptions-as-json list-messages-for-subscription
+ * list-messages-for-subscription-as-json list-non-durable-subscriptions
+ * list-non-durable-subscriptions-as-json remove-messages
+ * 
+ * For more details see current coverage:
+ * https://mojo.redhat.com/docs/DOC-185811
+ *
  *
  * @author Miroslav Novak mnovak@redhat.com
  */
@@ -72,8 +71,6 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     private final String ADDRESS_EAP6 = "/subsystem=messaging/hornetq-server=default/jms-topic=" + coreTopicName;
     private final String ADDRESS_EAP7 = "/subsystem=messaging-activemq/server=default/jms-topic=" + coreTopicName;
 
-
-
     @Before
     public void startServer() {
         container(1).start();
@@ -85,6 +82,27 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         container(1).stop();
     }
 
+    /**
+     *
+     * @tpTestDetails Server is started. Create subscriber and start
+     * subscription to servers topic. Create publisher and start publishing
+     * messages to servers topic. Using CLI commands try to call topic
+     * operations. Optionally validate for operations whether they are working
+     * correctly.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>create and start subscriber for topic deployed on server</li>
+     * <li>create and start publisher for topic deployed on server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to invoke operation</li>
+     * <li>Optional: Validate that operation is working as expected</li>
+     * <li>stop publisher<li/>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit invocation of topic operations was successful
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -97,7 +115,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         String clientId = "testSubscriberClientIdjmsTopicOperations";
         String subscriberName = "testSubscriber";
         logger.info("Starting subscriber");
-        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1),topicJndiName, clientId, subscriberName);
+        SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, clientId, subscriberName);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
         logger.info("Starting publisher");
@@ -171,9 +189,9 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private Result runOperation(final String operation, final String... params) {
         String cmd;
-        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
-        }else{
+        } else {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
         }
         return this.cli.executeCommand(cmd);
@@ -208,4 +226,3 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     }
 
 }
-

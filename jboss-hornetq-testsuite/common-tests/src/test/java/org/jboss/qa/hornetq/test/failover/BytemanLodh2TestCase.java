@@ -40,13 +40,26 @@ import java.io.PrintWriter;
 import java.util.*;
 
 /**
- * This is modified lodh 2 (kill/shutdown mdb servers) test case which is testing remote jca in cluster and have remote inqueue
- * and outqueue.
+ * This is modified lodh 2 (kill/shutdown mdb servers) test case which is
+ * testing remote jca in cluster and have remote inqueue and outqueue.
  * <p/>
  * This test can work with EAP 5.
  *
  * @author mnovak@redhat.com
  * @author msvehla@redhat.com
+ *
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER -
+ * TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpSince EAP6
+ * @tpTestCaseDetails Test case simulates server crashes and capability to
+ * recover with XA transaction. There are 4 servers. First 2 servers are in
+ * (jms) cluster and queues/topics are deployed to them. Other 2 servers are
+ * connected to first 2 servers through resource adapter. MDB deployed to other
+ * 2 servers is resending messaging from one destination to another. During this
+ * some of the servers are killed.
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -160,16 +173,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 with deployed MDB is
+     * killed on transaction commit. Restart Node 2. Read messages from
+     * OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -179,16 +202,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 with deployed MDB is
+     * killed on transaction prepare. Restart Node 2. Read messages from
+     * OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -198,16 +231,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 with deployed MDB is
+     * killed on transaction commit. Restart Node 2. Read messages from
+     * OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillWithFiltersOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -217,16 +260,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 with deployed MDB is
+     * killed on transaction prepare. Restart Node 2. Read messages from
+     * OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillWithFiltersOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -235,17 +288,27 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills jms servers.
+     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Once producer finishes, deploy MDBs (nodes 2, 4) which read
+     * messages from InQueue and sends them to OutQueue (in XA transaction).
+     * Node 1 is killed on transaction commit. Restart Node 1. Read messages
+     * from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-            @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -254,17 +317,27 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Kills jms servers.
+     * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 2000 messages (mix of small and large messages) to
+     * InQueue. Once producer finishes, deploy MDBs (nodes 2, 4) which read
+     * messages from InQueue and sends them to OutQueue (in XA transaction).
+     * Node 1 is killed on transaction prepare. Restart Node 1. Read messages
+     * from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-            @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -274,16 +347,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 5000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 and Node 4 with
+     * deployed MDBs are killed on transaction commit. Restart nodes and read
+     * messages from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -294,16 +377,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 5000 messages (mix of small and large messages) to
+     * InQueue. Deploy MDBs (nodes 2, 4) which read messages from InQueue and
+     * sends them to OutQueue (in XA transaction). Node 2 and Node 4 with
+     * deployed MDBs are killed on transaction prepare. Restart nodes and read
+     * messages from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -314,16 +407,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started,
+     * nondurable topic InTopic and queue OutQueue are deployed to both of them.
+     * Start publisher which publishes 2000 messages (mix of small and large
+     * messages) to InTopic. Deploy MDBs (nodes 2, 4) which read messages from
+     * InTopic and sends them to OutQueue (in XA transaction). Node 2 with
+     * deployed MDB is killed on transaction commit. Restart Node 2. Read
+     * messages from OutQueue.
+     *
+     * @tpPassCrit Number of received messages is not same as number of send messages. Receiver doesnt receive all messages.
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillWithTempTopicOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -334,16 +437,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started,
+     * nondurable topic InTopic and queue OutQueue are deployed to both of them.
+     * Start publisher which publishes 2000 messages (mix of small and large
+     * messages) to InTopic. Deploy MDBs (nodes 2, 4) which read messages from
+     * InTopic and sends them to OutQueue (in XA transaction). Node 2 with
+     * deployed MDB is killed on transaction prepare. Restart Node 2. Read
+     * messages from OutQueue.
+     *
+     * @tpPassCrit Number of received messages is not same as number of send messages. Receiver doesnt receive all messages.
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-            @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
-                    targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
+        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+                targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillWithTempTopicOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -354,16 +467,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 20000 messages (mix of small and large messages) to
+     * InQueue. Once producer finishes, deploy MDBs (nodes 2, 4) which read
+     * messages from InQueue and sends them to OutQueue (in XA transaction).
+     * Node 1 and Node 3 are killed on transaction commit. Restart nodes and
+     * read messages from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-            @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+        @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+        @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -374,16 +497,26 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     /**
      * Kills mdbs servers.
+     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started
+     * and queues InQueue and OutQueue are deployed to both of them. Start
+     * producer which sends 20000 messages (mix of small and large messages) to
+     * InQueue. Once producer finishes, deploy MDBs (nodes 2, 4) which read
+     * messages from InQueue and sends them to OutQueue (in XA transaction).
+     * Node 1 and Node 3 are killed on transaction prepare. Restart nodes and
+     * read messages from OutQueue.
+     *
+     * @tpPassCrit Number of send and received messages is the same
      */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-            @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
-                    targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+                targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
@@ -523,11 +656,11 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
         logger.info("Number of sent messages: "
                 + (producer1.getListOfSentMessages().size() + ", Producer to jms1 server sent: "
-                        + producer1.getListOfSentMessages().size() + " messages"));
+                + producer1.getListOfSentMessages().size() + " messages"));
 
         logger.info("Number of received messages: "
                 + (receiver1.getListOfReceivedMessages().size() + ", Consumer from jms1 server received: "
-                        + receiver1.getListOfReceivedMessages().size() + " messages"));
+                + receiver1.getListOfReceivedMessages().size() + " messages"));
 
         Assert.assertTrue("There are lost ", messageVerifier.verifyMessages());
 
@@ -572,7 +705,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     * Be sure that both of the servers are stopped before and after the test. Delete also the journal directory.
+     * Be sure that both of the servers are stopped before and after the test.
+     * Delete also the journal directory.
      */
     @Before
     @After
@@ -646,9 +780,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
          * JmsServerSettings .forContainer(ContainerType.EAP6_WITH_HORNETQ, containerName, this.getArquillianDescriptor())
          * .withClustering(GROUP_ADDRESS) .withPersistence() .withSharedStore() .withPaging(1024 * 1024, 10 * 1024) .create();
          */
-
         // .clusteredWith()
-
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setClustered(true);
@@ -696,9 +828,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
          * JmsServerSettings .forContainer(ContainerType.EAP6_WITH_HORNETQ, containerName, this.getArquillianDescriptor())
          * .withClustering(GROUP_ADDRESS) .withPersistence() .withSharedStore() .withPaging(1024 * 1024, 10 * 1024) .create();
          */
-
         // .clusteredWith()
-
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
