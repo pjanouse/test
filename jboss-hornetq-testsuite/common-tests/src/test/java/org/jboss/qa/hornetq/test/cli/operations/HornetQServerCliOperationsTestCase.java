@@ -42,53 +42,65 @@ import java.util.StringTokenizer;
 
 import static org.junit.Assert.*;
 
-
 /**
- * needs a connected client:
- * list-all-consumers-as-json      - done
- * list-producers-info-as-json      - done
- * reset-all-message-counter-histories  - done
- * reset-all-message-counters        - done
- * list-connections-as-json    - done
+ * needs a connected client: list-all-consumers-as-json - done
+ * list-producers-info-as-json - done reset-all-message-counter-histories - done
+ * reset-all-message-counters - done list-connections-as-json - done
  * <p/>
- * list-connection-ids -> take connection id and use in        - done
+ * list-connection-ids -> take connection id and use in - done
  * <p/>
- * list-sessions              - done
- * list-sessions-as-json - > take session id and use in       - done
- * get-session-creation-time                  - done
- * list-consumers-as-json                  - done
+ * list-sessions - done list-sessions-as-json - > take session id and use in -
+ * done get-session-creation-time - done list-consumers-as-json - done
  * <p/>
  * list-remote-addresses -> take IP + session from list-sessions and use in
  * <p/>
- * get-last-sent-message-id                - done
- * close-connections-for-address                - done
+ * get-last-sent-message-id - done close-connections-for-address - done
  * <p/>
  * list-sessions -> take session id and use in
  * <p/>
- * list-target-destinations        - done
+ * list-target-destinations - done
  * <p/>
  * <p/>
  * <p/>
  * <p/>
- * needs prepared transaction
- * commit-prepared-transaction                 - done
- * list-heuristic-committed-transactions         - done
- * list-heuristic-rolled-back-transactions              - done
- * list-prepared-transaction-details-as-html        - done
- * list-prepared-transaction-details-as-json        - done
- * list-prepared-transaction-jms-details-as-html    - done
- * list-prepared-transaction-jms-details-as-json    - done
- * list-prepared-transactions           - done
- * rollback-prepared-transaction          - done
+ * needs prepared transaction commit-prepared-transaction - done
+ * list-heuristic-committed-transactions - done
+ * list-heuristic-rolled-back-transactions - done
+ * list-prepared-transaction-details-as-html - done
+ * list-prepared-transaction-details-as-json - done
+ * list-prepared-transaction-jms-details-as-html - done
+ * list-prepared-transaction-jms-details-as-json - done
+ * list-prepared-transactions - done rollback-prepared-transaction - done
  * <p/>
- * needs live backup pair
- * force-failover      -done
+ * needs live backup pair force-failover -done
  * <p/>
- * needs default config
- * get-address-settings-as-json  - done
- * get-connectors-as-json        - done
- * get-roles                     -done
- * get-roles-as-json   -done
+ * needs default config get-address-settings-as-json - done
+ * get-connectors-as-json - done get-roles -done get-roles-as-json -done
+ *
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Perform operations on server. Tested operations :
+ * list-all-consumers-as-json, list-producers-info-as-json,
+ * reset-all-message-counter-histories, reset-all-message-counters,
+ * list-connections-as-json, list-connection-ids, list-sessions,
+ * list-sessions-as-json, get-session-creation-time, list-consumers-as-json ,
+ * list-remote-addresses, get-last-sent-message-id,
+ * close-connections-for-address, list-sessions, list-target-destinations, needs
+ * prepared transaction, commit-prepared-transaction,
+ * list-heuristic-committed-transactions,
+ * list-heuristic-rolled-back-transactions,
+ * list-prepared-transaction-details-as-html,
+ * list-prepared-transaction-details-as-json,
+ * list-prepared-transaction-jms-details-as-html,
+ * list-prepared-transaction-jms-details-as-json, list-prepared-transactions,
+ * rollback-prepared-transaction, needs live backup pair, force-failover,
+ * get-address-settings-as-json, get-connectors-as-json, get-roles,
+ * get-roles-as-json
+ *
+ * @tpInfo For more details see current coverage:
+ * https://mojo.redhat.com/docs/DOC-185811
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  * @author Miroslav Novak mnovak@redhat.com
@@ -101,7 +113,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger logger = Logger.getLogger(HornetQServerCliOperationsTestCase.class);
-
 
     private static final String MODULE_EAP6 = "/subsystem=messaging/hornetq-server=default";
     private static final String MODULE_EAP7 = "/subsystem=messaging-activemq/server=default";
@@ -175,7 +186,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
             // Step 18. Prepare
             xaResource.prepare(xid);
 
-
         } catch (Exception ex) {
             logger.error("Error: ", ex);
         } finally {
@@ -197,6 +207,21 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         }
     }
 
+    /**
+     * @tpTestDetails Server is started and prepared for XA transactions. 10
+     * transactions are prepared. Using CLI invoke operations with transactions.
+     * Optionally validate for operations whether they are working correctly.
+     * @tpProcedure <ul>
+     * <li>start one server configured for XA transactions</li>
+     * <li>prepare transactions</li>
+     * <li>connect to CLI</li>
+     * <li>try to invoke operation</li>
+     * <li>optional: Validate that operation is working as expected</li>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit Invocation of operations was successful. Optionally:
+     * operations returned expected result
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -233,7 +258,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         logger.info("Result list-prepared-transaction-jms-details-as-json: " + r5.getResponse().asString());
         CliTestUtils.assertSuccess(r5);
 
-
         Result r7 = runOperation("list-prepared-transactions", null);
         logger.info("Result list-prepared-transactions: " + r7.getResponse().asString());
         CliTestUtils.assertSuccess(r7);
@@ -258,7 +282,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         logger.info("Result rollback-prepared-transaction: " + r6.getResponse().asString());
         CliTestUtils.assertSuccess(r6);
         Assert.assertTrue("rollback-prepared-transaction result must be true", Boolean.valueOf(r6.getResponse().get("result").asString()));
-
 
         preparedTransaction = r7.getResponse().get("result").asList().get(1).asString();
         stringTokenizer = new StringTokenizer(preparedTransaction);
@@ -298,6 +321,18 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     }
 
+    /**
+     * @tpTestDetails Two servers prepared for dedicated topology are started
+     * (Server1 - live, Server2 - backup). Invoke operation force-failover on
+     * live server and check whether backup server is alive.
+     *
+     * @tpProcedure <ul>
+     * <li>start two server configured for dedicated topology</li>
+     * <li>use Cli operation to force failover on live server</li>
+     * <li>check backup server is alive</li>
+     * </ul>
+     * @tpPassCrit Backup server is alive.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -316,9 +351,24 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         // check that backup started
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
-
     }
 
+    /**
+     * @tpTestDetails Server with deployed queue and topic is started. Start
+     * producer/publisher and consumer/subscriber. Using CLI commands try to
+     * invoke operations. Optionally validate for operations whether they are
+     * working correctly.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>start clients for server</li>
+     * <li>connect to CLI</li>
+     * <li>try to invoke operation</li>
+     * <li>optional: Validate that operation is working as expected</li>
+     * <li>stop clients and server<li/>
+     * </ul>
+     * @tpPassCrit Invocation of operations was successful. Optionally:
+     * operations returned expected result
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -379,7 +429,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         logger.info("Result list-connections-as-json: " + r6.getResponse().asString());
         CliTestUtils.assertSuccess(r6);
 
-
         // take connection id and use for testing of list-sessions
         String connectionId = null;
         String sessionId = null;
@@ -416,11 +465,9 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         logger.info("Result list-sessions-as-json: " + r8.getResponse().asString());
         CliTestUtils.assertSuccess(r8);
 
-
         Result r9 = runOperation("get-session-creation-time", "session-id=" + sessionId);
         logger.info("Result get-session-creation-time: " + r9.getResponse().asString());
         CliTestUtils.assertSuccess(r9);
-
 
         // test list-remote-addresses
         Result r11 = runOperation("list-remote-addresses", null);
@@ -449,7 +496,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         subscriberClientAck.join();
         container(1).stop();
 
-
     }
 
     private void prepareServer(Container container) {
@@ -466,6 +512,17 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         container.stop();
     }
 
+    /**
+     * @tpTestDetails One server is started. Invoke Cli operation
+     * get-connectors-as-json. Check success of operation.
+     *
+     * @tpProcedure <ul>
+     * <li>start server</li>
+     * <li>use Cli operation to get connectors</li>
+     * <li>check operation success</li>
+     * </ul>
+     * @tpPassCrit Operation was executed successfully
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -485,7 +542,20 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //        assertEquals("Incorrect connectors info", expected, response.getResponse().get("result").asString());
     }
 
-
+    /**
+     * @tpTestDetails One server with configured address settings is started.
+     * Invoke Cli operation focused on getting address settings and check
+     * correct result and success of operation. Tested operation :
+     * get-address-settings-as-json
+     *
+     * @tpProcedure <ul>
+     * <li>start configured server</li>
+     * <li>invoke Cli operation</li>
+     * <li>check operation success and result</li>
+     * </ul>
+     * @tpPassCrit Operation was executed successfully with result containing
+     * expected output
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -517,7 +587,6 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //                "\"addressFullMessagePolicy\":\"PAGE\",\"redistributionDelay\":1000," +
 //                "\"redeliveryDelay\":0,\"pageSizeBytes\":2097152,\"sendToDLAOnNoRoute\":false," +
 //                "\"maxDeliveryAttempts\":200}";
-
 //        String expected = "{\"maxSizeBytes\":10485760,"
 //                + "\"expiryAddress\":\"jms.queue.ExpiryQueue\","
 //                + "\"redeliveryMultiplier\":1,"
@@ -534,8 +603,19 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 //                + "\"maxDeliveryAttempts\":10}";
 //        assertEquals("Incorrect address settings info", expected, response.getResponse().get("result").asString());
     }
-
-
+    /**
+     * @tpTestDetails One server is started. Invoke Cli operation focused on
+     * getting roles and check correct result and success of operations. Tested
+     * operations : get-roles-as-json, get-roles
+     *
+     * @tpProcedure <ul>
+     * <li>start  server</li>
+     * <li>invoke Cli operations</li>
+     * <li>check operations success and result</li>
+     * </ul>
+     * @tpPassCrit Operations were executed successfully with result containing
+     * expected output
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -564,19 +644,46 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
                 result.get("delete-non-durable-queue").asBoolean());
         container(1).stop();
     }
-
-
+    /**
+     * @tpTestDetails One server is started. Invoke Cli operations focused on
+     * getting connection info. Check success of operations.Tested operations :
+     * list-connection-ids, list-connections-as-json
+     *
+     * @tpProcedure <ul>
+     * <li>start server</li>
+     * <li>invoke Cli operations</li>
+     * <li>check operations success</li>
+     * </ul>
+     * @tpPassCrit Operations were executed successfully.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testGettingConnectionInfo() throws Exception {
         container(1).start();
-        this.runOperation("list-connection-ids");
-        this.runOperation("list-connections-as-json");
+        
+        Result response1 = this.runOperation("list-connection-ids");
+        assertTrue("Operation list-connection-ids should not fail", response1.isSuccess());
+        
+        Result response2 = this.runOperation("list-connections-as-json");
+        assertTrue("Operation list-connections-as-json should not fail", response2.isSuccess());
+        
         container(1).stop();
     }
-
+    /**
+     * @tpTestDetails One server is started. Invoke Cli operations
+     * list-connection-ids and list-remote-addresses. Check that operation
+     * list-connection-ids was successful and response has a correct size.
+     *
+     * @tpProcedure <ul>
+     * <li>start server</li>
+     * <li>invoke Cli operations</li>
+     * <li>check operation success and response</li>
+     * </ul>
+     * @tpPassCrit Operations were executed successfully and response contains
+     * correct number of connection ids.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -589,7 +696,18 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         assertEquals("Incorrect response size", numberOfExpectedConnections, response.getResponse().get("result").asList().size());
         container(1).stop();
     }
-
+    /**
+     * @tpTestDetails One server with deployed queue is started. Create producer
+     * and send message to queue.Invoke Cli operations to list sessions for
+     * connection (list-sessions) and operation list-producers-info-as-json.
+     *
+     * @tpProcedure <ul>
+     * <li>start server with deployed queue</li>
+     * <li>send message to queue</li>
+     * <li>invoke Cli operations</li>
+     * </ul>
+     * @tpPassCrit Operations were executed successfully.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -625,17 +743,15 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         container(1).stop();
     }
 
-
     private Result runOperation(final String operation, final String... params) {
         String cmd;
-        if(container(1).getContainerType()==CONTAINER_TYPE.EAP6_CONTAINER){
+        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(MODULE_EAP6, ":" + operation, params);
-        }else{
+        } else {
             cmd = CliUtils.buildCommand(MODULE_EAP7, ":" + operation, params);
         }
         return this.cli.executeCommand(cmd);
     }
-
 
     private void prepareQueueOnServer() {
         container(1).start();
@@ -648,7 +764,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param container        test container - defined in arquillian.xml
+     * @param container test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
     protected void prepareLiveServer(Container container, String journalDirectory) {
@@ -664,12 +780,12 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if(ContainerUtils.isEAP6(container)) {
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setFailoverOnShutdown(true);
             jmsAdminOperations.setSharedStore(true);
             jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
-        }else{
+        } else {
             jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
         }
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -681,31 +797,28 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        if(ContainerUtils.isEAP6(container)){
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP6, "");
-        }else{
+        } else {
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP7, "");
         }
-
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
 
-        if(ContainerUtils.isEAP6(container)){
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP6);
-        }else{
+        } else {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP7);
         }
-
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -732,15 +845,15 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        if(ContainerUtils.isEAP6(container)) {
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setBackup(true);
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setFailoverOnShutdown(true);
             jmsAdminOperations.setSharedStore(true);
             jmsAdminOperations.setAllowFailback(true);
             jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
-        }else{
-            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000,true,false,false,null,null,null,null);
+        } else {
+            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000, true, false, false, null, null, null, null);
         }
 
         jmsAdminOperations.setJournalType("ASYNCIO");
@@ -752,11 +865,10 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
 
-
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        if(ContainerUtils.isEAP6(container)){
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP6, "");
-        }else{
+        } else {
             jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorNameEAP7, "");
         }
 
@@ -764,12 +876,11 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        if(ContainerUtils.isEAP6(container)){
+        if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP6);
-        }else{
+        } else {
             jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorNameEAP7);
         }
-
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);

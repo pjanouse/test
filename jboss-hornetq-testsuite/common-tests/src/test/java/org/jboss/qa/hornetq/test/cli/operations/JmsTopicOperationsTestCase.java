@@ -33,15 +33,14 @@ import java.util.List;
  * @tpSubChapter Administration of HornetQ component
  * @tpJobLink tbd
  * @tpTcmsLink tbd
- * @tpTestCaseDetails Tested operations: All done: add-jndi count-messages-for-subscription
+ * @tpTestCaseDetails Tested operations: add-jndi count-messages-for-subscription
  * drop-all-subscriptions drop-durable-subscription list-all-subscriptions
  * list-all-subscriptions-as-json list-durable-subscriptions
  * list-durable-subscriptions-as-json list-messages-for-subscription
  * list-messages-for-subscription-as-json list-non-durable-subscriptions
  * list-non-durable-subscriptions-as-json remove-messages
  * 
- * For more details see current coverage:
- * https://mojo.redhat.com/docs/DOC-185811
+ * @tpInfo For more details see current coverage: https://mojo.redhat.com/docs/DOC-185811
  *
  *
  * @author Miroslav Novak mnovak@redhat.com

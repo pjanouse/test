@@ -26,9 +26,15 @@ import static org.junit.Assert.*;
 /**
  * Set of journal export/import tests.
  *
- * Tests for HornetQ journal export tool. These tests send messages with various properties to HornetQ, let HornetQ to write
- * them into the journal, shut down the server, start it again and read the message and validate its properties (and if the
- * export/import worked in the first place).
+ * @tpChapter Functional testing
+ * @tpSubChapter JOURNAL XML EXPORT/IMPORT TOOL
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests for ActiveMQ journal export tool. These tests send
+ * messages with various properties to ActiveMQ, let ActiveMQ to write them into
+ * the journal, shut down the server, start it again and read the message and
+ * validate its properties (and if the export/import worked in the first place).
+ *
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -46,7 +52,24 @@ public class JournalExportImportTestCase extends HornetQTestCase {
      * Exporting message with null value in its properties
      *
      * @see <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     *
+     * @tpTestDetails Start single server. Send text message with null property
+     * to the destination on the server. Once sent, shut the server down. Export
+     * journal and then import it to the clean server instance. Read the
+     * messages from the destination.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Connect to the server with the client and send test messages to the queue.</li>
+     * <li>Shut the server down and export its HornetQ journal to XML file.</li>
+     * <li>Clean the server directories and start it again.</li>
+     * <li>Import the journal</li>
+     * <li>Read the messages from the queue.</li>
+     * </ul>
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     * @tpInfo <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
      */
+    
     @Test
     @RunAsClient
     @CleanUpBeforeTest

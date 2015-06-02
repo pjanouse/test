@@ -65,8 +65,7 @@ import java.util.List;
  * remove-message, remove-messages, reset-message-counter,
  * send-message-to-dead-letter-address, send-messages-to-dead-letter-address,
  *
- * For more details see current coverage:
- * https://mojo.redhat.com/docs/DOC-185811
+ * @tpInfo For more details see current coverage: https://mojo.redhat.com/docs/DOC-185811
  *
  * @author Miroslav Novak mnovak@redhat.com
  */

@@ -19,10 +19,19 @@ import javax.naming.Context;
 /**
  * Created by mnovak on 9/22/14.
  *
- * Test whether there is dup id cache leak when queue is created and deleted many times.
+ * Test whether there is dup id cache leak when queue is created and deleted
+ * many times.
  *
- * This is basically JMS request/reply with JMS standalone org.jboss.qa.hornetq.apps.clients.
+ * This is basically JMS request/reply with JMS standalone
+ * org.jboss.qa.hornetq.apps.clients.
  *
+ * @tpChapter Functional testing
+ * @tpSubChapter MESSAGE CONTENT - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests whether there is duplicate id cache leak when queue is
+ * created and deleted many times. This is basically JMS request/reply with JMS
+ * standalone org.jboss.qa.hornetq.apps.clients. 
  */
 public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
 
@@ -32,8 +41,22 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
     private String inQueueJndiName = "jms/queue/" + inQueue;
 
     /**
-     * Start producer
-     * @throws Exception
+     *
+     * @tpTestDetails Server is started. Send messages with duplicated header to
+     * the destination on the server, then receive them all. Once all messages
+     * are received, delete queue. Repeat this procedure on the same server
+     * instance without restarting the server.
+     * @tpProcedure <ul>
+     * <li>Start server</li>
+     * <li>Create temporary queue</li>
+     * <li>Connect to the server with the producer and send test messages to the
+     * queue.</li>
+     * <li>Connect to the server with consumer and receive all messages from the queue</li>
+     * <li>Delete temporary queue</li>
+     * <li>Check that consumer received all messages</li> 
+     * <li>Repeat this procedure (starting with creating new temporary queue) for 300000 times</li>
+     * </ul>
+     * @tpPassCrit All messages are successfully received in every iteration
      */
     @Test
     @RunAsClient
