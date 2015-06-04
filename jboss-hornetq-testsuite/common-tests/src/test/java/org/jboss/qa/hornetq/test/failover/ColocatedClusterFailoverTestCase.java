@@ -32,8 +32,15 @@ import org.junit.runner.RunWith;
 import javax.jms.Session;
 import java.io.File;
 
+
 /**
- * @author mnovak@redhat.com
+ *
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-ha-failover-colocated-cluster/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
+ * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
 @RunWith(Arquillian.class)
 public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
@@ -163,7 +170,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //            logger.info("########################################");
 //            stopServer(CONTAINER2_NAME);
         }
-        Thread.sleep(200000); // give some time to org.jboss.qa.hornetq.apps.clients
+        Thread.sleep(20000); // give some time to org.jboss.qa.hornetq.apps.clients
 
         logger.info("########################################");
         logger.info("Stop org.jboss.qa.hornetq.apps.clients - this will stop producers");
@@ -189,6 +196,25 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     /**
      * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated topology with deployed destinations. Producer sends messages to
+     * inQueue. When producer is done, MDBs are deployed to both servers, consuming messages fom inQueue and sending them
+     * to outQueue. When 10% of messages are transferred to outQueue node-2 is killed. After 50% of messages are processed
+     * backup status is checked if is alive. Then container 2 is started again and failback of second live server is checked.
+     * When all messages are processed, consumer is started and consumes messages from outQueue on node-1.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated topology with destinations</li>
+     *     <li>start producer and send messages to inQueue</li>
+     *     <li>deploy MDBs to both nodes</li>
+     *     <li>wait until 10% of messages are processed</li>
+     *     <li>kill node-2</li>
+     *     <li>wait until 50% of messages are processed</li>
+     *     <li>check if backup server on node-1 comes alive</li>
+     *     <li>start node-2 again</li>
+     *     <li>check failback of live server on node-2</li>
+     *     <li>when all messages are processed, consume all messages form outQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit backup comes alive after node-2 is killed, live comes alive win node-2 is started, receiver
+     * gets all messages which was sent
      */
     @Test
     @RunAsClient
@@ -201,6 +227,25 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     /**
      * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated topology with deployed destinations. Producer sends messages to
+     * inQueue. When producer is done, MDBs are deployed to both servers, consuming messages fom inQueue and sending them
+     * to outQueue. When 10% of messages are transferred to outQueue node-2 is shutdown. After 50% of messages are processed
+     * backup status is checked if is alive. Then container 2 is started again and failback of second live server is checked.
+     * When all messages are processed, consumer is started and consumes messages from outQueue on node-1.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated topology with destinations</li>
+     *     <li>start producer and send messages to inQueue</li>
+     *     <li>deploy MDBs to both nodes</li>
+     *     <li>wait until 10% of messages are processed</li>
+     *     <li>shutdown node-2</li>
+     *     <li>wait until 50% of messages are processed</li>
+     *     <li>check if backup server on node-1 comes alive</li>
+     *     <li>start node-2 again</li>
+     *     <li>check failback of live server on node-2</li>
+     *     <li>when all messages are processed, consume all messages form outQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit backup comes alive after node-2 is killed, live comes alive win node-2 is started, receiver
+     * gets all messages which was sent
      */
     @Test
     @RunAsClient
@@ -305,6 +350,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in cluster with deployed destinations. Producer sends normal messages with _HQ_DUPL_ID to
+     * inQueue on node-1. Half of messages are loadbalanced to node-2. When producer finishes, node-2 is killed and started again.
+     * Consumer starts consuming messages from inQueue on node-1. All loadbalanced messages should be sent back to node-1.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in cluster with destinations</li>
+     *     <li>start producer and send normal messages with _HQ_DUPL_ID to inQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>kill node-2 and start it again</li>
+     *     <li>Start consumer and consume messages from inQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -313,6 +373,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailInCluster(false, new TextMessageBuilder(10));
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in cluster with deployed destinations. Producer sends normal messages with _HQ_DUPL_ID to
+     * inQueue on node-1. Half of messages are loadbalanced to node-2. When producer finishes, node-2 is shutdown and started again.
+     * Consumer starts consuming messages from inQueue on node-1. All loadbalanced messages should be sent back to node-1.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in cluster with destinations</li>
+     *     <li>start producer and send normal messages with _HQ_DUPL_ID to inQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>shutdown node-2 and start it again</li>
+     *     <li>Start consumer and consume messages from inQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -321,6 +396,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailInCluster(true, new TextMessageBuilder(10));
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in cluster with deployed destinations. Producer sends large messages with _HQ_DUPL_ID to
+     * inQueue on node-1. Half of messages are loadbalanced to node-2. When producer finishes, node-2 is killed and started again.
+     * Consumer starts consuming messages from inQueue on node-1. All loadbalanced messages should be sent back to node-1.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in cluster with destinations</li>
+     *     <li>start producer and send large messages with _HQ_DUPL_ID to inQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>kill node-2 and start it again</li>
+     *     <li>Start consumer and consume messages from inQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -329,6 +419,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailInCluster(false, new ClientMixMessageBuilder(120, 200));
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in cluster with deployed destinations. Producer sends large messages with _HQ_DUPL_ID to
+     * inQueue on node-1. Half of messages are loadbalanced to node-2. When producer finishes, node-2 is shutdown and started again.
+     * Consumer starts consuming messages from inQueue on node-1. All loadbalanced messages should be sent back to node-1.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in cluster with destinations</li>
+     *     <li>start producer and send large messages with _HQ_DUPL_ID to inQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>shutdown node-2 and start it again</li>
+     *     <li>Start consumer and consume messages from inQueue on node-1</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -398,6 +503,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-1
+     * is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -406,6 +529,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(1), false, true);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending large messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-1
+     * is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -414,6 +555,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(1), true, true);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-1
+     * is shutdown.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving shutdown node-1</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -422,6 +581,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(1), false, false);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending large messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-1
+     * is shutdown.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving shutdown node-1</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -430,6 +607,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(1), true, false);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-2
+     * is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving kill node-2</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -439,6 +634,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(2), false, true);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending large messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-2
+     * is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving kill node-2</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -448,6 +661,24 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(2), true, true);
     }
 
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-2
+     * is shutdown.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving shutdown node-2</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -457,6 +688,25 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testGroupingFailover(container(2), false, false);
     }
 
+
+    /**
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations. Message grouping
+     * is configured in this way: Live server on node-1 has LOCAL message-grouping handler and backup server for live on
+     * node-2 has REMOTE handler. Live server on node-2 has REMOTE handler and backup server for live on node-1 has LOCAL handler.
+     * Producer starts sending large messages with group id to inQueue on node-1, consumer consumes them on node-2. During this process node-2
+     * is shutdown.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>configure message grouping on nodes in ths way: Node-1:live-LOCAL, backup-REMOTE and
+     *     Node-2: live-REMOTE, backup-LOCAL</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-2</li>
+     *     <li>during sending and receiving shutdown node-2</li>
+     *     <li>producer makes failover on backup and continues in sending messages</li>
+     *     <li>wait for producer and consumer to finish and verify sent and received messages</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages
+     *
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -651,7 +901,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception
+     *
      */
     @Test
     @RunAsClient
@@ -663,7 +924,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is shutdown.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving shutdown node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception
+     *
      */
     @Test
     @RunAsClient
@@ -675,7 +947,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using SESSION_TRANSACTED session. During this process node-1 is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception
+     *
      */
     @Test
     @RunAsClient
@@ -686,7 +969,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -697,7 +992,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with NIO journal type with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology with NIO journal type</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -709,7 +1016,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using SESSION_TRANSACTED session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -720,7 +1039,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with NIO journal type with deployed destinations.
+     * Producer starts sending messages to inQueue on node-1, consumer consumes them on same node.
+     * Both clients are using SESSION_TRANSACTED session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology with NIO journal type</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -731,16 +1062,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
 
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailbackTransAckQueueWi() throws Exception {
-        testFailover(Session.SESSION_TRANSACTED, true);
-    }
 
 
 //    /**
@@ -754,7 +1075,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inTopic on node-1, subscriber reads them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and subscriber make failover on backup and continue in sending and receiving messages</li>
+     *     <li>wait for producer and subscriber to finish</li>
+     * </ul>
+     * @tpPassCrit subscriber get all sent messages, producer sends all messages, none of them gets any exception
+     *
      */
     @Test
     @RunAsClient
@@ -765,7 +1097,18 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inTopic on node-1, subscriber reads them on same node.
+     * Both clients are using SESSION_TRANSACTED session. During this process node-1 is killed.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and subscriber make failover on backup and continue in sending and receiving messages</li>
+     *     <li>wait for producer and subscriber to finish</li>
+     * </ul>
+     * @tpPassCrit subscriber get all sent messages, producer sends all messages, none of them gets any exception
+     *
      */
     @Test
     @RunAsClient
@@ -786,7 +1129,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inTopic on node-1, subscriber reads them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and subscriber make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -797,7 +1152,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inTopic on node-1, subscriber reads them on same node.
+     * Both clients are using CLIENT_ACKNOWLEDGE session. During this process node-1 is shutdown, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving shutdown node-1</li>
+     *     <li>producer and subscriber make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -808,7 +1175,19 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @tpTestDetails Two nodes are started in colocated cluster topology with deployed destinations.
+     * Producer starts sending messages to inTopic on node-1, subscriber reads them on same node.
+     * Both clients are using SESSION_TRANSACTED session. During this process node-1 is killed, after while node-1 is started again
+     * @tpProcedure <ul>
+     *     <li>start two nodes in colocated cluster topology</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and subscriber make failover on backup and continue in sending and receiving messages</li>
+     *     <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     *     <li>wait for producer and consumer to finish</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, producer sends all messages, none of them gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
