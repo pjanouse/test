@@ -44,7 +44,15 @@ import static org.junit.Assert.assertTrue;
  * are delivered if one source/target server is killed/shutdowned or when there are network
  * problems.
  * <p/>
- *
+ * 
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter NETWORK FAILURE OF HORNETQ CORE BRIDGES - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Basic tests for transfer messages over core-bridge. Here
+ * is tested whether all messages are delivered if one source/target server is
+ * killed/shutdown or when there are network problems.
+ * 
  * @author pslavice@redhat.com
  * @author mnovak@redhat.com
  */
@@ -73,6 +81,21 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Normal message (not large message), byte message
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. There is bridge configured between these
+     * two servers/queues. Send normal byte messages into InQueue and read from OutQueue.
+     * During sending and reading of messages simulate temporary network
+     * failure.
+     *
+     * @tpProcedure <ul>
+     * <li>Start Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Send normal byte messages to inQueue, read them form OutQueue</li>
+     * <li>Simulate temporary network failure</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -86,6 +109,21 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Large message, byte message
      *
      * @throws InterruptedException if something is wrong
+     *
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. There is bridge configured between these
+     * two servers/queues. Send large byte messages into InQueue and read from OutQueue.
+     * During sending and reading of messages simulate temporary network
+     * failure.
+     *
+     * @tpProcedure <ul>
+     * <li>Start Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Send large byte messages to InQueue, read them form OutQueue</li>
+     * <li>Simulate temporary network failure</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -95,10 +133,23 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         testNetworkProblems(new ByteMessageBuilder(1024 * 1024));
     }
 
-    /**
+     /**
      * Normal message (not large message), byte message
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. There is bridge configured between these
+     * two servers/queues. Send 10 normal byte messages into InQueue, then read them from
+     * OutQueue.
+     *
+     * @tpProcedure <ul>
+     * <li>Start Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Send normal byte messages to InQueue, read them form OutQueue</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue on target Node 2. Receiver received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -112,6 +163,19 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Large message, byte message
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. There is bridge configured between these
+     * two servers/queues. Send 10 large byte messages into InQueue, then read them from
+     * OutQueue.
+     *
+     * @tpProcedure <ul>
+     * <li>Start Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Send large byte messages to InQueue, read them form OutQueue</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue on target Node 2. Receiver received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -125,6 +189,22 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Large message, text message
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. There is bridge configured between these
+     * two servers/queues. Send 10 large text messages into InQueue, then read them from
+     * OutQueue.
+     *
+     * @tpProcedure <ul>
+     * <li>Start Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Send large text messages to InQueue, read them form OutQueue</li>
+     * <li>Check delivery of all messages</li>
+     * <li>Verify received messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue on target Node 2.
+     * Receiver received all messages send by producer. Received messages have
+     * correct size and type.
      */
     @Test
     @RunAsClient
@@ -145,6 +225,21 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Starts target server later
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. Queue is deployed on both - Node 1
+     * and Node 2. Node 1 (source node) is started and messages are sent to it.
+     * Configure bridge between these two servers/queues. Node 2 (target node)
+     * is started and messages are read from it.
+     *
+     * @tpProcedure <ul>
+     * <li>Create queues on two servers</li>
+     * <li>Start source server and send messages to the queue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Start target server and receive messages from the queue</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -158,6 +253,21 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Starts target server later - large messages
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. Queue is deployed on both - Node 1
+     * and Node 2. Node 1 (source node) is started and large byte messages are
+     * sent to it. Configure bridge between these two servers/queues. Node 2
+     * (target node) is started and messages are read from it.
+     *
+     * @tpProcedure <ul>
+     * <li>Create queues on two servers</li>
+     * <li>Start source server and send large byte messages to the queue</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Start target server and receive messages from the queue</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -171,6 +281,24 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Starts source server later
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Messages are
+     * sent to InQueue deployed on Node 1 (source node). Node 1 is then
+     * restarted. Bridge between these two servers/queues is configured.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Send messages to InQueue on Node 1</li>
+     * <li>Restart Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -184,6 +312,24 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Starts source server later - large message
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Large byte
+     * messages are sent to InQueue deployed on Node 1 (source node). Node 1 is
+     * then restarted. Bridge between these two servers/queues is configured.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with deployed OutQueue</li>
+     * <li>Send large byte messages to InQueue on Node 1</li>
+     * <li>Restart Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @RunAsClient
@@ -197,6 +343,23 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Kills source server - normal messages
      *
      * @throws InterruptedException if something is wrong
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Messages are
+     * sent to InQueue deployed on Node 1 (source node). Bridge between
+     * servers/queues is configured. Node 1 is then killed and started again.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with
+     * deployed OutQueue</li>
+     * <li>Send messages to InQueue on Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Kill Node 1, then start it again</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @BMRules(
@@ -228,6 +391,24 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Kills target server - normal messages
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Messages are
+     * sent to InQueue deployed on Node 1 (source node). Bridge between
+     * servers/queues is configured. Node 2 (target node) is then killed and started again.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with
+     * deployed OutQueue</li>
+     * <li>Send messages to InQueue on Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Kill Node 2 (target node), then start it again</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @BMRules(
@@ -259,6 +440,24 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Kills source server - large messages
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Large byte messages are
+     * sent to InQueue deployed on Node 1 (source node). Bridge between
+     * servers/queues is configured. Node 1 is then killed and started again.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with
+     * deployed OutQueue</li>
+     * <li>Send large byte messages to InQueue on Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Kill Node 1, then start it again</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @BMRules(
@@ -290,6 +489,24 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      * Kills target server - large messages
      *
      * @throws InterruptedException if something is wrong
+     * 
+     * @tpTestDetails There are two servers. InQueue is deployed on Node 1,
+     * OutQueue is deployed on Node 2. Both servers are started. Large byte messages are
+     * sent to InQueue deployed on Node 1 (source node). Bridge between
+     * servers/queues is configured. Node 2 (target node) is then killed and started again.
+     * Messages are received from OutQueue deployed on Node 2 (target node).
+     *
+     * @tpProcedure <ul>
+     * <li>Start two servers - Node 1 with deployed InQueue and Node 2 with
+     * deployed OutQueue</li>
+     * <li>Send large byte messages to InQueue on Node 1</li>
+     * <li>Configure bridge between servers/queues</li>
+     * <li>Kill Node 2, then start it again</li>
+     * <li>Receive messages from OutQueue on Node 2</li>
+     * <li>Check delivery of all messages</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to Node 2 (target node). Receiver
+     * received all messages send by producer.
      */
     @Test
     @BMRules(
@@ -413,7 +630,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         container(1).stop();
         container(2).stop();
     }
-
+    
 
     /**
      * Implementation of the basic test scenario. Test network outage.

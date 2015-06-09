@@ -49,6 +49,15 @@ import static org.junit.Assert.fail;
  * <li>performance.large_messages_length - length of the large messages (kb)</li>
  * </ul>
  * 
+ * @tpChapter PERFORMANTCE TESTING
+ * @tpSubChapter HORNETQ LOAD TEST
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Basic performance tests which are executed inside container.
+ * MDB consumes messages from inQueue and sends them back. After defined count
+ * of cycles calculates time and sends messages into the outQueue. Test client
+ * consumes all messages from outQueue and calculates statistics.
+ * 
  * @author pslavice@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -133,8 +142,24 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
 
     /**
      * Normal message (not large message), byte message
-     * 
+     *
      * @throws InterruptedException if something is wrong
+     *
+     * @tpTestDetails Single server with deployed InQueue and OutQueue is
+     * started. 100 normal byte messages are send into InQueue and MDB is
+     * deployed. MDB sends all messages back to InQueue 10 times, then sends
+     * them to OutQueue. Client receives messages from OutQueue. Statistics are
+     * calculated.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with InQueue and OutQueue deployed</li>
+     * <li>Send 100 normal byte messages into InQueue</li>
+     * <li>Deploy MDB</li>
+     * <li>MDB sends messages back to InQueue several times, then sends them to OutQueue</li>
+     * <li>Receive all messages from OutQueue</li>
+     * <li>Calculate statistics</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue in given time range and received by the client.
      */
     @Test
     @RunAsClient
@@ -148,6 +173,22 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * Normal message (not large message), text message
      * 
      * @throws InterruptedException if something is wrong
+    *
+     * @tpTestDetails Single server with deployed InQueue and OutQueue is
+     * started. 100 normal text messages are send into InQueue and MDB is
+     * deployed. MDB sends all messages back to InQueue 10 times, then sends
+     * them to OutQueue. Client receives messages from OutQueue. Statistics are
+     * calculated.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with InQueue and OutQueue deployed</li>
+     * <li>Send 100 normal text messages into InQueue</li>
+     * <li>Deploy MDB</li>
+     * <li>MDB sends messages back to InQueue several times, then sends them to OutQueue</li>
+     * <li>Receive all messages from OutQueue</li>
+     * <li>Calculate statistics</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue in given time range and received by the client.
      */
     @Test
     @RunAsClient
@@ -161,6 +202,22 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * Large message, byte message
      * 
      * @throws InterruptedException if something is wrong
+     *
+     * @tpTestDetails Single server with deployed InQueue and OutQueue is
+     * started. 100 large byte messages are send into InQueue and MDB is
+     * deployed. MDB sends all messages back to InQueue 10 times, then sends
+     * them to OutQueue. Client receives messages from OutQueue. Statistics are
+     * calculated.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with InQueue and OutQueue deployed</li>
+     * <li>Send 100 large byte messages into InQueue</li>
+     * <li>Deploy MDB</li>
+     * <li>MDB sends messages back to InQueue several times, then sends them to OutQueue</li>
+     * <li>Receive all messages from OutQueue</li>
+     * <li>Calculate statistics</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue in given time range and received by the client.
      */
     @Test
     @RunAsClient
@@ -174,6 +231,22 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * Large message, text message
      * 
      * @throws InterruptedException if something is wrong
+     *
+     * @tpTestDetails Single server with deployed InQueue and OutQueue is
+     * started. 100 large text messages are send into InQueue and MDB is
+     * deployed. MDB sends all messages back to InQueue 10 times, then sends
+     * them to OutQueue. Client receives messages from OutQueue. Statistics are
+     * calculated.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with InQueue and OutQueue deployed</li>
+     * <li>Send 100 large text messages into InQueue</li>
+     * <li>Deploy MDB</li>
+     * <li>MDB sends messages back to InQueue several times, then sends them to OutQueue</li>
+     * <li>Receive all messages from OutQueue</li>
+     * <li>Calculate statistics</li>
+     * </ul>
+     * @tpPassCrit All messages are delivered to OutQueue in given time range and received by the client.
      */
     @Test
     @RunAsClient

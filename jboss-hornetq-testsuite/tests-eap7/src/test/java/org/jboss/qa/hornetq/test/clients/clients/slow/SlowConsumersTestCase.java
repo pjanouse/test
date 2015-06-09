@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.clients.clients.slow;
 
-
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -32,7 +31,16 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-
+/**
+ * @tpChapter tbd
+ * @tpSubChapter tbd
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails This test case simulates slow consumers connected to the
+ * server. There is only one server and slow and fast consumers consume messages
+ * from topic. Tests are focused on proper disconnection of slow consumers.
+ * 
+*/
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class SlowConsumersTestCase extends HornetQTestCase {
@@ -57,6 +65,21 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * published to topic on server. There are two non durable subscribers, one
+     * slow, one fast. Let them process messages and check whether the slow
+     * consumer got disconnected and subscription was removed.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with publisher and non durable subscribers(fast,slow), send and receive messages.</li>
+     * <li>Check slow client got disconnected and subscription was removed.</li>
+     * </ul>
+     *
+     * @tpPassCrit Slow client is disconnected from server and its subscription
+     * is removed.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -109,7 +132,22 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             JMSTools.cleanupResources(ctx, connection, session);
         }
     }
-
+    
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * publish to topic on server. There are two non durable subscribers, one
+     * slow, one fast. Let them process messages and check whether there
+     * are some Jmx notifications related to the slow consumer.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with publisher and non durable subscribers(fast,slow), send and receive messages.</li>
+     * <li>Check notifications related to slow consumer and its connection to server</li>
+     * </ul>
+     *
+     * @tpPassCrit There is at least one slow consumer JMX notification and slow
+     * client is not disconnected by the server.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -182,6 +220,21 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * published to topic on server. There are two durable subscribers, one
+     * slow, one fast. Let them process messages and check whether the slow
+     * consumer got disconnected and its subscription is preserved.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with publisher and durable subscribers(fast,slow), send and receive messages.</li>
+     * <li>Check slow client got disconnected and its subscription is preserved.</li>
+     * </ul>
+     *
+     * @tpPassCrit Slow client is disconnected by the server and its subscription
+     * is preserved.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -237,6 +290,22 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         }
     }
 
+     /**
+     * @tpTestDetails Single server with deployed queue is started. Messages are
+     * send to queue on server. There is one slow receiver which receives
+     * messages from the queue. Wait for clients finish and check disconnection
+     * of slow receiver.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed</li>
+     * <li>Start producer and send messages to the queue</li>
+     * <li>Start slow receiver and receive messages form the queue</li>
+     * <li>Wait for finish of producer and receiver</li>
+     * <li>Check slow client have been disconnected by the server</li>
+     * </ul>
+     *
+     * @tpPassCrit Slow client is disconnected by the server.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -291,6 +360,24 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * send to topic on server by slow producer which sends only 10 messages per
+     * second (which is lower than slow consumer threshold). There are two non
+     * durable subscribers(fast, slow) which receive messages from the topic.
+     * Wait for clients finish and check disconnection of slow subscriber.
+     *
+     * @tpProcedure    
+     * <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Start slow producer and start sending messages to the topic.</li>
+     * <li>Start two non durable subscribers(fast,slow), start receiving messages from the topic.</li>
+     * <li>Wait for finish of producer and subscribers.</li>
+     * <li>Check slow consumer connection to the server.</li>
+     * </ul>
+     *
+     * @tpPassCrit Slow client is not disconnected by the server.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -338,6 +425,23 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * published to topic on server.Server has lowered the paging threshold and
+     * is forced into paging mode. There are two non durable subscribers, one
+     * slow, one fast. Wait for clients finish and check whether the slow client is
+     * disconnected and fast is still connected.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with publisher and non durable subscribers(fast,slow),send and receive messages</li>
+     * <li>Check slow client got disconnected and fast client is still connected.</li>
+     * </ul>
+     *
+     * @tpPassCrit Slow client is disconnected by the server. Fast client is connected to server.
+     * 
+     * @tpInfo Test is ignored because paging does in fact cause consumer kill (by design)
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -389,6 +493,21 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * published to topic on server. There is one non durable subscriber. Wait
+     * for client finish and check client connection to the server.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with publisher and non durable subscribers(fast,slow),send and receive messages</li>
+     * <li>Check clients connection to server</li>
+     * </ul>
+     *
+     * @tpPassCrit Client is not disconnected by the server while commiting
+     * 
+     * @tpInfo Test is ignored because long commits do in fact cause consumer kill (by design)
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

@@ -34,6 +34,8 @@ import static org.junit.Assert.assertTrue;
  * Point of these RFEs is adding new management operations to allow
  * forced client disconnection either by destination address or
  * by user name.
+ * 
+ * Abstract class used by CloseConnectionsForAddresTestCase and CloseConnectionForUserTestcase
  */
 public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 

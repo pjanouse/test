@@ -21,7 +21,17 @@ import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 import java.lang.reflect.Method;
 
-
+/**
+ * @tpChapter tbd
+ * @tpSubChapter tbd
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails This test case is focused on testing management operations
+ * to allow forced client disconnection by destination address. There is one
+ * server running with connected clients. Based on destination address, clients
+ * are disconnected using Cli, Jmx or ModelNode approach.
+ * 
+*/
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestCase {
@@ -31,6 +41,27 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
         container(1).stop();
     }
 
+    /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener. Start producer and consumer for queue on the server.
+     * Process some messages, then force closing of clients. Client
+     * disconnection is based on their destination address and model node
+     * approach is used to close connections. Check clients disconnection and
+     * proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, model node approach)</li>
+     * <li>Check clients were disconnected and closed properly</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -39,6 +70,29 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
         clientForcedDisconnectTest(new ModelNodeCloser());
     }
 
+     /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener. Start connection to the
+     * server with user role. Start producer and consumer
+     * for queue on the server. Process some messages, then force closing of
+     * clients. Client disconnection is based on their destination address and
+     * model node approach is used to close connections. Check clients
+     * disconnection and proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Start connection to the server with user role</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, model node approach)</li>
+     * <li>Check clients were disconnected and closed properly</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -46,7 +100,27 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
     public void testSecuredClientDisconnectionThroughModelNode() throws Exception {
         clientForcedDisconnectTest(true, "user", new ModelNodeCloser());
     }
-
+    /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener. Start producer and consumer
+     * for queue on the server. Process some messages, then force closing of
+     * clients. Client disconnection is based on their destination address and
+     * JMX is used to close connections. Check clients
+     * disconnection and proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, use JMX to close connections)</li>
+     * <li>Check clients were disconnected and closed properly</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -54,7 +128,29 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
     public void testClientDisconnectionThroughJmx() throws Exception {
         clientForcedDisconnectTest(new JmxCloser());
     }
-
+    /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener. Start connection to the
+     * server with user role. Start producer and consumer
+     * for queue on the server. Process some messages, then force closing of
+     * clients. Client disconnection is based on their destination address and
+     * JMX is used to close connections. Check clients
+     * disconnection and proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Start connection to the server with user role</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, use JMX to close connections)</li>
+     * <li>Check clients were disconnected and closed properly</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -62,7 +158,27 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
     public void testSecuredClientDisconnectionThroughJmx() throws Exception {
         clientForcedDisconnectTest(true, "user", new JmxCloser());
     }
-
+    /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener.  Start producer and consumer
+     * for queue on the server. Process some messages, then force closing of
+     * clients. Client disconnection is based on their destination address and
+     * CLI is used to close connections. Check clients
+     * disconnection and proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, CLI is used to close connections)</li>
+     * <li>Check clients were disconnected and closed properly</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -70,7 +186,28 @@ public class CloseConnectionsForAddressTestCase extends AbstractClientCloseTestC
     public void testClientDisconnectionThroughCli() throws Exception {
         clientForcedDisconnectTest(new CliCloser());
     }
-
+    /**
+     * @tpTestDetails Single server with deployed queue is started. Connect to
+     * JMX server and attach notification listener. Start connection to the
+     * server with user role. Start producer and consumer
+     * for queue on the server. Process some messages, then force closing of
+     * clients. Client disconnection is based on their destination address and
+     * CLI is used to close connections. Check clients
+     * disconnection and proper notifications about their disconnection.
+     * @tpProcedure <ul>
+     * <li>Start server with single queue deployed.</li>
+     * <li>Attach notification listener, set up error listener for clients</li>
+     * <li>Start connection to the server with user role</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the queue.</li>
+     * <li>Force closing of clients (based on their destination address, CLI is used to close connections)</li>
+     * <li>Check JMX got proper notifications about clients</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Clients were disconnected and closed properly.</li>
+     * <li>JMX server received proper notifications.</li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

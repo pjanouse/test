@@ -33,6 +33,19 @@ import java.util.List;
  * <p/>
  * This test also serves
  *
+ * @tpChapter tbd
+ * @tpSubChapter tbd
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails This test case simulates network failure and tests whether
+ * client is disconnected after network fail. There is only one server with
+ * deployed topic. Clients are connected and network error is caused.
+ *
+ * @tpInfo This test case can be run with IPv6 - just replace those environment variables for ipv6 ones:
+ *          export MYTESTIP_1=$MYTESTIPV6_1
+ *          export MYTESTIP_2=$MYTESTIPV6_2
+ *          export MCAST_ADDR=$MCAST_ADDRIPV6
+ * 
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -53,6 +66,20 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
 
     /**
      * Test whether client is disconnected after network fail.
+     * 
+     * @tpTestDetails Single server with deployed topic is started. Start
+     * publisher and subscriber for topic on the server.Let them process some
+     * messages and then cause network failure.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Connect to the server with the clients, start sending and receiving
+     * messages to the topic.</li>
+     * <li>Cause network failure</li>
+     * <li>Check clients got disconnected.</li>
+     * </ul>
+     * @tpPassCrit There are no active subscriptions on topic, clients were
+     * disconnected and subscriber got exception when disconnected.
      */
     @Test
     @RestoreConfigBeforeTest
@@ -110,7 +137,18 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     }
 
     /**
-     * Test whether client is disconnected after network fail.
+     * @tpTestDetails Single server with deployed topic is started. Start
+     * subscription for topic on the server.Cause network errors and check
+     * subscriber got disconnected and stopped, Test whether client is
+     * disconnected after network fail.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Create subscriber and start subscription on topic.</li>
+     * <li>Cause network failure</li>
+     * <li>Check subscriber got disconnected and stopped.</li>
+     * </ul>
+     * @tpPassCrit Client is disconnected and stopped after network fail.
      */
     @Test
     @RestoreConfigBeforeTest
