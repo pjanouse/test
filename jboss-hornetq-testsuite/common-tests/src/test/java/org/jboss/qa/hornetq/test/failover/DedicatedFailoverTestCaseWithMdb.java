@@ -37,6 +37,15 @@ import java.util.List;
 /**
  * This is modified failover with mdb test case which is testing remote jca.
  *
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter FAILOVER OF HORNETQ RESOURCE ADAPTER WITH SHARED STORE AND REPLICATED JOURNAL IN DEDICATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails This is modified failover with mdb test case which is
+ * testing remote jca. There are two servers in dedicated HA topology and MDB
+ * deployed on another server. Live server is shutdown/killed and correct
+ * failover/failback is tested. Live and backup servers use shared stores.
+ *
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
@@ -74,28 +83,100 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         return mdbJar;
 
     }
-
+ 
+    /**
+     * @tpTestDetails There are three servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 3. MDB
+     * sends messages form InQueue to OutQueue. Kill live server. Receive
+     * messages from OutQueue from backup server.
+     *
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server with shared/replicated journal</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>Kill live server</li>
+     * <li>Receive messages from OutQueue from backup</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false);
     }
-
+    
+    /**
+     * @tpTestDetails There are three servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology. InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 3. MDB
+     * sends messages form InQueue to OutQueue. Kill live server. Wait for
+     * backup server to come alive, then start live server again and stop backup.
+     * Receive messages from OutQueue from live server.
+     *
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server with shared/replicated journal</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>Kill live server</li>
+     * <li>Start live server again</li>
+     * <li>Receive messages from OutQueue from live server</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testKillWithFailback() throws Exception {
         testFailbackWithRemoteJca(false);
     }
-
+    
+    /**
+     * @tpTestDetails There are three servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology. InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 3. MDB
+     * sends messages form InQueue to OutQueue. Shutdown live server. Wait for
+     * backup server to come alive, then start live server again and stop backup.
+     * Receive messages from OutQueue from live server.
+     *
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server with shared/replicated journal</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>Shutdown live server</li>
+     * <li>Start live server again</li>
+     * <li>Receive messages from OutQueue from live server</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest @CleanUpBeforeTest
     public void testShutdownWithFailback() throws Exception {
         testFailbackWithRemoteJca(true);
     }
-
+   
+    /**
+     * @tpTestDetails There are three servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 3. MDB
+     * sends messages form InQueue to OutQueue. Shutdown live server. Receive
+     * messages from OutQueue from backup server.
+     *
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server with shared/replicated journal</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>Shutdown live server</li>
+     * <li>Receive messages from OutQueue from backup</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest @CleanUpBeforeTest
@@ -283,7 +364,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
-     * Prepare two servers in simple dedecated topology.
+     * Prepare two servers in simple dedicated topology.
      *
      * @throws Exception
      */

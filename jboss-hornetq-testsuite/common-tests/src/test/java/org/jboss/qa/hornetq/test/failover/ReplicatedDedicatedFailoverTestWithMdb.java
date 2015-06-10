@@ -14,6 +14,15 @@ import java.io.IOException;
  *
  * Tests failover of remote JCA and replicated journal.
  *
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests failover of remote JCA and replicated journal. There
+ * are two servers in dedicated HA topology and MDB deployed on another server.
+ * Live server is shutdown/killed and correct failover/failback is tested. Live
+ * and backup servers use replicated journal.
+ * 
  */
 @RunWith(Arquillian.class)
 public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {

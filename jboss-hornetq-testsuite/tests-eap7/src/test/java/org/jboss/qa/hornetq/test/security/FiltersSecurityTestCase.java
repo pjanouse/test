@@ -22,7 +22,19 @@ import java.io.IOException;
  *
  * See {@link PermissionSecurityTestCase} for basic access tests. This test case is about
  * various address mask settings.
- *
+ * 
+ * 
+ * @tpChapter Security testing
+ * @tpSubChapter HORNETQ ADDRESS SETTINGS FILTERS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests for security settings for various address filters.
+ * Set security settings only on destinations with given filter mask through
+ * <adress-settings> element in standalone.xml. Tests check if the user is
+ * able (or properly denied) to send messages to given address.
+ * 
+ * @tpInfo See PermissionSecurityTestCase for basic access tests.
+ * 
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
@@ -40,7 +52,20 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     public void stopTestContainer() {
         container(1).stop();
     }
-
+    
+    /**
+     * @tpTestDetails Start one server. Set access restrictions on destinations.
+     * Set # as admin only and jms.queue.test.# open for ‘user’. From user
+     * account try to send messages to queue which match given mask.
+     * @tpProcedure <ul>
+     * <li>Set access restrictions on destinations with mask
+     * jms.queue.test.#</li>
+     * <li>Send 10 messages to see if the user can connect and send messages
+     * properly based on address settings restrictions. </li>
+     * </ul>
+     * @tpPassCrit All messages are properly send to destination.
+     *
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -63,6 +88,19 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails Start one server. Set access restrictions on destinations.
+     * Set # as admin only and jms.queue.test.* open for ‘user’. From user
+     * account try to send messages to queue which match given mask.
+     * @tpProcedure <ul>
+     * <li>Set access restrictions on destinations with mask
+     * jms.queue.test.*</li>
+     * <li>Send 10 messages to see if the user can connect and send messages
+     * properly based on address settings restrictions. </li>
+     * </ul>
+     * @tpPassCrit All messages are properly send to destination.
+     *
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -83,7 +121,19 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
 
         this.sendTestMessagesAsUser();
     }
-
+    /**
+     * @tpTestDetails Start one server. Set access restrictions on destinations.
+     * Set # as admin only and jms.queue.*.queue open for ‘user’. From user
+     * account try to send messages to queue which match given mask.
+     * @tpProcedure <ul>
+     * <li>Set access restrictions on destinations with mask
+     * jms.queue.*.queue </li>
+     * <li>Send 10 messages to see if the user can connect and send messages
+     * properly based on address settings restrictions. </li>
+     * </ul>
+     * @tpPassCrit All messages are properly send to destination.
+     *
+     */
 
     @Test
     @RunAsClient
@@ -108,7 +158,21 @@ public class FiltersSecurityTestCase extends HornetQTestCase {
 
 
     /**
-     * Test that more specific settings apply to queue access, despite being later in config file.
+     * Test that more specific settings apply to queue access, despite being later in configuration file.
+     *
+     * @tpTestDetails Start one server. Set access restrictions on destinations.
+     * Set jms.queue.# as admin only and jms.queue.test.# open for ‘user’. From
+     * ‘user’ account try to send messages to queue which match given mask. Test
+     * that more specific settings apply to queue access, despite being later in
+     * configuration file.
+     * @tpProcedure <ul>
+     * <li>Set access restrictions on destinations with mask
+     * jms.queue.test.# </li>
+     * <li>Send 10 messages to see if the user can connect and send messages
+     * properly based on address settings restrictions. </li>
+     * </ul>
+     * @tpPassCrit All messages are properly send to destination.
+     *
      */
     @Test
     @RunAsClient

@@ -36,223 +36,269 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
- * 
+ *
  */
 @RunWith(Arquillian.class)
-public abstract class JournalReplicationAbstract extends HornetQTestCase
-{
-	private static final Logger log = Logger.getLogger(JournalReplicationAbstract.class);
+public abstract class JournalReplicationAbstract extends HornetQTestCase {
 
-	private static final int MESSAGES_NUM = 100;
-	
-	private static final int ACKNOWLEDGE_EVERY = 10;
-	
-	private static final int RETRY_MAX_ATTEMPTS = 3;
-	private static final int RETRY_SLEEP_SECS = 2;
+    private static final Logger log = Logger.getLogger(JournalReplicationAbstract.class);
 
+    private static final int MESSAGES_NUM = 100;
 
-	public abstract JournalType getJournalType();
-	public abstract AddressFullPolicy getAddressFullPolicy();
+    private static final int ACKNOWLEDGE_EVERY = 10;
 
-	private static final String CLUSTER_PASSWORD = "password";
-	private static final String NAME_QUEUE = "Queue1";
+    private static final int RETRY_MAX_ATTEMPTS = 3;
+    private static final int RETRY_SLEEP_SECS = 2;
 
-	private static final String JNDI_QUEUE = "queue/InQueue";
-	private static final String NAME_CONNECTION_FACTORY = "RemoteConnectionFactory";
-	private static final String JNDI_CONNECTION_FACTORY = "jms/" + NAME_CONNECTION_FACTORY;
+    public abstract JournalType getJournalType();
 
-	private static final String BACKUP_GROUP_NAME = "backup-group1";
+    public abstract AddressFullPolicy getAddressFullPolicy();
 
-	private final String SERVER_DIR_LIVE = container(1).getServerHome();
-	private final String SERVER_DIR_BACKUP = container(2).getServerHome();
+    private static final String CLUSTER_PASSWORD = "password";
+    private static final String NAME_QUEUE = "Queue1";
 
-	private final String SERVER_LIVE = container(1).getName();
-	private final String SERVER_BACKUP = container(2).getName();
+    private static final String JNDI_QUEUE = "queue/InQueue";
+    private static final String NAME_CONNECTION_FACTORY = "RemoteConnectionFactory";
+    private static final String JNDI_CONNECTION_FACTORY = "jms/" + NAME_CONNECTION_FACTORY;
 
-	private final String SERVER_IP_LIVE = container(1).getHostname();
-	private final String SERVER_IP_BACKUP = container(2).getHostname();
+    private static final String BACKUP_GROUP_NAME = "backup-group1";
 
-	private  final int MESSAGING_TO_LIVE_REAL_PORT = container(1).getHornetqPort();
-	private  final int MESSAGING_TO_BACKUP_REAL_PORT = container(2).getHornetqPort();
-	private static final int MESSAGING_TO_LIVE_PROXY_PORT = 51111;
-	private static final int MESSAGING_TO_BACKUP_PROXY_PORT = 51112;
+    private final String SERVER_DIR_LIVE = container(1).getServerHome();
+    private final String SERVER_DIR_BACKUP = container(2).getServerHome();
 
-	private static final boolean NON_TRANSACTED = false;
+    private final String SERVER_LIVE = container(1).getName();
+    private final String SERVER_BACKUP = container(2).getName();
 
-	/*
-	 *
-	 */
-	String clusterName = null;
-	String address = null;
-	String discoveryGroup = null;
-	boolean forwardWhenNoConsumers = false;
-	int maxHops = -1;
-	int retryInterval = -1;
-	boolean useDuplicateDetection = false;
-	String connectorName = null;
-	String proxyConnectorName = null;
-	String socketBinding = null;
-	Map<String, String> params = null;
-	String proxySocketBindingName = "messaging-via-proxy";
-	int port = -1;
-	String host = "localhost";
+    private final String SERVER_IP_LIVE = container(1).getHostname();
+    private final String SERVER_IP_BACKUP = container(2).getHostname();
 
+    private final int MESSAGING_TO_LIVE_REAL_PORT = container(1).getHornetqPort();
+    private final int MESSAGING_TO_BACKUP_REAL_PORT = container(2).getHornetqPort();
+    private static final int MESSAGING_TO_LIVE_PROXY_PORT = 51111;
+    private static final int MESSAGING_TO_BACKUP_PROXY_PORT = 51112;
 
-	enum NetworkFailurePoint
-	{
-		NONE, INITIAL_REPLICATION, POST_INITIAL_REPLICATION
-	}
-	
-	@Before
-	public void beforeEachTest() throws Exception
-	{
-		prepareLive(container(1));
-		
-		prepareBackup(container(2));
-	}
+    private static final boolean NON_TRANSACTED = false;
+
+    /*
+     *
+     */
+    String clusterName = null;
+    String address = null;
+    String discoveryGroup = null;
+    boolean forwardWhenNoConsumers = false;
+    int maxHops = -1;
+    int retryInterval = -1;
+    boolean useDuplicateDetection = false;
+    String connectorName = null;
+    String proxyConnectorName = null;
+    String socketBinding = null;
+    Map<String, String> params = null;
+    String proxySocketBindingName = "messaging-via-proxy";
+    int port = -1;
+    String host = "localhost";
+
+    enum NetworkFailurePoint {
+
+        NONE, INITIAL_REPLICATION, POST_INITIAL_REPLICATION
+    }
+
+    @Before
+    public void beforeEachTest() throws Exception {
+        prepareLive(container(1));
+
+        prepareBackup(container(2));
+    }
 
     @After
-    public void stopServer()    {
+    public void stopServer() {
         container(1).stop();
         container(2).stop();
     }
 
-	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
-	@RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-	public void journalReplicationWithoutNetworkProblemTest() throws Exception
-	{
-		testCore(NetworkFailurePoint.NONE);
-	}
+    /**
+     * @tpTestDetails Start 2 servers in dedicated HA topology with replicated
+     * journal. Start Live server and send messages to queue. Start backup
+     * server. Start consumer on live server which reads messages. Disconnect
+     * network between live and backup and kill live server so consumer and
+     * producer failover to backup. Tested with AIO/NIO for journal-type and
+     * IO/NIO for connectors.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>start live server in dedicated HA topology with replicated
+     * journal</li>
+     * <li>send messages to queue</li>
+     * <li>start backup server</li>
+     * <li>start consumer for live server</li>
+     * <li>disconnect network between live and backup</li>
+     * <li>kill live server</li>
+     * <li>wait until clients failover</li>
+     * </ul>
+     *
+     * @tpPassCrit Receiver will receive all messages which were sent.
+     */
+    @Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 
-	
-	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
-	@RunAsClient
+    @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-	public void networkProblemsWhileInitialReplicationTest() throws Exception
-	{
-		testCore(NetworkFailurePoint.INITIAL_REPLICATION);
-	}
-	
-	@Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
-	@RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-	public void networkProblemsAfterInitialReplicationTest() throws Exception
-	{
-		testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
-	}
+    public void journalReplicationWithoutNetworkProblemTest() throws Exception {
+        testCore(NetworkFailurePoint.NONE);
+    }
+    /**
+     * @tpTestDetails Start 2 servers in dedicated HA topology with replicated
+     * journal. Start Live server and send messages to queue. Start backup
+     * server and during initial journal synchronization with live server
+     * disconnect and reconnect network between a few times. Start consumer on
+     * live server which reads messages and kill live server so consumer and
+     * producer failover to backup. Tested with AIO/NIO for journal-type and
+     * IO/NIO for connectors.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>start live server in dedicated HA topology with replicated journal</li>
+     * <li>send messages to queue</li>
+     * <li>start backup server and during synchronization disconnect and reconnect network between live and backup a few times</li>
+     * <li>start consumer for live server</li>
+     * <li>disconnect network between live and backup</li>
+     * <li>kill live server</li>
+     * <li>wait until clients failover</li>
+     * </ul>
+     *
+     * @tpPassCrit Receiver will receive all messages which were sent.
+     */
+    @Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
 
-	public void testCore(NetworkFailurePoint testPoint) throws RemoteException
-	{
-		ControllableProxy proxyToLive = createProxyToLive();
-		proxyToLive.start();
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void networkProblemsWhileInitialReplicationTest() throws Exception {
+        testCore(NetworkFailurePoint.INITIAL_REPLICATION);
+    }
+
+        /**
+     * @tpTestDetails Start 2 servers in dedicated HA topology with replicated
+     * journal. Start Live server and send messages to queue. Start backup
+     * server. Start consumer on live server which reads messages and disconnect
+     * and reconnect network between live and backup a few times. Kill live
+     * server so consumer and producer failover to backup. Tested with AIO/NIO
+     * for journal-type and IO/NIO for connectors.
+     *
+     *
+     * @tpProcedure <ul>
+     * <li>start live server in dedicated HA topology with replicated journal</li>
+     * <li>send messages to queue</li>
+     * <li>start backup server </li>
+     * <li>start consumer for live server</li>
+     * <li>disconnect and reconnect network between live and backup a few times</li>
+     * <li>kill live server</li>
+     * <li>wait until clients failover</li>
+     * </ul>
+     *
+     * @tpPassCrit Receiver will receive all messages which were sent.
+     */
+    @Test/*(timeout=180000) = 3 minutes see https://issues.jboss.org/browse/ARQ-1071*/
+
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void networkProblemsAfterInitialReplicationTest() throws Exception {
+        testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
+    }
+
+    public void testCore(NetworkFailurePoint testPoint) throws RemoteException {
+        ControllableProxy proxyToLive = createProxyToLive();
+        proxyToLive.start();
 
         ControllableProxy proxyToBackup = createProxyToBackup();
         proxyToBackup.start();
 
-		startLiveServer();
+        startLiveServer();
 
-		sendMessagesToLive();
+        sendMessagesToLive();
 
-		if (testPoint == NetworkFailurePoint.INITIAL_REPLICATION)
-		{
-			// random 4-6
-			int initialDelay = new Random().nextInt(2) + 4;
-			new NetworkProblemController(proxyToLive,initialDelay).start();
-            new NetworkProblemController(proxyToBackup,initialDelay).start();
-		}
-		
-		startBackupServer();
-		
-		/*
-		 * replication start point and network failures
-		 */
-		log.info("Waiting additional " + 60 + " s");
-		sleepSeconds(60);
+        if (testPoint == NetworkFailurePoint.INITIAL_REPLICATION) {
+            // random 4-6
+            int initialDelay = new Random().nextInt(2) + 4;
+            new NetworkProblemController(proxyToLive, initialDelay).start();
+            new NetworkProblemController(proxyToBackup, initialDelay).start();
+        }
 
-		MessageConsumer receiver = createConsumerForLive();
+        startBackupServer();
 
-		if (testPoint == NetworkFailurePoint.POST_INITIAL_REPLICATION)
-		{
-			// random 1-3
-			int initialDelay = new Random().nextInt(2) + 1;
-			new NetworkProblemController(proxyToLive,initialDelay).start();
-            new NetworkProblemController(proxyToBackup,initialDelay).start();
-		}
-		
-		boolean isKillTrigered = false;
-		int messagesRecievedNum = 0;
-		int messagesAcknowledgedNum = 0;
+        /*
+         * replication start point and network failures
+         */
+        log.info("Waiting additional " + 60 + " s");
+        sleepSeconds(60);
 
-		while (messagesRecievedNum < MESSAGES_NUM)
-		{
-			Message message = receiveMessage(receiver, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
+        MessageConsumer receiver = createConsumerForLive();
 
-			if (message == null)
-			{
-				log.info("Got null message. Breaking...");
-				break;
-			} else
-			{
-				messagesRecievedNum++;
-				log.info("Received ["+messagesRecievedNum+"] messages...");				
-			}
+        if (testPoint == NetworkFailurePoint.POST_INITIAL_REPLICATION) {
+            // random 1-3
+            int initialDelay = new Random().nextInt(2) + 1;
+            new NetworkProblemController(proxyToLive, initialDelay).start();
+            new NetworkProblemController(proxyToBackup, initialDelay).start();
+        }
 
-			if (messagesRecievedNum % ACKNOWLEDGE_EVERY == 0)
-			{
-				if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered)
-				{
-					proxyToLive.stop();
+        boolean isKillTrigered = false;
+        int messagesRecievedNum = 0;
+        int messagesAcknowledgedNum = 0;
+
+        while (messagesRecievedNum < MESSAGES_NUM) {
+            Message message = receiveMessage(receiver, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
+
+            if (message == null) {
+                log.info("Got null message. Breaking...");
+                break;
+            } else {
+                messagesRecievedNum++;
+                log.info("Received [" + messagesRecievedNum + "] messages...");
+            }
+
+            if (messagesRecievedNum % ACKNOWLEDGE_EVERY == 0) {
+                if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered) {
+                    proxyToLive.stop();
                     proxyToBackup.stop();
 
                     container(1).kill();
 
-					isKillTrigered = true;
+                    isKillTrigered = true;
 
-					sleepSeconds(10);
-				}
+                    sleepSeconds(10);
+                }
 
-				boolean isAcknowledged = acknowlegeMessage(message, RETRY_MAX_ATTEMPTS,RETRY_SLEEP_SECS);
+                boolean isAcknowledged = acknowlegeMessage(message, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
 
-				if (!isAcknowledged)
-				{
-					log.error("Messages were not acknowledged. Breaking...");
-					break;
-				}
-				messagesAcknowledgedNum += ACKNOWLEDGE_EVERY;
-			}
-		}
+                if (!isAcknowledged) {
+                    log.error("Messages were not acknowledged. Breaking...");
+                    break;
+                }
+                messagesAcknowledgedNum += ACKNOWLEDGE_EVERY;
+            }
+        }
 
-		assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
+        assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
 
-	}
+    }
 
-	private void startLiveServer()
-	{
+    private void startLiveServer() {
         container(1).start();
-	}
-	
-	private void startBackupServer()
-	{
+    }
+
+    private void startBackupServer() {
         container(2).start();
-	}
+    }
 
+    private void killLiveServer() {
+        ServerUtil.killServer(getLiveServerIP());
+    }
 
-	private void killLiveServer()
-	{
-		ServerUtil.killServer(getLiveServerIP());
-	}
-	
-	private void sleepSeconds(int seconds)
-	{
-		ThreadUtil.sleepSeconds(seconds);
-	}
-	
-	private void sendMessagesToLive()
-	{
+    private void sleepSeconds(int seconds) {
+        ThreadUtil.sleepSeconds(seconds);
+    }
+
+    private void sendMessagesToLive() {
 //		SoakProducerClientAck producerToLive = createSenderToLive(MESSAGES_NUM);
 //
 //		producerToLive.run();
@@ -260,319 +306,304 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase
         ProducerTransAck p = createSenderToLive(MESSAGES_NUM);
         p.setMessageBuilder(new TextMessageBuilder(300 * 1024));
         p.start();
-	}
-	
-	private Message receiveMessage(MessageConsumer receiver, int maxRetryNum, int retrySleepSeconds)
-	{
-		return JMSUtil.receiveMessage(receiver, maxRetryNum, retrySleepSeconds);
-	}
-	
-	private boolean acknowlegeMessage(Message message, int maxRetryNum, int retrySleepSeconds)
-	{
-		return JMSUtil.acknowlegeMessage(message, maxRetryNum, retrySleepSeconds);
-	}
+    }
 
-	public void prepareLive(Container liveServer)  throws Exception
-	{
-		String broadCastGroupName = "bg-group1";
-		String discoveryGroupName = "dg-group1";
-		String messagingGroupSocketBindingName = "messaging-group";
-		String clusterGroupName = "my-cluster";
+    private Message receiveMessage(MessageConsumer receiver, int maxRetryNum, int retrySleepSeconds) {
+        return JMSUtil.receiveMessage(receiver, maxRetryNum, retrySleepSeconds);
+    }
 
-		liveServer.start();
+    private boolean acknowlegeMessage(Message message, int maxRetryNum, int retrySleepSeconds) {
+        return JMSUtil.acknowlegeMessage(message, maxRetryNum, retrySleepSeconds);
+    }
 
-		JMSOperations adminLive = liveServer.getJmsOperations();
+    public void prepareLive(Container liveServer) throws Exception {
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
 
-		adminLive.setJournalType(getJournalType().toString());
+        liveServer.start();
 
-		adminLive.removeAddressSettings("#");
+        JMSOperations adminLive = liveServer.getJmsOperations();
 
-		adminLive.addAddressSettings(
-				"#",
-				getAddressFullPolicy().toString(),
-				10485760,
-				0,
-				10485760,
-				1048570);
+        adminLive.setJournalType(getJournalType().toString());
 
-		adminLive.setSecurityEnabled(true);
-		adminLive.setCheckForLiveServer(true);
-		adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminLive.setSharedStore(false);
-		adminLive.setPersistenceEnabled(true);
-		adminLive.setBackupGroupName(BACKUP_GROUP_NAME);
+        adminLive.removeAddressSettings("#");
 
-		adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
+        adminLive.addAddressSettings(
+                "#",
+                getAddressFullPolicy().toString(),
+                10485760,
+                0,
+                10485760,
+                1048570);
 
-		adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
+        adminLive.setSecurityEnabled(true);
+        adminLive.setCheckForLiveServer(true);
+        adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
+        adminLive.setSharedStore(false);
+        adminLive.setPersistenceEnabled(true);
+        adminLive.setBackupGroupName(BACKUP_GROUP_NAME);
 
-		adminLive.addRemoteSocketBinding(
-				proxySocketBindingName = "messaging-via-proxy",
-				host = "localhost",
-				port = MESSAGING_TO_LIVE_PROXY_PORT);
+        adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
 
-		adminLive.createRemoteConnector(
-				proxyConnectorName = "netty-proxy",
-				socketBinding = proxySocketBindingName,
-				params = null);
+        adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
 
-		adminLive.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
-		adminLive.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
-		adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
-		adminLive.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
-		adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
-		//adminLive.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, proxyConnectorName);
+        adminLive.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_LIVE_PROXY_PORT);
 
-		adminLive.removeClusteringGroup(clusterGroupName);
-		adminLive.setClusterConnections(
-				clusterName = clusterGroupName,
-				address = "jms",
-				discoveryGroup = discoveryGroupName,
-				forwardWhenNoConsumers = false,
-				maxHops = 1,
-				retryInterval = 1000,
-				useDuplicateDetection = true,
-//				connectorName = proxyConnectorName);
-				connectorName = "netty");
-		adminLive.removeBroadcastGroup(broadCastGroupName);
-		adminLive.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+        adminLive.createRemoteConnector(
+                proxyConnectorName = "netty-proxy",
+                socketBinding = proxySocketBindingName,
+                params = null);
 
-		adminLive.removeDiscoveryGroup(discoveryGroupName);
-		adminLive.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        adminLive.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+        adminLive.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
+        adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+        adminLive.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
+        adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
+        //adminLive.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, proxyConnectorName);
 
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
-		adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+        adminLive.removeClusteringGroup(clusterGroupName);
+        adminLive.setClusterConnections(
+                clusterName = clusterGroupName,
+                address = "jms",
+                discoveryGroup = discoveryGroupName,
+                forwardWhenNoConsumers = false,
+                maxHops = 1,
+                retryInterval = 1000,
+                useDuplicateDetection = true,
+                //				connectorName = proxyConnectorName);
+                connectorName = "netty");
+        adminLive.removeBroadcastGroup(broadCastGroupName);
+        adminLive.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
 
-		adminLive.close();
+        adminLive.removeDiscoveryGroup(discoveryGroupName);
+        adminLive.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
-		liveServer.stop();
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
 
-		File applicationUsersModified = new File(
-				"src" + File.separator +
-						"test" + File.separator +
-						"resources" + File.separator +
-						"org" + File.separator +
-						"jboss" + File.separator +
-						"qa" + File.separator +
-						"hornetq" + File.separator +
-						"test" + File.separator +
-						"security" + File.separator +
-						"application-users.properties");
-		File applicationUsersOriginal = new File(
-				SERVER_DIR_LIVE + File.separator +
-						"standalone" + File.separator +
-						"configuration" + File.separator +
-						"application-users.properties");
+        adminLive.close();
 
-		FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        liveServer.stop();
 
-		File applicationRolesModified = new File(
-				"src" + File.separator +
-						"test" + File.separator +
-						"resources" + File.separator +
-						"org" + File.separator +
-						"jboss" + File.separator +
-						"qa" + File.separator +
-						"hornetq" + File.separator +
-						"test" + File.separator +
-						"security" + File.separator +
-						"application-roles.properties");
-		File applicationRolesOriginal = new File(
-				SERVER_DIR_LIVE + File.separator +
-						"standalone" + File.separator +
-						"configuration" + File.separator +
-						"application-roles.properties");
+        File applicationUsersModified = new File(
+                "src" + File.separator
+                + "test" + File.separator
+                + "resources" + File.separator
+                + "org" + File.separator
+                + "jboss" + File.separator
+                + "qa" + File.separator
+                + "hornetq" + File.separator
+                + "test" + File.separator
+                + "security" + File.separator
+                + "application-users.properties");
+        File applicationUsersOriginal = new File(
+                SERVER_DIR_LIVE + File.separator
+                + "standalone" + File.separator
+                + "configuration" + File.separator
+                + "application-users.properties");
 
-		FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
-	}
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
-	public void prepareBackup(Container backupServer) throws Exception
-	{
+        File applicationRolesModified = new File(
+                "src" + File.separator
+                + "test" + File.separator
+                + "resources" + File.separator
+                + "org" + File.separator
+                + "jboss" + File.separator
+                + "qa" + File.separator
+                + "hornetq" + File.separator
+                + "test" + File.separator
+                + "security" + File.separator
+                + "application-roles.properties");
+        File applicationRolesOriginal = new File(
+                SERVER_DIR_LIVE + File.separator
+                + "standalone" + File.separator
+                + "configuration" + File.separator
+                + "application-roles.properties");
 
-		String broadCastGroupName = "bg-group1";
-		String discoveryGroupName = "dg-group1";
-		String messagingGroupSocketBindingName = "messaging-group";
-		String clusterGroupName = "my-cluster";
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+    }
 
-		backupServer.start();
+    public void prepareBackup(Container backupServer) throws Exception {
 
-		JMSOperations adminBackup = backupServer.getJmsOperations();
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
 
-		adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
-		adminBackup.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
-		adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
+        backupServer.start();
 
-		adminBackup.setBackup(true);
-		adminBackup.setSecurityEnabled(true);
-		adminBackup.setCheckForLiveServer(true);
-		adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
-		adminBackup.setSharedStore(false);
-		adminBackup.setPersistenceEnabled(true);
-		adminBackup.setBackupGroupName(BACKUP_GROUP_NAME);
+        JMSOperations adminBackup = backupServer.getJmsOperations();
 
-		adminBackup.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
-		adminBackup.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
+        adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+        adminBackup.setRetryIntervalForConnectionFactory(NAME_CONNECTION_FACTORY, 1000L);
+        adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
 
-		adminBackup.addRemoteSocketBinding(
-				proxySocketBindingName = "messaging-via-proxy",
-				host = "localhost",
-				port = MESSAGING_TO_BACKUP_PROXY_PORT);
+        adminBackup.setBackup(true);
+        adminBackup.setSecurityEnabled(true);
+        adminBackup.setCheckForLiveServer(true);
+        adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
+        adminBackup.setSharedStore(false);
+        adminBackup.setPersistenceEnabled(true);
+        adminBackup.setBackupGroupName(BACKUP_GROUP_NAME);
 
-		adminBackup.createRemoteConnector(
-				proxyConnectorName = "netty-proxy",
-				socketBinding = proxySocketBindingName,
-				params = null);
+        adminBackup.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+        adminBackup.setFailoverOnShutdown(NAME_CONNECTION_FACTORY, true);
 
-		adminBackup.removeClusteringGroup(clusterGroupName);
-		adminBackup.setClusterConnections(
-				clusterName = clusterGroupName,
-				address = "jms",
-				discoveryGroup = discoveryGroupName,
-				forwardWhenNoConsumers = false,
-				maxHops = 1,
-				retryInterval = 1000,
-				useDuplicateDetection = true,
-//                connectorName = proxyConnectorName);
-				connectorName = "netty");
+        adminBackup.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_BACKUP_PROXY_PORT);
 
-		adminBackup.removeBroadcastGroup(broadCastGroupName);
-		adminBackup.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+        adminBackup.createRemoteConnector(
+                proxyConnectorName = "netty-proxy",
+                socketBinding = proxySocketBindingName,
+                params = null);
 
-		adminBackup.removeDiscoveryGroup(discoveryGroupName);
-		adminBackup.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        adminBackup.removeClusteringGroup(clusterGroupName);
+        adminBackup.setClusterConnections(
+                clusterName = clusterGroupName,
+                address = "jms",
+                discoveryGroup = discoveryGroupName,
+                forwardWhenNoConsumers = false,
+                maxHops = 1,
+                retryInterval = 1000,
+                useDuplicateDetection = true,
+                //                connectorName = proxyConnectorName);
+                connectorName = "netty");
 
-		adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
+        adminBackup.removeBroadcastGroup(broadCastGroupName);
+        adminBackup.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
 
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
-		adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+        adminBackup.removeDiscoveryGroup(discoveryGroupName);
+        adminBackup.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
-		adminBackup.close();
+        adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
 
-		backupServer.stop();
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
 
-		File applicationUsersModified = new File(
-				"src" + File.separator +
-						"test" + File.separator +
-						"resources" + File.separator +
-						"org" + File.separator +
-						"jboss" + File.separator +
-						"qa" + File.separator +
-						"hornetq" + File.separator +
-						"test" + File.separator +
-						"security" + File.separator +
-						"application-users.properties");
-		File applicationUsersOriginal = new File(
-				SERVER_DIR_BACKUP + File.separator +
-						"standalone" + File.separator +
-						"configuration" + File.separator +
-						"application-users.properties");
+        adminBackup.close();
 
-		FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        backupServer.stop();
 
-		File applicationRolesModified = new File(
-				"src" + File.separator +
-						"test" + File.separator +
-						"resources" + File.separator +
-						"org" + File.separator +
-						"jboss" + File.separator +
-						"qa" + File.separator +
-						"hornetq" + File.separator +
-						"test" + File.separator +
-						"security" + File.separator +
-						"application-roles.properties");
-		File applicationRolesOriginal = new File(
-				SERVER_DIR_BACKUP + File.separator +
-						"standalone" + File.separator +
-						"configuration" + File.separator +
-						"application-roles.properties");
+        File applicationUsersModified = new File(
+                "src" + File.separator
+                + "test" + File.separator
+                + "resources" + File.separator
+                + "org" + File.separator
+                + "jboss" + File.separator
+                + "qa" + File.separator
+                + "hornetq" + File.separator
+                + "test" + File.separator
+                + "security" + File.separator
+                + "application-users.properties");
+        File applicationUsersOriginal = new File(
+                SERVER_DIR_BACKUP + File.separator
+                + "standalone" + File.separator
+                + "configuration" + File.separator
+                + "application-users.properties");
 
-		FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
 
-	}
+        File applicationRolesModified = new File(
+                "src" + File.separator
+                + "test" + File.separator
+                + "resources" + File.separator
+                + "org" + File.separator
+                + "jboss" + File.separator
+                + "qa" + File.separator
+                + "hornetq" + File.separator
+                + "test" + File.separator
+                + "security" + File.separator
+                + "application-roles.properties");
+        File applicationRolesOriginal = new File(
+                SERVER_DIR_BACKUP + File.separator
+                + "standalone" + File.separator
+                + "configuration" + File.separator
+                + "application-roles.properties");
 
-	public String getLiveServerID()
-	{
-		return SERVER_LIVE;
-	}
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
-	public String getLiveServerIP()
-	{
-		return SERVER_IP_LIVE;
-	}
+    }
 
+    public String getLiveServerID() {
+        return SERVER_LIVE;
+    }
 
-	public String getBackupServerID()
-	{
-		return SERVER_BACKUP;
-	}
+    public String getLiveServerIP() {
+        return SERVER_IP_LIVE;
+    }
 
-	public void setJournalType(String name)
-	{
-		// TODO Auto-generated method stub
+    public String getBackupServerID() {
+        return SERVER_BACKUP;
+    }
 
-	}
+    public void setJournalType(String name) {
+        // TODO Auto-generated method stub
 
-	public MessageConsumer createConsumerForLive()
-	{
-		try
-		{
-			Context context = container(1).getContext();
+    }
 
-			ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
+    public MessageConsumer createConsumerForLive() {
+        try {
+            Context context = container(1).getContext();
 
-			Connection connection = connectionFactory.createConnection();
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
 
-			connection.start();
+            Connection connection = connectionFactory.createConnection();
 
-			Queue queue = (Queue) context.lookup(JNDI_QUEUE);
+            connection.start();
 
-			Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
+            Queue queue = (Queue) context.lookup(JNDI_QUEUE);
 
-			return session.createConsumer(queue);
-		} catch (Exception jmsException)
-		{
-			throw new RuntimeException(jmsException);
-		}
-	}
+            Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
 
-	public ProducerTransAck createSenderToLive(int MESSAGES_NUM)
-	{
+            return session.createConsumer(queue);
+        } catch (Exception jmsException) {
+            throw new RuntimeException(jmsException);
+        }
+    }
+
+    public ProducerTransAck createSenderToLive(int MESSAGES_NUM) {
 //		return new SoakProducerClientAck(
 //				getLiveServerID(),
 //				SERVER_IP_LIVE,
 //				getJNDIPort(),
 //				JNDI_QUEUE,
 //				MESSAGES_NUM);
-		return new ProducerTransAck(
-				container(1),
-				JNDI_QUEUE,
-				MESSAGES_NUM);
-	}
+        return new ProducerTransAck(
+                container(1),
+                JNDI_QUEUE,
+                MESSAGES_NUM);
+    }
 
+    public ControllableProxy createProxyToLive() {
+        return new SimpleProxyServer(
+                SERVER_IP_LIVE,
+                MESSAGING_TO_LIVE_REAL_PORT,
+                MESSAGING_TO_LIVE_PROXY_PORT);
+    }
 
-	public ControllableProxy createProxyToLive()
-	{
-		return new SimpleProxyServer(
-				SERVER_IP_LIVE,
-				MESSAGING_TO_LIVE_REAL_PORT,
-				MESSAGING_TO_LIVE_PROXY_PORT);
-	}
-	public ControllableProxy createProxyToBackup()
-	{
-		return new SimpleProxyServer(
-				SERVER_IP_BACKUP,
-				MESSAGING_TO_BACKUP_REAL_PORT,
-				MESSAGING_TO_BACKUP_PROXY_PORT);
-	}
+    public ControllableProxy createProxyToBackup() {
+        return new SimpleProxyServer(
+                SERVER_IP_BACKUP,
+                MESSAGING_TO_BACKUP_REAL_PORT,
+                MESSAGING_TO_BACKUP_PROXY_PORT);
+    }
 
 }

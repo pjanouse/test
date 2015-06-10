@@ -45,7 +45,7 @@ import static org.junit.Assert.assertTrue;
  * problems.
  * <p/>
  * 
- * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpChapter Recovery/Failover testing
  * @tpSubChapter NETWORK FAILURE OF HORNETQ CORE BRIDGES - TEST SCENARIOS
  * @tpJobLink tbd
  * @tpTcmsLink tbd

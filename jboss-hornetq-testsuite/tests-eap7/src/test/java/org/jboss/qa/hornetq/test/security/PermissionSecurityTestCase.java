@@ -41,6 +41,17 @@ import java.util.HashMap;
  * role testQueue0 -> user -> send,consume -> admin -> all permissions -> admin
  * -> send, consume, create/delete durable queue
  *
+ * @tpChapter Security testing
+ * @tpSubChapter HORNETQ ADDRESS SETTINGS AUTHENTICATION
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test security permissions to queues and topic. Create 3
+ * users on the server - admin, user and guest. Create address settings for all
+ * destinations (mask #) as follows: guest can send and receive, user can send,
+ * receive and create/destroy non-durable destinations, admin can do anything
+ * (eg. create/destroy durable destinations). Log in with one of the users and
+ * try to execute operations.
+ * 
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
@@ -74,6 +85,26 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * This test will start one server. And try to send/receive messages or
      * create/delete queue from it.
+     *
+     * @tpTestDetails There is only one server with 3 users - admin, user and
+     * guest. Create address settings for all destinations - guest can only send
+     * and receive messages. Log in as guest and try to send/receive messages or
+     * create/delete queue from it.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured users and address settings</li>
+     * <li>Log as guest and try to:
+     *     <ul> 
+     *          <li>Send and receive 10 messages</li>
+     *          <li>Create durable queue</li>
+     *          <li>Delete said durable queue</li>
+     *          <li>Create non durable queue</li>
+     *          <li>Delete said non durable queue</li>
+     *     </ul>
+     * </li>
+     * </ul>
+     * @tpPassCrit Only sending and receiving message work, anything else should fail
+     *
      */
     @Test
     @RunAsClient
@@ -138,6 +169,28 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * This test will start one server. And try to send/receive messages or
      * create/delete queue from it.
+     * 
+     * @tpTestDetails There is only one server with 3 users - admin, user and
+     * guest. Create address settings for all destinations - user can send,
+     * receive and create/destroy non-durable destinations. Log in as user and
+     * try to to send/receive messages or create/delete queue from it.
+     *
+     * @tpProcedure <ul>
+     * <li>Start server with configured users and address settings</li>
+     * <li>Log as user and try to:
+     *     <ul> 
+     *          <li>Send and receive 10 messages</li>
+     *          <li>Create durable queue</li>
+     *          <li>Delete said durable queue</li>
+     *          <li>Create non durable queue</li>
+     *          <li>Delete said non durable queue</li>
+     *     </ul>
+     * </li>
+     * </ul>
+     * @tpPassCrit Only sending and receiving messages and creating and deleting
+     * non-durable queue should work, trying to create or delete durable queue
+     * should fail
+     *
      */
     @Test
     @RunAsClient
@@ -201,6 +254,25 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     /**
      * This test will start one server. And try to send/receive messages or
      * create/delete queue from it.
+     * 
+     * @tpTestDetails There is only one server with 3 users - admin, user and
+     * guest. Create address settings for all destinations - admin can do
+     * everything. Log in as admin and try to to send/receive messages or
+     * create/delete queue from it.
+     * @tpProcedure <ul>
+     * <li>Start server with configured users and address settings</li>
+     * <li>Log as admin and try to:
+     *     <ul> 
+     *          <li>Send and receive 10 messages</li>
+     *          <li>Create durable queue</li>
+     *          <li>Delete said durable queue</li>
+     *          <li>Create non durable queue</li>
+     *          <li>Delete said non durable queue</li>
+     *     </ul>
+     * </li>
+     * </ul>
+     * @tpPassCrit All operations have to succeed
+     *
      */
     @Test
     @RunAsClient
@@ -259,7 +331,21 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         container(1).stop();
 
     }
-
+    /**
+     * 
+     * @tpTestDetails There is only one server with 3 users - admin, user and
+     * guest. Create address settings for all destinations. Deploy MDB which
+     * sends messages from InQueue to OutQueue. Log in as user and send messages
+     * to InQueue. Check number of messages in OutQueue.
+     * @tpProcedure <ul>
+     * <li>Start server with configured users and address settings</li>
+     * <li>Deploy MDB</li>
+     * <li>Log in as user and send messages to InQueue</li>
+     * <li>Check number of messages in OutQueue</li>
+     * </ul>
+     * @tpPassCrit OutQueue is empty. Mdb shouldn't be able to send any message to OutQueue.
+     *
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest

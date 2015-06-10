@@ -82,6 +82,13 @@ import static org.junit.Assert.assertNotNull;
  * <p/>
  * [1] http://docs.oracle.com/javase/7/docs/technotes/guides/security/p11guide.html#Requirements
  *
+ * @tpChapter Security testing
+ * @tpSubChapter SSL AUTHENTICATION
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Goal of the test cases is testing if the standalone JMS
+ * client can connect to the EAP server using a connection over SSL.
+ * 
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  * @author Miroslav Novak mnovak@redhat.com
  */
@@ -119,7 +126,23 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).stop();
     }
 
-
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for one way SSL.
+     * Server has keystore, client has truststore. Create client and connect to
+     * the server using ActiveMQ Core API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL certificate installed. </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL certificate. Server has keystore, client has trust store</li>
+     * <li>Standalone client connects to the server using ActiveMQ core API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -172,7 +195,23 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         }
     }
 
-
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for one way SSL.
+     * Server has keystore, client has truststore. Create client and connect to
+     * the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL certificate installed. </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL certificate. Server has keystore, client has trust store</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -219,6 +258,20 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         cf.close();
     }
 
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for one way SSL.
+     * Server has keystore, client has truststore. Force using of SSLv3. Create
+     * client and try connect to the server using JMS API. Since SSLv3 is
+     * deprecated, client should not be able to create connection.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL certificate installed. </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL certificate. Server has keystore, client has trust store.</li>
+     * <li>Force use of SSLv3.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * </ul>
+     * @tpPassCrit Client is not able to create connection to the server because SSLv3 is deprecated.
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -281,8 +334,27 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     public static void setEnabledProtocols(SSLEngine engine) {
         engine.setEnabledProtocols(new String[]{"SSLv3"});
     }
-
-
+    
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for two way SSL (both
+     * sides cross-verify the key of the other side against their own
+     * truststore). Create client and connect to the server using ActiveMQ Core API.
+     * Verify certificate and send and receive message to check that created
+     * connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using ActiveMQ Core API and verifies server certificate. </li>
+     * <li>After authentication, client sends a receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -331,8 +403,27 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         cf.close();
 
     }
-
-
+    
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for two way SSL (both
+     * sides cross-verify the key of the other side against their own
+     * truststore). Create client and connect to the server using JMS API.
+     * Verify certificate and send and receive message to check that created
+     * connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends a receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -382,6 +473,27 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         cf.close();
     }
 
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -422,6 +534,29 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
+     /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore).Create connection
+     * factory as client. Connect to the server using JMS API. Verify
+     * certificate and send and receive message to check that created connection
+     * is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Create connection factory as client</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
