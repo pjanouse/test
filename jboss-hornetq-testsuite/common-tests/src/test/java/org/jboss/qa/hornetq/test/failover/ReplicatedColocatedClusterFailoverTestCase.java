@@ -24,7 +24,14 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Failover tests just with replicated journal.
+ *
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-ha-failover-colocated-cluster-replicated-journal/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails This test case implements  all tests from ColocatedClusterFailoverTestCase class with only one
+ * difference in these tests: testKillInClusterLargeMessages, testShutdownInClusterLargeMessages, testShutdownInClusterSmallMessages,
+ * testKillInClusterSmallMessages. Difference is, that node-2 is not started after kill/shutdown.
  */
 @RunWith(Arquillian.class)
 public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedClusterFailoverTestCase {
@@ -56,14 +63,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         prepareLiveServer(container(2), "secondPair", "secondPairJournalLive");
         prepareColocatedBackupServer(container(2), "backup", "firstPair", "firstPairJournalBackup");
 
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testShutdownInClusterLargeMessages() throws Exception {
-        testFailInCluster(true, new ClientMixMessageBuilder(10, 200));
     }
 
     /**

@@ -141,7 +141,6 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         container(2).start();
         CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
         Thread.sleep(10000);
-        container(1).stop();
 
         container(3).start();
 

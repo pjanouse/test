@@ -27,7 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author mnovak@redhat.com
+ *
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-ha-failover-dedicated/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
+ * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
 @RunWith(Arquillian.class)
 public class DedicatedFailoverTestCase extends HornetQTestCase {
@@ -122,7 +128,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+                            + "System.out.println(\"Called org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
@@ -206,7 +212,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails This scenario tests multiple failover sequence on dedicated topology with shared-store and kill.
+     * Clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill and start node-1 50 times</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception, failback was successful
+     *
      */
     @Test
     @RunAsClient
@@ -217,7 +233,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails This scenario tests multiple failover sequence on dedicated topology with shared-store and clean shutdown.
+     * Clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving shutdown and start node-1 50 times</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception, failback was successful
      */
     @Test
     @RunAsClient
@@ -325,7 +350,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from inQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to inQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -334,6 +374,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailoverWithDiverts(false, false, false);
     }
 
+
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and clean shutdown. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from testQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -342,6 +399,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailoverWithDiverts(false, false, true);
     }
 
+    /**
+     * @tpTestDetails This scenario tests failover and failback on dedicated topology with shared-store and kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -350,6 +424,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailoverWithDiverts(true, false, false);
     }
 
+    /**
+     * @tpTestDetails  This scenario tests failover and failback on dedicated topology with shared-store and kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testTopic
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testTopic</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>during sending and receiving  kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testTopic and same amount
+     * as was received from testTopic
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -543,11 +633,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
 
     /**
-     * Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
-     * and call CLI operations :force-failover on messaging subsystem. Live should stop and org.jboss.qa.hornetq.apps.clients failover to backup,
-     * backup activates.
+     *
      *
      * @throws Exception
+     * @tpTestDetails Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
+     * and call CLI operations :force-failover on messaging subsystem. Live should stop and org.jboss.qa.hornetq.apps.clients failover to backup,
+     * backup activates.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving call CLI operation: force-failover on messaging subsystem on node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -833,6 +933,22 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @throws Exception
+     * @tpTestDetails Start live backup pair in dedicated topology with shared store. Start producers and consumer on
+     * testQueue on live. Kill server with Byteman just before transactional data about producer's incoming message are
+     * written into journal. Wait for clients to failover. Stop them and verify messages.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -845,6 +961,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
+
+    // TODO same test as upper one?
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -914,7 +1032,19 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and clean shutdown. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -947,7 +1077,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean shutdown.
+     * Clients are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -958,7 +1102,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -979,7 +1137,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -990,7 +1161,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1011,7 +1195,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1022,7 +1220,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1033,7 +1245,19 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple producer failover on Dedicated topology with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start producer with SESSION_TRANSACTED)session sending messages to testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>wait for producer to make failover and stop him</li>
+     *     <li>receive messages from testQueue on node-2 (backup)</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer successfully made failover and didn't get any exception, receiver received all sent messages
      */
     @Test
     @RunAsClient
@@ -1059,7 +1283,19 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and Byteman kill. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1071,7 +1307,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and Byteman kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1092,7 +1341,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1103,7 +1366,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1124,7 +1401,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1135,7 +1425,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1156,7 +1459,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1167,7 +1484,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
+     * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1707,8 +2038,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
+
     /**
-     * Start simple failback test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1721,7 +2067,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with trans_ack on queues with shutdown
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
+     * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1 </li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1734,7 +2094,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 </li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1747,7 +2120,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
+     * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>Cleanly shut-down node-1 </li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient

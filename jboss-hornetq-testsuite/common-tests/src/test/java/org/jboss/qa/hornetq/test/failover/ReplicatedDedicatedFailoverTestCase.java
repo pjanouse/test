@@ -24,15 +24,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Failover tests just with replicated journal.
+ *
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-ha-failover-dedicated-replicated-journal/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
+ * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
 public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when message is sent to server but not stored to journal.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed just before message and  transactional data about producer's incoming
+     * message are written into journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -47,9 +63,20 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when message is sent to server and stored to journal.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed after message is written in to journal, but before transactional data
+     * about producer's incoming message are written.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -65,9 +92,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when commit is sent to journal and NOT stored.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when commit is sent to journal and NOT stored.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before commit is written to journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -81,10 +118,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void replicatedTestFailoverTransAckQueueCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
-
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when commit is sent to journal and stored.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when commit is sent to journal and stored.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills server after commit is written to journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -100,9 +145,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when commit is sent to journal and stored.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when commit is witten in to backup's journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills live server after commit is written to backup's journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -118,9 +173,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed whem message is received but not acked.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when message is received but not acked.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills live server after message is received but not acked</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -136,6 +201,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed before commit of received message is stored in journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -148,6 +226,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when after commit of received message is stored in journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -161,6 +252,19 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
 
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when after commit of received message is stored in backup's journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -197,8 +301,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     /////////////////////////////////////////// FAILOVER ON TOPIC ///////////////////////////////////////////////
 
     /**
-     * Start simple failover test with trans_ack on queues. Server is killed when message is sent to server but not stored to journal.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed just before message and  transactional data about producer's incoming
+     * message are written into journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -209,13 +323,24 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiMessageSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicMessageSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on Topis. Server is killed when message is sent to server and stored to journal.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed after message is written in to journal, but before transactional data
+     * about producer's incoming message are written.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -227,13 +352,22 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "addToPage",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiMessageSentStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
     /**
-     * Start simple failover test with trans_ack on Topis. Server is killed when commit is sent to journal and NOT stored.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when commit is sent to journal and NOT stored.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills server just before commit is written to journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -244,13 +378,22 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiCommitSentNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
     /**
-     * Start simple failover test with trans_ack on Topis. Server is killed when commit is sent to journal and stored.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when commit is sent to journal and stored.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills server after commit is written to journal</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -262,13 +405,26 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiCommitSentAndStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitSentAndStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
     /**
      * Start simple failover test with trans_ack on Topis. Server is killed when commit is sent to journal and stored.
      * It's the same method for client_ack and trans session.
+     */
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when after commit of sent message is stored in backup's journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills live after before commit of sent message is stored in backup's journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -280,13 +436,22 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiCommitStoredInBackupNotStoredInLive() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitStoredInBackupNotStoredInLive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
 
     /**
-     * Start simple failover test with trans_ack on Topis. Server is killed whem message is received but not acked.
-     * It's the same method for client_ack and trans session.
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when message is received but not acked.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills live server after message is received but not acked</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -298,10 +463,24 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendDeleteRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiMessageReceivedNotAcked() throws Exception {
+    public void replicatedTestFailoverTransAckTopicMessageReceivedNotAcked() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
+
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed before commit of received message is stored in journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -310,10 +489,23 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetClass = "org.hornetq.core.replication.ReplicatedJournal",
             targetMethod = "appendCommitRecord",
             action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
-    public void replicatedTestFailoverTransAckTopiCommitNotStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when after commit of received message is stored in journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -323,10 +515,23 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             targetMethod = "appendCommitRecord",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
-    public void replicatedTestFailoverTransAckTopiCommitStored() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
+    /**
+     * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
+     * replicated journal. Live server is killed when after commit of received message is stored in backup's journal.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -337,13 +542,24 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
-    public void replicatedTestFailoverTransAckTopiCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
+    public void replicatedTestFailoverTransAckTopicCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
 
 
     /**
      * @throws Exception
+     * @tpTestDetails This test scenario tests if clients are not blocked, when backup fails during synchronization.
+     * @tpProcedure <ul>
+     *     <li>Configure 2 nodes to dedicated topology</li>
+     *     <li>Start live (node-1) and send 1GB of large-messages</li>
+     *     <li>Start other producer, sending messages to node-1</li>
+     *     <li>Start consumer, receiving messages from node-1</li>
+     *     <li>Start backup (node-2) and wait until synchronization starts</li>
+     *     <li>Shut down node-2</li>
+     *     <li>Check if clients still send and receive messages</li>
+     *     </ul>
+     * @tpPassCrit clients are not blocked after backup shutdown
      */
     @Test
     @RunAsClient
@@ -728,6 +944,23 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     /**
      * Start simple failback test with trans_ack on queues
      */
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with replicated journal using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -738,8 +971,23 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
+
     /**
-     * Start simple failback test with trans_ack on queues with shutdown
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with replicated journal using NIO
+     * journal type and clean shut down. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -754,6 +1002,23 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     /**
      * Start simple failover test with trans_ack on queues
      */
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with replicated journal using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1 with Byteman</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -761,11 +1026,28 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
         prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
         prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, false, false, false);
     }
 
     /**
      * Start simple failover test with trans_ack on queues
+     */
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with replicated journal using NIO
+     * journal type and clean shut down. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -774,7 +1056,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
         prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
         prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, false, false, true);
     }
     
 }

@@ -167,7 +167,6 @@ public class ClusterTestCase extends HornetQTestCase {
         prepareServers();
 
         container(2).start();
-
         container(1).start();
 
         Client queueProducer = new ProducerTransAck(container(1),queueJndiNamePrefix+"0",NUMBER_OF_MESSAGES_PER_PRODUCER);

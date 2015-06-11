@@ -37,11 +37,8 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     // test JMS bridge clean shutdown - no unfinished transactions.
     /**
-     * @tpTestDetails Start node-1 with deployed destinations and deployed JMS bridge between inQueue and outQueue on
-     * node-3. Producer sends messages to inQueue on node-1. After producer finishes, node-3 with deployed destinations
-     * is started. After JMS bridge successfully connects and 10% of messages from inQueue to outQueue are transferred,
-     * shutdown and start sequence of node-1 is executed five times. Journal is checked for unfinished HQ transactions
-     * after every shutdown.
+     * @tpTestDetails This scenario tests server shutdown while messages are transferred. No unfinished transactions
+     * should be left in journal after shutdown.
      * @tpProcedure <ul>
      *     <li>Start node-1 with deployed destinations and deployed JMS bridge between inQueue and outQueue on node-3</li>
      *     <li>send 20000 messages to inQueue</li>
@@ -105,14 +102,13 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     // ///////////////// Test Initial Failover /////////////////
     /**
-     * @tpTestDetails Start live server and its backup. When backup is announced then stop live server
-     * and start 3rd server with deployed JMS bridge whit "AT_MOST_ONCE" QoS which resends messages from its InQueue to
-     * backup’s OutQueue. Check that all messages are in OutQueue on backup.
+     * @tpTestDetails  This scenario tests failover of JMS bridge from live to backup before any client connects.
      * @tpProcedure <ul>
      *     <li>Start live and its backup server</li>
      *     <li>Stop live server</li>
-     *     <li>Start 3rd server with deployed JMS bridge with "AT_MOST_ONCE" QoS  which sends messages from 3rd server’s
-     *      InQueue to backup’s OutQueue</li>
+     *     <li>Start 3rd server with deployed JMS bridge with "AT_MOST_ONCE" QoS  which connects to live outQueue</li>
+     *     <li>shut down live</li>
+     *     <li>JMS bridge makes failover to backup</li>
      *     <li>Start producer which sends messages to InQueue</li>
      *     <li>Start consumer which reads messages from OutQueue</li>
      * </ul>
@@ -130,14 +126,13 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails Start live server and its backup. When backup is announced then stop live server
-     * and start 3rd server with deployed JMS bridge whit "DUPLICATES_OK" QoS which resends messages from its InQueue to
-     * backup’s OutQueue. Check that all messages are in OutQueue on backup.
+     * @tpTestDetails This scenario tests failover of JMS bridge from live to backup before any client connects
      * @tpProcedure <ul>
      *     <li>Start live and its backup server</li>
      *     <li>Stop live server</li>
-     *     <li>Start 3rd server with deployed JMS bridge with "DUPLICATES_OK" QoS  which sends messages from 3rd server’s
-     *      InQueue to backup’s OutQueue</li>
+     *     <li>Start 3rd server with deployed JMS bridge with "DUPLICATES_OK" QoS  which connects to lives outQueue</li>
+     *     <li>shut down live</li>
+     *     <li>JMS bridge makes failover to backup</li>
      *     <li>Start producer which sends messages to InQueue</li>
      *     <li>Start consumer which reads messages from OutQueue</li>
      * </ul>
@@ -154,9 +149,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         testInitialFailover();
     }
     /**
-     * @tpTestDetails Start live server and its backup. When backup is announced then stop live server
-     * and start 3rd server with deployed JMS bridge whit "ONCE_AND_ONLY_ONCE" QoS which resends messages from its InQueue to
-     * backup’s OutQueue. Check that all messages are in OutQueue on backup.
+     * @tpTestDetails This scenario tests failover of JMS bridge from live to backup before any client connects
      * @tpProcedure <ul>
      *     <li>Start live and its backup server</li>
      *     <li>Stop live server</li>
@@ -180,7 +173,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     // ///////////////// Test Failover ////////////////////////////////////
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "AT_MOST_ONCE" QoS which resends messages from its InQueue to live’s OutQueue. Kill live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -205,7 +198,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "DUPLICATES_OK" QoS which resends messages from its InQueue to live’s OutQueue. Kill live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -230,7 +223,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "ONCE_AND_ONLY_ONCE" QoS which resends messages from its InQueue to live’s OutQueue. Kill live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -255,7 +248,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "AT_MOST_ONCE" QoS which resends messages from its InQueue to live’s OutQueue. Shutdown live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -280,7 +273,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "DUPLICATES_OK" QoS which resends messages from its InQueue to live’s OutQueue. Shutdown live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -305,7 +298,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     /**
-     * @tpTestDetails est failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
+     * @tpTestDetails test failover of JMS bridge. Start live server and its backup. Start 3rd server with deployed JMS
      * bridge with "ONCE_AND_ONLY_ONCE" QoS which resends messages from its InQueue to live’s OutQueue. Shutdown live
      * server and that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
