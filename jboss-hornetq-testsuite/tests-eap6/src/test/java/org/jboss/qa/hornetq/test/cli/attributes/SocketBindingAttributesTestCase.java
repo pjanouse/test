@@ -13,12 +13,19 @@ import org.junit.experimental.categories.Category;
 
 /**
  * Created by okalman on 12/3/14.
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
  */
 @Category(FunctionalTests.class)
 public class SocketBindingAttributesTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(SocketBindingAttributesTestCase.class);
 
+    /**
+     * @tpTestDetails This scenario tests if model (cli) shows correct socket binding information.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

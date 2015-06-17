@@ -5,7 +5,16 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 /**
  *
  * Tests failover of remote JCA and replicated journal with BLOCK policy.
+ /**
  *
+ * Tests failover of remote JCA and replicated journal.
+ *
+ * @tpChapter Recovery/Failover testing
+ * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Tests failover of remote JCA and replicated journal with BLOCK policy.
+ * This test case implements the same tests as ReplicatedDedicatedFailoverTestWithMdb
  */
 public class ReplicatedDedicatedFailoverTestWithMdbWithBlockPolicy extends ReplicatedDedicatedFailoverTestWithMdb {
 

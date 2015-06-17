@@ -22,7 +22,7 @@ import java.io.IOException;
  * are two servers in dedicated HA topology and MDB deployed on another server.
  * Live server is shutdown/killed and correct failover/failback is tested. Live
  * and backup servers use replicated journal.
- * 
+ * This test case implements the same tests as DedicatedFailoverTestCaseWithMdb
  */
 @RunWith(Arquillian.class)
 public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {

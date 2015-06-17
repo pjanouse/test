@@ -11,7 +11,12 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  *
  * Set eap6client property to version of the client you want to test against
  * the latest EAP6 server.
- *
+ * @tpChapter Backward compatibility testing
+ * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test older EAP6 JMS client against latest EAP 7.x server, this test case implements tests from
+ * ClientCompatibilityTestBase
  * @author mnovak@redhat.com
  * @author ochaloup@redhat.com
  * @author msvehla@redhat.com
