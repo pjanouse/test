@@ -29,9 +29,14 @@ import javax.jms.Session;
 
 /**
  * @author mnovak@redhat.com
+ * tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
+ * @tpJobLink TBD
+ * @tpTcmsLink TBD
+ * @tpTestCaseDetails This test case checks if loadbalancing in cluster works fine even if clients have to make failover on backup
  */
 @RunWith(Arquillian.class)
-// TODO fix and run this test - consumer first node, producer 3rd node
+// TODO fix and run this test - consumer first node, producer 3rd node. Update documentation when it's complete
 @Ignore
 public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
@@ -50,8 +55,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     String jndiContextPrefix = "java:jboss/exported/";
 
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
      *
      * @param acknowledge acknowledge type
      * @param failback    whether to test fail back
@@ -64,9 +67,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * This test will start two servers in dedicated topology - no cluster. Sent
-     * some messages to first Receive messages from the second one
-     *
+
      * @param acknowledge acknowledge type
      * @param failback    whether to test failback
      * @param topic       whether to test with topics
@@ -199,6 +200,16 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     /**
      * Start simple failover test with client_ack on queues
+     * @tpTestDetails This test scenario tests failover of clients connected to queue (using CLIENT_ACKNOWLEDGE session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -209,7 +220,16 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @tpTestDetails This test scenario tests failover of clients connected to queue (using SESSION_TRANSACTED session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -221,6 +241,18 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
 
     /**
      * Start simple failover test with client_ack on queues
+     * @tpTestDetails This test scenario tests failover and failback of clients connected to queue (using CLIENT_ACKNOWLEDGE session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>wait until clients make failover</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>producer and consumer continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -230,7 +262,19 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * Start simple failover test with client_ack on queues
+     * @tpTestDetails This test scenario tests failover and failback of clients connected to queue (using SESSION_TRANSACTED session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>wait until clients make failover</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>producer and consumer continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -240,7 +284,17 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * Start simple failover test with client_ack on queues
+     * @tpTestDetails This test scenario tests failover of clients connected to topic (using CLIENT_ACKNOWLEDGE session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -250,7 +304,17 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * Start simple failover test with client_ack on queues
+     * @tpTestDetails This test scenario tests failover of clients connected to topic (using SESSION_TRANSACTED session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -260,7 +324,18 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @tpTestDetails This test scenario tests failover and failback of clients connected to topic (using CLIENT_ACKNOWLEDGE session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>wait until clients make failover</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>producer and consumer continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient
@@ -270,7 +345,18 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @tpTestDetails This test scenario tests failover and failback of clients connected to topic (using SESSION_TRANSACTED session)
+     * on node which is killed in dedicated cluster topology.
+     * @tpProcedure <ul>
+     *     <li>start three nodes in colocated cluster topology. Node-1 and node-3 are live servers, node-2 is backup for node-1</li>
+     *     <li>start sending large messages with group id to inTopic on node-1 and receiving them from inTopic on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>wait until clients make failover</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>producer and consumer continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception
      */
     @Test
     @RunAsClient

@@ -41,11 +41,17 @@ import java.util.Map;
 /**
  * Forward compatibility tests for EAP5 HornetQ org.jboss.qa.hornetq.apps.clients connecting to EAP6 server.
  * <p/>
- * For this test working properly, you need to use arqullian-eap6-legacy.xml descriptor. Your JBOSS_HOME_X properties need to
- * point to EAP6 servers with org.jboss.legacy.jnp module installed. When running this test, use eap5x-backward-compatibility
+ * For this test working properly, you need to use arqullian-eap7-legacy.xml descriptor. Your JBOSS_HOME_X properties need to
+ * point to EAP7 servers with org.jboss.legacy.jnp module installed. When running this test, use eap5x-backward-compatibility
  * maven profile and set netty.version and hornetq.version maven properties to client libraries versions you want to test with
  * (HornetQ needs to be 2.2.x).
  *
+ * @tpChapter Backward compatibility testing
+ * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test older EAP5 JMS client against latest EAP 7.x server, this test case also implements tests from
+ * ClientCompatibilityTestBase
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
@@ -140,6 +146,14 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
     }
 
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to make JNDI lookup with EAP 5 client on EAP 7 server.
+     * @tpProcedure <ul>
+     *     <li>Start EAP 7 server with legacy extention and deployed destinations</li>
+     *     <li>do JNDI lookup with EAP 5 client libraries to EAP 7 server</li>
+     * </ul>
+     * @tpPassCrit Verify that JNDI lookup was successful
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -564,8 +578,22 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
 
     }
 
+
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on dedicated topology with shared-store and kill.
+     * EAP 5 clients are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testTopic on EAP 7 server.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two EAP7 nodes in dedicated topology (live and backup)</li>
+     *     <li>start EAP5 clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testTopic on EAP7 server and
+     *     receiving them from testTopic on EAP7</li>
+     *     <li>kill live server</li>
+     *     <li>clients make failover on EAP7 backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -576,7 +604,20 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on dedicated topology with shared-store and kill.
+     * EAP 5 clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testTopic on EAP 7 server.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two EAP7 nodes in dedicated topology (live and backup)</li>
+     *     <li>start EAP5 clients (with SESSION_TRANSACTED) sessions  sending messages to testTopic on EAP7 server and
+     *     receiving them from testTopic on EAP7</li>
+     *     <li>kill live server</li>
+     *     <li>clients make failover on EAP7 backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -586,8 +627,21 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
 
+
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on dedicated topology with shared-store and shutdown.
+     * EAP 5 clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue on EAP 7 server.
+     * @tpProcedure <ul>
+     *     <li>start two EAP7 nodes in dedicated topology (live and backup)</li>
+     *     <li>start EAP5 clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on EAP7 server and
+     *     receiving them from testQueue on EAP7</li>
+     *     <li>shut down live server</li>
+     *     <li>clients make failover on EAP7 backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -598,7 +652,19 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on dedicated topology with shared-store and kill.
+     * EAP 5 clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue on EAP 7 server.
+     * @tpProcedure <ul>
+     *     <li>start two EAP7 nodes in dedicated topology (live and backup)</li>
+     *     <li>start EAP5 clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on EAP7 server and
+     *     receiving them from testQueue on EAP7</li>
+     *     <li>kill live server</li>
+     *     <li>clients make failover on EAP7 backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -609,7 +675,17 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests whether is EAP5 client capable to send large messages to EAP7 server with activated
+     * large message compression on it.
+     * @tpProcedure <ul>
+     *     <li>start two EAP7 server with deployed destinations and large message compression </li>
+     *     <li>start EAP5 clients sending messages to testQueue on EAP7 server and receiving them from the same queue</li>
+     *     <li>wait for clients to send and receive some messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient

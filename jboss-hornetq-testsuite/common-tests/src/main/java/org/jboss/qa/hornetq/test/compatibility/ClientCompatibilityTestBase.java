@@ -25,6 +25,14 @@ import javax.jms.Session;
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
+/**
+ * @tpChapter Backward compatibility testing
+ * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
+ * @tpJobLink tbd
+ * @tpTcmsLink tbd
+ * @tpTestCaseDetails Test base class for older client compatibility against EAP7.
+ * ClientCompatibilityTestBase
+ */
 @RunWith(Arquillian.class)
 public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
 
@@ -60,7 +68,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
         container(1).stop();
     }
 
-
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from queue with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with AUTO_ACKNOWLEDGE) sessions sending and receiving messages from testQueue on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -70,6 +88,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from queue with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with CLIENT_ACKNOWLEDGE) sessions sending and receiving messages from testQueue on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -78,7 +107,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
         testClient(container(1), Session.CLIENT_ACKNOWLEDGE, false);
     }
 
-
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from queue with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with SESSION_TRANSACTED) sessions sending and receiving messages from testQueue on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -88,6 +127,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from topic with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with AUTO_ACKNOWLEDGE) sessions sending and receiving messages from testTopic on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -97,6 +147,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from topic with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with CLIENT_ACKNOWLEDGE) sessions sending and receiving messages from testTopic on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -105,7 +166,17 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
         testClient(container(1), Session.CLIENT_ACKNOWLEDGE, true);
     }
 
-
+    /**
+     * @tpTestDetails This test scenario tests whether is possible to send and receive messages from topic with older EAP clients
+     * on latest EAP7 server.
+     * @tpProcedure <ul>
+     *     <li>start EAP7 node</li>
+     *     <li>start older clients (with SESSION_TRANSACTED) sessions sending and receiving messages from testTopic on EAP7 server.
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and receiver successfully sent and received messages
+     */
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
