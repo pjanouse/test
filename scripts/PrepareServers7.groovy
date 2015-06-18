@@ -410,7 +410,10 @@ public class PrepareServers7 {
         disableSecurity(standaloneProfile)
         enableDebugConsle(standaloneProfile)
         if (disableTraceLogs == null) {
-            setupLogging(standaloneProfile)
+            setupLogging(standaloneProfile, false)
+        }else{
+            setupLogging(standaloneProfile, true)
+            print "Disabling trace logs"
         }
         setupSocketBingingGroup(standaloneDocument)
 
@@ -616,13 +619,34 @@ public class PrepareServers7 {
         }
     }
 
-    private static void setupLogging(Node profile){
+    private static void setupLogging(Node profile, boolean dissableTrace){
         Node loggingSubsystem = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
-        setupTraceFileHandler(loggingSubsystem)
-        setupActivemqLogger(loggingSubsystem)
-        setupRootLogger(loggingSubsystem)
+        if(!dissableTrace) {
+            setupTraceFileHandler(loggingSubsystem)
+            setupActivemqLogger(loggingSubsystem)
+            setupRootLogger(loggingSubsystem)
+        }
+        setupConsoleHandler(loggingSubsystem)
+        setupFileHandler(loggingSubsystem)
 
     }
+    private static void setupConsoleHandler(Node loggingSubsystem){
+            Node consoleHandler = loggingSubsystem.'console-handler'.get(0)
+            consoleHandler.remove(consoleHandler.level.get(0))
+            consoleHandler.appendNode('level', [name:"INFO"])
+            Node formatterOld = consoleHandler.formatter.'named-formatter'.get(0)
+            Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+            formatterOld.replaceNode(formatterNew)
+    }
+
+    private static void setupFileHandler(Node loggingSubsystem){
+        Node  fileHandler = loggingSubsystem.'periodic-rotating-file-handler'.find{ it.@name == 'FILE'}
+        fileHandler.appendNode('level',[name:"INFO"])
+        Node formatterOld = fileHandler.formatter.'named-formatter'.get(0)
+        Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+        formatterOld.replaceNode(formatterNew)
+    }
+
     private static void setupTraceFileHandler(Node loggingSubsystem){
         Node fileHandlerTrace = new Node(loggingSubsystem, 'periodic-rotating-file-handler',[name:"FILE-TRACE", autoflush:"true"])
         Node formater = new Node(fileHandlerTrace, 'formatter')
