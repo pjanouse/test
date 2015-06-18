@@ -180,7 +180,7 @@ public class PrepareServers {
         renameEAPDir(eapDirName)
 
         // install legacy extension if legacyExtensionUrl is set
-        if (legacyExtensionUrl != null && !''.equals(legacyExtensionUrl))   {
+        if (legacyExtensionUrl != null && !''.equals(legacyExtensionUrl)) {
             installLegacyExtension();
         }
 
@@ -196,7 +196,7 @@ public class PrepareServers {
         return new File(eapDirName).absolutePath
     }
 
-    public static void installLegacyExtension()    {
+    public static void installLegacyExtension() {
 
         println "Legacy extension will be installed. Provided url to legacy extension is: " + legacyExtensionUrl
 
@@ -222,7 +222,6 @@ public class PrepareServers {
             }
         }
     }
-
 
 /** Create server{1..4} and copy jboss-eap into them
  *
@@ -253,20 +252,28 @@ public class PrepareServers {
 
         // parse eapZipUrl and get path to baseDir
         String eapZipFileName = eapZipUrl.tokenize("/")[-1]
-        String baseDir = eapZipUrl.replaceAll(eapZipFileName, "")
+        String eapZipDirNameOriginal = eapZipUrl.tokenize("/")[-2]
+        String nativeVersion = eapZipDirNameOriginal;  // 6.4.1.CP.CR.3 or 6.4.0.DR4
+        if (eapZipDirNameOriginal.toUpperCase().contains("CP")) {
+            nativeVersion = eapZipDirNameOriginal.subSequence(0,3)
+            nativeVersion = nativeVersion.concat(".0")
+        }
 
-        println " - base dir is: " + baseDir + ", eap zip file name is: " + eapZipFileName
+        String baseDir = eapZipUrl.replaceAll(eapZipFileName, "").replaceAll(eapZipDirNameOriginal, nativeVersion)
+
+        println " - base dir for natives is: " + baseDir + ", eap zip file name is: " + eapZipFileName
 
         // build path to native zip file - jboss-eap-6.3.0.ER10.zip
-        StringBuilder nativeFileNameBuilder = new StringBuilder(eapZipFileName);
-        int indexWhereToPlacePlatform = nativeFileNameBuilder.indexOf(".zip")
-        //println "index is: " + indexWhereToPlacePlatform
-        nativeFileNameBuilder.insert(indexWhereToPlacePlatform, getPlatformVersion())
-        nativeFileNameBuilder.insert(10, "native-")
+        StringBuilder nativeFileNameBuilder = new StringBuilder("jboss-eap-");
+        nativeFileNameBuilder.append("native-")
+        nativeFileNameBuilder.append(nativeVersion)
+        nativeFileNameBuilder.append(getPlatformVersion())
+        nativeFileNameBuilder.append(".zip")
 
         String nativeFileName = nativeFileNameBuilder.toString()
 
-        // download this zip
+        println " - base dir is: " + baseDir + ", nativeFileName file name is: " + nativeFileName
+
         try {
             downloadFile(baseDir + "natives" + "/" + nativeFileName, downloadedNativeZipFileName)
         } catch (FileNotFoundException ex) {
@@ -274,6 +281,7 @@ public class PrepareServers {
             println("Trying native instead of natives.")
             downloadFile(baseDir + "native" + "/" + nativeFileName, downloadedNativeZipFileName)
         }
+
 
     }
 
@@ -409,7 +417,7 @@ public class PrepareServers {
 
         // copy original full-ha profile and full-ha-sockets 4 times and rename it to full-ha-N / full-ha-sockets-N
         def profiles = domainDocument.profiles.get(0)
-        def originalProfile = profiles.profile.findAll{ it.@name == 'full-ha' }.get(0)
+        def originalProfile = profiles.profile.findAll { it.@name == 'full-ha' }.get(0)
 
         disableSecurity(originalProfile)
         enableDebugConsle(originalProfile)
@@ -428,13 +436,13 @@ public class PrepareServers {
         updateInterfacesHostnames(hostDocument)
 
         def servers = hostDocument.servers.get(0)
-        servers.server.each{ servers.remove(it) }
+        servers.server.each { servers.remove(it) }
 
         for (i in 1..4) {
-            def newServer = servers.appendNode('server', [name:"server-${i}", group:"server-group-${i}", 'auto-start':'false'])
+            def newServer = servers.appendNode('server', [name: "server-${i}", group: "server-group-${i}", 'auto-start': 'false'])
             if (i != 1) {
                 int portOffset = i * 10000
-                newServer.appendNode('socket-bindings', ['port-offset':portOffset])
+                newServer.appendNode('socket-bindings', ['port-offset': portOffset])
             }
         }
 
@@ -523,14 +531,14 @@ public class PrepareServers {
         //hornetq.children().add(1, new Node(hornetq, 'security-enabled', false))
         hornetq.'journal-type'.get(0).value = 'ASYNCIO'
 
-        def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find{ it.@name == 'other' }
-        def remotingSecurity = securityDomainOther.authentication.'login-module'.find{ it.@code == 'Remoting' }
-        remotingSecurity.appendNode('module-option', [name:'unauthenticatedIdentity', value:'guest'])
+        def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find { it.@name == 'other' }
+        def remotingSecurity = securityDomainOther.authentication.'login-module'.find { it.@code == 'Remoting' }
+        remotingSecurity.appendNode('module-option', [name: 'unauthenticatedIdentity', value: 'guest'])
     }
 
     private static void enableDebugConsle(Node profile) {
-        def logging = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
-        logging.'console-handler'.find{ it.@name == 'CONSOLE' }.level.each{ it.@name = 'DEBUG' }
+        def logging = profile.subsystem.find { it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
+        logging.'console-handler'.find { it.@name == 'CONSOLE' }.level.each { it.@name = 'DEBUG' }
 
         //consoleHandler.formatter.'named-formatter'.each{ consoleHandler.formatter.remove(it) }
         //def formatter = consoleHandler.appendNode('formatter')
@@ -549,7 +557,7 @@ public class PrepareServers {
     }
 
     private static void cloneSocketBindings(Node sockets) {
-        def originalSockets = sockets.'socket-binding-group'.find{ it.@name == 'full-ha-sockets' }
+        def originalSockets = sockets.'socket-binding-group'.find { it.@name == 'full-ha-sockets' }
         for (i in 1..4) {
             // clone on Node is only in Groovy 2+
             // def newSockets = originalSockets.clone()
@@ -561,20 +569,20 @@ public class PrepareServers {
     }
 
     private static void cloneServerGroups(Node serverGroups) {
-        serverGroups.'server-group'.each{ serverGroups.remove(it) }
+        serverGroups.'server-group'.each { serverGroups.remove(it) }
 
         for (i in 1..4) {
-            def newServerGroup = serverGroups.appendNode('server-group', [name:"server-group-${i}", profile:"full-ha-${i}"])
-            def jvm = newServerGroup.appendNode('jvm', [name:'default'])
-            jvm.appendNode('heap', [size:'64m', 'max-size':'788m'])
-            jvm.appendNode('permgen', ['max-size':'256m'])
-            newServerGroup.appendNode('socket-binding-group', [ref:"full-ha-sockets-${i}"])
+            def newServerGroup = serverGroups.appendNode('server-group', [name: "server-group-${i}", profile: "full-ha-${i}"])
+            def jvm = newServerGroup.appendNode('jvm', [name: 'default'])
+            jvm.appendNode('heap', [size: '64m', 'max-size': '788m'])
+            jvm.appendNode('permgen', ['max-size': '256m'])
+            newServerGroup.appendNode('socket-binding-group', [ref: "full-ha-sockets-${i}"])
         }
     }
 
     private static void updateInterfacesHostnames(Node host) {
         def interfaces = host.interfaces.get(0)
-        def addressList = interfaces.interface.collect{ it.'inet-address'.get(0) }
+        def addressList = interfaces.interface.collect { it.'inet-address'.get(0) }
 
         for (address in addressList) {
             if (address.@value.startsWith('${jboss.bind.address')) {
@@ -601,10 +609,11 @@ public class PrepareServers {
 //        System.setProperties(prop)
 //        eapVersion = "6.0.0"
 //        eapVersionOld = "6.2.0"
-        //def eapZipUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/jboss-eap-6.3.0.ER10.zip'
-//        eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
+//        def eapZipUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/jboss-eap-6.3.0.ER10.zip'
+        //eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
         //def nativesUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/natives/jboss-eap-native-6.3.0.ER10-RHEL6-x86_64.zip'
         PrepareServers p = new PrepareServers()
+
         p.prepareServer(eapZipUrl, nativesUrl, configurationDirUrl)
         p.copyServers(4)
         if (eapZipUrlOld != null && eapZipUrlOld != '') {
