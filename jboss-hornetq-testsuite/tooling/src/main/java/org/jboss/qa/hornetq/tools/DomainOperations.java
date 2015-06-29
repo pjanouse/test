@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,11 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.threads.JBossThreadFactory;
-
-import javax.resource.NotSupportedException;
 
 
 /**
@@ -37,10 +37,10 @@ public final class DomainOperations {
 
     private static final int TIMEOUT = 30000;
 
-    private final ModelControllerClient modelControllerClient = null;
+    private final ModelControllerClient modelControllerClient;
 
     private DomainOperations(final String hostname, final int managementPort) {
-//        try {
+        try {
             AtomicInteger executorCount = new AtomicInteger(0);
             ThreadGroup group = new ThreadGroup("management-client-thread");
             ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G "
@@ -48,12 +48,12 @@ public final class DomainOperations {
             ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<Runnable>(), threadFactory);
 
-//            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname,
-//                    managementPort, null, null, TIMEOUT));
-//        } catch (UnknownHostException e) {
-//            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port "
-//                    + managementPort, e);
-//        }
+            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname,
+                    managementPort, null, null, TIMEOUT));
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port "
+                    + managementPort, e);
+        }
 
         if (!testDomain()) {
             throw new RuntimeException("Cannot use domain operations or non-domain server launch type");
@@ -79,8 +79,8 @@ public final class DomainOperations {
      * @param container domain container information
      * @return connected client
      */
-    public static DomainOperations forContainer(final ContainerInfo container) {
-        throw new RuntimeException("This is not yet implemented");
+    public static DomainOperations forContainer(final Container container) {
+        return new DomainOperations(container.getHostname(), container.getPort());
     }
 
     public DomainOperations reloadDomain() {
@@ -111,6 +111,23 @@ public final class DomainOperations {
             Thread.sleep(5000);
         } catch (Exception e) {
             LOG.error("Cannot start server " + serverDomainName, e);
+        }
+
+        return this;
+    }
+
+    public DomainOperations stopNode(final String serverDomainName) {
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("stop");
+        model.get(ClientConstants.OP_ADDR).add("host", "master");
+        model.get(ClientConstants.OP_ADDR).add("server-config", serverDomainName);
+
+        try {
+            LOG.info("Stopping server " + serverDomainName);
+            this.applyUpdate(model);
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            LOG.error("Cannot stop server " + serverDomainName, e);
         }
 
         return this;
@@ -281,7 +298,7 @@ public final class DomainOperations {
     public void close() {
         try {
             modelControllerClient.close();
-        } catch (IOException e) {
+        } catch (IOException e){
             throw new RuntimeException(e);
         }
     }
@@ -298,11 +315,12 @@ public final class DomainOperations {
             LOG.error("Cannot read server launch type", e);
         }
 
+        LOG.info("Server launch type: " + result.get("result").asString());
         return result != null && "domain".equals(result.get("result").asString().toLowerCase());
     }
 
     private ModelNode applyUpdate(final ModelNode update) throws IOException, DomainOperationException {
-        ModelNode result = this.modelControllerClient.execute(update);
+        ModelNode result = modelControllerClient.execute(update);
         if (result.hasDefined(ClientConstants.OUTCOME)
                 && ClientConstants.SUCCESS.equals(result.get(ClientConstants.OUTCOME).asString())) {
             LOG.info(String.format("Operation successful for update = '%s'", update.toString()));
