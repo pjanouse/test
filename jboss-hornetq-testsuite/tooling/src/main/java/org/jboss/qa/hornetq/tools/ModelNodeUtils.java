@@ -71,8 +71,9 @@ public final class ModelNodeUtils {
         ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), threadFactory);
 
-        return ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, managementPort, null, null,
-                timeout));
+//        return ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, managementPort, null, null,
+//                timeout));
+        return ModelControllerClient.Factory.create(hostname, managementPort);
     }
 
 }

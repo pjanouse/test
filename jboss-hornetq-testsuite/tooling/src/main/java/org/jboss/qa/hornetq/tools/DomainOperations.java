@@ -48,8 +48,7 @@ public final class DomainOperations {
             ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<Runnable>(), threadFactory);
 
-            this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname,
-                    managementPort, null, null, TIMEOUT));
+            this.modelControllerClient = ModelControllerClient.Factory.create(hostname, managementPort);
         } catch (UnknownHostException e) {
             throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port "
                     + managementPort, e);
