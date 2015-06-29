@@ -44,6 +44,7 @@
             <property name="startupTimeoutInSeconds">60</property>
             <property name="managementAddress" >${MYTESTIP_1}</property>
             <property name="managementPort">${MANAGEMENT_PORT_1}</property> -->
+            <property name="managementAddress" >${MYTESTIP_1}</property>
             <property name="username">admin</property>
             <property name="password">minono532/20</property>
         </configuration>
