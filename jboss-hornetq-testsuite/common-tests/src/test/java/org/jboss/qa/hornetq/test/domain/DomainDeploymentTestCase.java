@@ -17,6 +17,12 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+/**
+ * @tpChapter  Integration testing
+ * @tpSubChapter DOMAIN DEPLOYMENT TEST SCENARIO
+ * @tpJobLink TODO
+ * @tpTcmsLink TODO
+ */
 @RunWith(Arquillian.class)
 @Category(DomainTests.class)
 public class DomainDeploymentTestCase extends DomainHornetQTestCase {
@@ -50,6 +56,18 @@ public class DomainDeploymentTestCase extends DomainHornetQTestCase {
         return ShrinkWrap.create(WebArchive.class);
     }
 
+    /**
+     * @tpTestDetails This scenario tests a manipulation with domain structure and simple deployment on such
+     * modified domain.
+     * @tpProcedure <ul>
+     *     <li>Delete nodes server-1 and server-2 from the domain</li>
+     *     <li>Recreate the nodes both under server-group-1 server group</li>
+     *     <li>Deploy JMS destinations on both nodes through configuring server group</li>
+     *     <li>Deploy test application on both nodes through server group</li>
+     *     <li>Undeploy the test application</li>
+     * </ul>
+     * @tpPassCrit Whole scenario finishes without throwing any exceptions.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

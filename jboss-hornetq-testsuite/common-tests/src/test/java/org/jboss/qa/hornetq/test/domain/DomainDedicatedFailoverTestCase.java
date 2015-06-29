@@ -37,6 +37,14 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 
+/**
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY IN DOMAIN - TEST SCENARIOS
+ * @tpJobLink TODO
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
+ * Or on NSFv4 where journal type is ASYNCIO or NIO.
+ */
 @RunWith(Arquillian.class)
 @Category(DomainTests.class)
 public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
@@ -185,6 +193,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
 
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and kill with nodes in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from inQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to inQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -193,6 +217,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(false, false, false);
     }
 
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and clean shutdown in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from testQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -201,6 +241,23 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(false, false, true);
     }
 
+    /**
+     * @tpTestDetails This scenario tests failover and failback on dedicated topology with shared-store and kill in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -209,6 +266,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(true, false, false);
     }
 
+    /**
+     * @tpTestDetails  This scenario tests failover and failback on dedicated topology with shared-store and kill in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testTopic
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testTopic</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>during sending and receiving  kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testTopic and same amount
+     * as was received from testTopic
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -352,13 +425,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
 
     /**
-     * Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
+     * @throws Exception
+     * @tpTestDetails Start live backup pair in a domain in dedicated topology with shared store. Start producers and consumer on testQueue on live
      * and call CLI operations :force-failover on messaging subsystem. Live should stop and org.jboss.qa.hornetq.apps.clients failover to backup,
      * backup activates.
-     *
-     * @throws Exception
-     *
-     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving call CLI operation: force-failover on messaging subsystem on node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -735,7 +814,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and clean shutdown. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -768,7 +859,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean shutdown.
+     * Clients are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -779,7 +884,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -800,7 +919,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -811,7 +943,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -832,7 +977,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -843,7 +1002,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -880,7 +1053,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and a kill. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -892,7 +1077,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and a kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -913,7 +1111,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -924,7 +1136,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -945,7 +1171,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -956,7 +1195,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -977,7 +1229,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -988,7 +1254,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
