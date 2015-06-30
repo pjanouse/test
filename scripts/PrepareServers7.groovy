@@ -636,7 +636,9 @@ public class PrepareServers7 {
             consoleHandler.appendNode('level', [name:"INFO"])
             Node formatterOld = consoleHandler.formatter.'named-formatter'.get(0)
             Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
-            formatterOld.replaceNode(formatterNew)
+            Node parent =formatterOld.parent();
+            parent.remove(formatterOld);
+            parent.append(formatterNew);
     }
 
     private static void setupFileHandler(Node loggingSubsystem){
@@ -644,7 +646,9 @@ public class PrepareServers7 {
         fileHandler.appendNode('level',[name:"INFO"])
         Node formatterOld = fileHandler.formatter.'named-formatter'.get(0)
         Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
-        formatterOld.replaceNode(formatterNew)
+        Node parent = formatterOld.parent();
+        parent.remove(formatterOld);
+        parent.append(formatterNew);
     }
 
     private static void setupTraceFileHandler(Node loggingSubsystem){
@@ -661,7 +665,10 @@ public class PrepareServers7 {
         Node activeMQNewLogger = new Node(null, 'logger',[category:"org.apache.activemq"])
         activeMQNewLogger.appendNode('level', [name:"TRACE"])
         if(activeMQOldLogger != null){
-            activeMQOldLogger.replaceNode(activeMQNewLogger)
+            Node parent = activeMQOldLogger.parent();
+            parent.remove(activeMQOldLogger);
+            parent.append(activeMQNewLogger);
+
         }else{
             loggingSubsystem.append(activeMQNewLogger)
         }
