@@ -175,6 +175,9 @@ public class ContainerEAP6 implements Container {
         containerProperties.put("managementPort", String.valueOf(getPort()));
 
         String javaVmArguments = containerProperties.get("javaVmArguments");
+        if (javaVmArguments == null) {
+            javaVmArguments = "";
+        }
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
         javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
@@ -440,6 +443,13 @@ public class ContainerEAP6 implements Container {
                 if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
                     return containerDef;
                 }
+            }
+        }
+
+        // this is for domain mode, since there's no container group defined in arquillian.xml
+        for (ContainerDef containerDef : descriptor.getContainers()) {
+            if (containerDef.getContainerName().equalsIgnoreCase(containerName)) {
+                return containerDef;
             }
         }
 

@@ -110,7 +110,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     protected String currentContainerForTest;
 
     @ArquillianResource
-    private ContainerController controller;
+    protected ContainerController controller;
 
     @ArquillianResource
     @Deprecated

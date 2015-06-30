@@ -1025,7 +1025,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
                           String filter, String routingName, String transformerClassName) {
-        final ModelNode addDivert = new ModelNode();
+        final ModelNode addDivert = createModelNode();
         addDivert.get(ClientConstants.OP).set(ClientConstants.ADD);
         addDivert.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         addDivert.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
@@ -4914,7 +4914,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void forceFailover() {
-        final ModelNode model = new ModelNode();
+        final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("force-failover");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");

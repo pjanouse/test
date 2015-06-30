@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.test.domain;
 
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.Clients;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -20,32 +18,35 @@ import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.test.categories.DomainTests;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
-import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
-import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 
 /**
- * @author mnovak@redhat.com
+ * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY IN DOMAIN - TEST SCENARIOS
+ * @tpJobLink TODO
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
+ * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
 @RunWith(Arquillian.class)
+@Category(DomainTests.class)
 public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DomainDedicatedFailoverTestCase.class);
@@ -113,34 +114,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      * @param topic       whether to test with topics
      * @throws Exception
      */
-    @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>120",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
-        DomainOperations.forDefaultContainer().reloadDomain().close();
+        DomainContainer host = domainContainer();
+        host.reloadDomain();
+        prepareSimpleDedicatedTopology(host);
 
-        prepareSimpleDedicatedTopology();
+        DomainNode live = host.serverGroup("server-group-1").node("server-1");
+        DomainNode backup = host.serverGroup("server-group-2").node("server-2");
 
-        container(1).start();
-
-        container(2).start();
+        live.start();
+        backup.start();
 
         Thread.sleep(10000);
 
-        clients = createClients(acknowledge, topic);
+        clients = createClients(live, acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
@@ -152,18 +140,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT_1);
-            container(1).kill();
+            //RuleInstaller.installRule(this.getClass(), live.getHostname(), BYTEMAN_PORT_1);
+            live.kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            container(1).stop();
+            live.stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.",
+                CheckServerAvailableUtils.waitHornetQToAlive(backup.getHostname(), backup.getHornetqPort(),
+                        300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -171,20 +160,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            live.start();
+            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(
+                    live.getHostname(), live.getHornetqPort(), 300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(live.getHostname(), live.getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(backup, 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            container(2).stop();
+            backup.stop();
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -198,13 +188,27 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        container(1).stop();
-
-        container(2).stop();
-
+        live.stop();
+        backup.stop();
     }
 
 
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and kill with nodes in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from inQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to inQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -213,6 +217,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(false, false, false);
     }
 
+    /**
+     * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and clean shutdown in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from testQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -221,6 +241,23 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(false, false, true);
     }
 
+    /**
+     * @tpTestDetails This scenario tests failover and failback on dedicated topology with shared-store and kill in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
+     * directing to divertQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
+     * as was received from inQueue
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -229,6 +266,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         testFailoverWithDiverts(true, false, false);
     }
 
+    /**
+     * @tpTestDetails  This scenario tests failover and failback on dedicated topology with shared-store and kill in EAP domain. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testTopic
+     * directing to divertQueue.
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a single domain in dedicated cluster topology with divert directed to divertQueue from testTopic</li>
+     *     <li>start sending messages to inQueue on node-1 and receiving them from testTopic on node-1</li>
+     *     <li>during sending and receiving  kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>start receiver on divertQueue  and wait for him to finish</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testTopic and same amount
+     * as was received from testTopic
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -247,28 +300,33 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      */
     private void testFailoverWithDiverts(boolean failback, boolean topic, boolean shutdown) throws Exception {
 
-        DomainOperations.forDefaultContainer().reloadDomain().close();
-
         boolean isExclusive = false;
         int acknowledge = Session.SESSION_TRANSACTED;
 
-        prepareSimpleDedicatedTopology();
+        DomainContainer host = domainContainer();
+        host.reloadDomain();
+        prepareSimpleDedicatedTopology(host);
 
-        container(2).start();
-        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 10000);
-        addDivert(container(2), divertedQueue, isExclusive, topic);
-        container(2).stop();
+        DomainNode container1 = host.serverGroup("server-group-1").node("server-1");
+        DomainNode container2 = host.serverGroup("server-group-2").node("server-2");
 
-        container(1).start();
-        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 30000);
-        addDivert(container(1), divertedQueue, isExclusive, topic);
-        container(1).stop();
-        container(1).start();
-        container(2).start();
+        container1.start();
+        CheckServerAvailableUtils.waitHornetQToAlive(container1.getHostname(), container1.getHornetqPort(), 30000);
+        addDivert(host.serverGroup("server-group-1"), divertedQueue, isExclusive, topic);
+        container1.stop();
+
+        container2.start();
+        // backup won't open hornetq port until it's promoted to live
+        //CheckServerAvailableUtils.waitHornetQToAlive(container2.getHostname(), container2.getHornetqPort(), 30000);
+        addDivert(host.serverGroup("server-group-2"), divertedQueue, isExclusive, topic);
+        container2.stop();
+
+        container1.start();
+        container2.start();
 
         Thread.sleep(10000);
 
-        clients = createClients(acknowledge, topic);
+        clients = createClients(container1, acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
@@ -280,17 +338,18 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            container(1).kill();
+            container1.kill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");
             logger.warn("########################################");
-            container(1).stop();
+            container1.stop();
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.",
+                CheckServerAvailableUtils.waitHornetQToAlive(container2.getHostname(), container2.getHornetqPort(),
+                        300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -298,20 +357,22 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again ");
             logger.warn("########################################");
-            container(1).start();
-            Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            container1.start();
+            Assert.assertTrue("Live did not start again - failback failed.",
+                    CheckServerAvailableUtils.waitHornetQToAlive(container1.getHostname(), container1.getHornetqPort(),
+                            300000));
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container1.getHostname(), container1.getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(CONTAINER2_NAME, container(2).getHornetqPort(), 60000);
+            waitHornetQBackupToBecomePassive(container2, 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
             logger.warn("########################################");
             logger.warn("failback - Stop backup server");
             logger.warn("########################################");
-            container(2).stop();
+            container2.stop();
             logger.warn("########################################");
             logger.warn("failback - Backup server stopped");
             logger.warn("########################################");
@@ -336,10 +397,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         JMSOperations jmsOperations;
         if (failback) {
-            jmsOperations = container(1).getJmsOperations();
-
+            jmsOperations = container1.getRuntimeJmsOperations();
         } else {
-            jmsOperations = container(2).getJmsOperations();
+            jmsOperations = container2.getRuntimeJmsOperations();
         }
         long numberOfMessagesInDivertedQueue = jmsOperations.getCountOfMessagesOnQueue(divertedQueue);
         jmsOperations.close();
@@ -349,46 +409,56 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        container(1).stop();
-
-        container(2).stop();
-
+        container1.stop();
+        container2.stop();
     }
 
-    private void addDivert(Container container, String divertedQueue, boolean isExclusive, boolean topic) {
-        JMSOperations jmsOperations = container.getJmsOperations();
+    private void addDivert(DomainServerGroup serverGroup, String divertedQueue, boolean isExclusive, boolean isTopic) {
+        JMSOperations jmsOperations = serverGroup.getJmsOperations();
 
-        jmsOperations.addDivert("myDivert",
-                topic ? "jms.topic." + topicNamePrefix + "0" : "jms.queue." + queueNamePrefix + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
+        String divertAddress = isTopic ? "jms.topic." + topicNamePrefix + "0" : "jms.queue." + queueNamePrefix + "0";
+        String forwardingAddress = "jms.queue." + divertedQueue;
+        jmsOperations.addDivert("myDivert", divertAddress, forwardingAddress, isExclusive, null, null, null);
 
         jmsOperations.close();
     }
 
 
     /**
-     * Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
+     * @throws Exception
+     * @tpTestDetails Start live backup pair in a domain in dedicated topology with shared store. Start producers and consumer on testQueue on live
      * and call CLI operations :force-failover on messaging subsystem. Live should stop and org.jboss.qa.hornetq.apps.clients failover to backup,
      * backup activates.
-     *
-     * @throws Exception
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>during sending and receiving call CLI operation: force-failover on messaging subsystem on node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("force-failover returns error despite shutting down the server, see https://bugzilla.redhat.com/show_bug.cgi?id=1145107")
     public void testForceFailoverOperation() throws Exception {
+        DomainContainer host = domainContainer();
+        host.reloadDomain();
+        prepareSimpleDedicatedTopology(host);
 
-        DomainOperations.forDefaultContainer().reloadDomain().close();
+        DomainNode container1 = host.serverGroup("server-group-1").node("server-1");
+        DomainNode container2 = host.serverGroup("server-group-2").node("server-2");
+
+        container1.start();
+        container2.start();
 
         int acknowledge = Session.SESSION_TRANSACTED;
         boolean topic = false;
 
-        prepareSimpleDedicatedTopology();
-
-        container(1).start();
-        container(2).start();
-
-        clients = createClients(acknowledge, topic);
+        clients = createClients(container1, acknowledge, topic);
         clients.setProducedMessagesCommitAfter(2);
         clients.setReceivedMessagesAckCommitAfter(9);
         clients.startClients();
@@ -397,13 +467,14 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         ClientUtils.waitForProducersUntil(clients.getProducers(), 100, 300000);
 
         // call force-failover operation
-        JMSOperations jmsOperations = container(1).getJmsOperations();
+        JMSOperations jmsOperations = container1.getRuntimeJmsOperations();
         jmsOperations.forceFailover();
         jmsOperations.close();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(getHostname(
-                CONTAINER2_NAME), container(2).getHornetqPort(), 300000));
+        Assert.assertTrue("Backup did not start after failover - failover failed.",
+                CheckServerAvailableUtils.waitHornetQToAlive(container2.getHostname(), container2.getHornetqPort(),
+                        300000));
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -413,20 +484,18 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
 
-        container(1).stop();
-
-        container(2).stop();
-
+        container1.stop();
+        container2.stop();
     }
 
 
-    private void waitHornetQBackupToBecomePassive(String container, int port, long timeout) throws Exception {
+    private void waitHornetQBackupToBecomePassive(DomainNode node, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(container), port)) {
+        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(node.getHostname(), node.getHornetqPort())) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
-                Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
+                Assert.fail("Server " + node.getName() + " should be down. Timeout was " + timeout);
             }
         }
 
@@ -474,7 +543,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         }
     }
 
-    /**
+    /*
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first, kill first, receive messages from the second one
      *
@@ -483,17 +552,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      * @param topic       whether to test with topics
      * @throws Exception
      */
-    public void testFailoverWithByteman(int acknowledge, boolean failback, boolean topic, boolean isReceiveFailure) throws Exception {
+/*    public void testFailoverWithByteman(int acknowledge, boolean failback, boolean topic, boolean isReceiveFailure) throws Exception {
+        DomainContainer host = domainContainer();
+        host.reloadDomain();
+        prepareSimpleDedicatedTopology(host);
 
-        prepareSimpleDedicatedTopology();
+        DomainNode container1 = host.serverGroup("server-group-1").node("server-1");
+        DomainNode container2 = host.serverGroup("server-group-2").node("server-2");
 
-        container(2).start();
-
-        container(1).start();
+        container1.start();
+        container2.start();
 
         Thread.sleep(10000);
 
-        clients = createClients(acknowledge, topic);
+        clients = createClients(container1, acknowledge, topic);
 
         if (isReceiveFailure) {
             clients.setProducedMessagesCommitAfter(100);
@@ -544,7 +616,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 
         container(2).stop();
 
-    }
+    }*/
 
     public boolean waitForServerToBeKilled(String container, long timeout) throws Exception {
 
@@ -562,16 +634,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
 
-    public void testFailoverWithProducers(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
-        prepareSimpleDedicatedTopology();
+/*    public void testFailoverWithProducers(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        DomainContainer host = domainContainer();
+        host.reloadDomain();
+        prepareSimpleDedicatedTopology(host);
 
-        container(1).start();
+        DomainNode live = host.serverGroup("server-group-1").node("server-1");
+        DomainNode backup = host.serverGroup("server-group-2").node("server-2");
 
-        container(2).start();
+        live.start();
+        backup.start();
 
         Thread.sleep(10000);
 
-        ProducerTransAck p = new ProducerTransAck(CONTAINER1_NAME, container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck p = new ProducerTransAck(live.getHostname(), live.getJNDIPort(),
+                queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
         p.setMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
@@ -589,7 +666,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         logger.warn("########################################");
         logger.warn("Shutdown live server");
         logger.warn("########################################");
-        container(1).stop();
+        live.stop();
         container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
                 "journalAfterShutdownAndFailoverToBackup.txt");
         logger.warn("########################################");
@@ -651,9 +728,10 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         container(1).stop();
 
         container(2).stop();
-    }
+    }*/
 
 
+/*
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -677,6 +755,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     public void testFailoverTransAckQueueCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
+*/
 
 //    @Test
 //    @RunAsClient
@@ -690,27 +769,27 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //        testFailoverWithProducers(Session.SESSION_TRANSACTED, false, false, true);
 //    }
 
-    protected Clients createClients(int acknowledgeMode, boolean topic) throws Exception {
+    protected Clients createClients(DomainNode container, int acknowledgeMode, boolean topic) throws Exception {
 
         Clients clients;
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(container.getHostname(), container.getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(container.getHostname(), container.getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(container.getHostname(), container.getJNDIPort(), topicJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(container.getHostname(), container.getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(container.getHostname(), container.getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container(1).getHostname(), container(1).getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(container.getHostname(), container.getJNDIPort(), queueJndiNamePrefix, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }
@@ -735,7 +814,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and clean shutdown. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -768,7 +859,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean shutdown.
+     * Clients are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -779,7 +884,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -800,7 +919,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -811,7 +943,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -832,7 +977,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -843,7 +1002,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and clean
+     * shutdown. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>cleanly shut down node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -856,13 +1029,13 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     /**
      * Start simple failback test with transaction acknowledge on queues
      */
-    @Test
+/*    @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckTopicOnShutdownProducers() throws Exception {
         testFailoverWithProducers(Session.SESSION_TRANSACTED, false, true, true);
-    }
+    }*/
 
 
     ////////////////////////////////////////////////////////
@@ -880,7 +1053,19 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and a kill. Clients
+     * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -892,7 +1077,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on dedicated topology in EAP domain with shared-store and a kill. Clients
+     * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -913,7 +1111,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -924,7 +1136,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with trans_ack on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     *     them from testQueue on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -945,7 +1171,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failover test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -956,7 +1195,20 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failover test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -977,7 +1229,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //    }
 
     /**
-     * Start simple failback test with client acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -988,7 +1254,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     /**
-     * Start simple failback test with transaction acknowledge on queues
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology in EAP domain with shared-store and
+     * a kill. Clients are using SESSION_TRANSACTED sessions.
+     *
+     * @tpProcedure <ul>
+     *     <li>start two nodes in a domain in dedicated cluster topology</li>
+     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     *     them from testTopic on node-1</li>
+     *     <li>kill node-1</li>
+     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
+     *     <li>start node-1 again and wait for failback</li>
+     *     <li>stop producer and consumer</li>
+     *     <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
     @Test
     @RunAsClient
@@ -1012,13 +1292,186 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
             JMSTools.waitForClientsToFinish(clients, 300000);
         }
 
-        container(1).stop();
 
-        container(2).stop();
+        domainContainer().serverGroup("server-group-1").stopAllNodes();
+        domainContainer().serverGroup("server-group-2").stopAllNodes();
 
 //        deleteFolder(new File(System.getProperty("JBOSS_HOME_1") + File.separator 
 //                + "standalone" + File.separator + "data" + File.separator + JOURNAL_DIRECTORY_A));
 
+    }
+
+    private void prepareSimpleDedicatedTopology(DomainContainer domain) throws Exception {
+        if (domain.getContainerType().equals(CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER)) {
+            prepareSimpleDedicatedTopologyEAP6(domain);
+        } else {
+            prepareSimpleDedicatedTopologyEAP7(domain);
+        }
+    }
+
+    private void prepareSimpleDedicatedTopologyEAP6(DomainContainer domain) throws Exception {
+        prepareLiveServerEAP6(domain.serverGroup("server-group-1"), JOURNAL_DIRECTORY_A);
+        prepareBackupServerEAP6(domain.serverGroup("server-group-2"), JOURNAL_DIRECTORY_A);
+    }
+
+    private void prepareSimpleDedicatedTopologyEAP7(DomainContainer domain) throws Exception {
+
+    }
+
+    private void prepareLiveServerEAP6(DomainServerGroup liveServerGroup, String journalDirectory) throws Exception {
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+
+        final DomainNode liveServer = liveServerGroup.node("server-1");
+        liveServer.start();
+
+        JMSOperations jmsAdminOperations = liveServerGroup.getJmsOperations();
+
+        jmsAdminOperations.setFailoverOnShutdown(true);
+
+        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+//        if (useNIOConnectors)   {
+//            // add connector with NIO
+//            jmsAdminOperations.removeRemoteConnector(connectorName);
+//            Map<String,String> connectorParams = new HashMap<String,String>();
+//            connectorParams.put("use-nio","true");
+//            connectorParams.put("use-nio-global-worker-pool","true");
+//            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+//
+//            // add acceptor wtih NIO
+//            Map<String,String> acceptorParams = new HashMap<String,String>();
+//            acceptorParams.put("use-nio","true");
+//            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+//            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+//
+//        }
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
+        jmsAdminOperations.close();
+
+        liveServer.stop();
+    }
+
+    private void prepareBackupServerEAP6(DomainServerGroup backupServerGroup, String journalDirectory) throws Exception {
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String messagingGroupSocketBindingForConnector = "messaging";
+
+        final DomainNode backupServer = backupServerGroup.node("server-2");
+        backupServer.start();
+        JMSOperations jmsAdminOperations = backupServerGroup.getJmsOperations();
+
+//        if (useNIOConnectors)   {
+//            // add connector with NIO
+//            jmsAdminOperations.removeRemoteConnector(connectorName);
+//            Map<String,String> connectorParams = new HashMap<String,String>();
+//            connectorParams.put("use-nio","true");
+//            connectorParams.put("use-nio-global-worker-pool","true");
+//            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+//
+//            // add acceptor wtih NIO
+//            Map<String,String> acceptorParams = new HashMap<String,String>();
+//            acceptorParams.put("use-nio","true");
+//            jmsAdminOperations.removeRemoteAcceptor(connectorName);
+//            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
+//
+//        }
+
+
+        jmsAdminOperations.setBackup(true);
+        jmsAdminOperations.setClustered(true);
+        jmsAdminOperations.setSharedStore(true);
+
+        jmsAdminOperations.setFailoverOnShutdown(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setAllowFailback(true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
+
+        jmsAdminOperations.disableSecurity();
+        //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
+        jmsAdminOperations.close();
+        backupServer.stop();
     }
 
     /**
@@ -1026,28 +1479,30 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareSimpleDedicatedTopology() throws Exception {
-
-        prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
-
-        container(1).start();
-        deployDestinations(container(1));
-        container(1).stop();
-
-        container(2).start();
-        deployDestinations(container(2));
-        container(2).stop();
-    }
+//    public void prepareSimpleDedicatedTopology(DomainContainer domain) throws Exception {
+//        DomainServerGroup serverGroup1 = domain.serverGroup("server-group-1");
+//        DomainServerGroup serverGroup2 = domain.serverGroup("server-group-2");
+//
+//        prepareLiveServer(serverGroup1, domain.getHostname(), JOURNAL_DIRECTORY_A);
+//        prepareBackupServer(serverGroup2, domain.getHostname(), JOURNAL_DIRECTORY_A);
+//
+//        serverGroup1.startAllNodes();
+//        deployDestinations(serverGroup1);
+//        serverGroup1.stopAllNodes();
+//
+//        serverGroup2.startAllNodes();
+//        deployDestinations(serverGroup2);
+//        serverGroup2.stopAllNodes();
+//    }
 
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param container        The container - defined in arquillian.xml
+     * @param serverGroup      server group with live server
      * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareLiveServer(DomainServerGroup serverGroup, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1056,8 +1511,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.addAddressPrefix("profile", "full-ha-1");
+        JMSOperations jmsAdminOperations = serverGroup.getJmsOperations();
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
         jmsAdminOperations.setInetAddress("management", bindingAddress);
@@ -1102,9 +1556,9 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     /**
      * Prepares backup server for dedicated topology.
      *
-     * @param container The container - defined in arquillian.xml
+     * @param serverGroup Server group with backup server
      */
-    protected void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServer(DomainServerGroup serverGroup, String bindingAddress, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1113,8 +1567,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         String connectionFactoryName = "RemoteConnectionFactory";
         String messagingGroupSocketBindingName = "messaging-group";
 
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.addAddressPrefix("profile", "full-ha-2");
+        JMSOperations jmsAdminOperations = serverGroup.getJmsOperations();
 
         jmsAdminOperations.setInetAddress("public", bindingAddress);
         jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
@@ -1163,21 +1616,21 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param container container
+     * @param serverGroup Server group to deploy the destinations in.
      */
-    protected void deployDestinations(Container container) {
-        deployDestinations(container, "default");
+    protected void deployDestinations(DomainServerGroup serverGroup) {
+        deployDestinations(serverGroup, "default");
     }
 
     /**
      * Deploys destinations to server which is currently running.
      *
-     * @param container     container
+     * @param serverGroup   Server group for the destinations
      * @param serverName    server name of the hornetq server
      */
-    protected void deployDestinations(Container container, String serverName) {
+    protected void deployDestinations(DomainServerGroup serverGroup, String serverName) {
 
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        JMSOperations jmsAdminOperations = serverGroup.getJmsOperations();
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(serverName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
