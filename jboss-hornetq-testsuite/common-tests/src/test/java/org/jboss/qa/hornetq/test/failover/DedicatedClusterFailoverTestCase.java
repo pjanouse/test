@@ -31,7 +31,8 @@ import javax.jms.Session;
  * @author mnovak@redhat.com
  * tpChapter   RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
- * @tpJobLink TBD
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-nfs/
  * @tpTcmsLink TBD
  * @tpTestCaseDetails This test case checks if loadbalancing in cluster works fine even if clients have to make failover on backup
  */
