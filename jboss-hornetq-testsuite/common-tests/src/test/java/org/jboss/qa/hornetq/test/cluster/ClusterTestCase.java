@@ -29,6 +29,7 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -60,6 +61,7 @@ import org.junit.runner.RunWith;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
+import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
@@ -68,6 +70,7 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
@@ -472,7 +475,7 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size(),
                 receiver.getListOfReceivedMessages().size() == 0);
         Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + NUMBER_OF_MESSAGES_PER_PRODUCER
-                + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(),
+                        + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(),
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         container(1).undeploy(MDB_ON_QUEUE1);
@@ -735,6 +738,69 @@ public class ClusterTestCase extends HornetQTestCase {
      * reads messages sent by client and sends response to each of them into
      * temporary queue. During this communication is checked if temporary queue
      * is created on all nodes in cluster. It shouldn’t be.
+     * TODO make this test working properly to avoid regression from
+     * https://access.redhat.com/support/cases/#/case/01384076
+     * @throws Exception
+     */
+    @Ignore
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestTopicLMNoPersistence() throws Exception {
+        log.info("PREPARING SERVERS");
+        int number =10;
+        prepareServers();
+        container(2).start();
+        container(1).start();
+        JMSOperations jmsAdminOperationsContainer1 = container(1).getJmsOperations();
+        JMSOperations jmsAdminOperationsContainer2 = container(2).getJmsOperations();
+        jmsAdminOperationsContainer1.setPersistenceEnabled(true);
+        jmsAdminOperationsContainer2.setPersistenceEnabled(true);
+        jmsAdminOperationsContainer1.close();
+        jmsAdminOperationsContainer2.close();
+        container(2).stop();
+        container(1).stop();
+        container(2).start();
+        container(1).start();
+
+        log.info("SERVERS ARE READY");
+        log.info("STARTING CLIENTS");
+        ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb);
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
+        Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
+        MessageProducer producer = session.createProducer(queue);
+        StringBuilder sb = new StringBuilder();
+        for (long i=0; i<1024*1024*3; i++){
+            sb.append('a');
+        }
+        log.info("SENDING MESSAGE");
+        receiver.start();
+        for(int i=0; i<number;i++){
+            MapMessage message = session.createMapMessage();
+            message.setString("str", sb.toString());
+            producer.send(message);
+            System.out.println(i + " message sent");
+        }
+
+        receiver.join();
+        log.info("MESSAGE SENT");
+        log.info("CLIENTS FINISHED");
+        Assert.assertEquals("Receiver didn't get any messages", number, receiver.getCount());
+
+
+    }
+
+
+    /**
+     * @tpTestDetails Two servers in cluster are started with configured destinations in standalone-full-ha.xml.
+     * MDB is deployed on node-1. Client creates temporary queue on node-1 and sends messages to input queue. MDB reads
+     * messages sent by client and sends response to each of them into temporary queue. During this communication is
+     * checked if temporary queue is created on all nodes in cluster. It shouldn’t be.
+>>>>>>> Stashed changes
      * @tpProcedure <ul>
      * <li>start two servers (nodes) in cluster</li>
      * <li>deploy MDB to node-1</li>
