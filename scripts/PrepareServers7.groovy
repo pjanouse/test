@@ -551,6 +551,11 @@ public class PrepareServers7 {
         def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find{ it.@name == 'other' }
         def remotingSecurity = securityDomainOther.authentication.'login-module'.find{ it.@code == 'Remoting' }
         remotingSecurity.appendNode('module-option', [name:'unauthenticatedIdentity', value:'guest'])
+        Node remotingSubsystem=  profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:remoting:') }
+        Node httpConnectorOld = remotingSubsystem.get('http-connector').get(0);
+        remotingSubsystem.remove(httpConnectorOld);
+        remotingSubsystem.appendNode('http-connector', [name:'http-remoting-connector','connector-ref':'default'])
+
     }
 
     private static void enableDebugConsle(Node profile) {
