@@ -1060,6 +1060,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                         s = containerDef.getContainerProperties().get("javaVmArguments");
                         s = s.concat(" -Djms.queue.InQueue=" + inQueueJndiName);
                         s = s.concat(" -Dpooled.connection.factory.name=java:/JmsXA");
+                        s = s.concat(" -Dpooled.connection.factory.name.jms=jms/JmsXA");
                         containerDef.getContainerProperties().put("javaVmArguments", s);
                     }
                 }

@@ -299,8 +299,6 @@ public class Lodh4TestCase extends HornetQTestCase {
         while (!clientsA1.isFinished()) {
             Thread.sleep(1000);
         }
-
-        Thread.sleep(60*1000);
         
         container(1).stop();
         container(2).stop();
@@ -346,8 +344,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         producer1.stopSending();
         producer1.join();
         receiver1.join();
-        
-        Thread.sleep(60*1000);
+
 
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());

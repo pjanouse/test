@@ -101,8 +101,10 @@ public final class JdbcUtils {
                         break;
                 }
                 break;
+            case 7 :
+                break;
             default:
-                throw new IllegalArgumentException("Given container is not EAP5 or EAP6! It says its major version is "
+                throw new IllegalArgumentException("Given container is not EAP5, EAP6 or EAP7! It says its major version is "
                         + major);
         }
 

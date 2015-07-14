@@ -195,6 +195,8 @@ public class ClusterTestCase extends HornetQTestCase {
         topicProducer.join();
         queueConsumer.join();
         topicSubscriber.join();
+        
+        Thread.sleep(30 * 1000);
 
         Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());
         Assert.assertEquals("Number of received messages form topic does not match: ", topicProducer.getCount(), topicSubscriber.getCount());
@@ -2135,8 +2137,8 @@ public class ClusterTestCase extends HornetQTestCase {
         String divertAddress = "jms.queue." + inQueueNameForMdb;
         String forwardingAddress = "jms.queue." + outQueueNameForMdb;
 
-        createDivert(container(1), divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
-        createDivert(container(2), divertName, divertAddress, forwardingAddress, isExclusive, null, null, null);
+        createDivert(container(1), divertName, divertAddress, forwardingAddress, isExclusive, null, "123", null);
+        createDivert(container(2), divertName, divertAddress, forwardingAddress, isExclusive, null, "456", null);
 
         container(1).start();
         container(2).start();
