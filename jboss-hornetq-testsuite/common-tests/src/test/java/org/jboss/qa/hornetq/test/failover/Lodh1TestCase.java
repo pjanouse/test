@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -529,7 +530,13 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);
+        jmsAdminOperations.setNodeIdentifier(1234567);  
+
+        HashMap<String, String> opts = new HashMap<String, String>();
+        opts.put("password-stacking", "useFirstPass");
+        opts.put("unauthenticatedIdentity", "guest");
+        jmsAdminOperations.rewriteLoginModule("Remoting", opts);
+        jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
 
         try {
             jmsAdminOperations.removeQueue(inQueueName);
