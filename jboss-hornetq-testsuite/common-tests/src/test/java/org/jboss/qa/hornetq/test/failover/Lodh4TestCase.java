@@ -333,7 +333,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4), relativeJndiOutQueueName + 0, 20000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4), relativeJndiOutQueueName + 0, 100000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
