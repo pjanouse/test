@@ -113,7 +113,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueue.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-lodh1")), "jboss-ejb3.xml");
 
