@@ -160,7 +160,13 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         container(1).restart();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_NAME, numberOfMessages);
-        DelayedTextMessageBuilder delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000);
+        DelayedTextMessageBuilder delayedTextMessageBuilder;
+
+        if (ContainerUtils.isEAP7(container(1))) {
+            delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000, "_AMQ_SCHED_DELIVERY");
+        } else {
+            delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000, "_HQ_SCHED_DELIVERY");
+        }
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();
         producer.join();
