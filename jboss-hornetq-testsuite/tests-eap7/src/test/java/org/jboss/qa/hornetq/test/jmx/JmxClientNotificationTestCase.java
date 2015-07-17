@@ -324,7 +324,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             boolean result = false;
             try {
-                result = jmsServerControl.destroyTopic(topicName + "0");
+                result = jmsServerControl.destroyTopic(topicName + "0", false);
                 Assert.fail("Calling destroyTopic must throw exception when jms org.jboss.qa.hornetq.apps.clients are connected.");
             } catch (Exception ex) {
                 // this is expected
