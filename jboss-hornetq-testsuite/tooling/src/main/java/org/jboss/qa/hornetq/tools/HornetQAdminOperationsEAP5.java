@@ -672,6 +672,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
+            String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
+            boolean noTxSeparatePool,Map<String,String>xaDatasourceProperties) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void disableSecurity() {
         String configurationFile = getHornetQConfigurationFile();
         try {

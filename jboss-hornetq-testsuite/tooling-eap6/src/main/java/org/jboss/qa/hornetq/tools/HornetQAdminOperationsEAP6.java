@@ -1567,7 +1567,24 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-
+    /**
+     * XA datasource.
+     *
+     * @param jndi_name
+     * @param poolName
+     * @param useJavaContext
+     * @param useCCM
+     * @param driverName
+     * @param transactionIsolation
+     * @param xaDatasourceProperties
+     */
+   @Override
+    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
+                                   boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
+                                   boolean isSameRmOverride, boolean noTxSeparatePool,Map<String,String>xaDatasourceProperties) {
+        throw new UnsupportedOperationException("operation not supported for eap6, use operation without xaDatasourceProperties");
+    }
+    
     /**
      * Add XA datasource property.
      *
