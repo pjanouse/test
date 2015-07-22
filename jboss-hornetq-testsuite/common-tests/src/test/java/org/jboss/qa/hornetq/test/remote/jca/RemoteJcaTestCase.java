@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
@@ -429,7 +430,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
             s = containerDef.getContainerProperties().get("javaVmArguments");
-            s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
+            
+            if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+                s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
+            } else {
+                s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname() + ";httpUpgradeEnabled=true");
+            }
+                 
             if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
             } else {
@@ -602,6 +609,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
+        
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("use-nio", "true");
+        try {
+            jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
+        } catch (Exception e) {
+            //ignore
+        }
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -614,13 +629,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("use-nio", "true");
-        try {
-            jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
-        } catch (Exception e) {
-            //ignore
-        }
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }

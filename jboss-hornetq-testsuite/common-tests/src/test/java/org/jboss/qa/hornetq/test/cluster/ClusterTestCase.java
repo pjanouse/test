@@ -75,6 +75,7 @@ import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -196,8 +197,6 @@ public class ClusterTestCase extends HornetQTestCase {
         topicProducer.join();
         queueConsumer.join();
         topicSubscriber.join();
-        
-        Thread.sleep(30 * 1000);
 
         Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());
         Assert.assertEquals("Number of received messages form topic does not match: ", topicProducer.getCount(), topicSubscriber.getCount());
@@ -1169,6 +1168,15 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations1.addLoggerCategory("org.jboss", "INFO");
         jmsAdminOperations1.addLoggerCategory("org.jboss.qa.hornetq.apps.mdb", "TRACE");
         jmsAdminOperations1.seRootLoggingLevel("TRACE");
+        
+        HashMap<String, String> opts = new HashMap<String, String>();
+        opts.put("password-stacking", "useFirstPass");
+        opts.put("unauthenticatedIdentity", "guest");
+        jmsAdminOperations1.rewriteLoginModule("Remoting", opts);
+        jmsAdminOperations1.rewriteLoginModule("RealmDirect", opts);
+        jmsAdminOperations2.rewriteLoginModule("Remoting", opts);
+        jmsAdminOperations2.rewriteLoginModule("RealmDirect", opts);
+
 
         jmsAdminOperations1.close();
         jmsAdminOperations2.close();
