@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 
 import javax.jms.*;
+import java.util.Random;
 import java.util.UUID;
 
 
@@ -21,6 +22,9 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 
     private boolean addDuplicatedHeader = true;
 
+    private Random random = new Random();
+    private boolean isAddPriorityToMessage = false;
+
     /**
      *
      * @return if header for message duplication will be added
@@ -37,6 +41,10 @@ public class ClientMixMessageBuilder implements MessageBuilder {
      */
     public void setAddDuplicatedHeader(boolean addDuplicatedHeader) {
         this.addDuplicatedHeader = addDuplicatedHeader;
+    }
+
+    public void setIsAddPriorityToMessage(boolean isAddPriorityToMessage) {
+        this.isAddPriorityToMessage = isAddPriorityToMessage;
     }
 
     private enum MessageType {
@@ -191,14 +199,22 @@ public class ClientMixMessageBuilder implements MessageBuilder {
                 message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + System.currentTimeMillis());
         }
 
+        if (isAddPriorityToMessage)  {
+            message.setJMSPriority(generatePriority());
+        }
+
 //        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         if (counter % 100 ==0)  {
             log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-                "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
+                "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID") + ", priority: " + message.getJMSPriority());
         } else {
-            log.debug("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-                    "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID"));
+            log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
+                    "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID") + ", priority: " + message.getJMSPriority());
         }
         return message;
+    }
+
+    private int generatePriority() {
+        return random.nextInt(10);
     }
 }

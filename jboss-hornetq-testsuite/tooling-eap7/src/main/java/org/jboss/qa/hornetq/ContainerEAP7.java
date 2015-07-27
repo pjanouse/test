@@ -255,7 +255,7 @@ public class ContainerEAP7 implements Container {
             // ignore
         }
 
-        log.info("Server " + getName() + " was stopped. There is no from tracking ports (f.e.: 9999, 5445, 8080, ..." +
+        log.info("Server " + getName() + " was stopped. There is no from tracking ports (f.e.: 9999, 8080, ..." +
                 ") running on its IP " + getHostname());
     }
 

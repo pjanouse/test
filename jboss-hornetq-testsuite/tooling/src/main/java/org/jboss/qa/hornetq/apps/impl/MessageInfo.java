@@ -13,9 +13,20 @@ public class MessageInfo implements Serializable {
 
     private String address;
 
+    private int size = 100; // in bytes
+
+    private byte[] payload = new byte[size]; //bytes
+
     public MessageInfo(String name, String address) {
         this.name = name;
         this.address = address;
+    }
+
+    public MessageInfo(String name, String address, int sizeInBytes) {
+        this.name = name;
+        this.address = address;
+        this.size = sizeInBytes;
+        this.payload = new byte[sizeInBytes];
     }
 
     /**
