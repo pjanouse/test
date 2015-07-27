@@ -11,10 +11,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.mdb.MdbFromNonDurableTopicWithOutQueueToContaniner1;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithConnectionParameters;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
+import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -72,7 +69,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     String queueJndiNamePrefix = "jms/queue/testQueue";
 
     public Archive getMdb1() {
-
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
         logger.info(mdbJar.toString(true));
@@ -80,13 +76,35 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
-    public Archive getMdb1OnNonDurable() {
+    public static String createEjbXml(String mdbName) {
 
+        StringBuilder ejbXml = new StringBuilder();
+
+        ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
+        ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
+        ejbXml.append("xmlns=\"http://java.sun.com/xml/ns/javaee\"\n");
+        ejbXml.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+        ejbXml.append("xmlns:c=\"urn:clustering:1.0\"\n");
+        ejbXml.append("xsi:schemaLocation=\"http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3-2_0.xsd http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd\"\n");
+        ejbXml.append("version=\"3.1\"\n");
+        ejbXml.append("impl-version=\"2.0\">\n");
+        ejbXml.append("<enterprise-beans>\n");
+        ejbXml.append("<message-driven>\n");
+        ejbXml.append("<ejb-name>").append(mdbName).append("</ejb-name>\n");
+        ejbXml.append("<ejb-class>org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithSecurity</ejb-class>\n");
+        ejbXml.append("</message-driven>\n");
+        ejbXml.append("</enterprise-beans>\n");
+        ejbXml.append("</jboss:ejb-jar>\n");
+        ejbXml.append("\n");
+
+        return ejbXml.toString();
+    }
+
+    public Archive getMdb1OnNonDurable() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, mdb1OnNonDurable + ".jar");
         mdbJar.addClasses(MdbFromNonDurableTopicWithOutQueueToContaniner1.class);
         logger.info(mdbJar.toString(true));
         return mdbJar;
-
     }
 
     public Archive getMdb2() {
@@ -105,11 +123,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info(mdbJar.toString(true));
 
         // Uncomment when you want to see what's in the servlet
-         File target = new File("/tmp/mdb.jar");
-         if (target.exists()) {
-         target.delete();
-         }
-         mdbJar.as(ZipExporter.class).exportTo(target, true);
+        File target = new File("/tmp/mdb.jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -120,11 +138,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * sever 3,4 to connect to 1,2 server. Send messages to InQueue to 1,2. Deploy MDB to 3,4 servers which reads
      * messages from InQueue and sends them to OutQueue. Read messages from OutQueue from 1,2
      * @tpProcedure <ul>
-     *     <li>start 2 servers with deployed InQueue and OutQueue</li>
-     *     <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
-     *     <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
-     *     <li>start producer which sends messagese to InQueue to first 2 server</li>
-     *     <li>receive messages from OutQueue</li>
+     * <li>start 2 servers with deployed InQueue and OutQueue</li>
+     * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
+     * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -188,11 +206,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
      * and sends them to OutQueue. Read messages from OutQueue
      * @tpProcedure <ul>
-     *     <li>start first server with deployed InQueue and OutQueue</li>
-     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
-     *     <li>start producer which sends messages to InQueue</li>
-     *     <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
-     *     <li>receive messages from OutQueue</li>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -238,6 +256,84 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @throws Exception
+     * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first. Configure RA on second sever to
+     * connect to first server. Send messages to InQueue. Deploy 60+ MDBs to second server which reads messages from InQueue
+     * and sends them to OutQueue. Read messages from OutQueue
+     * @tpProcedure <ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy 60+ MDBs do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testRemoteJcaWithManyMDB() throws Exception {
+
+        prepareRemoteJcaTopology();
+        // cluster A
+        container(1).start();
+
+        // cluster B
+        container(2).start();
+
+        for (int j = 1; j < 60; j++) {
+            container(2).deploy(createDeploymentForLimitedPoolSize(j));
+        }
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        producer1.start();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 10);
+
+        receiver1.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(30 * 1000);
+
+        producer1.stopSending();
+        producer1.join();
+
+        receiver1.join();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        container(2).stop();
+        container(1).stop();
+
+    }
+
+    public static JavaArchive createDeploymentForLimitedPoolSize(int id) {
+
+        String deploymentName = "mdb-" + id;
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, deploymentName);
+
+        mdbJar.addClass(MdbWithRemoteOutQueueToContaninerWithSecurity.class);
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml(deploymentName)), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
 
     /**
      * @throws Exception
@@ -245,11 +341,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * sever to connect to first server. Send messages to InQueue. Deploy MDB do second server which creates non durable
      * subscription on InTopic and sends them to OutQueue. Restart first server. Check log for errors.
      * @tpProcedure <ul>
-     *     <li>start first server with deployed InQueue and OutQueue</li>
-     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
-     *     <li>deploy MDB do 2nd server which creates non durable subscription on InTopic</li>
-     *     <li>restart 1st server and wait for complete boot</li>
-     *     <li>check 1st server logs for error "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"</li>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>deploy MDB do 2nd server which creates non durable subscription on InTopic</li>
+     * <li>restart 1st server and wait for complete boot</li>
+     * <li>check 1st server logs for error "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"</li>
      * </ul>
      * @tpPassCrit "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists" is not in log
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -302,21 +398,20 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
 
-
     /**
      * @throws Exception
      * @tpTestDetails tart two servers. Deploy InQueue and OutQueue to first. Configure HornetQ RA on second sever to
      * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
      * and sends them to OutQueue. Undeploy MDB and restart the servers. Deploy MDB again. Read messages from OutQueue
      * @tpProcedure <ul>
-     *     <li>start first server with deployed InQueue and OutQueue</li>
-     *     <li>start second server which has configured HornetQ RA to connect to first server</li>
-     *     <li>start producer which sends messages to InQueue</li>
-     *     <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
-     *     <li>undeploy MDB</li>
-     *     <li>stop both of the servers and restart them</li>
-     *     <li>deploy MDB to 2nd server</li>
-     *     <li>receive messages from OutQueue</li>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>undeploy MDB</li>
+     * <li>stop both of the servers and restart them</li>
+     * <li>deploy MDB to 2nd server</li>
+     * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -379,11 +474,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * them from OutQueue on server2.
      * messages to inQueue
      * @tpProcedure <ul>
-     *     <li>start 3 servers in cluster with deployed InQueue and OutQueue</li>
-     *     <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
-     *     <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
-     *     <li>start producer which sends messages to InQueue to server 1</li>
-     *     <li>receive messages from OutQueue on server 3</li>
+     * <li>start 3 servers in cluster with deployed InQueue and OutQueue</li>
+     * <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
+     * <li>start producer which sends messages to InQueue to server 1</li>
+     * <li>receive messages from OutQueue on server 3</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
      * @tpInfo For more information see related test case described in the beginning of this section.
@@ -471,9 +566,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
-    public void prepareRemoteJcaTopology()  throws Exception {
+    public void prepareRemoteJcaTopology() throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopologyEAP6();
         } else {
             prepareRemoteJcaTopologyEAP7();
@@ -638,8 +733,65 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", remoteSever.getHostname(),
                 remoteSever.getHornetqPort());
-        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+        // try use nio
+        Map<String,String> connectorParams = new HashMap<String,String>();
+        connectorParams.put("use-nio","true");
+        connectorParams.put("use-nio-global-worker-pool","true");
+        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", connectorParams);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
+
+        jmsAdminOperations.setSecurityEnabled(true);
+        jmsAdminOperations.setAuthenticationForNullUsers(true);
+
+        // set security persmissions for roles admin,users - user is already there
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
+        jmsAdminOperations.addRoleToSecuritySettings("#", "users");
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
+
+        File applicationUsersModified = new File(
+                "src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                + File.separator + "configuration" + File.separator + "application-users.properties");
+        try {
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        } catch (IOException e) {
+            logger.error(e);
+        }
+
+        File applicationRolesModified = new File(
+                "src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                + File.separator + "configuration" + File.separator + "application-roles.properties");
+        try {
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+        } catch (IOException e) {
+            logger.error(e);
+        }
+
         jmsAdminOperations.close();
         container.stop();
     }
@@ -672,6 +824,55 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 remoteSever.getHornetqPort());
         jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", remoteConnectorName);
+
+        // set security persmissions for roles admin,users - user is already there
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
+        jmsAdminOperations.addRoleToSecuritySettings("#", "users");
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
+
+        File applicationUsersModified = new File(
+                "src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                + File.separator + "configuration" + File.separator + "application-users.properties");
+        try {
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        } catch (IOException e) {
+            logger.error(e);
+        }
+
+        File applicationRolesModified = new File(
+                "src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
+                + File.separator + "configuration" + File.separator + "application-roles.properties");
+        try {
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+        } catch (IOException e) {
+            logger.error(e);
+        }
+
         jmsAdminOperations.close();
         container.stop();
     }
