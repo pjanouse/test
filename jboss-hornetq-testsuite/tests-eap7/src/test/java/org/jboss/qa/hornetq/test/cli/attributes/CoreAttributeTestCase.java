@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
+import org.jboss.qa.management.cli.CliUtils;
+import org.junit.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,7 +21,11 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
+import java.lang.String;
+import java.lang.System;
 import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  * Test write, read operation for core messaging attributes.
@@ -209,6 +215,39 @@ public class CoreAttributeTestCase extends CliTestBase {
     @RestoreConfigBeforeTest
     public void booleanWriteReadAttributeTest() throws Exception {
         writeReadAttributeTest("/booleanCliAttributes.txt");
+    }
+
+    /**
+     * @tpTestDetails Test whether CLI doesn't allow illegal values for attributes.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to write illegal values for attributes</li>
+     * <li>stop server</li>
+     * </ul>
+     * @tpPassCrit all writeAttribute operations must fail
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void illegalValueWriteAttributeTest() throws Exception {
+        Properties attributes = new Properties();
+        attributes.load(this.getClass().getResourceAsStream("/illegalValueCliAttributes.txt"));
+
+        CliClient cliClient = new CliClient(cliConf);
+
+        for (String attributeName : attributes.stringPropertyNames()) {
+            String[] values = attributes.getProperty(attributeName).split(",");
+
+            for (String value : values) {
+                if (cliClient.writeAttribute(address, attributeName, value)) {
+                    String command = CliUtils.buildCommand(address, ":write-attribute",
+                            new String[]{"name=" + attributeName, "value=" + value});
+                    fail("Operation \"" + command + "\" should not be permitted.");
+                }
+            }
+        }
     }
 
     public void writeReadAttributeTest(String attributeFileName) throws Exception {

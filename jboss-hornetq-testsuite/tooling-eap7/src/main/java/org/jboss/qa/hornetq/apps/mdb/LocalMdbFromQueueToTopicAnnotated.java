@@ -10,23 +10,21 @@ import javax.inject.Inject;
 import org.jboss.ejb3.annotation.ResourceAdapter;
 
 /**
- * A LocalMdbFromQueueAnnotated used for AnnotationsTestCase.
- *
- * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue"
- * which it creates. This mdb is used in AnnotationsTestCase. Don't change it!!!
- *
  * @author mstyk
  */
 @ResourceAdapter(value = "activemq-ra.rar")
 
 
 @JMSDestinationDefinition(
-        name = "java:jboss/exported/jms/queue/OutQueue",
-        destinationName = "OutQueue",
-        interfaceName = "javax.jms.Queue")
+        name = "java:jboss/exported/jms/topic/OutTopic",
+        destinationName = "OutTopic",
+        interfaceName = "javax.jms.Topic",
+        properties = {
+            "durable=true"
+        })
 
 @JMSConnectionFactoryDefinition(
-        name = "java:jboss/exported/MyConnectionFactory",
+        name = "java:jboss/exported/CFfromQueueToTopic",
         resourceAdapter = "activemq-ra",
         properties = {
             "connectors=http-connector",}
@@ -38,23 +36,25 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
             @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageListener {
+public class LocalMdbFromQueueToTopicAnnotated implements MessageDrivenBean, MessageListener {
 
-    @Resource(mappedName = "java:jboss/exported/MyConnectionFactory")
+    @Resource(mappedName = "java:jboss/exported/CFfromQueueToTopic")
     private ConnectionFactory cf;
 
-    @Resource(mappedName = "java:jboss/exported/jms/queue/OutQueue")
-    private Queue queue;
+    @Resource(mappedName = "java:jboss/exported/jms/topic/OutTopic")
+    private Topic topic;
 
+    private static boolean isFirstMessage = true;
+    
     public static AtomicInteger globalCounter = new AtomicInteger();
 
     private static final long serialVersionUID = 2770941392406343837L;
 
-    private static final Logger log = Logger.getLogger(LocalMdbFromQueueAnnotated.class.getName());
+    private static final Logger log = Logger.getLogger(LocalMdbFromQueueToTopicAnnotated.class.getName());
 
     private MessageDrivenContext context = null;
 
-    public LocalMdbFromQueueAnnotated() {
+    public LocalMdbFromQueueToTopicAnnotated() {
         super();
     }
 
@@ -73,6 +73,15 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
     @Override
     public void onMessage(Message message) {
 
+        if(isFirstMessage){
+            try{
+            Thread.sleep(10*1000);
+            }catch(Exception e){
+             //ignore   
+            }
+            isFirstMessage = false;
+        }
+        
         Connection con = null;
 
         Session session;
@@ -91,7 +100,8 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
 
-            MessageProducer sender = session.createProducer(queue);
+            MessageProducer sender = session.createProducer(topic);
+            sender.setDeliveryMode(DeliveryMode.PERSISTENT);
 
             TextMessage newMessage = session.createTextMessage(text);
 

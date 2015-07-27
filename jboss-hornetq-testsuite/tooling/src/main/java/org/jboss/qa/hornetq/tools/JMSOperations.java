@@ -448,6 +448,18 @@ public interface JMSOperations {
     void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride, boolean noTxSeparatePool);
 
     /**
+     * XA datasource.
+     *
+     * @param jndi_name
+     * @param poolName
+     * @param useJavaContext
+     * @param useCCM
+     * @param driverName
+     * @param transactionIsolation
+     * @param xaDatasourceProperties
+     */
+    void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride, boolean noTxSeparatePool,Map<String,String> xaDatasourceProperties);
+    /**
      * Disables security on HornetQ
      */
     void disableSecurity();

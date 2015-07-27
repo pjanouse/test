@@ -299,7 +299,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         while (!clientsA1.isFinished()) {
             Thread.sleep(1000);
         }
-
+        
         container(1).stop();
         container(2).stop();
         container(3).stop();
@@ -333,7 +333,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4), relativeJndiOutQueueName + 0, 20000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(4), relativeJndiOutQueueName + 0, 100000, 10, 10);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -344,6 +344,7 @@ public class Lodh4TestCase extends HornetQTestCase {
         producer1.stopSending();
         producer1.join();
         receiver1.join();
+
 
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());

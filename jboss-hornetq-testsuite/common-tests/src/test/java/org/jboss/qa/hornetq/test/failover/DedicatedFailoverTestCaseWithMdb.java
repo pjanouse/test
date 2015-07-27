@@ -39,7 +39,7 @@ import java.util.List;
  *
  * @tpChapter Recovery/Failover testing
  * @tpSubChapter FAILOVER OF HORNETQ RESOURCE ADAPTER WITH SHARED STORE AND REPLICATED JOURNAL IN DEDICATED TOPOLOGY - TEST SCENARIOS
- * @tpJobLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-mdb/
  * @tpTcmsLink tbd
  * @tpTestCaseDetails This is modified failover with mdb test case which is
  * testing remote jca. There are two servers in dedicated HA topology and MDB

@@ -16,7 +16,7 @@ import java.io.IOException;
  *
  * @tpChapter Recovery/Failover testing
  * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
- * @tpJobLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-mdb-replicated-journal/
  * @tpTcmsLink tbd
  * @tpTestCaseDetails Tests failover of remote JCA and replicated journal. There
  * are two servers in dedicated HA topology and MDB deployed on another server.

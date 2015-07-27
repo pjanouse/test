@@ -1532,26 +1532,85 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
             String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
             boolean noTxSeparatePool) {
+        throw new UnsupportedOperationException("Use method createXADatasource which takes also xaDatasourceProperties as an argument.");
+    }
+    /**
+     * XA datasource.
+     *
+     * @param jndi_name
+     * @param poolName
+     * @param useJavaContext
+     * @param useCCM
+     * @param driverName
+     * @param transactionIsolation
+     */
+//    ModelNode composite = new ModelNode();
+//        composite.get(ClientConstants.OP).set("composite");
+//        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+//        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+//
+//        ModelNode undefineConnector = new ModelNode();
+//        undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
+//        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+//        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+//                NAME_OF_MESSAGING_DEFAULT_SERVER);
+//        undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+//        undefineConnector.get("name").set("connectors");
+//
+//        ModelNode setDiscoveryGroup = new ModelNode();
+//        setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+//                NAME_OF_MESSAGING_DEFAULT_SERVER);
+//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+//        setDiscoveryGroup.get("name").set("discovery-group");
+//        setDiscoveryGroup.get("value").set(discoveryGroupName);
+//        composite.get(ClientConstants.STEPS).add(undefineConnector);
+//        composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
 
-        final ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
-        model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
-        model.get("jndi-name").set(jndi_name);
-        model.get("use-java-context").set(useJavaContext);
-        model.get("use-ccm").set(useCCM);
-        model.get("driver-name").set(driverName);
+    @Override
+    public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
+            String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
+            boolean noTxSeparatePool, Map<String, String> xaDatasourceProperties) {
 
-        model.get("transaction-isolation").set(transactionIsolation);
-        model.get("xa-datasource-class").set(xaDatasourceClass);
-        model.get("no-tx-separate-pool").set(noTxSeparatePool);
-        model.get("same-rm-override").set(isSameRmOverride);
-        model.get("enabled").set(true);
+        ModelNode composite = new ModelNode();
+        composite.get(ClientConstants.OP).set("composite");
+        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+        
+        final ModelNode modelDatasource = createModelNode();
+        modelDatasource.get(ClientConstants.OP).set(ClientConstants.ADD);
+        modelDatasource.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        modelDatasource.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+        modelDatasource.get("jndi-name").set(jndi_name);
+        modelDatasource.get("use-java-context").set(useJavaContext);
+        modelDatasource.get("use-ccm").set(useCCM);
+        modelDatasource.get("driver-name").set(driverName);
+        modelDatasource.get("transaction-isolation").set(transactionIsolation);
+        modelDatasource.get("xa-datasource-class").set(xaDatasourceClass);
+        modelDatasource.get("no-tx-separate-pool").set(noTxSeparatePool);
+        modelDatasource.get("same-rm-override").set(isSameRmOverride);
+        modelDatasource.get("enabled").set(true);
+        logger.info(modelDatasource.toString());
 
-        model.toString();
+        List<ModelNode> props = new ArrayList<ModelNode>();
 
+        for (String key : xaDatasourceProperties.keySet()) {
+            final ModelNode model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.ADD);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+            model.get(ClientConstants.OP_ADDR).add("xa-data-source", poolName);
+            model.get(ClientConstants.OP_ADDR).add("xa-datasource-properties", key);
+            model.get("value").set(xaDatasourceProperties.get(key));
+            props.add(model);
+        }
+
+        composite.get(ClientConstants.STEPS).add(modelDatasource);
+        for (ModelNode node : props) {
+            composite.get(ClientConstants.STEPS).add(node);
+        }
         try {
-            this.applyUpdate(model);
+            this.applyUpdate(composite);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

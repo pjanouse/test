@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
@@ -40,8 +41,10 @@ import java.util.Map;
  * @author mnovak@redhat.com
  * @tpChapter Integration testing
  * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIOS
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ * @tpJobLink
+ * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
+ * @tpTcmsLink
+ * https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 @RunWith(Arquillian.class)
 public class RemoteJcaTestCase extends HornetQTestCase {
@@ -131,21 +134,32 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         return mdbJar;
     }
 
-
     /**
      * @throws Exception
-     * @tpTestDetails Start  4 servers(1, 2, 3, 4). Deploy InQueue and OutQueue to 1,2. Configure ActiveMQ RA on
-     * sever 3,4 to connect to 1,2 server. Send messages to InQueue to 1,2. Deploy MDB to 3,4 servers which reads
-     * messages from InQueue and sends them to OutQueue. Read messages from OutQueue from 1,2
+     * @tpTestDetails Start 4 servers(1, 2, 3, 4). Deploy InQueue and OutQueue
+     * to 1,2. Configure ActiveMQ RA on sever 3,4 to connect to 1,2 server. Send
+     * messages to InQueue to 1,2. Deploy MDB to 3,4 servers which reads
+     * messages from InQueue and sends them to OutQueue. Read messages from
+     * OutQueue from 1,2
      * @tpProcedure <ul>
      * <li>start 2 servers with deployed InQueue and OutQueue</li>
+<<<<<<< HEAD
      * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
      * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
      * <li>start producer which sends messagese to InQueue to first 2 server</li>
+=======
+     * <li>start 2 servers which have configured HornetQ RA to connect to first
+     * 2 servers</li>
+     * <li>deploy MDB to other servers which reads messages from InQueue and
+     * sends to OutQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2
+     * server</li>
+>>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
-     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
      */
     @RunAsClient
     @Test
@@ -202,20 +216,29 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first. Configure HornetQ RA on second sever to
-     * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
-     * and sends them to OutQueue. Read messages from OutQueue
+     * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first.
+     * Configure HornetQ RA on second sever to connect to first server. Send
+     * messages to InQueue. Deploy MDB do second server which reads messages
+     * from InQueue and sends them to OutQueue. Read messages from OutQueue
      * @tpProcedure <ul>
      * <li>start first server with deployed InQueue and OutQueue</li>
+<<<<<<< HEAD
      * <li>start second server which has configured HornetQ RA to connect to first server</li>
      * <li>start producer which sends messages to InQueue</li>
      * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+=======
+     * <li>start second server which has configured HornetQ RA to connect to
+     * first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends
+     * to OutQueue</li>
+>>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
-     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
      */
-
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -334,12 +357,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
-
     /**
      * @throws Exception
-     * @tpTestDetails Start two servers. Deploy InQueue OutQueue and InTopic to first. Configure HornetQ RA on second
-     * sever to connect to first server. Send messages to InQueue. Deploy MDB do second server which creates non durable
-     * subscription on InTopic and sends them to OutQueue. Restart first server. Check log for errors.
+     * @tpTestDetails Start two servers. Deploy InQueue OutQueue and InTopic to
+     * first. Configure HornetQ RA on second sever to connect to first server.
+     * Send messages to InQueue. Deploy MDB do second server which creates non
+     * durable subscription on InTopic and sends them to OutQueue. Restart first
+     * server. Check log for errors.
      * @tpProcedure <ul>
      * <li>start first server with deployed InQueue and OutQueue</li>
      * <li>start second server which has configured HornetQ RA to connect to first server</li>
@@ -347,8 +371,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * <li>restart 1st server and wait for complete boot</li>
      * <li>check 1st server logs for error "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists"</li>
      * </ul>
-     * @tpPassCrit "errorType=QUEUE_EXISTS message=HQ119019: Queue already exists" is not in log
-     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpPassCrit "errorType=QUEUE_EXISTS message=HQ119019: Queue already
+     * exists" is not in log
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
      */
     @RunAsClient
     @Test
@@ -397,12 +423,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
-
     /**
      * @throws Exception
-     * @tpTestDetails tart two servers. Deploy InQueue and OutQueue to first. Configure HornetQ RA on second sever to
-     * connect to first server. Send messages to InQueue. Deploy MDB do second server which reads messages from InQueue
-     * and sends them to OutQueue. Undeploy MDB and restart the servers. Deploy MDB again. Read messages from OutQueue
+     * @tpTestDetails tart two servers. Deploy InQueue and OutQueue to first.
+     * Configure HornetQ RA on second sever to connect to first server. Send
+     * messages to InQueue. Deploy MDB do second server which reads messages
+     * from InQueue and sends them to OutQueue. Undeploy MDB and restart the
+     * servers. Deploy MDB again. Read messages from OutQueue
      * @tpProcedure <ul>
      * <li>start first server with deployed InQueue and OutQueue</li>
      * <li>start second server which has configured HornetQ RA to connect to first server</li>
@@ -414,7 +441,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
-     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
      */
     @RunAsClient
     @Test
@@ -468,20 +496,29 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start three servers in cluster.Deploy InQueue and OutQueue to first. Server 2 is started with
-     * container properties including connection parameters for MDB. Deploy MDB which reads messages from InQueue and sends
-     * them to OutQueue to server 2. Start producer which sends messages to InQueue to server 1 and receiver which reads
-     * them from OutQueue on server2.
-     * messages to inQueue
+     * @tpTestDetails Start three servers in cluster.Deploy InQueue and OutQueue
+     * to first. Server 2 is started with container properties including
+     * connection parameters for MDB. Deploy MDB which reads messages from
+     * InQueue and sends them to OutQueue to server 2. Start producer which
+     * sends messages to InQueue to server 1 and receiver which reads them from
+     * OutQueue on server2. messages to inQueue
      * @tpProcedure <ul>
      * <li>start 3 servers in cluster with deployed InQueue and OutQueue</li>
+<<<<<<< HEAD
      * <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
      * <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
+=======
+     * <li>kill server 2 and start it again with container properties including
+     * connection parameters for MDB</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue on server 1
+     * and sends to OutQueue</li>
+>>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
      * <li>start producer which sends messages to InQueue to server 1</li>
      * <li>receive messages from OutQueue on server 3</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
-     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
      */
     @RunAsClient
     @Test
@@ -501,7 +538,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
             s = containerDef.getContainerProperties().get("javaVmArguments");
-            s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
+            
+            if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+                s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
+            } else {
+                s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname() + ";httpUpgradeEnabled=true");
+            }
+                 
             if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
             } else {
@@ -548,7 +591,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(1).stop();
         container(3).stop();
 
-
     }
 
     /**
@@ -587,7 +629,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         prepareJmsServerEAP6(container(3));
         prepareMdbServerEAP6(container(4), container(1));
-
 
         copyApplicationPropertiesFiles();
 
@@ -676,6 +717,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
+        
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("use-nio", "true");
+        try {
+            jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
+        } catch (Exception e) {
+            //ignore
+        }
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -688,10 +737,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("use-nio", "true");
-        jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
-
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }

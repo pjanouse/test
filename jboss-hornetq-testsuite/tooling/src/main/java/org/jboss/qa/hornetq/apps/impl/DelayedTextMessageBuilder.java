@@ -16,30 +16,43 @@ import org.jboss.qa.hornetq.tools.RandomStringGenerator;
  */
 public class DelayedTextMessageBuilder implements MessageBuilder {
 
-    private static final String SCHEDULED_DELIVER_HEADER =
-            org.hornetq.api.core.Message.HDR_SCHEDULED_DELIVERY_TIME.toString();
     private static final String DUPLICATE_ID_HEADER =
             org.hornetq.api.core.Message.HDR_DUPLICATE_DETECTION_ID.toString();
 
     private final int textLength;
     private final long messageDelay;
 
+    private String sheduledDeliveryHeader =
+            org.hornetq.api.core.Message.HDR_SCHEDULED_DELIVERY_TIME.toString();
+
     private int counter = 0;
     private boolean duplicateHeader = false;
 
+    @Deprecated
     public DelayedTextMessageBuilder(int textLength) {
         this(textLength, 10000);
     }
 
+    @Deprecated
     public DelayedTextMessageBuilder(int textLength, long messageDelay) {
         this.textLength = textLength;
         this.messageDelay = messageDelay;
     }
 
+    public DelayedTextMessageBuilder(int textLength, String sheduledDeliveryHeader) {
+        this(textLength, 10000, sheduledDeliveryHeader);
+    }
+
+    public DelayedTextMessageBuilder(int textLength, long messageDelay, String sheduledDeliveryHeader) {
+        this.textLength = textLength;
+        this.messageDelay = messageDelay;
+        this.sheduledDeliveryHeader = sheduledDeliveryHeader;
+    }
+
     @Override
     public synchronized Message createMessage(Session session) throws Exception {
         Message msg = session.createTextMessage(RandomStringGenerator.generateString(textLength));
-        msg.setLongProperty(SCHEDULED_DELIVER_HEADER, System.currentTimeMillis() + messageDelay);
+        msg.setLongProperty(sheduledDeliveryHeader, System.currentTimeMillis() + messageDelay);
         msg.setIntProperty(MESSAGE_COUNTER_PROPERTY, counter++);
         if (isAddDuplicatedHeader())    {
             msg.setStringProperty(DUPLICATE_ID_HEADER, String.valueOf(UUID.randomUUID()));

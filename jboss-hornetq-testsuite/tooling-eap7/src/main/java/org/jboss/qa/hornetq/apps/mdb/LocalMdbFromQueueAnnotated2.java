@@ -7,6 +7,9 @@ import javax.ejb.*;
 import javax.jms.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
+import javax.resource.AdministeredObjectDefinition;
+import javax.resource.ConnectionFactoryDefinition;
+import javax.resource.spi.TransactionSupport;
 import org.jboss.ejb3.annotation.ResourceAdapter;
 
 /**
@@ -17,30 +20,16 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
  *
  * @author mstyk
  */
-@ResourceAdapter(value = "activemq-ra.rar")
 
-
-@JMSDestinationDefinition(
-        name = "java:jboss/exported/jms/queue/OutQueue",
-        destinationName = "OutQueue",
-        interfaceName = "javax.jms.Queue")
-
-@JMSConnectionFactoryDefinition(
-        name = "java:jboss/exported/MyConnectionFactory",
-        resourceAdapter = "activemq-ra",
-        properties = {
-            "connectors=http-connector",}
-)
-
-@MessageDriven(name = "mdb1",
+@MessageDriven(name = "mdb2",
         activationConfig = {
             @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
             @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageListener {
+public class LocalMdbFromQueueAnnotated2 implements MessageDrivenBean, MessageListener {
 
-    @Resource(mappedName = "java:jboss/exported/MyConnectionFactory")
+    @Resource(mappedName = "java:/JmsXA")
     private ConnectionFactory cf;
 
     @Resource(mappedName = "java:jboss/exported/jms/queue/OutQueue")
@@ -50,11 +39,11 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
 
     private static final long serialVersionUID = 2770941392406343837L;
 
-    private static final Logger log = Logger.getLogger(LocalMdbFromQueueAnnotated.class.getName());
+    private static final Logger log = Logger.getLogger(LocalMdbFromQueueAnnotated2.class.getName());
 
     private MessageDrivenContext context = null;
 
-    public LocalMdbFromQueueAnnotated() {
+    public LocalMdbFromQueueAnnotated2() {
         super();
     }
 
@@ -82,7 +71,7 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
             long time = System.currentTimeMillis();
             int counter = globalCounter.incrementAndGet();
             log.info("Start of message: " + counter + ", message info:" + message.getJMSMessageID());
-
+          
             con = cf.createConnection();
 
             con.start();
@@ -101,7 +90,8 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
 
             Thread.sleep(100);
 
-            //  log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+          //  log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+
         } catch (Exception t) {
 
             log.log(Level.FATAL, t.getMessage(), t);

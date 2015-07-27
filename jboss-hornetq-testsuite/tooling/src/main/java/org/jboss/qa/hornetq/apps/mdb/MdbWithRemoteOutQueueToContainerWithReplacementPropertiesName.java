@@ -30,9 +30,9 @@ public class MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName imple
     private Queue queue = null;
     public static AtomicInteger numberOfProcessedMessages = new AtomicInteger();
 
-    @Resource(name = "${pooled.connection.factory.name}")
+    @Resource(name = "${pooled.connection.factory.name.jms}")
     private ConnectionFactory cf;
-//    @Resource(mappedName = "java:/JmsXA")
+//    @Resource(name = "jms/JmsXA")
 //    private ConnectionFactory cf;
 
     @Resource

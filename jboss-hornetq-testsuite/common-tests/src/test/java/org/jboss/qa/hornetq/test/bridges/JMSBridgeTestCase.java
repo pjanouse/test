@@ -26,7 +26,7 @@ import java.util.Random;
  * @author mnovak@redhat.com
  * @tpChapter   BACKWARD COMPATIBILITY TESTING
  * @tpSubChapter COMPATIBILITY OF JMS BRIDGES - TEST SCENARIOS
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-integration-journal-and-jms-bridge-compatibility-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-journal-and-jms-bridge-compatibility-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
  */
 public class JMSBridgeTestCase extends HornetQTestCase {
