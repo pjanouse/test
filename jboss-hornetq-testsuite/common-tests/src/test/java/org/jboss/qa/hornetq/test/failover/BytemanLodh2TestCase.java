@@ -127,7 +127,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
