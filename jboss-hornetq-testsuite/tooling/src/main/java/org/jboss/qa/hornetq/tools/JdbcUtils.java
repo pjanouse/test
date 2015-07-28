@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import org.apache.log4j.Logger;
@@ -111,6 +113,49 @@ public final class JdbcUtils {
         return String.format("%d.%d.%d", major, minor, micro);
     }
 
+    public static String installJdbcDriverModule(Container container, String database) throws IOException {
+        String eapVersion = getDriverVersion(container.getServerVersion());
+        URL metaInfUrl = new URL(String.format(URL_JDBC_DRIVER_MASK, eapVersion, database, META_INF_TXT));
+        LOG.info("Print meta-inf url: " + metaInfUrl);
+
+        ReadableByteChannel rbc = Channels.newChannel(metaInfUrl.openStream());
+        File targetDirDeployments = new File(container.getServerHome(), DEPLOYMENTS + File.separator + META_INF_TXT);
+
+        FileOutputStream fos = new FileOutputStream(targetDirDeployments);
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+
+        Scanner scanner = new Scanner(new FileInputStream(targetDirDeployments));
+        String jdbcFileName = scanner.nextLine();
+        LOG.info("Print jdbc file name: " + jdbcFileName);
+
+        URL jdbcUrl = new URL(String.format(URL_JDBC_DRIVER_MASK, eapVersion, database, jdbcFileName));
+        ReadableByteChannel rbc2 = Channels.newChannel(jdbcUrl.openStream());
+        File moduleFolder = new File(container.getServerHome() + File.separator + "modules" + File.separator + "system" + File.separator
+                + "layers" + File.separator + "base" + File.separator + "com" + File.separator + "mylodhdb" + File.separator + "main");
+        moduleFolder.mkdirs();
+        
+        FileOutputStream fos2 = new FileOutputStream(moduleFolder + File.separator + jdbcFileName);
+        fos2.getChannel().transferFrom(rbc2, 0, Long.MAX_VALUE);
 
 
+        PrintWriter writer = new PrintWriter(moduleFolder.getAbsolutePath() + File.separator + "module.xml", "UTF-8");
+        writer.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "        <module xmlns=\"urn:jboss:module:1.1\" name=\"com.mylodhdb\">\n"
+                + "            <resources>\n"
+                + "                <resource-root path=\"" + jdbcFileName + "\"/>\n"
+                + "            </resources>\n"
+                + "            <dependencies>\n"
+                + "                <module name=\"javax.api\"/>\n"
+                + "                <module name=\"javax.transaction.api\"/>\n"
+                + "            </dependencies>\n"
+                + "        </module>");
+        writer.close();
+
+        fos.close();
+        fos2.close();
+        rbc.close();
+        rbc2.close();
+
+        return jdbcFileName;
+    }
 }

@@ -1,3 +1,4 @@
+    
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.log4j.Logger;
@@ -28,23 +29,28 @@ import org.junit.runner.RunWith;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import static java.nio.file.StandardCopyOption.*;
-import org.apache.commons.io.FileUtils;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.DB2105;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2008R2;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2012;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2014;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MYSQL55;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MYSQL57;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE11GR1;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE11GR2;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE12C;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQL92;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQL93;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQLPLUS92;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQLPLUS93;
+import static org.jboss.qa.hornetq.HornetQTestCaseConstants.SYBASE157;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
- * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST
- * SCENARIOS (LODH SCENARIOS)
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
  * @tpJobLink
- * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
- * /
- * @tpTcmsLink
- * https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
+ *            /
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -83,22 +89,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Sybase ASE 15.7 database. Kill server when the MDB is
-     * processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Sybase ASE 15.7 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -110,22 +112,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to IBM DB2 Enterprise e10.5 database. Kill server when the
-     * MDB is processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to IBM DB2 Enterprise e10.5 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.4.0
      */
     @RunAsClient
@@ -137,22 +135,40 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to PostgreSQL 9.3 database. Kill server when the MDB is
-     * processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgre92() throws Exception {
+        testFail(POSTGRESQL92);
+    }
+
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.3 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.4.0
      */
     @RunAsClient
@@ -164,22 +180,43 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.3 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     * @tpSince 6.1.0
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgrePlus92() throws Exception {
+        testFail(POSTGRESQLPLUS92);
+    }
+
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.3 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.4.0
      */
     @RunAsClient
@@ -191,22 +228,40 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Oracle 11g R2 database. Kill server when the MDB is
-     * processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 11g R1 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle11gr1() throws Exception {
+        testFail(ORACLE11GR1);
+    }
+
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 11g R2 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -217,22 +272,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Oracle 12c database. Kill server when the MDB is
-     * processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 12c database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.2.0
      */
     @RunAsClient
@@ -242,6 +293,7 @@ public class Lodh5TestCase extends HornetQTestCase {
     public void testOracle12c() throws Exception {
         testFail(ORACLE12C);
     }
+
 
     /**
      * @throws Exception
@@ -253,23 +305,20 @@ public class Lodh5TestCase extends HornetQTestCase {
 //    public void testMssql2008r2() throws Exception {
 //        testFail(MSSQL2008R2);
 //    }
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Microsoft SQL Server 2014 database. Kill server when the
-     * MDB is processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2014 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.4.0
      */
     @RunAsClient
@@ -281,22 +330,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Microsoft SQL Server 2012 database. Kill server when the
-     * MDB is processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2012 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.0.1
      */
     @RunAsClient
@@ -308,22 +353,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to MySQL 5.5 database. Kill server when the MDB is processing
-     * messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.5 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -334,22 +375,18 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to MySQL 5.7 database. Kill server when the MDB is processing
-     * messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.7 database.
+     *                Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>kill the server container when the MDB is processing messages and restart it</li>
+     *              <li>read the messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      * @tpSince 6.4.0
      */
     @RunAsClient
@@ -364,7 +401,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 
         int numberOfMessages = 2000;
 
-        prepareServerEAP7(container(1), databaseName);
+        prepareServerEAP6(container(1), databaseName);
 
         container(1).start();
 
@@ -424,7 +461,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         int count = rollbackPreparedTransactions(databaseName, properties.get("db.username"));
         Assert.assertEquals("After LODH 5 test there must be 0 transactions in prepared stated in DB. Current value is " + count,
                 0, count);
-                
+
         container(1).undeploy(mdbToDb);
         container(1).stop();
     }
@@ -447,19 +484,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
         return listOfLostMessages;
     }
-    
-    @Before
-    @After
-    public void removeInstalledModules() {
 
-        try {
-            FileUtils.deleteDirectory(new File(container(1).getServerHome() + File.separator + "modules" + File.separator + "system" + File.separator
-                    + "layers" + File.separator + "base" + File.separator + "com" + File.separator + "mylodhdb"));
-        } catch (Exception e) {
-            //ignored
-        }
-
-    }
     /**
      * Be sure that both of the servers are stopped before and after the test.
      */
@@ -487,26 +512,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         logger.trace("Response from deallocating database is: " + response);
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the beginning of the transaction start phase to see if
-     * the kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction start phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server on the start of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the start of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -520,26 +541,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the end of the transaction start phase to see if the
-     * kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction start phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server after the start phase of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the start phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -554,26 +571,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the beginning of the transaction end phase to see if
-     * the kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction end phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server on the end of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the end of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -587,26 +600,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the end of the transaction end phase to see if the
-     * kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction end phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server after the end phase of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the end phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -621,26 +630,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the beginning of the transaction prepare phase to see
-     * if the kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction prepare phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server on the prepare phase of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the prepare phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -654,26 +659,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the end of the transaction prepare phase to see if the
-     * kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction prepare phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server after the prepare phase of
-     * the transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the prepare phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -688,26 +689,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the beginning of the transaction commit phase to see
-     * if the kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the beginning of the transaction commit phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server on the commit phase of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server on the commit phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -725,26 +722,22 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
-     * Kill the server at the end of the transaction commit phase to see if the
-     * kill leads to lost messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
+     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
+     *                Plus Advanced Server 9.2 database. Kill the server at the end of the transaction commit phase
+     *                to see if the kill leads to lost messages.
+     * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>install Byteman rule to kill the server after the commit phase of the
-     * transaction</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>let the Byteman rule kill the server and then restart the server
-     * again</li>
-     * <li>count the number of records in the database</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
+     *              <li>start server container with deployed InQueue</li>
+     *              <li>send messages to InQueue</li>
+     *              <li>install Byteman rule to kill the server after the commit phase of the transaction</li>
+     *              <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
+     *                  to the database (in XA transaction)</li>
+     *              <li>let the Byteman rule kill the server and then restart the server again</li>
+     *              <li>count the number of records in the database</li>
+     *              </ul>
+     * @tpPassCrit The database must contain the same number of records as the number of sent messages
      */
     @RunAsClient
     @Test
@@ -760,6 +753,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         this.testFail();
     }
 
+
     public void testFail() throws Exception {
 
         int numberOfMessages = 15;
@@ -767,7 +761,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         try {
             logger.info("!!!!! preparing server !!!!!");
 
-            prepareServerEAP7(container(1), POSTGRESQLPLUS93);
+            prepareServerEAP6(container(1), POSTGRESQLPLUS92);
 
             container(1).start();
 
@@ -831,24 +825,27 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     }
 
+    public void prepareServer(Container container, String database) throws Exception {
+            prepareServerEAP6(container, database);
+    }
+
     /**
      * Prepares jms server for remote jca topology.
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareServerEAP7(Container container, String database) throws Exception {
+    private void prepareServerEAP6(Container container, String database) throws Exception {
 
         String poolName = "lodhDb";
-        final String driverName = "mylodhdb";
-        final String driverModuleName = "com.mylodhdb";
 
-        String jdbcDriverFileName = JdbcUtils.installJdbcDriverModule(container, database);
+        String jdbcDriverFileName = JdbcUtils.downloadJdbcDriver(container, database);
         DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
         properties = dbAllocatorUtils.allocateDatabase(database);
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
+        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         Random r = new Random();
         jmsAdminOperations.setNodeIdentifier(r.nextInt(9999));
@@ -856,28 +853,27 @@ public class Lodh5TestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
 
+
         if (DB2105.equalsIgnoreCase(database)) {
             /*
-             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
-             <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
-             <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
-             <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
-             <driver>oracle-jdbc-driver.jar</driver>
-             <security>
-             <user-name>crashrec</user-name>
-             <password>crashrec</password>
-             </security>
-             </xa-datasource>
-             */
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
             String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String jdbcClassName = properties.get("db.jdbc_class");
-          
-            jmsAdminOperations.createJDBCDriver( driverName, driverModuleName , jdbcClassName, datasourceClassName);   
+
 //            String databaseName = "crashrec"; // db.name
 //            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
 //            String serverName = "dev151.mw.lab.eng.bos.redhat.com:1521"; // db.hostname=db14.mw.lab.eng.bos.redhat.com
@@ -885,41 +881,35 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            String recoveryUsername = "crashrec";
 //            String recoveryPassword = "crashrec";
 //            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("DriverType", "4");
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", databaseName);
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DriverType", "4");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
-
-            // jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
+           // jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
         } else if (ORACLE11GR2.equalsIgnoreCase(database)) {
             /*
-             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
-             <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
-             <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
-             <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
-             <driver>oracle-jdbc-driver.jar</driver>
-             <security>
-             <user-name>crashrec</user-name>
-             <password>crashrec</password>
-             </security>
-             </xa-datasource>
-             */
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
-                        
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
             String url = properties.get("db.jdbc_url");
-            String jdbcClassName = properties.get("db.jdbc_class");
-
-            jmsAdminOperations.createJDBCDriver(driverName, driverModuleName, jdbcClassName, datasourceClassName);
 
 //            String databaseName = "crashrec"; // db.name
 //            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
@@ -928,41 +918,34 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            String recoveryUsername = "crashrec";
 //            String recoveryPassword = "crashrec";
 //            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
-            
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("URL", url);
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName , "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
-            
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
-
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
         } else if (ORACLE12C.equalsIgnoreCase(database)) {
             /*
-             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
-             <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
-             <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
-             <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
-             <driver>oracle-jdbc-driver.jar</driver>
-             <security>
-             <user-name>crashrec</user-name>
-             <password>crashrec</password>
-             </security>
-             </xa-datasource>
-             */
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
             String url = properties.get("db.jdbc_url");
-            String jdbcClassName = properties.get("db.jdbc_class");
-
-            jmsAdminOperations.createJDBCDriver(driverName, driverModuleName, jdbcClassName, datasourceClassName);
 
 //            String databaseName = "crashrec"; // db.name
 //            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
@@ -971,41 +954,35 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            String recoveryUsername = "crashrec";
 //            String recoveryPassword = "crashrec";
 //            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
-            
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("URL", url);
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName , "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
-            
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
 
         } else if (ORACLE11GR1.equalsIgnoreCase(database)) {
             /*
-             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
-             <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
-             <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
-             <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
-             <driver>oracle-jdbc-driver.jar</driver>
-             <security>
-             <user-name>crashrec</user-name>
-             <password>crashrec</password>
-             </security>
-             </xa-datasource>
-             */
+                <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">vmg05.mw.lab.eng.bos.redhat.com</xa-datasource-property>
+                <xa-datasource-property name="PortNumber">1521</xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">crashrec</xa-datasource-property>
+                <xa-datasource-class>oracle.jdbc.xa.client.OracleXADataSource</xa-datasource-class>
+                <driver>oracle-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+                </xa-datasource>
+            */
             // UNCOMMENT WHEN DB ALLOCATOR IS READY
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
             String url = properties.get("db.jdbc_url");
-            String jdbcClassName = properties.get("db.jdbc_class");
-
-            jmsAdminOperations.createJDBCDriver( driverName, driverModuleName , jdbcClassName, datasourceClassName); 
 
 //            String databaseName = "crashrec"; // db.name
 //            String datasourceClassName = "oracle.jdbc.xa.client.OracleXADataSource"; // datasource.class.xa
@@ -1014,59 +991,59 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            String recoveryUsername = "crashrec";
 //            String recoveryPassword = "crashrec";
 //            String url = "jdbc:oracle:thin:@dev151.mw.lab.eng.bos.redhat.com:1521:qaora12";
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("URL", url);
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", url);
 
         } else if (MYSQL55.equalsIgnoreCase(database) || MYSQL57.equalsIgnoreCase(database)) {
-            /**
-             * MYSQL DS XA DATASOURCE *
-             */
+            /** MYSQL DS XA DATASOURCE **/
             /*
-             <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
-             <xa-datasource-property name="ServerName">
-             db01.mw.lab.eng.bos.redhat.com
-             </xa-datasource-property>
-             <xa-datasource-property name="PortNumber">
-             3306
-             </xa-datasource-property>
-             <xa-datasource-property name="DatabaseName">
-             crashrec
-             </xa-datasource-property>
-             <xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
-             <driver>mysql55-jdbc-driver.jar</driver>
-             <security>
-             <user-name>crashrec</user-name>
-             <password>crashrec</password>
-             </security>
-             </xa-datasource>
-             */
+            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
+                <xa-datasource-property name="ServerName">
+                        db01.mw.lab.eng.bos.redhat.com
+                        </xa-datasource-property>
+                <xa-datasource-property name="PortNumber">
+                        3306
+                        </xa-datasource-property>
+                <xa-datasource-property name="DatabaseName">
+                        crashrec
+                        </xa-datasource-property>
+                <xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
+                <driver>mysql55-jdbc-driver.jar</driver>
+                <security>
+                <user-name>crashrec</user-name>
+                <password>crashrec</password>
+                </security>
+            </xa-datasource>
+            */
+
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String jdbcClassName = properties.get("db.jdbc_class");
-          
-            jmsAdminOperations.createJDBCDriver( driverName, driverModuleName , jdbcClassName, datasourceClassName);         
 
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("URL", "jdbc:mysql://" + serverName + ":" + portNumber + "/crashrec");
+//            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, true, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+//                    datasourceClassName, false, true);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "User", recoveryUsername);
+//            jmsAdminOperations.addXADatasourceProperty(poolName, "Password", recoveryPassword);
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName , "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);           
-            jmsAdminOperations.setXADatasourceAtribute(poolName,"user-name", "crashrec");
-            jmsAdminOperations.setXADatasourceAtribute(poolName,"password", "crashrec");
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName + "com.mysql.jdbc.Driver_5_1", "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
 
-            
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "URL", "jdbc:mysql://" + serverName + ":" + portNumber + "/crashrec");
 
         } else if (POSTGRESQLPLUS92.equals(database) || POSTGRESQLPLUS93.equals(database) || POSTGRESQL92.equalsIgnoreCase(database) || POSTGRESQL93.equalsIgnoreCase(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
@@ -1081,7 +1058,7 @@ public class Lodh5TestCase extends HornetQTestCase {
 //            </security>
 //            </xa-datasource>
             //recovery-password=crashrec, recovery-username=crashrec
-            // http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/torServlet?operation=alloc&label=$DATABASE&expiry=800&requestee=jbm_$JOB_NAME"
+            // http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label=$DATABASE&expiry=800&requestee=jbm_$JOB_NAME"
 
             String databaseName = properties.get("db.name");   // db.name
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
@@ -1089,20 +1066,15 @@ public class Lodh5TestCase extends HornetQTestCase {
             String portNumber = properties.get("db.port"); // db.port=5432
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
-            String jdbcClassName = properties.get("db.jdbc_class");
-          
-            jmsAdminOperations.createJDBCDriver( driverName, driverModuleName , jdbcClassName, datasourceClassName); 
-            
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("DatabaseName", databaseName);
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
-            
-            jmsAdminOperations.setXADatasourceAtribute(poolName,"user-name", recoveryUsername);
-            jmsAdminOperations.setXADatasourceAtribute(poolName,"password", recoveryPassword);
+
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
+
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+                            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
+            jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
 
         } else if (MSSQL2008R2.equals(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
@@ -1132,19 +1104,14 @@ public class Lodh5TestCase extends HornetQTestCase {
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String jdbcClassName = properties.get("db.jdbc_class");
 
-            jmsAdminOperations.createJDBCDriver(driverName, driverModuleName, jdbcClassName, datasourceClassName);
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
 
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("SelectMethod", "cursor");
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true,xaDataSourceProperties);
-            
+            jmsAdminOperations.addXADatasourceProperty(poolName, "SelectMethod", "cursor");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
 
@@ -1176,23 +1143,17 @@ public class Lodh5TestCase extends HornetQTestCase {
             String datasourceClassName = properties.get("datasource.class.xa"); // datasource.class.xa
             String serverName = properties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
             String portNumber = properties.get("db.port"); // db.port=5432
-            String jdbcClassName = properties.get("db.jdbc_class");
 
-            jmsAdminOperations.createJDBCDriver(driverName, driverModuleName, jdbcClassName, datasourceClassName);
-            
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", "crashrec");
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("SelectMethod", "cursor");
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false,jdbcDriverFileName , "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
 
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true,xaDataSourceProperties);
-            
+            jmsAdminOperations.addXADatasourceProperty(poolName, "SelectMethod", "cursor");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", "crashrec");
-
-        } else if (SYBASE157.equals(database)) {
+        }else if (SYBASE157.equals(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
 //            <xa-datasource-property name="SelectMethod">
 //                    cursor
@@ -1223,23 +1184,19 @@ public class Lodh5TestCase extends HornetQTestCase {
             String portNumber = properties.get("db.port"); // db.port=5432
             String recoveryUsername = properties.get("db.username");
             String recoveryPassword = properties.get("db.password");
-            String jdbcClassName = properties.get("db.jdbc_class");
 
-            jmsAdminOperations.createJDBCDriver( driverName, driverModuleName , jdbcClassName, datasourceClassName); 
+            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, jdbcDriverFileName, "TRANSACTION_READ_COMMITTED",
+                    datasourceClassName, false, true);
 
-            Map<String,String> xaDataSourceProperties = new HashMap<String,String>();
-            xaDataSourceProperties.put("ServerName", serverName);
-            xaDataSourceProperties.put("DatabaseName", databaseName);
-            xaDataSourceProperties.put("PortNumber", portNumber);
-            xaDataSourceProperties.put("NetworkProtocol", "Tds");
-            
-            jmsAdminOperations.createXADatasource("java:/jdbc/lodhDS", poolName, false, false, driverName, "TRANSACTION_READ_COMMITTED",
-                    datasourceClassName, false, true, xaDataSourceProperties);
-
+            jmsAdminOperations.addXADatasourceProperty(poolName, "ServerName", serverName);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "PortNumber", portNumber);
+            jmsAdminOperations.addXADatasourceProperty(poolName, "NetworkProtocol", "Tds");
+            jmsAdminOperations.addXADatasourceProperty(poolName, "DatabaseName", databaseName);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "user-name", recoveryUsername);
             jmsAdminOperations.setXADatasourceAtribute(poolName, "password", recoveryPassword);
 
         }
+
 
         jmsAdminOperations.close();
         container.stop();
@@ -1342,6 +1299,7 @@ public class Lodh5TestCase extends HornetQTestCase {
             container(1).deploy(dbUtilServlet);
 
             String response = HttpRequest.get("http://" + container(1).getHostname() + ":8080/DbUtilServlet/DbUtilServlet?op=countAll", 60, TimeUnit.SECONDS);
+            container(1).undeploy(dbUtilServlet);
 
             logger.info("Response is: " + response);
 
@@ -1370,4 +1328,6 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
     }
 
+
 }
+

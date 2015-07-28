@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
