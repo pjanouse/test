@@ -16,6 +16,9 @@ import org.kohsuke.MetaInfServices;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Exception;
+import java.lang.Override;
+import java.lang.System;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -3712,6 +3715,29 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    private void removeConnector(String serverName, String name) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("connector", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Remove connector
+     *
+     * @param name name of the connector
+     */
+    @Override
+    public void removeConnector(String name) {
+        removeConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
+    }
+
     private void removeRemoteConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
@@ -3793,9 +3819,37 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    private void createConnector(String serverName, String name, String socketBinding, String factoryClass, Map<String, String> params) {
+
+        removeConnector(name);
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("connector", name);
+        model.get("socket-binding").set(socketBinding);
+        model.get("factory-class").set(factoryClass);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("params").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void createConnector(String name, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createConnector(String name, String socketBinding, String factoryClass, Map<String, String> params) {
+        createConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, factoryClass, params);
     }
 
     @Override

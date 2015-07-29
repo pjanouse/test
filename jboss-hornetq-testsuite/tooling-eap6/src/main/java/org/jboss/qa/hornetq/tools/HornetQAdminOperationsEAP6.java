@@ -185,6 +185,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 
+    @Override
+    public void removeConnector(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
     /**
      * Removes topic
@@ -3757,6 +3762,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void createConnector(String name, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createConnector(String name, String socketBinding, String factoryClass, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
