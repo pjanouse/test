@@ -3761,6 +3761,25 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         removeRemoteConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
+    private void removeAcceptor(String serverName, String name) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("acceptor", name);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void removeAcceptor(String name) {
+        removeAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
+    }
+
     /**
      * Creates remote connector
      *
@@ -3855,6 +3874,34 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void createAcceptor(String name, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    private void createAcceptor(String serverName, String name, String socketBinding, String factoryClass, Map<String, String> params) {
+
+        removeAcceptor(serverName, name);
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("acceptor", name);
+        model.get("socket-binding").set(socketBinding);
+        model.get("factory-class").set(factoryClass);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("params").add(key, params.get(key));
+            }
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void createAcceptor(String name, String socketBinding, String factoryClass, Map<String, String> params) {
+        createAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, factoryClass, params);
     }
 
     /**

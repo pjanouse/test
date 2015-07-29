@@ -190,6 +190,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void removeAcceptor(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
     /**
      * Removes topic
@@ -3772,6 +3777,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void createAcceptor(String name, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createAcceptor(String name, String socketBinding, String factoryClass, Map<String, String> params) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

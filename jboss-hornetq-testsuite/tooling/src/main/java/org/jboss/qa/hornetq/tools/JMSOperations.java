@@ -391,6 +391,16 @@ public interface JMSOperations {
     void createAcceptor(String name, Map<String, String> params);
 
     /**
+     * Create acceptor
+     *
+     * @param name name of acceptor
+     * @param socketBinding name of socket binding
+     * @param factoryClass factory Java class
+     * @param params
+     */
+    void createAcceptor(String name, String socketBinding, String factoryClass, Map<String, String> params);
+
+    /**
      * Creates remote connector
      *
      * @param serverName    set name of hornetq server
@@ -572,6 +582,13 @@ public interface JMSOperations {
      * @param name name of the connector
      */
     void removeConnector(String name);
+
+    /**
+     * Remove acceptor
+     *
+     * @param name name of the acceptor
+     */
+    void removeAcceptor(String name);
 
     /**
      * Remove remote acceptor
