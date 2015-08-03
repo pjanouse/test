@@ -76,7 +76,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
 
     // LODH3 waits for all messages to get generated before the failover test starts, so it requires more messages
     // to last through all 5 server kills in long test scenario
-    private static final int LODH3_NUMBER_OF_MESSAGES = 500;
+    private static final int LODH3_NUMBER_OF_MESSAGES = 20000;
 
     // queue to send messages in
     private static final String IN_QUEUE_NAME = "InQueue";
