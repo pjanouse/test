@@ -338,10 +338,10 @@
 
 
 
-                    oupId>-->
-                    <!--<artifactId>groovy-xml</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
+        oupId>-->
+        <!--<artifactId>groovy-xml</artifactId>-->
+        <!--</exclusion>-->
+        <!--</exclusions>-->
         <!--</dependency>-->
 
         <dependency>
@@ -556,7 +556,7 @@
                     <artifactId>jboss-as-arquillian-container-domain-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
                 </dependency>
-<!--                <dependency>
+                <!--                <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
@@ -575,6 +575,75 @@
                 <property>
                     <name>eap</name>
                     <value>7x</value>
+                </property>
+            </activation>
+
+            <modules>
+                <module>tooling</module>
+                <module>tooling-eap7</module>
+                <module>apps-jms11-jdk6</module>
+                <module>apps-jms11-jdk8</module>
+                <module>apps-jms20</module>
+                <module>common-tests</module>
+                <module>tests-eap7</module>
+            </modules>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.qa</groupId>
+                    <artifactId>qa-testplan-generator-annotation-processor</artifactId>
+                    <version>0.0.6</version>
+
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-client</artifactId>
+                    <version>${eap7.client}</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-wildfly-controller-client</artifactId>
+                    <version>${eap7.controller.client}</version>
+                    <type>jar</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>eap</groupId>
+                    <artifactId>eap-jboss-cli-client</artifactId>
+                    <version>${eap7.cli.client}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.logging</groupId>
+                            <artifactId>jboss-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap7x.container.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                    <version>1.2</version>
+                    <!-- License: Apache 2.0 -->
+                </dependency>
+            </dependencies>
+
+        </profile>
+        
+        <profile>
+            <id>eap7x-ipv6</id>
+            <activation>
+                <property>
+                    <name>eap</name>
+                    <value>7x-ipv6</value>
                 </property>
             </activation>
 
