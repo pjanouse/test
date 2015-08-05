@@ -18,7 +18,7 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_1}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
-		    -Djava.net.preferIPv6Stack=true
+		    -Djava.net.preferIPv6Addresses=true
                     -Djboss.modules.policy-permissions=true
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
@@ -42,7 +42,7 @@
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=false
-		    -Djava.net.preferIPv6Stack=true
+		    -Djava.net.preferIPv6Addresses=true
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
@@ -66,7 +66,7 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
-		    -Djava.net.preferIPv6Stack=true
+		    -Djava.net.preferIPv6Addresses=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
@@ -89,7 +89,7 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
-		    -Djava.net.preferIPv6Stack=true
+		    -Djava.net.preferIPv6Addresses=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
