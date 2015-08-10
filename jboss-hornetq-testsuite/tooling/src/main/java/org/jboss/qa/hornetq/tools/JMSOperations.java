@@ -1568,6 +1568,11 @@ public interface JMSOperations {
                                      String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
                                      boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
                                      String scaleDownDiscoveryGroup, String scaleDownGroupName);
+
+    void addHAPolicyColocatedSharedStore();
+
+    void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
+                                         int backupRequestRetryInterval, int maxBackups, boolean requestBackup);
     void deploy(Archive archive) throws Exception;
 
     void stopDeliveryToMdb(String deploymentName);

@@ -4934,6 +4934,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void addHAPolicyColocatedSharedStore() {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");

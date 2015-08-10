@@ -1003,10 +1003,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates model node which contains list of strings
+     * 
      * @param list list of strings
      * @return list of model nodes containing string value
      */
-    private ModelNode createModelNodeForList(List<String> list)   {
+    private ModelNode createModelNodeForList(List<String> list) {
 
         List<ModelNode> connectors = new ArrayList<ModelNode>();
         for (String s : list) {
@@ -1017,7 +1018,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         return createModelNode().set(connectors);
     }
-
 
     /**
      * Sets persistence-enabled attribute in servers configuration.
@@ -1155,8 +1155,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Sets clustered attribute.
-     * This is not necessary any more
+     * Sets clustered attribute. This is not necessary any more
      *
      * @param clustered set true to allow server to create cluster
      */
@@ -1167,8 +1166,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
-     * Sets clustered attribute.
-     * This is not necessary any more
+     * Sets clustered attribute. This is not necessary any more
      *
      * @param serverName sets name of the hornetq server to be changed
      * @param clustered set true to allow server to create cluster
@@ -1535,8 +1533,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
             String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
             boolean noTxSeparatePool) {
-        throw new UnsupportedOperationException("Use method createXADatasource which takes also xaDatasourceProperties as an argument.");
+        throw new UnsupportedOperationException(
+                "Use method createXADatasource which takes also xaDatasourceProperties as an argument.");
     }
+
     /**
      * XA datasource.
      *
@@ -1547,29 +1547,29 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @param driverName
      * @param transactionIsolation
      */
-//    ModelNode composite = new ModelNode();
-//        composite.get(ClientConstants.OP).set("composite");
-//        composite.get(ClientConstants.OP_ADDR).setEmptyList();
-//        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
-//
-//        ModelNode undefineConnector = new ModelNode();
-//        undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
-//        undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-//        undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
-//                NAME_OF_MESSAGING_DEFAULT_SERVER);
-//        undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-//        undefineConnector.get("name").set("connectors");
-//
-//        ModelNode setDiscoveryGroup = new ModelNode();
-//        setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
-//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
-//                NAME_OF_MESSAGING_DEFAULT_SERVER);
-//        setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
-//        setDiscoveryGroup.get("name").set("discovery-group");
-//        setDiscoveryGroup.get("value").set(discoveryGroupName);
-//        composite.get(ClientConstants.STEPS).add(undefineConnector);
-//        composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
+    // ModelNode composite = new ModelNode();
+    // composite.get(ClientConstants.OP).set("composite");
+    // composite.get(ClientConstants.OP_ADDR).setEmptyList();
+    // composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+    //
+    // ModelNode undefineConnector = new ModelNode();
+    // undefineConnector.get(ClientConstants.OP).set(ClientConstants.UNDEFINE_ATTRIBUTE_OPERATION);
+    // undefineConnector.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+    // undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+    // NAME_OF_MESSAGING_DEFAULT_SERVER);
+    // undefineConnector.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+    // undefineConnector.get("name").set("connectors");
+    //
+    // ModelNode setDiscoveryGroup = new ModelNode();
+    // setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+    // setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+    // setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
+    // NAME_OF_MESSAGING_DEFAULT_SERVER);
+    // setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+    // setDiscoveryGroup.get("name").set("discovery-group");
+    // setDiscoveryGroup.get("value").set(discoveryGroupName);
+    // composite.get(ClientConstants.STEPS).add(undefineConnector);
+    // composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
 
     @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
@@ -1580,7 +1580,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         composite.get(ClientConstants.OP).set("composite");
         composite.get(ClientConstants.OP_ADDR).setEmptyList();
         composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
-        
+
         final ModelNode modelDatasource = createModelNode();
         modelDatasource.get(ClientConstants.OP).set(ClientConstants.ADD);
         modelDatasource.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
@@ -3479,7 +3479,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            //throw new RuntimeException(e);
+            // throw new RuntimeException(e);
             logger.error("Set property replacement could not be set.", e);
         }
     }
@@ -3495,7 +3495,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            //throw new RuntimeException(e);
+            // throw new RuntimeException(e);
             logger.error("Set property replacement could not be set.", e);
         }
     }
@@ -3838,7 +3838,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-    private void createConnector(String serverName, String name, String socketBinding, String factoryClass, Map<String, String> params) {
+    private void createConnector(String serverName, String name, String socketBinding, String factoryClass,
+            Map<String, String> params) {
 
         removeConnector(name);
 
@@ -3876,7 +3877,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
-    private void createAcceptor(String serverName, String name, String socketBinding, String factoryClass, Map<String, String> params) {
+    private void createAcceptor(String serverName, String name, String socketBinding, String factoryClass,
+            Map<String, String> params) {
 
         removeAcceptor(serverName, name);
 
@@ -4669,7 +4671,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         return result.get("result").asString();
     }
 
-
     /**
      *
      */
@@ -5110,11 +5111,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-
     // HA CONFIGURATION - START
 
     @Override
-    public void removeHAPolicy(String serverName)   {
+    public void removeHAPolicy(String serverName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -5131,7 +5131,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             haPolicy = result.get("result").get("ha-policy").keys().iterator().next();
             logger.info(haPolicy);
-        } catch (IllegalArgumentException ex)   {
+        } catch (IllegalArgumentException ex) {
             // no ha-policy
         }
 
@@ -5149,7 +5149,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             }
         }
 
-
     }
 
     @Override
@@ -5158,7 +5157,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown)  {
+    public void addHAPolicySharedStoreMaster(String serverName, long failbackDelay, boolean failoverOnServerShutdown) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -5177,16 +5176,17 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
-                                            boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
-                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
-        addHAPolicySharedStoreSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, failbackDelay, failoverOnServerShutdown, restartBackup,
-                scaleDown, scaleDownClusterName, scaleDownConnectors, scaleDownDiscoveryGroup, scaleDownGroupName);
+            boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+        addHAPolicySharedStoreSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, failbackDelay, failoverOnServerShutdown,
+                restartBackup, scaleDown, scaleDownClusterName, scaleDownConnectors, scaleDownDiscoveryGroup,
+                scaleDownGroupName);
     }
 
     @Override
-    public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
-                                            boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
-                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+    public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay,
+            boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -5243,21 +5243,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay,
-                                            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
-                                            boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
-                                            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+    public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName,
+            int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
 
-        addHAPolicyReplicationSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, clusterName, failbackDelay,
-                groupName, maxSavedReplicatedJournalSize, restartBackup, scaleDown, scaleDownClusterName,
-                scaleDownConnectors, scaleDownDiscoveryGroup, scaleDownGroupName);
+        addHAPolicyReplicationSlave(NAME_OF_MESSAGING_DEFAULT_SERVER, allowFailback, clusterName, failbackDelay, groupName,
+                maxSavedReplicatedJournalSize, restartBackup, scaleDown, scaleDownClusterName, scaleDownConnectors,
+                scaleDownDiscoveryGroup, scaleDownGroupName);
     }
 
     @Override
     public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
-                                            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup,
-                                            boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
-                                            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown,
+            String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup,
+            String scaleDownGroupName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -5292,8 +5291,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-    // HA CONFIGURATION - END
+    public void addHAPolicyColocatedSharedStore() {
+         addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
 
+    }
+
+    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
+            int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "shared-store-colocated");
+        model.get("backup-port-offset").set(backupPortOffest);
+        model.get("backup-request-retries").set(backupRequestRetries);
+        model.get("backup-request-retry-interval").set(backupRequestRetryInterval);
+        model.get("max-backups").set(maxBackups);
+        model.get("request-backup").set(requestBackup);
+
+    }
+
+    // HA CONFIGURATION - END
 
     public static void main(String[] args) {
         ActiveMQAdminOperationsEAP7 jmsAdminOperations = new ActiveMQAdminOperationsEAP7();
@@ -5329,39 +5347,38 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
             String targetConnectionFactory = "jms/RemoteConnectionFactory";
             String targetDestination = "jms/queue/OutQueue";
-            Map<String,String> targetContext = new HashMap<String, String>();
+            Map<String, String> targetContext = new HashMap<String, String>();
             targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 +  "127.0.0.1:10080");
+            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:10080");
 
-            Map<String,String> sourceContext = new HashMap<String, String>();
+            Map<String, String> sourceContext = new HashMap<String, String>();
             sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
             sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:8080");
-//            Map<String,String> sourceContext = null;
+            // Map<String,String> sourceContext = null;
             String qualityOfService = "ONCE_AND_ONLY_ONCE";
 
             jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
-                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1,
-                    10, 100, true);
+                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1, 10, 100, true);
 
-//            System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
+            // System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             // jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerBindingAddress, 5445);
             // jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-//            List<String> list = new ArrayList<String>();
-//            list.add("http-connector");
-//            jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
+            // List<String> list = new ArrayList<String>();
+            // list.add("http-connector");
+            // jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", list);
 
-
-//            jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
-//            jmsAdminOperations.removeHAPolicy("default");
-//            jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
-//            jmsAdminOperations.removeHAPolicy("default");
-//            jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
-//            jmsAdminOperations.removeHAPolicy("default");
-//            jmsAdminOperations.addHAPolicyReplicationMaster(true, "my-cluster", "my-group");
-//            jmsAdminOperations.removeHAPolicy("default");
-//            jmsAdminOperations.addHAPolicyReplicationSlave(true, "my-cluster", 3000, "my-group", 3, true, false, null, null, null, null);
+            // jmsAdminOperations.createHttpAcceptor("myacceptor", null, null);
+            // jmsAdminOperations.removeHAPolicy("default");
+            // jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
+            // jmsAdminOperations.removeHAPolicy("default");
+            // jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
+            // jmsAdminOperations.removeHAPolicy("default");
+            // jmsAdminOperations.addHAPolicyReplicationMaster(true, "my-cluster", "my-group");
+            // jmsAdminOperations.removeHAPolicy("default");
+            // jmsAdminOperations.addHAPolicyReplicationSlave(true, "my-cluster", 3000, "my-group", 3, true, false, null, null,
+            // null, null);
 
             // jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
             // jmsAdminOperations.setJndiNameForPooledConnectionFactory("hornetq-ra", "java:/remoteJmsXA");
