@@ -19,6 +19,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import static org.jboss.qa.hornetq.JMSTools.isIpv6Address;
 
 
 /**
@@ -57,7 +58,12 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
      */
     @Override
     public JMXConnector getJmxConnectorForEap(final String host, final int port) throws IOException {
-        JMXServiceURL beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://" + host + ":" + port);
+        JMXServiceURL beanServerUrl;
+        if (isIpv6Address(host)) {
+            beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://[" + host + "]:" + port);
+        } else {
+            beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://" + host + ":" + port);
+        }
         return JMXConnectorFactory.connect(beanServerUrl);
     }
 
