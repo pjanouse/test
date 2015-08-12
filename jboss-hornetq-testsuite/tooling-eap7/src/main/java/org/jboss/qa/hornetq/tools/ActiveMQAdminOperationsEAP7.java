@@ -5290,12 +5290,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
-
+    @Override
     public void addHAPolicyColocatedSharedStore() {
          addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
 
     }
-
+    @Override
     public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
             int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
         ModelNode model = createModelNode();
@@ -5308,6 +5308,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("backup-request-retry-interval").set(backupRequestRetryInterval);
         model.get("max-backups").set(maxBackups);
         model.get("request-backup").set(requestBackup);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
