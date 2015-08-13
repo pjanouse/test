@@ -29,6 +29,9 @@ import javax.naming.Context;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.apache.activemq.artemis.jms.client.ActiveMQBytesMessage;
+import org.apache.activemq.artemis.jms.client.ActiveMQObjectMessage;
+import org.apache.activemq.artemis.jms.client.ActiveMQTextMessage;
 
 import static org.junit.Assert.*;
 
@@ -265,7 +268,12 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
 
             long timeout = System.currentTimeMillis() + 5000;
-            msg.setLongProperty(MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
+            
+            if (container(1).getContainerType().toString().equals(EAP7_CONTAINER)) {
+                msg.setLongProperty(org.apache.activemq.artemis.core.message.impl.MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
+            } else {
+                msg.setLongProperty(org.hornetq.core.message.impl.MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
+            }
 
             producer.send(msg);
             log.info("Send message to queue - isExclusive: " + isExclusive + ", isLargeMessage:" + isLargeMessage);
@@ -486,7 +494,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * <li>Receive messages from DivertedQueue</li>
      * <li>Compare send messages to received messages</li>
      * </ul>
-     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue.
+     * @tpPassCrit Messages received from DivertedQueue are same messages as
+     * producer send to OriginalQueue.
      */
     @Test
     @RunAsClient
@@ -495,6 +504,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, false);
     }
+
     /**
      * @tpTestDetails Server with configured exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
@@ -509,7 +519,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * <li>Receive messages from DivertedQueue</li>
      * <li>Compare send messages to received messages</li>
      * </ul>
-     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue.
+     * @tpPassCrit Messages received from DivertedQueue are same messages as
+     * producer send to OriginalQueue.
      */
     @Test
     @RunAsClient
@@ -518,11 +529,13 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersExclusiveLargeMessages() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, true);
     }
+
     /**
      * @tpTestDetails Server with configured non exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
-     * 100 messages to OriginalQueue. Receive messages from DivertedQueue and OriginalQueue.
-     * Compare send messages to messages received from DivertedQueue and OriginalQueue.
+     * 100 messages to OriginalQueue. Receive messages from DivertedQueue and
+     * OriginalQueue. Compare send messages to messages received from
+     * DivertedQueue and OriginalQueue.
      *
      *
      * @tpProcedure <ul>
@@ -534,7 +547,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * <li>Compare send messages to messages received from OriginalQueue</li>
      * <li>Compare send messages to messages received from DivertedQueue</li>
      * </ul>
-     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue. Messages received from OriginalQueue are same messages as producer send to OriginalQueue.
+     * @tpPassCrit Messages received from DivertedQueue are same messages as
+     * producer send to OriginalQueue. Messages received from OriginalQueue are
+     * same messages as producer send to OriginalQueue.
      */
     @Test
     @RunAsClient
@@ -543,11 +558,13 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     public void testThatDivertedMessagesContainsAllHeadersNonExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, false);
     }
+
     /**
      * @tpTestDetails Server with configured non exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
-     * 100 large messages to OriginalQueue. Receive messages from DivertedQueue and OriginalQueue.
-     * Compare send messages to messages received from DivertedQueue and OriginalQueue.
+     * 100 large messages to OriginalQueue. Receive messages from DivertedQueue
+     * and OriginalQueue. Compare send messages to messages received from
+     * DivertedQueue and OriginalQueue.
      *
      *
      * @tpProcedure <ul>
@@ -559,7 +576,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * <li>Compare send messages to messages received from OriginalQueue</li>
      * <li>Compare send messages to messages received from DivertedQueue</li>
      * </ul>
-     * @tpPassCrit Messages received from DivertedQueue are same messages as producer send to OriginalQueue. Messages received from OriginalQueue are same messages as producer send to OriginalQueue.
+     * @tpPassCrit Messages received from DivertedQueue are same messages as
+     * producer send to OriginalQueue. Messages received from OriginalQueue are
+     * same messages as producer send to OriginalQueue.
      */
     @Test
     @RunAsClient
@@ -577,7 +596,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        SimpleJMSClient clientOriginal = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
+        SimpleJMSClient clientOriginal = new SimpleJMSClient(container(1), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
         clientOriginal.setReceiveTimeout(1000);
         MessageBuilder messageBuilder;
@@ -593,7 +612,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             clientOriginal.receiveMessages(inQueueJndiName);
         }
 
-        SimpleJMSClient clientDiverted = new SimpleJMSClient(container(1).getHostname(), container(1).getJNDIPort(), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
+        SimpleJMSClient clientDiverted = new SimpleJMSClient(container(1), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
         clientDiverted.setReceiveTimeout(1000);
         clientDiverted.receiveMessages(outQueueJndiName);
@@ -688,26 +707,50 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             isSame = false;
         }
 
-        // compare bodies
-        if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
-                && !((HornetQTextMessage) sentMessage).getText().equals(((HornetQTextMessage) receivedMessage).getText())) {
+        if (container(1).getContainerType().toString().equals(EAP7_CONTAINER)) {
+            // compare bodies
+            if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
+                    && !((ActiveMQTextMessage) sentMessage).getText().equals(((ActiveMQTextMessage) receivedMessage).getText())) {
 
-            log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
-            isSame = false;
-        }
+                log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
+                isSame = false;
+            }
 
-        if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
-                && ((HornetQBytesMessage) sentMessage).getBodyLength() != (((HornetQBytesMessage) receivedMessage).getBodyLength())) {
+            if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
+                    && ((ActiveMQBytesMessage) sentMessage).getBodyLength() != (((ActiveMQBytesMessage) receivedMessage).getBodyLength())) {
 
-            log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
-            isSame = false;
-        }
+                log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
+                isSame = false;
+            }
 
-        if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
-                && !((HornetQObjectMessage) sentMessage).getObject().equals(((HornetQObjectMessage) receivedMessage).getObject())) {
+            if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
+                    && !((ActiveMQObjectMessage) sentMessage).getObject().equals(((ActiveMQObjectMessage) receivedMessage).getObject())) {
 
-            log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
-            isSame = false;
+                log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
+                isSame = false;
+            }
+        } else {
+            // compare bodies
+            if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
+                    && !((HornetQTextMessage) sentMessage).getText().equals(((HornetQTextMessage) receivedMessage).getText())) {
+
+                log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
+                isSame = false;
+            }
+
+            if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
+                    && ((HornetQBytesMessage) sentMessage).getBodyLength() != (((HornetQBytesMessage) receivedMessage).getBodyLength())) {
+
+                log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
+                isSame = false;
+            }
+
+            if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
+                    && !((HornetQObjectMessage) sentMessage).getObject().equals(((HornetQObjectMessage) receivedMessage).getObject())) {
+
+                log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
+                isSame = false;
+            }
         }
 
         if (sentMessage instanceof MapMessage && receivedMessage instanceof MapMessage) {
@@ -747,15 +790,16 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
         jmsOperations.createQueue(outQueue, outQueueJndiName);
-        jmsOperations.addDivert("myDivert", "jms.queue." + originalQueue, "jms.queue." + divertedQueue, isExclusive, null, null, null);
+        jmsOperations.addDivert("myDivert", "jms.queue." + originalQueue, "jms.queue." + divertedQueue, isExclusive, null, JmsMessagesTestCase.class.getSimpleName(), null);
 
         jmsOperations.close();
 
         container.stop();
     }
-    
+
     /**
-     * @tpTestDetails Start server. Send MapMessage with null in map and receive it.
+     * @tpTestDetails Start server. Send MapMessage with null in map and receive
+     * it.
      *
      *
      * @tpProcedure <ul>
