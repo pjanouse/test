@@ -84,6 +84,29 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.bitstrings.maven.plugins</groupId>
+                <artifactId>dependencypath-maven-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <id>set-byteman</id>
+                        <goals>
+                            <goal>set</goal>
+                        </goals>
+                        <configuration>
+                            <propertySets>
+                                <propertySet>
+                                    <includes>
+                                        <include>org.jboss.byteman:byteman:jar</include>
+                                        <include>org.jboss.byteman:byteman-submit:jar</include>
+                                    </includes>
+                                </propertySet>
+                            </propertySets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-version}</version>
                 <dependencies>
@@ -96,10 +119,10 @@
                 <configuration>
                     <systemPropertyVariables>
                         <BYTEMAN_JAR>
-                            ${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar
+                            ${org.jboss.byteman:byteman:jar}
                         </BYTEMAN_JAR>
                         <BYTEMAN_SUBMIT_JAR>
-                            ${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar
+                            ${org.jboss.byteman:byteman-submit:jar}
                         </BYTEMAN_SUBMIT_JAR>
                         <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
