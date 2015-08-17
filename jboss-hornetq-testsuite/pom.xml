@@ -51,9 +51,9 @@
         <surefire-version>2.16</surefire-version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
         <hornetq.surefire.jvm.options>-Xmx2G -Xms2G
-            -javaagent:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591
+            -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591
             -Djboss.modules.system.pkgs=org.jboss.byteman
-            -Xbootclasspath/a:${env.HOME}/.m2/repository/org/jboss/byteman/byteman/${version.byteman}/byteman-${version.byteman}.jar:${env.HOME}/.m2/repository/org/jboss/byteman/byteman-submit/${version.byteman}/byteman-submit-${version.byteman}.jar
+            -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
         </hornetq.surefire.jvm.options>
 
     </properties>
