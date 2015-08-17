@@ -18,11 +18,13 @@ import javax.jms.TemporaryQueue;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
 
 
@@ -206,7 +208,7 @@ public class TemporaryQueuesSoakClient extends Client {
                 Message msg;
 
                 while (this.counter < this.numberOfMessage && !this.stop) {
-                    msg = this.messageBuilder.createMessage(session);
+                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setJMSReplyTo(this.responseQueues[this.counter % this.responseQueues.length]);
                     this.sendMessage(producer, msg);

@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
@@ -185,7 +187,7 @@ public class FilterSoakClient extends Client {
                 Message msg;
 
                 while (this.counter < this.numberOfMessages && !this.stop) {
-                    msg = this.messageBuilder.createMessage(session);
+                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setIntProperty("filterProperty", this.counter % 2);
                     ClientUtils.sendMessage(producer, msg);

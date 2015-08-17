@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -107,7 +108,7 @@ public class PublisherTransAck extends Client {
 
             while (counter < messages && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 msg.setIntProperty("count", counter);
 
                 sendMessage(msg);

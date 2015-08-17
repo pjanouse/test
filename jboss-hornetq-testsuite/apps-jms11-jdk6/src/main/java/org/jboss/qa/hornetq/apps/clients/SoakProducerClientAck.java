@@ -3,7 +3,9 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
@@ -44,7 +46,19 @@ public class SoakProducerClientAck extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public SoakProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
+        this(null, hostname, port, queueNameJndi, messages);
+    }
+
+    /**
+     * @param hostname          hostname
+     * @param port              port
+     * @param messages          number of messages to send
+     * @param queueNameJndi     set jndi name of the queue to send messages
+     * @param jmsImplementation JMS implementation
+     */
+    public SoakProducerClientAck(String hostname, int port, String queueNameJndi, int messages, JMSImplementation jmsImplementation) {
         this(null, hostname, port, queueNameJndi, messages);
     }
 
@@ -55,6 +69,7 @@ public class SoakProducerClientAck extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public SoakProducerClientAck(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
         this.hostname = hostname;
@@ -99,7 +114,7 @@ public class SoakProducerClientAck extends Client {
 
             while (getCounter() < messages && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 msg.setIntProperty("count", getCounter());
 
                 // send message in while cycle

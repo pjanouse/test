@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.MessageCreator;
+
 import javax.jms.DeliveryMode;
 import javax.jms.Message;
-import javax.jms.Session;
 
 /**
  * Created by mnovak on 9/24/14.
@@ -71,8 +73,8 @@ public class AllHeadersClientMixMessageBuilder extends ClientMixMessageBuilder {
     }
 
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
-        Message msg = super.createMessage(session);
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
+        Message msg = super.createMessage(messageCreator, jmsImplementation);
 
         msg.setJMSDeliveryMode(JMSDeliveryMode);
         msg.setJMSCorrelationID(JMSCorrelationID);

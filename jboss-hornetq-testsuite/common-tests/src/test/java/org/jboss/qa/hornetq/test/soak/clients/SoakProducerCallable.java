@@ -1,8 +1,6 @@
 package org.jboss.qa.hornetq.test.soak.clients;
 
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import javax.jms.Connection;
 import javax.jms.JMSException;
@@ -12,6 +10,8 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 
 
 /**
@@ -57,7 +57,7 @@ public class SoakProducerCallable implements Callable<Integer> {
             Message msg;
 
             while (this.counter < this.numberOfMessage && !this.stop) {
-                msg = this.messageBuilder.createMessage(session);
+                msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
                 msg.setIntProperty("counter", ++this.counter);
                 this.sendMessage(producer, msg);
                 Thread.sleep(MSG_GAP);

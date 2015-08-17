@@ -12,6 +12,8 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -259,9 +261,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageProducer producer = session.createProducer(originalQueue);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
             }
 
             long timeout = System.currentTimeMillis() + 5000;
@@ -432,9 +434,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             producer.setTimeToLive(expireTime);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
             }
             producer.send(msg);
             producer.close();

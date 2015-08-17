@@ -12,7 +12,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <jboss.javaee.version>2.0.0.Final</jboss.javaee.version>
+        <jboss.javaee6.version>2.0.0.Final</jboss.javaee6.version>
+        <jboss.javaee7.version>1.0.3.Final</jboss.javaee7.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
         <netty.version>3.2.5.Final</netty.version>
         <!--NOT USED FOR EAP 6 CONTAINER-->
@@ -164,13 +165,6 @@
     </build>
     <dependencies>
 
-        <!-- JavaEE 6.0 APIs -->
-        <dependency>
-            <groupId>org.jboss.spec</groupId>
-            <artifactId>jboss-javaee-6.0</artifactId>
-            <version>${jboss.javaee.version}</version>
-            <type>pom</type>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -277,6 +271,10 @@
                     <groupId>org.jboss.logging</groupId>
                     <artifactId>jboss-logging-spi</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.javaee</groupId>
+                    <artifactId>jboss-jms-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -362,6 +360,16 @@
             <artifactId>charts4j</artifactId>
             <version>1.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.resource</groupId>
+            <artifactId>jboss-connector-api_1.7_spec</artifactId>
+            <version>1.0.0.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.resource</groupId>
+            <artifactId>jboss-connector-api_1.7_spec</artifactId>
+            <version>1.0.0.Final</version>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -385,6 +393,13 @@
                 <module>tests-eap6</module>
             </modules>
             <dependencies>
+                <!-- JavaEE 6.0 APIs -->
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-6.0</artifactId>
+                    <version>${jboss.javaee6.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>
@@ -444,6 +459,13 @@
             </modules>
 
             <dependencies>
+                <!-- JavaEE 6.0 APIs -->
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-6.0</artifactId>
+                    <version>${jboss.javaee6.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>
@@ -509,7 +531,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${surefire-version}</version>
                         <configuration>
-                            <groups>org.jboss.qa.hornetq.test.categories.DomainTests</groups>
+                            <groups>DomainTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
@@ -522,6 +544,13 @@
                 </plugins>
             </build>
             <dependencies>
+                <!-- JavaEE 6.0 APIs -->
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-6.0</artifactId>
+                    <version>${jboss.javaee6.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-client</artifactId>
@@ -588,6 +617,12 @@
                 <module>tests-eap7</module>
             </modules>
             <dependencies>
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-7.0</artifactId>
+                    <version>${jboss.javaee7.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
                     <artifactId>qa-testplan-generator-annotation-processor</artifactId>
@@ -662,7 +697,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${surefire-version}</version>
                         <configuration>
-                            <groups>org.jboss.qa.hornetq.test.categories.DomainTests</groups>
+                            <groups>DomainTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
@@ -675,6 +710,12 @@
                 </plugins>
             </build>
             <dependencies>
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-7.0</artifactId>
+                    <version>${jboss.javaee7.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
@@ -737,6 +778,12 @@
                 <module>tests-eap7</module>
             </modules>
             <dependencies>
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-7.0</artifactId>
+                    <version>${jboss.javaee7.version}</version>
+                    <type>pom</type>
+                </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
                     <artifactId>qa-testplan-generator-annotation-processor</artifactId>

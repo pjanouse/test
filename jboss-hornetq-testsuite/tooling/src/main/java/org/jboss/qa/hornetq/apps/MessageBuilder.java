@@ -12,7 +12,7 @@ public interface MessageBuilder {
 
     static final String MESSAGE_COUNTER_PROPERTY = "counter";
 
-    Message createMessage(Session session) throws Exception;
+    Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception;
 
     void setAddDuplicatedHeader(boolean duplHeader);
 

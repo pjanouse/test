@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -37,6 +38,7 @@ public class SoakPublisherClientAck extends Client {
      * @param messages       number of messages to send
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
+    @Deprecated
     public SoakPublisherClientAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
         this(EAP6_CONTAINER,hostname, port, topicNameJndi, messages, clientId);
     }
@@ -48,6 +50,7 @@ public class SoakPublisherClientAck extends Client {
      * @param messages       number of messages to send
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
+    @Deprecated
     public SoakPublisherClientAck(String container, String hostname, int port, String topicNameJndi, int messages, String clientId) {
         super(container);
         this.hostname = hostname;
@@ -93,7 +96,7 @@ public class SoakPublisherClientAck extends Client {
 
             while (counter < messages && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 // send message in while cycle
                 sendMessage(publisher, msg);
 

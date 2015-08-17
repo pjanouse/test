@@ -2,12 +2,14 @@ package org.jboss.qa.hornetq.test.clients;
 
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
-import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
@@ -276,7 +278,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
                 MessageProducer producer = session.createProducer(q);
                 for (int i = 0; i < NUMBER_OF_MESSAGES; i++) {
-                    Message msg = msgBuilder.createMessage(session);
+                    Message msg = msgBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
                     producer.send(msg);
                     if (i % 10 == 0) {
                         LOG.info("Sent message with counter " + i);

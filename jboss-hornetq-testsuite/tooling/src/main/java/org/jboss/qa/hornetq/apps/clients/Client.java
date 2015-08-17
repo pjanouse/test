@@ -4,6 +4,10 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -30,6 +34,7 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     private int timeout = 100;
     protected int counter = 0;
     protected Container container;
+    protected JMSImplementation jmsImplementation;
 
     /**
      * Creates client for the given container.
@@ -41,14 +46,19 @@ public class Client extends Thread implements HornetQTestCaseConstants {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP5_CONTAINER;
+            jmsImplementation = new HornetqJMSImplementation();
         } else if (EAP5_WITH_JBM_CONTAINER.equals(currentContainerForTest)) {
             currentContainer =  EAP5_WITH_JBM_CONTAINER;
+            jmsImplementation = new HornetqJMSImplementation();
         } else if (EAP6_LEGACY_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_LEGACY_CONTAINER;
+            jmsImplementation = new HornetqJMSImplementation();
         }  else if (EAP6_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_CONTAINER;
+            jmsImplementation = new HornetqJMSImplementation();
         }  else {
             currentContainer = EAP7_CONTAINER;
+            jmsImplementation = new ArtemisJMSImplementation();
         }
     }
 
@@ -56,6 +66,7 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     public Client(Container container){
         this.container=container;
         currentContainer=container.getContainerType().toString();
+        jmsImplementation = ContainerUtils.getJMSImplementation(container);
     }
     /**
      *  Returns jndi context.
@@ -97,12 +108,12 @@ public class Client extends Thread implements HornetQTestCaseConstants {
 
     protected Message cleanMessage(Message m) throws JMSException {
 
-        String dupId = m.getStringProperty("_HQ_DUPL_ID");
+        String dupId = m.getStringProperty(jmsImplementation.getDuplicatedHeader());
         String inMessageId = m.getStringProperty("inMessageId");
         String JMSXGroupID = m.getStringProperty("JMSXGroupID");
         m.clearBody();
         m.clearProperties();
-        m.setStringProperty("_HQ_DUPL_ID", dupId);
+        m.setStringProperty(jmsImplementation.getDuplicatedHeader(), dupId);
         m.setStringProperty("inMessageId", inMessageId);
         if (JMSXGroupID != null) {
             m.setStringProperty("JMSXGroupID", JMSXGroupID);
@@ -113,8 +124,8 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     protected void addMessage(List<Map<String,String>> listOfReceivedMessages, Message message) throws JMSException {
         Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
         mapOfPropertiesOfTheMessage.put("messageId", message.getJMSMessageID());
-        if (message.getStringProperty("_HQ_DUPL_ID") != null)   {
-            mapOfPropertiesOfTheMessage.put("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
+        if (message.getStringProperty(jmsImplementation.getDuplicatedHeader()) != null)   {
+            mapOfPropertiesOfTheMessage.put(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         }
         // this is for MDB test versification (MDB creates new message with inMessageId property)
         if (message.getStringProperty("inMessageId") != null)   {

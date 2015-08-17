@@ -1,10 +1,11 @@
 package org.jboss.qa.hornetq.apps.impl;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 import java.util.UUID;
 
@@ -31,13 +32,13 @@ public class ColoredMessagesBuilder implements MessageBuilder {
     }
 
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
 
-        TextMessage message = session.createTextMessage();
+        TextMessage message = messageCreator.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
 
         if (isAddDuplicatedHeader()) {
-            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+            message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
         }
         if (this.size > 0) {
             message.setText(new String(new char[this.size]));
@@ -50,7 +51,8 @@ public class ColoredMessagesBuilder implements MessageBuilder {
         }
 
         logger.info("Sending message with counter: " + this.counter + ", messageId: " + message.getJMSMessageID() +
-                "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID") + " and color: " + message.getStringProperty("color"));
+                jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()) +
+                " and color: " + message.getStringProperty("color"));
 
         return message;
     }

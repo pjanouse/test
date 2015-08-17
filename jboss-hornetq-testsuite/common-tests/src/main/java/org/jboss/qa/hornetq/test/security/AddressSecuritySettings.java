@@ -10,7 +10,6 @@ import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 

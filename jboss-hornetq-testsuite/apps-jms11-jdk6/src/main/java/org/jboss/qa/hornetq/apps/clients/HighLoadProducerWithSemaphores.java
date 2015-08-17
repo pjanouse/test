@@ -1,8 +1,11 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 
 import javax.jms.*;
 import java.util.concurrent.Semaphore;
@@ -34,6 +37,9 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
     // Message builder
     protected MessageBuilder messageBuilder;
 
+    // JMS implementation
+    protected JMSImplementation jmsImplementation;
+
     /**
      * Constructor
      *
@@ -45,6 +51,7 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
      * @param messagesCount      total count of messages
      * @param messageBuilder     messages builder for this producer
      */
+    @Deprecated
     public HighLoadProducerWithSemaphores(String name, Topic topic, ConnectionFactory cf, Semaphore releaseSemaphore,
                                           int releaseSemaphoreAt, int messagesCount, MessageBuilder messageBuilder) {
         super(name, topic, cf);
@@ -55,6 +62,33 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
         if (this.messageBuilder == null) {
             this.messageBuilder = new ByteMessageBuilder();
         }
+        this.jmsImplementation = new HornetqJMSImplementation();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param name               thread name
+     * @param topic              target topic
+     * @param cf                 connection factory
+     * @param releaseSemaphore   instance of semaphore
+     * @param releaseSemaphoreAt release semaphore after defined count of messages
+     * @param messagesCount      total count of messages
+     * @param messageBuilder     messages builder for this producer
+     * @param jmsImplementation  JMS implementation
+     */
+    public HighLoadProducerWithSemaphores(String name, Topic topic, ConnectionFactory cf, Semaphore releaseSemaphore,
+                                          int releaseSemaphoreAt, int messagesCount, MessageBuilder messageBuilder,
+                                          JMSImplementation jmsImplementation) {
+        super(name, topic, cf);
+        this.releaseSemaphore = releaseSemaphore;
+        this.releaseSemaphoreAt = releaseSemaphoreAt;
+        this.messagesCount = messagesCount;
+        this.messageBuilder = messageBuilder;
+        if (this.messageBuilder == null) {
+            this.messageBuilder = new ByteMessageBuilder();
+        }
+        this.jmsImplementation = jmsImplementation;
     }
 
     /**
@@ -76,7 +110,7 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
                 if (i >= this.releaseSemaphoreAt && this.releaseSemaphore != null) {
                     this.releaseSemaphore.release();
                 }
-                Message message = this.messageBuilder.createMessage(session);
+                Message message = this.messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 message.setIntProperty(ATTR_MSG_COUNTER, i);
                 producer.send(message);
                 if (i % 10 == 0) {

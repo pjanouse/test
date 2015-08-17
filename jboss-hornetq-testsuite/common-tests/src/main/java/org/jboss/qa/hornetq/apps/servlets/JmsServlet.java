@@ -12,9 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.IllegalStateException;
-import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 
 /**
  * Servlet which sends/receives messages to queue/topic.
@@ -263,7 +264,7 @@ public class JmsServlet extends HttpServlet {
 
             while (counter < numberOfMessagesToSend) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
 
                 msg.setIntProperty("count", counter);
 

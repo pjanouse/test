@@ -6,6 +6,7 @@ package org.jboss.qa.hornetq.apps.impl;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.jms.JMSException;
 import java.util.*;
@@ -28,6 +29,17 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
     private List<Map<String, String>> sentMessages = new LinkedList<Map<String, String>>();
 
     private List<Map<String, String>> receivedMessages = new LinkedList<Map<String, String>>();
+
+    private JMSImplementation jmsImplementation;
+
+    @Deprecated
+    public GroupMessageVerifier() {
+        jmsImplementation = new HornetqJMSImplementation();
+    }
+
+    public GroupMessageVerifier(JMSImplementation jmsImplementation) {
+        this.jmsImplementation = jmsImplementation;
+    }
 
     /**
      * Returns true if all messages are ok = there are equal number of sent and received messages.
@@ -79,8 +91,10 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
             if (index < receivedMessages.size()) {
                 Map<String, String> receivedMessage = receivedMessages.get(index);
 
-                if (!sentMessage.get("_HQ_DUPL_ID").equals(receivedMessage.get("_HQ_DUPL_ID"))) {
-                    logger.info("Message received out of order - _HQ_DUPL_ID: " + receivedMessage.get("_HQ_DUPL_ID"));
+                if (!sentMessage.get(jmsImplementation.getDuplicatedHeader()).equals(
+                        receivedMessage.get(jmsImplementation.getDuplicatedHeader()))) {
+                    logger.info("Message received out of order - " + jmsImplementation.getDuplicatedHeader() +
+                            ": " + receivedMessage.get(jmsImplementation.getDuplicatedHeader()));
                 }
             }
         }
@@ -177,14 +191,14 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
 
         Set<String> helpSet = new HashSet<String>();
         for (Map<String, String> receivedMessageInMap : receivedMessages) {
-            helpSet.add(receivedMessageInMap.get("_HQ_DUPL_ID"));
+            helpSet.add(receivedMessageInMap.get(jmsImplementation.getDuplicatedHeader()));
         }
 
         List<String> listOfLostMessages = new ArrayList<String>();
 
 
         for (Map<String, String> mapOfSentMessageProperties : sentMessages) {
-            if (helpSet.add(mapOfSentMessageProperties.get("_HQ_DUPL_ID"))) {
+            if (helpSet.add(mapOfSentMessageProperties.get(jmsImplementation.getDuplicatedHeader()))) {
                 listOfLostMessages.add(mapOfSentMessageProperties.get("messageId"));
             }
         }
@@ -204,7 +218,7 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
 
         HashSet<String> set = new HashSet<String>();
         for (Map<String, String> receivedMessage : receivedMessages) {
-            if (!set.add(receivedMessage.get("_HQ_DUPL_ID"))) {
+            if (!set.add(receivedMessage.get(jmsImplementation.getDuplicatedHeader()))) {
                 listOfDuplicatedMessages.add(receivedMessage.get("messageId"));
             }
         }

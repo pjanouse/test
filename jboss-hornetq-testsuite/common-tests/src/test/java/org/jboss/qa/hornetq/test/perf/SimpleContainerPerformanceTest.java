@@ -7,6 +7,8 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.perf.CounterMdb;
 import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
@@ -305,7 +307,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             MessageProducer producer = session.createProducer(inQueue);
             log.info(String.format("We will send %s messages to server", messagesCount));
             for (int i = 0; i < messagesCount; i++) {
-                Message message = messageBuilder.createMessage(session);
+                Message message = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
                 message.setIntProperty(PerformanceConstants.MESSAGE_PARAM_INDEX, i);
                 message.setIntProperty(PerformanceConstants.MESSAGE_PARAM_CYCLES, cyclesCount);
                 producer.send(message);

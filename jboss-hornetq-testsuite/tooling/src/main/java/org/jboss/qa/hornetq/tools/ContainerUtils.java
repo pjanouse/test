@@ -2,6 +2,9 @@ package org.jboss.qa.hornetq.tools;
 
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 
 /**
  * Created by mnovak on 4/14/15.
@@ -31,5 +34,13 @@ public class ContainerUtils {
     public static boolean isEAP7(Container container) {
         return container.getContainerType().equals(HornetQTestCaseConstants.CONTAINER_TYPE.EAP7_CONTAINER);
 
+    }
+
+    public static JMSImplementation getJMSImplementation(Container container) {
+        if (isEAP7(container)) {
+            return new ArtemisJMSImplementation();
+        } else {
+            return new HornetqJMSImplementation();
+        }
     }
 }

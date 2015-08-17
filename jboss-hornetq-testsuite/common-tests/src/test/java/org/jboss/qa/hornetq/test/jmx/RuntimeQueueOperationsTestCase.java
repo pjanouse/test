@@ -6,7 +6,6 @@ import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
@@ -14,11 +13,11 @@ import javax.naming.Context;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -160,13 +159,7 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
         container(1).restart();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_NAME, numberOfMessages);
-        DelayedTextMessageBuilder delayedTextMessageBuilder;
-
-        if (ContainerUtils.isEAP7(container(1))) {
-            delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000, "_AMQ_SCHED_DELIVERY");
-        } else {
-            delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000, "_HQ_SCHED_DELIVERY");
-        }
+        DelayedTextMessageBuilder delayedTextMessageBuilder = new DelayedTextMessageBuilder(512, 100000);
         producer.setMessageBuilder(delayedTextMessageBuilder);
         producer.start();
         producer.join();

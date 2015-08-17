@@ -16,7 +16,6 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
@@ -216,7 +215,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             isAfter = true,
 //            binding = "engine:SSLEngine = $0",
             targetLocation = "INVOKE createSSLEngine",
-            action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.hornetq.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+            action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); SslAuthenticationTestCase.setEnabledProtocols($!)"
 
     )
     public void testOneWaySslOverSSLv3Jms() throws Exception {

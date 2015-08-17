@@ -240,7 +240,7 @@ public class SubscriberClientAck extends Client {
             try {
 
                 // if dups_id is used then check if we got duplicates after last failed ack
-                if (numberOfRetries == 0 && message.getStringProperty("_HQ_DUPL_ID") != null
+                if (numberOfRetries == 0 && message.getStringProperty(jmsImplementation.getDuplicatedHeader()) != null
                         && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
                     if (areThereDuplicates())  {
                         // decrease counter
@@ -294,10 +294,10 @@ public class SubscriberClientAck extends Client {
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : listOfReceivedMessagesToBeAcked)    {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         }
         for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(jmsImplementation.getDuplicatedHeader()))) {
                 isDup=true;
             }
         }

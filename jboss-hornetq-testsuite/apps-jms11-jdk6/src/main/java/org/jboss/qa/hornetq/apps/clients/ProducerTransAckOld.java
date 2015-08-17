@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -43,6 +45,7 @@ public class ProducerTransAckOld extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerTransAckOld(String hostname, int port, String queueNameJndi, int messages) {
         this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
     }
@@ -54,10 +57,19 @@ public class ProducerTransAckOld extends Client {
      * @param messages       number of messages to send
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
+    @Deprecated
     public ProducerTransAckOld(String container, String hostname, int port, String queueNameJndi, int messages) {
         super(container);
         this.hostname = hostname;
         this.port = port;
+        this.messages = messages;
+        this.queueNameJndi = queueNameJndi;
+    }
+
+    public ProducerTransAckOld(Container container, String queueNameJndi, int messages) {
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
     }
@@ -92,7 +104,7 @@ public class ProducerTransAckOld extends Client {
 
             while (counter < messages && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
 
                 // send message in while cycle
                 sendMessage(producer, msg);

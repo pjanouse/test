@@ -1,10 +1,11 @@
 package org.jboss.qa.hornetq.apps.impl;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
-import javax.jms.Session;
 import java.util.UUID;
 
 /**
@@ -23,12 +24,12 @@ public class GroupMessageBuilder implements MessageBuilder {
     }
 
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
-        Message m = session.createTextMessage("message");
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
+        Message m = messageCreator.createTextMessage("message");
         m.setStringProperty("JMSXGroupID", groupMessageId);
 
         if (isAddDuplicatedHeader()) {
-            m.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+            m.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
         }
 
         log.info("Creating message with JMSXGroupID: " + m.getStringProperty("JMSXGroupID"));
