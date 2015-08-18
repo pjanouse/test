@@ -79,7 +79,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void normalByteMessagesTest() throws InterruptedException {
-        testLogic(5000, 30000, 10, 10000, new ByteMessageBuilder(512), 1024 * 50, 1024 * 10);
+        testLogic(5000, 300000, 10, 10000, new ByteMessageBuilder(512), 1024 * 50, 1024 * 10);
     }
 
     /**
@@ -104,7 +104,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void normalTextMessagesTest() throws InterruptedException {
-        testLogic(5000, 30000, 10, 10000, new TextMessageBuilder(512), 1024 * 50, 1024 * 10);
+        testLogic(5000, 300000, 10, 10000, new TextMessageBuilder(512), 1024 * 50, 1024 * 10);
     }
 
     /**
@@ -129,7 +129,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void largeByteMessagesTest() throws InterruptedException {
-        testLogic(500, 5000, 10, 10000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 300000, 10, 10000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
     }
 
     /**
@@ -154,7 +154,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void largeTextMessagesTest() throws InterruptedException {
-        testLogic(500, 5000, 10, 10000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 300000, 10, 10000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
     }
 
     /**
