@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliClient;
@@ -61,7 +62,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
 
     String queueJndiName = "jms/queue/" + queueCoreName;
 
-    private final String address = "/subsystem=messaging/hornetq-server=default/jms-queue=" + queueCoreName;
+    private String address;
 
     private Properties attributes;
 
@@ -70,6 +71,12 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
     @Before
     public void startServer() throws InterruptedException {
         container(1).start();
+
+        if (ContainerUtils.isEAP7(container(1))) {
+            address = "/subsystem=messaging-activemq/server=default/jms-queue=" + queueCoreName;
+        } else {
+            address = "/subsystem=messaging/hornetq-server=default/jms-queue=" + queueCoreName;
+        }
 
         // deploy queue
 
