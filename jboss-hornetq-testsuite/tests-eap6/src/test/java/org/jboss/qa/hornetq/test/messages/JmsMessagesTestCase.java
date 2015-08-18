@@ -29,9 +29,7 @@ import javax.naming.Context;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.apache.activemq.artemis.jms.client.ActiveMQBytesMessage;
-import org.apache.activemq.artemis.jms.client.ActiveMQObjectMessage;
-import org.apache.activemq.artemis.jms.client.ActiveMQTextMessage;
+import static org.hornetq.api.core.Message.HDR_SCHEDULED_DELIVERY_TIME;
 
 import static org.junit.Assert.*;
 
@@ -268,12 +266,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             }
 
             long timeout = System.currentTimeMillis() + 5000;
-            
-            if (container(1).getContainerType().toString().equals(EAP7_CONTAINER)) {
-                msg.setLongProperty(org.apache.activemq.artemis.core.message.impl.MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
-            } else {
-                msg.setLongProperty(org.hornetq.core.message.impl.MessageImpl.HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
-            }
+
+            msg.setLongProperty(HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
 
             producer.send(msg);
             log.info("Send message to queue - isExclusive: " + isExclusive + ", isLargeMessage:" + isLargeMessage);
@@ -707,50 +701,26 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             isSame = false;
         }
 
-        if (container(1).getContainerType().toString().equals(EAP7_CONTAINER)) {
-            // compare bodies
-            if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
-                    && !((ActiveMQTextMessage) sentMessage).getText().equals(((ActiveMQTextMessage) receivedMessage).getText())) {
+        // compare bodies
+        if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
+                && !((HornetQTextMessage) sentMessage).getText().equals(((HornetQTextMessage) receivedMessage).getText())) {
 
-                log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
-                isSame = false;
-            }
+            log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
+            isSame = false;
+        }
 
-            if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
-                    && ((ActiveMQBytesMessage) sentMessage).getBodyLength() != (((ActiveMQBytesMessage) receivedMessage).getBodyLength())) {
+        if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
+                && ((HornetQBytesMessage) sentMessage).getBodyLength() != (((HornetQBytesMessage) receivedMessage).getBodyLength())) {
 
-                log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
-                isSame = false;
-            }
+            log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
+            isSame = false;
+        }
 
-            if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
-                    && !((ActiveMQObjectMessage) sentMessage).getObject().equals(((ActiveMQObjectMessage) receivedMessage).getObject())) {
+        if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
+                && !((HornetQObjectMessage) sentMessage).getObject().equals(((HornetQObjectMessage) receivedMessage).getObject())) {
 
-                log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
-                isSame = false;
-            }
-        } else {
-            // compare bodies
-            if (sentMessage instanceof TextMessage && receivedMessage instanceof TextMessage
-                    && !((HornetQTextMessage) sentMessage).getText().equals(((HornetQTextMessage) receivedMessage).getText())) {
-
-                log.info("TextMessage  - There is different body - " + ((TextMessage) sentMessage).getText() + ", " + ((TextMessage) receivedMessage).getText());
-                isSame = false;
-            }
-
-            if (sentMessage instanceof BytesMessage && receivedMessage instanceof BytesMessage
-                    && ((HornetQBytesMessage) sentMessage).getBodyLength() != (((HornetQBytesMessage) receivedMessage).getBodyLength())) {
-
-                log.info("BytesMessage - There is different body - " + ((BytesMessage) sentMessage).getBodyLength() + ", " + (((BytesMessage) receivedMessage).getBodyLength()));
-                isSame = false;
-            }
-
-            if (sentMessage instanceof ObjectMessage && receivedMessage instanceof ObjectMessage
-                    && !((HornetQObjectMessage) sentMessage).getObject().equals(((HornetQObjectMessage) receivedMessage).getObject())) {
-
-                log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
-                isSame = false;
-            }
+            log.info("ObjectMessage - There is different body - " + sentMessage + ", " + receivedMessage);
+            isSame = false;
         }
 
         if (sentMessage instanceof MapMessage && receivedMessage instanceof MapMessage) {
