@@ -60,9 +60,9 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
     public JMXConnector getJmxConnectorForEap(final String host, final int port) throws IOException {
         JMXServiceURL beanServerUrl;
         if (isIpv6Address(host)) {
-            beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://[" + host + "]:" + port);
+            beanServerUrl = new JMXServiceURL("service:jmx:remote+http://[" + host + "]:" + port);
         } else {
-            beanServerUrl = new JMXServiceURL("service:jmx:http-remoting-jmx://" + host + ":" + port);
+            beanServerUrl = new JMXServiceURL("service:jmx:remote+http://" + host + ":" + port);
         }
         return JMXConnectorFactory.connect(beanServerUrl);
     }
