@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 /**
  * @tpChapter Functional testing
@@ -319,6 +320,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      * @throws IOException
      */
     private void prepareServerForSSLTransport(org.jboss.qa.hornetq.Container container, String journalType) throws IOException {
+               
         container.start();
 
         File keyStore = new File("src/test/resources/org/jboss/qa/hornetq/test/transportprotocols/hornetq.example.keystore");
@@ -336,7 +338,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         FileUtils.copyFile(keyStore, keyStoreNew);
         FileUtils.copyFile(trustStore, trustStoreNew);
 
-        String socketBindingName = "messaging";
+        String socketBindingName = ContainerUtils.isEAP7(container) ? "messaging-group" : "messaging" ;
         HashMap<String, String> connectorParams = new HashMap<String, String>();
         connectorParams.put("ssl-enabled", "true");
         connectorParams.put("trust-store-path", trustStoreNew.getAbsolutePath());

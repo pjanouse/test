@@ -155,6 +155,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.setLargeMessagesDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setBindingsDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setPagingDirectory(DIRECTORY_WITH_JOURNAL);
+        ops.removeBroadcastGroup(broadCastGroupName);
         ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
         ops.removeDiscoveryGroup(discoveryGroupName);
         ops.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
