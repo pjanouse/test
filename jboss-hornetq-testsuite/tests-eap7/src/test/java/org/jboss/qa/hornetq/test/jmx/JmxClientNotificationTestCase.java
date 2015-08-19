@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.test.jmx;
 
 import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.naming.NamingException;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.api.jms.management.JMSQueueControl;
 import org.apache.activemq.artemis.api.jms.management.JMSServerControl;
@@ -445,47 +447,51 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
      * @tpPassCrit second attempt should fail
      * @tpInfo For more information see related test case described in the beginning of this section.
      */
-    @Ignore
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDuplicateJNDIName() throws Exception {
-//        String queueName = "myTestQueue";
-//        String queueJndiName = "jms/queue/" + queueName;
-//
-//        JMSOperations ops = container(1).getJmsOperations();
-//        ops.setJmxManagementEnabled(true);
-//        ops.createQueue(queueJndiName, queueName, true);
-//        ops.close();
-//
-//        // we have to restart server for JMX to activate after config change
-//        container(1).restart();
-//
-//        JMXConnector connector = null;
-//        try {
-//            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
-//            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-//
-//            JMSQueueControl jmsQueueControl = (JMSQueueControl) container(1).getJmxUtils().getHornetQMBean(mbeanServer,
-//                    ObjectNameBuilder.DEFAULT.getJMSQueueObjectName(queueJndiName), JMSQueueControl.class);
-//            try {
-//                jmsQueueControl.addJNDI("newName");
-//                jmsQueueControl.addJNDI("newName");
-//                Assert.fail("Creating already existing queue must throw exception.");
-//            } catch (NamingException ex) {
-//                // this is expected
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                Assert.fail("Unexpected exception during test was thrown.");
-//            }
-//        } finally {
-//            if (connector != null) {
-//                connector.close();
-//            }
-//        }
-//
-//        container(1).stop();
+        String queueName = "myTestQueue";
+        String queueJndiName = "jms/queue/" + queueName;
+
+        JMSOperations ops = container(1).getJmsOperations();
+        ops.createQueue(queueName, queueJndiName, true);
+        ops.close();
+
+        JMXConnector connector = null;
+        try {
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
+            ObjectName queueControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName);
+
+            try {
+                mbeanServer.invoke(queueControllerName, "add-jndi",
+                        new Object[]{ "newJndiName" },
+                        new String[]{String.class.getName()});
+
+                // trying to bind the same name for the 2nd time should throw ReflectionException
+                mbeanServer.invoke(queueControllerName, "add-jndi",
+                        new Object[]{ "newJndiName" },
+                        new String[]{String.class.getName()});
+
+                Assert.fail("Creating already existing JNDI name must throw exception.");
+            } catch (ReflectionException ex) {
+                // this is expected
+                LOG.info("The server thrown ReflectionException when trying to bind the same JNDI name "
+                        + "for the 2nd time");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Assert.fail("Unexpected exception during test was thrown.");
+            }
+        } finally {
+            if (connector != null) {
+                connector.close();
+            }
+        }
+
+        container(1).stop();
     }
 
 }
