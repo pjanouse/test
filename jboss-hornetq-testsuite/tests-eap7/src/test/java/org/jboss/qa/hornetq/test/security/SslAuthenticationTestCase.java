@@ -158,7 +158,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         try {
             Map<String, Object> props = new HashMap<String, Object>();
             props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-            props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
+            props.put(TransportConstants.PORT_PROP_NAME, 5445);
             props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
             props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
             props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -226,9 +226,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
@@ -278,8 +277,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @CleanUpBeforeTest
     @BMRule(
             name = "rule to force sslv3",
-            targetClass = "org.hornetq.core.remoting.impl.netty.NettyConnector$1",
-            targetMethod = "getPipeline",
+            targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
+            targetMethod = "initChannel",
             isAfter = true,
 //            binding = "engine:SSLEngine = $0",
             targetLocation = "INVOKE createSSLEngine",
@@ -299,9 +298,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
@@ -369,8 +367,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
-        props.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
@@ -438,9 +435,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
-        props.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.HTTP_UPGRADE_ENDPOINT_PROP_NAME, "http-acceptor");
+        props.put(TransportConstants.PORT_PROP_NAME, 5445);
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
         props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
         props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
