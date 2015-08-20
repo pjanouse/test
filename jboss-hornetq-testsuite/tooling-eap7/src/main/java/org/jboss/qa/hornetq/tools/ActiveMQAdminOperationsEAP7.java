@@ -4484,7 +4484,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
-            logger.error("Operation remove catogory was not completed.", e);
+            logger.error("Operation remove category was not completed.", e);
         }
 
         model = createModelNode();
