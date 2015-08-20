@@ -104,11 +104,11 @@ public class JcaTestCase extends HornetQTestCase {
         logger.info(ejbXml);
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
