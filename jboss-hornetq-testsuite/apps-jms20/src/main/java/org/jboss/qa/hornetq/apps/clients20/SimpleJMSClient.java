@@ -82,6 +82,10 @@ public class SimpleJMSClient extends Client {
     public void sendMessages(String queueJNDIName) {
         Context context = null;
 
+        if (this.messageBuilder == null) {
+            this.messageBuilder = new ByteMessageBuilder();
+        }
+
         try {
             context = getContext(hostname, port);
             ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);
