@@ -261,9 +261,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageProducer producer = session.createProducer(originalQueue);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             }
 
             long timeout = System.currentTimeMillis() + 5000;
@@ -434,9 +434,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             producer.setTimeToLive(expireTime);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             }
             producer.send(msg);
             producer.close();

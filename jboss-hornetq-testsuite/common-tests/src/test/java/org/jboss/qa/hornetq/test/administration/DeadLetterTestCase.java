@@ -186,7 +186,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             Message msg;
 
             MessageProducer producer = session.createProducer(queue);
-            msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+            msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             producer.send(msg);
             session.commit();
             LOG.info("Message sent with id " + msg.getJMSMessageID());

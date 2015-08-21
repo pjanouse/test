@@ -34,7 +34,7 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
 
     @Deprecated
     public GroupMessageVerifier() {
-        jmsImplementation = new HornetqJMSImplementation();
+        jmsImplementation = HornetqJMSImplementation.getInstance();
     }
 
     public GroupMessageVerifier(JMSImplementation jmsImplementation) {

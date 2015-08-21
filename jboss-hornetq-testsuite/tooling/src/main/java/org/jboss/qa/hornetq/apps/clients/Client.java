@@ -46,19 +46,19 @@ public class Client extends Thread implements HornetQTestCaseConstants {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP5_CONTAINER;
-            jmsImplementation = new HornetqJMSImplementation();
+            jmsImplementation = HornetqJMSImplementation.getInstance();
         } else if (EAP5_WITH_JBM_CONTAINER.equals(currentContainerForTest)) {
             currentContainer =  EAP5_WITH_JBM_CONTAINER;
-            jmsImplementation = new HornetqJMSImplementation();
+            jmsImplementation = HornetqJMSImplementation.getInstance();
         } else if (EAP6_LEGACY_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_LEGACY_CONTAINER;
-            jmsImplementation = new HornetqJMSImplementation();
+            jmsImplementation = HornetqJMSImplementation.getInstance();
         }  else if (EAP6_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_CONTAINER;
-            jmsImplementation = new HornetqJMSImplementation();
+            jmsImplementation = HornetqJMSImplementation.getInstance();
         }  else {
             currentContainer = EAP7_CONTAINER;
-            jmsImplementation = new ArtemisJMSImplementation();
+            jmsImplementation = ArtemisJMSImplementation.getInstance();
         }
     }
 

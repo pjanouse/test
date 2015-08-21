@@ -38,9 +38,9 @@ public class ContainerUtils {
 
     public static JMSImplementation getJMSImplementation(Container container) {
         if (isEAP7(container)) {
-            return new ArtemisJMSImplementation();
+            return ArtemisJMSImplementation.getInstance();
         } else {
-            return new HornetqJMSImplementation();
+            return HornetqJMSImplementation.getInstance();
         }
     }
 }

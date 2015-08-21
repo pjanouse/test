@@ -208,7 +208,7 @@ public class TemporaryQueuesSoakClient extends Client {
                 Message msg;
 
                 while (this.counter < this.numberOfMessage && !this.stop) {
-                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setJMSReplyTo(this.responseQueues[this.counter % this.responseQueues.length]);
                     this.sendMessage(producer, msg);

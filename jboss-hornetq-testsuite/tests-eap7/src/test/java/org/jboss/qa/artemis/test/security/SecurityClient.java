@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.ContainerEAP7;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -176,7 +177,7 @@ public class SecurityClient extends Client {
 
         while (counter < messages && !stop) {
 
-            msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+            msg = messageBuilder.createMessage(new MessageCreator10(session), ArtemisJMSImplementation.getInstance());
             // send message in while cycle
             producer.send(msg);
 
@@ -214,7 +215,7 @@ public class SecurityClient extends Client {
 
         while (counter < messages && !stop) {
 
-            msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+            msg = messageBuilder.createMessage(new MessageCreator10(session), ArtemisJMSImplementation.getInstance());
             // send message in while cycle
             producer.send(msg);
 

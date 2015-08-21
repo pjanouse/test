@@ -62,7 +62,7 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
         if (this.messageBuilder == null) {
             this.messageBuilder = new ByteMessageBuilder();
         }
-        this.jmsImplementation = new HornetqJMSImplementation();
+        this.jmsImplementation = HornetqJMSImplementation.getInstance();
     }
 
     /**

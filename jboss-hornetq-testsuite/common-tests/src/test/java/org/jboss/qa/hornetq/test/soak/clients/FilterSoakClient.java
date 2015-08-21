@@ -187,7 +187,7 @@ public class FilterSoakClient extends Client {
                 Message msg;
 
                 while (this.counter < this.numberOfMessages && !this.stop) {
-                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                    msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setIntProperty("filterProperty", this.counter % 2);
                     ClientUtils.sendMessage(producer, msg);

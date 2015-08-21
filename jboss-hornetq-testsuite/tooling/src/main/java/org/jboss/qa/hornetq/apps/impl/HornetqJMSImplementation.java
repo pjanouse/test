@@ -9,7 +9,18 @@ import java.util.logging.Logger;
  */
 public class HornetqJMSImplementation implements JMSImplementation {
 
-    private static final Logger LOG = Logger.getLogger(HornetqJMSImplementation.class.getName());
+    private static HornetqJMSImplementation instance;
+
+    public static HornetqJMSImplementation getInstance() {
+        if (instance == null) {
+            instance = new HornetqJMSImplementation();
+        }
+        return instance;
+    }
+
+    private HornetqJMSImplementation() {
+
+    }
 
     @Override
     public String getDuplicatedHeader() {

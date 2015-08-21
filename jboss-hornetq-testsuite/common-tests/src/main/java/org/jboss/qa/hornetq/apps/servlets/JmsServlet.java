@@ -264,7 +264,7 @@ public class JmsServlet extends HttpServlet {
 
             while (counter < numberOfMessagesToSend) {
 
-                msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
 
                 msg.setIntProperty("count", counter);
 

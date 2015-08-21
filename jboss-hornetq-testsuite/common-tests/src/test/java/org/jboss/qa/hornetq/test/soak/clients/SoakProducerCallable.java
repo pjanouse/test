@@ -57,7 +57,7 @@ public class SoakProducerCallable implements Callable<Integer> {
             Message msg;
 
             while (this.counter < this.numberOfMessage && !this.stop) {
-                msg = this.messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
                 msg.setIntProperty("counter", ++this.counter);
                 this.sendMessage(producer, msg);
                 Thread.sleep(MSG_GAP);

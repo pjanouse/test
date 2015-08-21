@@ -26,7 +26,7 @@ public class MessageStoreImpl {
 
     @Deprecated
     public MessageStoreImpl() {
-        jmsImplementation = new HornetqJMSImplementation();
+        jmsImplementation = HornetqJMSImplementation.getInstance();
     }
 
     public MessageStoreImpl(JMSImplementation jmsImplementation) {

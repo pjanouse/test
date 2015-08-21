@@ -2,6 +2,7 @@ package org.jboss.qa.artemis.test.clients.clients;
 
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -278,7 +279,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
                 MessageProducer producer = session.createProducer(q);
                 for (int i = 0; i < NUMBER_OF_MESSAGES; i++) {
-                    Message msg = msgBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                    Message msg = msgBuilder.createMessage(new MessageCreator10(session), ArtemisJMSImplementation.getInstance());
                     producer.send(msg);
                     if (i % 10 == 0) {
                         LOG.info("Sent message with counter " + i);

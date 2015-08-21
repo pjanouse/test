@@ -88,7 +88,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
                 MessageProducer producer = session.createProducer(tempQueue);
                 MessageBuilder messageBuilder = new TextMessageBuilder(1);
                 messageBuilder.setAddDuplicatedHeader(true);
-                Message msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                Message msg = messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
 
                 logger.info("Iteration: " + iterations + " Send " + numberOfMessages + " to temp queue.");
                 for (int i = 0; i < numberOfMessages; i++) {

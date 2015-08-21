@@ -29,7 +29,7 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
 
     @Deprecated
     public TextMessageVerifier() {
-        jmsImplementation = new HornetqJMSImplementation();
+        jmsImplementation = HornetqJMSImplementation.getInstance();
     }
 
     public TextMessageVerifier(JMSImplementation jmsImplementation) {
