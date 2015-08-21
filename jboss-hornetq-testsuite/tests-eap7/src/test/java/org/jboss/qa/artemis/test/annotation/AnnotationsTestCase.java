@@ -513,7 +513,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueueAnnotated.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 
 //        logger.info(ejbXml);
 //        logger.info(mdbJar.toString(true));
@@ -533,7 +533,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueueToTopicAnnotated.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 
 //        logger.info(ejbXml);
 //        logger.info(mdbJar.toString(true));
@@ -553,7 +553,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueueAnnotated2.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 
 //        logger.info(ejbXml);
 //        logger.info(mdbJar.toString(true));
@@ -573,7 +573,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         Class[] mdbs = new Class[]{LocalMdbFromQueueAnnotated.class, LocalMdbFromQueueAnnotated2.class};
         mdbJar.addClasses(mdbs);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 
 //        logger.info(ejbXml);
 //        logger.info(mdbJar.toString(true));

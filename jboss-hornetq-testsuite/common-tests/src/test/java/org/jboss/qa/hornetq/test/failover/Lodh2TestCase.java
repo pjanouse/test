@@ -57,7 +57,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);
 
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 5000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
     public final Archive mdbOnQueue1 = getDeployment1();
     public final Archive mdbOnQueue2 = getDeployment2();
@@ -998,7 +998,7 @@ public class Lodh2TestCase extends HornetQTestCase {
      * @tpTestDetails There are 2 nodes. node 1 and 2 are started and queues InQueue and OutQueue are deployed to node 1.
      * Start producer which sends 500 messages (mix of small and large messages) to InQueue.
      * Once producer finishes, deploy MDB to node 2 which reads messages from InQueue and sends
-     * to OutQueue (in XA transaction). MDB is using property replacement in @Resource(name=${property}) and activation config properties.
+     * to OutQueue (in XA transaction). MDB is using property replacement in @Resource(lookup=${property}) and activation config properties.
      * @tpProcedure <ul>
      *     <li>start node 1 with deployed inQueue and outQueue</li>
      *     <li>start node 2 without destinations</li>

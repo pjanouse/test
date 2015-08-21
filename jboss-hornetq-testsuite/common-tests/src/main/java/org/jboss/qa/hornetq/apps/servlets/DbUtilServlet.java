@@ -3,6 +3,9 @@ package org.jboss.qa.hornetq.apps.servlets;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 
 import javax.annotation.Resource;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,11 +31,25 @@ public class DbUtilServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(DbUtilServlet.class.getName());
     private DataSource dataSource;
 
+    public void initializeDatasource() {
 
-    @Resource(name = "lodhDb", mappedName = "java:/jdbc/lodhDS")
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
+        Context context = null;
+        try {
+            context = new InitialContext();
+            this.dataSource = (DataSource) context.lookup("java:/jdbc/lodhDS");
+        } catch (NamingException ex) {
+            ex.printStackTrace();
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        } finally {
+            try {
+                if (context != null)
+                    context.close();
+            } catch (NamingException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
 
     /**
      * @param request
@@ -67,6 +84,7 @@ public class DbUtilServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        initializeDatasource();
         PrintWriter out = response.getWriter();
         String op = request.getParameter("op");
         try {
@@ -75,7 +93,7 @@ public class DbUtilServlet extends HttpServlet {
                 if (op.equals("deleteRecords")) {
                     deleteAll(out);
                 } else if (op.equals("rollbackPreparedTransactions")) {
-                    rollbackPreparedTransactions(out,request.getParameter("database"), request.getParameter("owner"));
+                    rollbackPreparedTransactions(out, request.getParameter("database"), request.getParameter("owner"));
                 } else if (op.equals("countAll")) {
                     countAll(out);
                 } else if (op.equals("insertRecord")) {

@@ -148,7 +148,41 @@
                 </plugins>
             </build>
         </profile>
-         <profile>
+        
+        <profile>
+            <id>eap7x-ipv6</id>
+            <activation>
+                <property>
+                    <name>eap</name>
+                    <value>7x-ipv6</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>tooling-eap7</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>arquillian.xml</name>
+                                    <value>arquillian-4-nodes-eap7-ipv6.xml</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
             <id>eap7x-common</id>
             <activation>
                 <property>
@@ -168,6 +202,42 @@
                                 <property>
                                     <name>arquillian.xml</name>
                                     <value>arquillian-4-nodes-eap7.xml</value>
+                                </property>
+                            </systemProperties>
+                            <argLine>${hornetq.surefire.jvm.options}</argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>tooling-eap7</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        
+        <profile>
+            <id>eap7x-common-ipv6</id>
+            <activation>
+                <property>
+                    <name>eap</name>
+                    <value>7x-common-ipv6</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-version}</version>
+                        <configuration>
+                            <groups>org.jboss.qa.hornetq.test.categories.FunctionalTests</groups>
+                            <systemProperties>
+                                <property>
+                                    <name>arquillian.xml</name>
+                                    <value>arquillian-4-nodes-eap7-ipv6.xml</value>
                                 </property>
                             </systemProperties>
                             <argLine>${hornetq.surefire.jvm.options}</argLine>

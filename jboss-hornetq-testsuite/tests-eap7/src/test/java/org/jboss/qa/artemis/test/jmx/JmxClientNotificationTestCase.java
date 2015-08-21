@@ -1,5 +1,8 @@
 package org.jboss.qa.artemis.test.jmx;
 
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.naming.NamingException;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.api.jms.management.JMSServerControl;
 import org.apache.log4j.Logger;
@@ -143,7 +146,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
      *     <li>connect clients and start sending and receiving messages from deployed queue</li>
      *     <li>try to destroy the queue</li>
      * </ul>
-     * @tpPassCrit queue destruction command should fail and throw exception
+     * @tpPassCrit queue destruction command should work and kick the clients out of the server.
      * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
@@ -166,47 +169,40 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
+            ObjectName queueControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName + "0");
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1000);
             clients.setMessages(100000);
             clients.startClients();
 
             ClientUtils.waitForReceiversUntil(clients.getConsumers(), 20, 60000);
 
-            boolean result = false;
-
             try {
-                result = jmsServerControl.destroyQueue(queueName + "0");
-                Assert.fail("Calling destroyQueue must throw exception when jms org.jboss.qa.hornetq.apps.clients are connected.");
+                LOG.info("Removing the test queue");
+                mbeanServer.invoke(queueControllerName, "remove", null, null);
+                // unlike HornetQ MBeans, calling remove should kick the clients our of the server
+                // (HornetQ MBean returned exception when trying to destroy queue with connected clients)
             } catch (Exception ex) {
                 // this is expected
             }
 
-            Assert.assertFalse("Calling destroy queue with connected org.jboss.qa.hornetq.apps.clients must fail.", result);
+            // properly end the client threads
             clients.stopClients();
-
             while (!clients.isFinished()) {
                 Thread.sleep(1000);
             }
 
-            // check that new org.jboss.qa.hornetq.apps.clients can be connected
-            // send and receive single message
-            Clients clients2 = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);
-            clients2.setMessages(100000);
-            clients2.startClients();
-
-            ClientUtils.waitForReceiversUntil(clients2.getConsumers(), 20, 60000);
-
-            clients2.stopClients();
-
-            while (!clients2.isFinished()) {
-                Thread.sleep(1000);
+            // test that the queue was really destroyed by the JMX operation
+            ops = container(1).getJmsOperations();
+            try {
+                ops.getCountOfMessagesOnQueue(queueName + "0");
+                Assert.fail("The queue was supposed to be destroyed by the JMX operation destroyQueue()");
+            } catch (Exception ex) {
+                // this is expected
+                LOG.info("The queue was successfully destroyed.");
             }
-
-            Assert.assertTrue(clients.evaluateResults());
-            Assert.assertTrue(clients2.evaluateResults());
         } finally {
             if (connector != null) {
                 connector.close();
@@ -248,17 +244,34 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         JMXConnector connector = null;
         try {
+            LOG.info("Connecting to JMX management");
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
-            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
-            boolean result = jmsServerControl.destroyQueue(queueName + "0");
-            Assert.assertTrue("Calling destroy queue with connected org.jboss.qa.hornetq.apps.clients must pass.", result);
+            LOG.info("Getting queue controller from JMX");
+            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
+            ObjectName queueControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName + "0");
+
+            LOG.info("Destroying queue " + queueName + "0 via JMX");
+            // remove operation returns null
+            mbeanServer.invoke(queueControllerName, "remove", null, null);
         } finally {
             if (connector != null) {
                 connector.close();
             }
         }
+
+        // test that the queue was really destroyed by the JMX operation
+        ops = container(1).getJmsOperations();
+        try {
+            ops.getCountOfMessagesOnQueue(queueName + "0");
+            Assert.fail("The queue was supposed to be destroyed by the JMX operation destroyQueue()");
+        } catch (Exception ex) {
+            // this is expected
+            LOG.info("The queue was successfully destroyed.");
+        }
+
+        //Thread.sleep(600000);
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), queueJndiName + "0", 30);
         producerToInQueue1.setCommitAfter(10);
@@ -268,7 +281,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         Assert.assertTrue("Producer must get exception.", producerToInQueue1.getException() != null);
 
-        // check that queue was destroyed
+        // check that the queue was not automatically created by the broker when we connected producer
         JMSOperations jmsOperations = container(1).getJmsOperations();
         try {
             jmsOperations.getCountOfMessagesOnQueue(queueName + "0");
@@ -312,7 +325,8 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
+            ObjectName topicControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + topicName + "0");
 
             // send and receive single message
             Clients clients = new TopicClientsAutoAck(container(1), topicJndiName, 1, 1, 1, 1);
@@ -321,36 +335,30 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             ClientUtils.waitForReceiversUntil(clients.getConsumers(), 20, 60000);
 
-            boolean result = false;
             try {
-                result = jmsServerControl.destroyTopic(topicName + "0", false);
-                Assert.fail("Calling destroyTopic must throw exception when jms org.jboss.qa.hornetq.apps.clients are connected.");
+                LOG.info("Removing the test topic");
+                mbeanServer.invoke(topicControllerName, "remove", null, null);
+                // unlike HornetQ MBeans, calling remove should kick the clients our of the server
+                // (HornetQ MBean returned exception when trying to destroy topic with connected clients)
             } catch (Exception ex) {
                 // this is expected
             }
 
-            Assert.assertFalse("Calling destroy topic with connected org.jboss.qa.hornetq.apps.clients must fail.", result);
-
+            // properly end the client threads
             clients.stopClients();
             while (!clients.isFinished()) {
                 Thread.sleep(1000);
             }
 
-            // check that new org.jboss.qa.hornetq.apps.clients can be connected
-            // send and receive single message
-            Clients clients2 = new TopicClientsAutoAck(container(1), topicJndiName, 1, 1, 1, 1);
-            clients2.setMessages(100000);
-            clients2.startClients();
-
-            ClientUtils.waitForReceiversUntil(clients2.getConsumers(), 20, 60000);
-
-            clients2.stopClients();
-            while (!clients2.isFinished()) {
-                Thread.sleep(1000);
+            // test that the queue was really destroyed by the JMX operation
+            ops = container(1).getJmsOperations();
+            try {
+                ops.removeTpicJNDIName(topicName, topicJndiName);
+                Assert.fail("The topic was supposed to be destroyed by the JMX operation");
+            } catch (Exception ex) {
+                // this is expected
+                LOG.info("The queue was successfully destroyed.");
             }
-
-            Assert.assertTrue(clients.evaluateResults());
-            Assert.assertTrue(clients2.evaluateResults());
         } finally {
             if (connector != null) {
                 connector.close();
@@ -393,10 +401,10 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
+            ObjectName topicControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + topicName + "0");
 
-            boolean result = jmsServerControl.destroyTopic(topicName + "0");
-            Assert.assertTrue("Calling destroy topic with connected org.jboss.qa.hornetq.apps.clients must pass.", result);
+            mbeanServer.invoke(topicControllerName, "remove", null, null);
         } finally {
             if (connector != null) {
                 connector.close();
@@ -438,47 +446,51 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
      * @tpPassCrit second attempt should fail
      * @tpInfo For more information see related test case described in the beginning of this section.
      */
-    @Ignore
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testDuplicateJNDIName() throws Exception {
-//        String queueName = "myTestQueue";
-//        String queueJndiName = "jms/queue/" + queueName;
-//
-//        JMSOperations ops = container(1).getJmsOperations();
-//        ops.setJmxManagementEnabled(true);
-//        ops.createQueue(queueJndiName, queueName, true);
-//        ops.close();
-//
-//        // we have to restart server for JMX to activate after config change
-//        container(1).restart();
-//
-//        JMXConnector connector = null;
-//        try {
-//            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
-//            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-//
-//            JMSQueueControl jmsQueueControl = (JMSQueueControl) container(1).getJmxUtils().getHornetQMBean(mbeanServer,
-//                    ObjectNameBuilder.DEFAULT.getJMSQueueObjectName(queueJndiName), JMSQueueControl.class);
-//            try {
-//                jmsQueueControl.addJNDI("newName");
-//                jmsQueueControl.addJNDI("newName");
-//                Assert.fail("Creating already existing queue must throw exception.");
-//            } catch (NamingException ex) {
-//                // this is expected
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                Assert.fail("Unexpected exception during test was thrown.");
-//            }
-//        } finally {
-//            if (connector != null) {
-//                connector.close();
-//            }
-//        }
-//
-//        container(1).stop();
+        String queueName = "myTestQueue";
+        String queueJndiName = "jms/queue/" + queueName;
+
+        JMSOperations ops = container(1).getJmsOperations();
+        ops.createQueue(queueName, queueJndiName, true);
+        ops.close();
+
+        JMXConnector connector = null;
+        try {
+            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
+            ObjectName queueControllerName = ObjectName.getInstance(
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName);
+
+            try {
+                mbeanServer.invoke(queueControllerName, "add-jndi",
+                        new Object[]{ "newJndiName" },
+                        new String[]{String.class.getName()});
+
+                // trying to bind the same name for the 2nd time should throw ReflectionException
+                mbeanServer.invoke(queueControllerName, "add-jndi",
+                        new Object[]{ "newJndiName" },
+                        new String[]{String.class.getName()});
+
+                Assert.fail("Creating already existing JNDI name must throw exception.");
+            } catch (ReflectionException ex) {
+                // this is expected
+                LOG.info("The server thrown ReflectionException when trying to bind the same JNDI name "
+                        + "for the 2nd time");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Assert.fail("Unexpected exception during test was thrown.");
+            }
+        } finally {
+            if (connector != null) {
+                connector.close();
+            }
+        }
+
+        container(1).stop();
     }
 
 }

@@ -72,8 +72,8 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         String targetDestination = outQueueJndiName;
 
         Map<String, String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-        targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
+        targetContext.put("java.naming.factory.initial", targetServer.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER) ? Constants.INITIAL_CONTEXT_FACTORY_EAP7 : Constants.INITIAL_CONTEXT_FACTORY_EAP6);
+        targetContext.put("java.naming.provider.url", targetServer.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER) ? Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 : Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
@@ -93,7 +93,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private void prepareTargetServerForJMSBridge(Container container) {
 
-        String connectionFactoryName = "RemoteConnectionFactory";
+        String connectionFactoryName = container.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER) ? Constants.CONNECTION_FACTORY_EAP7 : Constants.CONNECTION_FACTORY_EAP6;
 
         JMSOperations jmsAdminContainer1 = container.getJmsOperations();
         jmsAdminContainer1.createQueue(outQueueName, outQueueJndiName);

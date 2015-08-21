@@ -34,9 +34,9 @@ public final class JMSTools {
     /**
      * Cleanups resources
      *
-     * @param context    initial context
+     * @param context initial context
      * @param connection connection to JMS server
-     * @param session    JMS session
+     * @param session JMS session
      */
     public static void cleanupResources(Context context, Connection connection, Session session) {
         if (session != null) {
@@ -67,25 +67,27 @@ public final class JMSTools {
      * Returns EAP 6 context
      *
      * @param hostName host name
-     * @param port     target port with the service
+     * @param port target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
     public static Context getEAP6Context(String hostName, int port) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
-        env.put(Context.PROVIDER_URL, String.format("%s%s:%s",Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, hostName, port));
+        env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, hostName, port));
         return new InitialContext(env);
     }
 
     /**
-     * Waits until all containers in the given queue contains the given number of messages
+     * Waits until all containers in the given queue contains the given number
+     * of messages
      *
-     * @param queueName        queue name
+     * @param queueName queue name
      * @param numberOfMessages number of messages
-     * @param timeout          time out
-     * @param containers       container list
-     * @return returns true if there is numberOfMessages in queue, when timeout expires it returns false
+     * @param timeout time out
+     * @param containers container list
+     * @return returns true if there is numberOfMessages in queue, when timeout
+     * expires it returns false
      * @throws Exception
      */
     public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
@@ -95,7 +97,7 @@ public final class JMSTools {
         long count = 0;
         while ((count = countMessages(queueName, containers)) < numberOfMessages) {
             List<String> containerNames = new ArrayList<String>(containers.length);
-            for (org.jboss.qa.hornetq.Container c: containers) {
+            for (org.jboss.qa.hornetq.Container c : containers) {
                 containerNames.add(c.getName());
             }
 
@@ -112,8 +114,8 @@ public final class JMSTools {
     /**
      * Returns total number of messages in queue on given nodes
      *
-     * @param queueName      queue name
-     * @param containers     container list
+     * @param queueName queue name
+     * @param containers container list
      * @return total number of messages in queue on given nodes
      */
     public long countMessages(String queueName, org.jboss.qa.hornetq.Container... containers) {
@@ -128,12 +130,11 @@ public final class JMSTools {
         return sum;
     }
 
-
     /**
      * Returns EAP 5 context
      *
      * @param hostName host name
-     * @param port     target port with the service
+     * @param port target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
@@ -145,15 +146,13 @@ public final class JMSTools {
         return new InitialContext(properties);
     }
 
-
-
     /**
      * Determine if the given string is a valid IPv4 or IPv6 address.
      *
      * @param ipAddress A string that is to be examined to verify whether or not
-     *  it could be a valid IP address.
-     * @return <code>true</code> if the string is a value that is a valid IP address,
-     *  <code>false</code> otherwise.
+     * it could be a valid IP address.
+     * @return <code>true</code> if the string is a value that is a valid IP
+     * address, <code>false</code> otherwise.
      */
     public static boolean isIpv6Address(String ipAddress) {
 
@@ -175,7 +174,7 @@ public final class JMSTools {
         }
     }
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
         String isIpv6Address1 = "2620:52:0:105f::ffff:26";
         String isIpv6Address2 = "::1";
         String isIpv6Address3 = "2620:52:0:105f:0023:dfff:26:2434";
@@ -191,11 +190,17 @@ public final class JMSTools {
     public static Context getEAP7Context(String hostname, int jndiPort) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-        env.put(Context.PROVIDER_URL, String.format("%s%s:%s",Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
+        if (isIpv6Address(hostname)) {
+            env.put(Context.PROVIDER_URL, String.format("%s[%s]:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
+        } else {
+            env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
+        }
         return new InitialContext(env);
     }
+
     /**
-     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not
+     * finish in the specified time out then it fails the test.
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
      */
@@ -204,7 +209,8 @@ public final class JMSTools {
     }
 
     /**
-     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
+     * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not
+     * finish in the specified time out then it fails the test.
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
      * @param timeout timeout
@@ -241,12 +247,12 @@ public final class JMSTools {
     }
 
     /**
-     * Ping the given port until it's open. This method is used to check whether HQ started on the given port.
-     * For example after failover/failback.
+     * Ping the given port until it's open. This method is used to check whether
+     * HQ started on the given port. For example after failover/failback.
      *
      * @param ipAddress ipAddress
-     * @param port      port
-     * @param timeout   timeout
+     * @param port port
+     * @param timeout timeout
      */
     public static boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
@@ -261,12 +267,13 @@ public final class JMSTools {
     }
 
     /**
-     * Method blocks until sum of messages received is equal or greater the numberOfMessages, if timeout expires then Assert.fail
+     * Method blocks until sum of messages received is equal or greater the
+     * numberOfMessages, if timeout expires then Assert.fail
      * <p/>
      *
-     * @param receivers        receivers
+     * @param receivers receivers
      * @param numberOfMessages numberOfMessages
-     * @param timeout          timeout
+     * @param timeout timeout
      */
     public static void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
@@ -295,24 +302,26 @@ public final class JMSTools {
     }
 
     /**
-     * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
+     * Returns true if the given number of messages is in queue in the given
+     * timeout. Otherwise it returns false.
      *
-     * @param container                container
-     * @param queueCoreName            queue name
+     * @param container container
+     * @param queueCoreName queue name
      * @param expectedNumberOfMessages number of messages
-     * @param timeout                  timeout
-     * @return Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
+     * @param timeout timeout
+     * @return Returns true if the given number of messages is in queue in the
+     * given timeout. Otherwise it returns false.
      * @throws Exception
      */
     public boolean waitForNumberOfMessagesInQueue(org.jboss.qa.hornetq.Container container, String queueCoreName,
-                                                  int expectedNumberOfMessages, long timeout) throws Exception {
+            int expectedNumberOfMessages, long timeout) throws Exception {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         long startTime = System.currentTimeMillis();
 
-        while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) < expectedNumberOfMessages &&
-                System.currentTimeMillis() - startTime < timeout) {
+        while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) < expectedNumberOfMessages
+                && System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(500);
         }
         jmsAdminOperations.close();

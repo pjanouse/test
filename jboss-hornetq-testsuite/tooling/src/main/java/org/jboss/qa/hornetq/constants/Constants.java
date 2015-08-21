@@ -38,4 +38,8 @@ public class Constants {
     public static final String INITIAL_CONTEXT_FACTORY_EAP7 = "org.jboss.naming.remote.client.InitialContextFactory";
     public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP7 = "http-remoting://";
 
+    // used in LodhNetworkFailureTestCase and MdbToDBAndRemoteInOutQueue
+    public static final String TO_OUT_SERVER_CONNECTION_FACTORY_NAME = "ra-to-out-server";
+    public static final String TO_OUT_SERVER_CONNECTION_FACTORY_JNDI_NAME = "java:/JmsXAOutServer";
+
 }

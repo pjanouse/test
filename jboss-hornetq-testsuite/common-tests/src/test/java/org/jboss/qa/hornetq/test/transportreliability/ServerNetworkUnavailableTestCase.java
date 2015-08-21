@@ -18,10 +18,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
@@ -34,6 +31,7 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
+@Ignore(value = "What is purpose of test?")
 public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ServerNetworkUnavailableTestCase.class);

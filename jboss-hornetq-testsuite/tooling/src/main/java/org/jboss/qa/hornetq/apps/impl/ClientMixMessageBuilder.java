@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.*;
+import java.util.Random;
 import java.util.UUID;
 
 
@@ -23,6 +24,9 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 
     private boolean addDuplicatedHeader = true;
 
+    private Random random = new Random();
+    private boolean isAddPriorityToMessage = false;
+
     /**
      *
      * @return if header for message duplication will be added
@@ -39,6 +43,10 @@ public class ClientMixMessageBuilder implements MessageBuilder {
      */
     public void setAddDuplicatedHeader(boolean addDuplicatedHeader) {
         this.addDuplicatedHeader = addDuplicatedHeader;
+    }
+
+    public void setIsAddPriorityToMessage(boolean isAddPriorityToMessage) {
+        this.isAddPriorityToMessage = isAddPriorityToMessage;
     }
 
     private enum MessageType {
@@ -195,6 +203,11 @@ public class ClientMixMessageBuilder implements MessageBuilder {
                 message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()) + System.currentTimeMillis());
         }
 
+        if (isAddPriorityToMessage)  {
+            message.setJMSPriority(generatePriority());
+        }
+
+//        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         if (counter % 100 ==0)  {
             log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
                     jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty("_HQ_DUPL_ID"));
@@ -203,5 +216,9 @@ public class ClientMixMessageBuilder implements MessageBuilder {
                     jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         }
         return message;
+    }
+
+    private int generatePriority() {
+        return random.nextInt(10);
     }
 }

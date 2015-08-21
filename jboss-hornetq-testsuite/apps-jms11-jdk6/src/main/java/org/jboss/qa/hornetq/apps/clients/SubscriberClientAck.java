@@ -474,7 +474,7 @@ public class SubscriberClientAck extends Client {
 
         try {
 
-                context = getContext(hostname, port);
+            context = getContext(hostname, port);
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 

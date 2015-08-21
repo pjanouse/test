@@ -114,6 +114,8 @@ public class ClusterTestCase extends HornetQTestCase {
 
     private final JavaArchive MDB_ON_QUEUE1 = createDeploymentMdbOnQueue1();
     private final JavaArchive MDB_ON_QUEUE2 = createDeploymentMdbOnQueue2();
+    private final JavaArchive MDB_ON_QUEUE3 = createDeploymentMdbOnQueue3();
+    private final JavaArchive MDB_ON_QUEUE4 = createDeploymentMdbOnQueue4();
     private final JavaArchive MDB_ON_QUEUE1_SECURITY = createDeploymentMdbOnQueueWithSecurity();
     private final JavaArchive MDB_ON_QUEUE1_SECURITY2 = createDeploymentMdbOnQueueWithSecurity2();
 
@@ -495,6 +497,84 @@ public class ClusterTestCase extends HornetQTestCase {
      * node-1 and MDB repost them to output queue. MDB on node-2 is undeployed
      * and deployed back. Receiver tries to read messages from output queue on
      * node-2.
+     * @tpProcedure <ul>
+     *     <li>start two servers (nodes) in cluster with deployed destinations</li>
+     *     <li>deploy MDBs to servers/li>
+     *     <li>create producer on node-1 and consumer on node-2</li>
+     *     <li>producer sends several hundred messages to input queue</li>
+     *     <li>MDB on node-1 repost them to output queue</li>
+     *     <li>receiver reads messages from output queue on node-2</li>
+     *     <li>servers are stopped</li>
+     * </ul>
+     * @tpPassCrit  receiver read all messages
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithMdbOnQueueWithPriorities() throws Exception {
+
+        int numberOfMessages = 500;
+
+        prepareServers();
+
+        container(4).start();
+        container(3).start();
+        container(2).start();
+        container(1).start();
+
+
+        // Send messages into input node and read from output node
+        ProducerClientAck producer = new ProducerClientAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder();
+        messageBuilder.setIsAddPriorityToMessage(true);
+        producer.setMessageBuilder(messageBuilder);
+        log.info("Start producer.");
+        producer.start();
+        log.info("Producer finished.");
+        producer.join();
+
+        container(1).deploy(MDB_ON_QUEUE1);
+        container(2).deploy(MDB_ON_QUEUE2);
+        container(3).deploy(MDB_ON_QUEUE3);
+        container(4).deploy(MDB_ON_QUEUE4);
+
+
+        ReceiverClientAck receiver = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
+
+        log.info("Start consumer.");
+        receiver.start();
+
+
+        receiver.join();
+
+        Assert.assertEquals("Number of sent and received messages is different. Sent: "
+                        + producer.getListOfSentMessages().size() + "Received: " + receiver.getListOfReceivedMessages().size(),
+                producer.getListOfSentMessages().size(), receiver.getListOfReceivedMessages().size());
+        Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getListOfSentMessages().size(), producer
+                .getListOfSentMessages().size() == 0);
+        Assert.assertFalse("Receiver did not receive any messages. Sent: " + receiver.getListOfReceivedMessages().size(),
+                receiver.getListOfReceivedMessages().size() == 0);
+        Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + numberOfMessages
+                        + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(),
+                numberOfMessages);
+
+        container(1).undeploy(MDB_ON_QUEUE1);
+
+        container(2).undeploy(MDB_ON_QUEUE2);
+
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
+    }
+
+    /**
+     * @tpTestDetails   MDBs with queues are deployed on two servers in cluster. Queues created with deploy have the
+     * same name on both servers and are load balanced within cluster. Producer sends messages into input queue
+     * on node-1 and MDB repost them to output queue. MDB on node-2 is undeployed and deployed back. Receiver tries to
+     * read messages from output queue on node-2.
      * @tpProcedure <ul>
      * <li>start two servers (nodes) in cluster (without destinations)</li>
      * <li>deploy MDBs to servers</li>
@@ -2521,6 +2601,28 @@ public class ClusterTestCase extends HornetQTestCase {
     public static JavaArchive createDeploymentMdbOnQueue2() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue2.jar");
         mdbJar.addClass(MdbAllHornetQActivationConfigQueue.class);
+        log.info(mdbJar.toString(true));
+        // File target = new File("/tmp/mdbOnQueue2.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+    public static JavaArchive createDeploymentMdbOnQueue3() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue3.jar");
+        mdbJar.addClass(LocalMdbFromQueue.class);
+        log.info(mdbJar.toString(true));
+        // File target = new File("/tmp/mdbOnQueue2.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+    }
+    public static JavaArchive createDeploymentMdbOnQueue4() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue4.jar");
+        mdbJar.addClass(LocalMdbFromQueue.class);
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
         // if (target.exists()) {

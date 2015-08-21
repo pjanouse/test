@@ -169,7 +169,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * @param pageSizeBytes       page size in bytes for address configurations
      */
     private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
-                           int receiveTimeout, MessageBuilder messageBuilder,
+                            int receiveTimeout, MessageBuilder messageBuilder,
                            int maxSizeBytes, int pageSizeBytes) {
         final String TOPIC = "pageTopic";
         final String TOPIC_JNDI = "/topic/pageTopic";

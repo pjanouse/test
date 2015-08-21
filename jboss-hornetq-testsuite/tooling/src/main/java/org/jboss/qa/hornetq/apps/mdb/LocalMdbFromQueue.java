@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
-    @Resource(mappedName = "java:/JmsXA")
+    @Resource(lookup = "java:/JmsXA")
     private  ConnectionFactory cf;
 
     @Resource(mappedName = "java:/jms/queue/OutQueue")

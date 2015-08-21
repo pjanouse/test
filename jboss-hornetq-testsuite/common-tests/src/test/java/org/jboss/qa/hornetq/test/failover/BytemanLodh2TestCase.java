@@ -307,7 +307,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @BMRules({
         @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionCommit() throws Exception {
@@ -336,7 +336,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @BMRules({
         @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionPrepare() throws Exception {
@@ -485,7 +485,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @BMRules({
         @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionCommit() throws Exception {
@@ -515,7 +515,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @BMRules({
         @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionPrepare() throws Exception {
@@ -782,7 +782,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
          */
         // .clusteredWith()
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
+        
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
