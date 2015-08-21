@@ -175,7 +175,7 @@ public class ProducerTransAckOld extends Client {
                 counter++;
 
                 logger.debug("Producer for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " , dup_id: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + " , dup_id: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
 
                 listOfMessagesToBeCommited.add(msg);
 

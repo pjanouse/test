@@ -7,7 +7,6 @@ import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.tools.ContainerUtils;

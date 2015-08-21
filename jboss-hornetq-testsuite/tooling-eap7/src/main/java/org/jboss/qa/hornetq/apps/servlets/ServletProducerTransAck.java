@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -34,6 +35,7 @@ import java.util.Properties;
 @WebServlet("/ServletProducerTransAck")
 public class ServletProducerTransAck extends HttpServlet {
     private static final Logger log = Logger.getLogger(ServletProducerTransAck.class.getName());
+    private static final JMSImplementation jmsImplementation = ArtemisJMSImplementation.getInstance();
     int commitAfter=1;
     int maxMessages=-1;
     String queueJNDIName="jms/queue/targetQueue0";
@@ -143,7 +145,7 @@ public class ServletProducerTransAck extends HttpServlet {
                 }
                 producer.send(message);
                 log.debug("Sent message with property counter: " + counter + ", messageId:" + message.getJMSMessageID()
-                        + " dupId: " + message.getStringProperty("_HQ_DUPL_ID"));
+                        + " dupId: " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
                 counter++;
                 break;
             }catch (Exception e){

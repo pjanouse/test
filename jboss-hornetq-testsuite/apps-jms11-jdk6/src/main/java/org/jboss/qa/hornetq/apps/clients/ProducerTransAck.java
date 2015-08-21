@@ -103,6 +103,8 @@ public class ProducerTransAck extends Client {
 
             Message msg = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while (counter < MESSAGES_COUNT && !stop) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
@@ -128,7 +130,7 @@ public class ProducerTransAck extends Client {
                     }
 
                     logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
                     listOfMessagesToBeCommited.clear();
 
                 }
@@ -152,7 +154,7 @@ public class ProducerTransAck extends Client {
 //                    logger.debug("List of sent messages: " + stringBuilder2.toString());
 //                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
             logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
             listOfMessagesToBeCommited.clear();
 
             producer.close();
@@ -209,7 +211,7 @@ public class ProducerTransAck extends Client {
             numberOfRetries++;
             producer.send(msg);
             logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             counter++;
         } catch (JMSException ex) {
             logger.error("Failed to send message - counter: " + counter, ex);

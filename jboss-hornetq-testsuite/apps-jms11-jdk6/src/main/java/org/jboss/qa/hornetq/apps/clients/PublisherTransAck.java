@@ -106,6 +106,8 @@ public class PublisherTransAck extends Client {
 
             Message msg = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while (counter < messages && !stop) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
@@ -131,7 +133,7 @@ public class PublisherTransAck extends Client {
                     }
 
                     logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
                     listOfMessagesToBeCommited.clear();
 
                 }
@@ -155,7 +157,7 @@ public class PublisherTransAck extends Client {
 //                    logger.debug("List of sent messages: " + stringBuilder2.toString());
 //                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
             logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
             listOfMessagesToBeCommited.clear();
 
 
@@ -209,7 +211,7 @@ public class PublisherTransAck extends Client {
             numberOfRetries++;
             publisher.send(msg);
             logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             counter++;
         } catch (JMSException ex) {
             logger.error("Failed to send message - counter: " + counter, ex);

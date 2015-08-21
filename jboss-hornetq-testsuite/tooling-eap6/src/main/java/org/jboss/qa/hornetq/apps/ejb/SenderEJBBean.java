@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.apps.ejb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -21,6 +23,7 @@ import java.util.Properties;
 public class SenderEJBBean implements SenderEJB {
 
     private static final Logger log = Logger.getLogger(SenderEJBBean.class.getName());
+    private static final JMSImplementation jmsImplementation = HornetqJMSImplementation.getInstance();
 
     public static String EJB_PROPERTY_FILE = "mdb.properties";
     public static String REMOTE_SERVER_HOSTNAME = "remote-server-hostname";
@@ -47,6 +50,8 @@ public class SenderEJBBean implements SenderEJB {
         Connection con = null;
         Session session;
 
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
         try {
 
             con = cf.createConnection("user", "pass");
@@ -65,7 +70,7 @@ public class SenderEJBBean implements SenderEJB {
                 newMessage.setStringProperty("inMessageId", inMessageId);
             }
             if (dupId != null)  {
-                newMessage.setStringProperty("_HQ_DUPL_ID", dupId);
+                newMessage.setStringProperty(duplicatedHeader, dupId);
             }
 
             sender.send(newMessage);

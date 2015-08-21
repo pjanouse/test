@@ -159,7 +159,7 @@ public class ProducerTransAck extends Client {
             numberOfRetries++;
             producer.send(destination, msg);
             logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             counter++;
         } catch (JMSException ex) {
             logger.error("Failed to send message - counter: " + counter, ex);

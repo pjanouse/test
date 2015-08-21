@@ -91,6 +91,7 @@ public class ProducerClientAck extends Client {
 
         Session session = null;
 
+
         try {
 
             context = getContext(hostname, port);
@@ -108,6 +109,8 @@ public class ProducerClientAck extends Client {
 
             Message msg = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while (counter < messages && !stop) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
@@ -118,7 +121,7 @@ public class ProducerClientAck extends Client {
 
                 logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property counter: "
                         + counter + ", messageId:" + msg.getJMSMessageID()
-                        + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""));
+                        + ((msg.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + msg.getStringProperty(duplicatedHeader) :""));
 
                 Thread.sleep(getTimeout());
             }
@@ -168,6 +171,8 @@ public class ProducerClientAck extends Client {
 
         int numberOfRetries = 0;
 
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
         while (numberOfRetries < maxRetries) {
 
             try {
@@ -187,7 +192,7 @@ public class ProducerClientAck extends Client {
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname
                             + ". Sent message with property count: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID()
-                            + ((msg.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + msg.getStringProperty("_HQ_DUPL_ID") :""), ex);
+                            + ((msg.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + msg.getStringProperty(duplicatedHeader) :""), ex);
                 } catch (JMSException e) {
                 } // ignore 
 

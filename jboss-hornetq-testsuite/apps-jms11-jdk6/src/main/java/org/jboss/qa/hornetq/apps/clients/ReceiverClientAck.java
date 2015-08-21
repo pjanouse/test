@@ -164,6 +164,8 @@ public class ReceiverClientAck extends Client {
 
             Message lastMessage = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while ((message = receiveMessage(receiver)) != null) {
                 Thread.sleep(getTimeout());
 
@@ -181,7 +183,7 @@ public class ReceiverClientAck extends Client {
                             + ". Received message - count: "
                             + count + ", message-counter: " + message.getStringProperty("counter")
                             + ", messageId:" + message.getJMSMessageID()
-                            + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""));
+                            + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""));
                 }
 
                 // hold information about last message so we can ack it when null is received = queue empty
@@ -236,11 +238,12 @@ public class ReceiverClientAck extends Client {
 
         int numberOfRetries = 0;
 
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         while (numberOfRetries < maxRetries) {
             try {
                 // if dups_id is used then check if we got duplicates after last failed ack
-                if (numberOfRetries == 0 && message.getStringProperty("_HQ_DUPL_ID") != null && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
+                if (numberOfRetries == 0 && message.getStringProperty(duplicatedHeader) != null && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
                     if (areThereDuplicates())  {
                         // decrease counter
                         // add just new messages
@@ -268,7 +271,7 @@ public class ReceiverClientAck extends Client {
             } catch (TransactionRolledBackException ex) {
                 logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID()
-                        + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""), ex);
+                        + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""), ex);
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 count = count - listOfReceivedMessagesToBeAcked.size();
@@ -282,7 +285,7 @@ public class ReceiverClientAck extends Client {
 
                 logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
                         + count + ", messageId:" + message.getJMSMessageID()
-                        + ((message.getStringProperty("_HQ_DUPL_ID") != null) ? ", _HQ_DUPL_ID=" + message.getStringProperty("_HQ_DUPL_ID") :""), ex);
+                        + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""), ex);
 
                 ex.printStackTrace();
                 numberOfRetries++;
@@ -294,13 +297,14 @@ public class ReceiverClientAck extends Client {
 
     private boolean areThereDuplicates() throws JMSException {
         boolean isDup = false;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : listOfReceivedMessagesToBeAcked)    {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
         }
         for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
                 isDup=true;
             }
         }

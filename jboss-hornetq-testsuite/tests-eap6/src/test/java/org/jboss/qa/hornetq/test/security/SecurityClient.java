@@ -172,7 +172,7 @@ public class SecurityClient extends Client {
 
         while (counter < messages && !stop) {
 
-            msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+            msg = messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             // send message in while cycle
             producer.send(msg);
 
@@ -210,7 +210,7 @@ public class SecurityClient extends Client {
 
         while (counter < messages && !stop) {
 
-            msg = messageBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+            msg = messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             // send message in while cycle
             producer.send(msg);
 

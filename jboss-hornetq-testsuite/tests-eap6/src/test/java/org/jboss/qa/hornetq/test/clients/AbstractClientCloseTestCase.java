@@ -278,7 +278,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
                 MessageProducer producer = session.createProducer(q);
                 for (int i = 0; i < NUMBER_OF_MESSAGES; i++) {
-                    Message msg = msgBuilder.createMessage(new MessageCreator10(session), new HornetqJMSImplementation());
+                    Message msg = msgBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
                     producer.send(msg);
                     if (i % 10 == 0) {
                         LOG.info("Sent message with counter " + i);

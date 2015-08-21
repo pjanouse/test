@@ -210,7 +210,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 //        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         if (counter % 100 ==0)  {
             log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-                    jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty("_HQ_DUPL_ID"));
+                    jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         } else {
             log.debug("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
                     jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));

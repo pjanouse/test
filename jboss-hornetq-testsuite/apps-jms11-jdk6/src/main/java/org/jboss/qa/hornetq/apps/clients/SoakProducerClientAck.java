@@ -169,14 +169,16 @@ public class SoakProducerClientAck extends Client {
 
         int numberOfRetries = 0;
 
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
         while (numberOfRetries < maxRetries) {
 
             try {
 
                 producer.send(msg);
 
-                if (msg.getStringProperty("_HQ_DUPL_ID") != null)   {
-                    listOfSentMessages.add(msg.getStringProperty("_HQ_DUPL_ID"));
+                if (msg.getStringProperty(duplicatedHeader) != null)   {
+                    listOfSentMessages.add(msg.getStringProperty(duplicatedHeader));
                 }
 
                 setCounter(getCounter() + 1);

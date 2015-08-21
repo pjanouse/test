@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -34,6 +36,7 @@ import java.util.Set;
 public class ServletConsumerTransAck extends HttpServlet{
 
     private static final Logger log = Logger.getLogger(ServletConsumerTransAck.class.getName());
+    private static final JMSImplementation jmsImplementation = ArtemisJMSImplementation.getInstance();
     int commitAfter = 1;
     String queueJNDIName = "jms/queue/targetQueue0";
     String host = "127.0.0.1";
@@ -179,12 +182,13 @@ public class ServletConsumerTransAck extends HttpServlet{
 
     private Message cleanMessage(Message m) throws JMSException {
 
-        String dupId = m.getStringProperty("_HQ_DUPL_ID");
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+        String dupId = m.getStringProperty(duplicatedHeader);
         String inMessageId = m.getStringProperty("inMessageId");
         String JMSXGroupID = m.getStringProperty("JMSXGroupID");
         m.clearBody();
         m.clearProperties();
-        m.setStringProperty("_HQ_DUPL_ID", dupId);
+        m.setStringProperty(duplicatedHeader, dupId);
         m.setStringProperty("inMessageId", inMessageId);
         if (JMSXGroupID != null) {
             m.setStringProperty("JMSXGroupID", JMSXGroupID);
@@ -196,6 +200,8 @@ public class ServletConsumerTransAck extends HttpServlet{
     public void commitSession(Session session) throws Exception {
 
         int numberOfRetries = 0;
+
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         while (numberOfRetries < MAX_RETRIES) {
             try {
@@ -210,7 +216,7 @@ public class ServletConsumerTransAck extends HttpServlet{
                 addMessages(listOfReceivedMessages, messagesToCommit);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : messagesToCommit) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 log.debug("Adding messages: " + stringBuilder.toString());
 
@@ -234,7 +240,7 @@ public class ServletConsumerTransAck extends HttpServlet{
                 addMessages(listOfReceivedMessages, messagesToCommit);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : messagesToCommit) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 log.debug("Adding messages: " + stringBuilder.toString());
 
@@ -253,20 +259,21 @@ public class ServletConsumerTransAck extends HttpServlet{
 
     private boolean areThereDuplicatesInLaterDetection() throws JMSException {
         boolean isDup = false;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : messagesToCommit) {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
         }
         StringBuilder foundDuplicates = new StringBuilder();
         for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
                 foundDuplicates.append(m.getJMSMessageID());
                 counter -= 1;
                 // remove this duplicate from the list
                 List<Message> iterationList = new ArrayList<Message>(messagesToCommit);
                 for (Message receivedMessage : iterationList)    {
-                    if (receivedMessage.getStringProperty("_HQ_DUPL_ID").equals(m.getStringProperty("_HQ_DUPL_ID"))) {
+                    if (receivedMessage.getStringProperty(duplicatedHeader).equals(m.getStringProperty(duplicatedHeader))) {
                         messagesToCommit.remove(receivedMessage);
                     }
                 }
@@ -283,8 +290,9 @@ public class ServletConsumerTransAck extends HttpServlet{
     protected void addMessage(List<Map<String,String>> listOfReceivedMessages, Message message) throws JMSException {
         Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
         mapOfPropertiesOfTheMessage.put("messageId", message.getJMSMessageID());
-        if (message.getStringProperty("_HQ_DUPL_ID") != null)   {
-            mapOfPropertiesOfTheMessage.put("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+        if (message.getStringProperty(duplicatedHeader) != null)   {
+            mapOfPropertiesOfTheMessage.put(duplicatedHeader, message.getStringProperty(duplicatedHeader));
         }
         // this is for MDB test versification (MDB creates new message with inMessageId property)
         if (message.getStringProperty("inMessageId") != null)   {
