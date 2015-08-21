@@ -9,9 +9,13 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -259,10 +263,12 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
             MessageProducer producer = session.createProducer(originalQueue);
             TextMessage msg;
+            MessageCreator messageCreator = new MessageCreator10(session);
+            JMSImplementation jmsImpl = ArtemisJMSImplementation.getInstance();
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(messageCreator, jmsImpl);
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(messageCreator, jmsImpl);
             }
 
             long timeout = System.currentTimeMillis() + 5000;
@@ -433,10 +439,12 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageProducer producer = session.createProducer(originalQueue);
             producer.setTimeToLive(expireTime);
             TextMessage msg;
+            MessageCreator messageCreator = new MessageCreator10(session);
+            JMSImplementation jmsImpl = ArtemisJMSImplementation.getInstance();
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(messageCreator, jmsImpl);
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(messageCreator, jmsImpl);
             }
             producer.send(msg);
             producer.close();

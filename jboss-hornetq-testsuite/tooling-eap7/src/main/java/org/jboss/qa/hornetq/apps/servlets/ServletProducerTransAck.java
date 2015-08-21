@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.Connection;
@@ -105,7 +107,7 @@ public class ServletProducerTransAck extends HttpServlet {
             TextMessageBuilder mb = new TextMessageBuilder(100);
 
             while (Math.abs(counter) != maxMessages) {
-                Message msg =mb.createMessage(session);
+                Message msg =mb.createMessage(new MessageCreator10(session), ArtemisJMSImplementation.getInstance());
                 msg.setIntProperty("count", counter);
                 sendMessage(producer, msg);
                 messagesToCommit.add(msg);
