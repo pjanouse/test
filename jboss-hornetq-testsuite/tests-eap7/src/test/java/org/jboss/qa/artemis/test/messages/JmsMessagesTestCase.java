@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.messages;
+package org.jboss.qa.artemis.test.messages;
 
 import org.apache.log4j.Logger;
 import org.hornetq.core.message.impl.MessageImpl;

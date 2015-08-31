@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.artemis.test.failover;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
