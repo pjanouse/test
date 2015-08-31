@@ -614,6 +614,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createOutBoundSocketBinding(String socketBindingName, String host, int port) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createSocketBinding(String socketBindingName, int port) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2188,6 +2193,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void startDeliveryToMdb(String deploymentName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         logger.info("This operation is not supported: " + getMethodName());
     }
 

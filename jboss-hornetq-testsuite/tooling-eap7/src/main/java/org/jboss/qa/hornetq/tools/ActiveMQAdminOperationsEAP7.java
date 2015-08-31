@@ -8,6 +8,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -3937,6 +3938,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createOutBoundSocketBinding(String socketBindingName,String host, int port) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", socketBindingName);
+        model.get("port").set(port);
+        model.get("host").set(host);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     /**
      * Creates socket binding.
      *
@@ -4309,6 +4326,34 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
+    public void createRemoteAcceptor(String serverName, String name, String socketBinding, Map<String, String> params,String protocols)  {
+        try {
+            removeRemoteAcceptor(serverName, name);
+        } catch (Exception ex) {
+            logger.warn("Removing remote acceptor failed: ", ex);
+        }
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("remote-acceptor", name);
+        model.get("socket-binding").set(socketBinding);
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("params").add(key, params.get(key));
+            }
+        }
+        if(protocols!=null){
+            model.get("protocols").set(protocols);
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * Creates remote acceptor
@@ -5290,11 +5335,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
     @Override
     public void addHAPolicyColocatedSharedStore() {
-         addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
+        addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
 
     }
+
     @Override
     public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
             int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
@@ -5312,6 +5359,105 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             this.applyUpdate(model);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public void createNewResourceAdapter(String name, String cfName, String user, String password,
+            List<String> destinationNames, String hostUrl) {
+
+        HashMap<String, String> props = new HashMap<String, String>();
+        props.put("ServerUrl", hostUrl);
+        props.put("UserName", user);
+        props.put("Password", password);
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+        model.get(ClientConstants.OP_ADDR).add("resource-adapter", name);
+        model.get("archive").set("artemis-ra-1.0.0.jar");
+        model.get("transaction-support").set("XATransaction");
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        createConnectionDefinitions(name, cfName, user, password, hostUrl, props);
+        for (String key : props.keySet()) {
+            model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.ADD);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+            model.get(ClientConstants.OP_ADDR).add("resource-adapter", name);
+            model.get(ClientConstants.OP_ADDR).add("config-properties", key);
+            model.get("value").set(props.get(key));
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        createAdminObjects(name, destinationNames);
+
+    }
+
+    private void createConnectionDefinitions(String raName, String cfName, String user, String password, String hostUrl,
+            HashMap<String, String> props) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+        model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
+        model.get(ClientConstants.OP_ADDR).add("connection-definitions", cfName);
+        model.get("class-name").set("org.apache.activemq.artemis.ra.ActiveMQRAManagedConnectionFactory");
+        model.get("jndi-name").set("java:/jms/" + cfName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        for (String key : props.keySet()) {
+        model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+        model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
+        model.get(ClientConstants.OP_ADDR).add("connection-definitions", cfName);
+        model.get(ClientConstants.OP_ADDR).add("config-properties", key);
+            model.get("config-properties").add(key, props.get(key));
+            model.get("value").set(props.get(key));
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void createAdminObjects(String raName, List<String> destinationNames) {
+        for (String destName : destinationNames) {
+            ModelNode model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.ADD);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+            model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
+            model.get(ClientConstants.OP_ADDR).add("admin-objects", destName);
+            model.get("class-name").set("rg.apache.activemq.artemis.jms.client.ActiveMQQueue");
+            model.get("jndi-name").set("java:/jms/queue/"+destName);
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.ADD);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+            model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
+            model.get(ClientConstants.OP_ADDR).add("admin-objects", destName);
+            model.get(ClientConstants.OP_ADDR).add("config-properties", "PhysicalName");
+            model.get("value").set(destName);
+            try {
+                this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
         }
 
     }

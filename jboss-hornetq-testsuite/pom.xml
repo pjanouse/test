@@ -37,7 +37,8 @@
 
 
         <arquillian.version>1.1.1.Final</arquillian.version>
-        <version.org.jboss.qa.creaper>0.5.0</version.org.jboss.qa.creaper>
+        <version.shrinkwrap.resolvers>2.0.0</version.shrinkwrap.resolvers>
+        <version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
         <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.CR3</arquillian.eap5x.container.version>
@@ -199,10 +200,28 @@
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-depchain</artifactId>
+            <version>${version.shrinkwrap.resolvers}</version>
+            <scope>test</scope>
+            <type>pom</type>
+        </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
             <version>${arquillian.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.shrinkwrap.resolver</groupId>
+                    <artifactId>shrinkwrap-resolver-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.shrinkwrap.resolver</groupId>
+                    <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -329,43 +348,7 @@
                 <!--</exclusion>-->
             <!--</exclusions>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.jboss.qa.creaper</groupId>-->
-            <!--<artifactId>creaper-core</artifactId>-->
-            <!--<version>${version.org.jboss.qa.creaper}</version>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.jboss.as</groupId>-->
-                    <!--<artifactId>jboss-as-controller-client</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.jboss.as</groupId>-->
-                    <!--<artifactId>jboss-as-cli</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.jboss.qa.creaper</groupId>-->
-            <!--<artifactId>creaper-commands</artifactId>-->
-            <!--<version>${version.org.jboss.qa.creaper}</version>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.codehaus.groovy</groupId>-->
-                    <!--<artifactId>groovy</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.codehaus.groovy</gr
 
-
-
-
-
-
-        oupId>-->
-        <!--<artifactId>groovy-xml</artifactId>-->
-        <!--</exclusion>-->
-        <!--</exclusions>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>
@@ -390,7 +373,17 @@
             <artifactId>httpclient</artifactId>
             <version>4.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.6.1</version>
+        </dependency>
 
+        <dependency>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>qpid-amqp-1-0-client</artifactId>
+            <version>0.32</version>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -662,6 +655,36 @@
                     <version>1.2</version>
                     <!-- License: Apache 2.0 -->
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-core</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-controller-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-cli</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-commands</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
             </dependencies>
 
         </profile>
@@ -730,6 +753,36 @@
                     <artifactId>commons-logging</artifactId>
                     <version>1.2</version>
                     <!-- License: Apache 2.0 -->
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-core</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-controller-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-cli</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-commands</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
 
@@ -812,6 +865,36 @@
                     <version>1.2</version>
                     <!-- License: Apache 2.0 -->
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-core</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-controller-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-cli</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-commands</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
             </dependencies>
         </profile>
         
@@ -879,6 +962,36 @@
                     <artifactId>commons-logging</artifactId>
                     <version>1.2</version>
                     <!-- License: Apache 2.0 -->
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-core</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-controller-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-cli</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-commands</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
 
@@ -948,6 +1061,36 @@
                     <artifactId>commons-logging</artifactId>
                     <version>1.2</version>
                     <!-- License: Apache 2.0 -->
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-core</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-controller-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-cli</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.creaper</groupId>
+                    <artifactId>creaper-commands</artifactId>
+                    <version>${version.org.jboss.qa.creaper}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
 

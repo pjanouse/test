@@ -3816,6 +3816,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createOutBoundSocketBinding(String socketBindingName, String host, int port) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Creates socket binding.
      *
@@ -4940,6 +4945,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 

@@ -410,6 +410,15 @@ public interface JMSOperations {
      */
     void createRemoteConnector(String serverName, String name, String socketBinding, Map<String, String> params);
 
+
+    /**
+     * Creates outbound socket binding.
+     *
+     * @param socketBindingName
+     * @param port
+     */
+    void createOutBoundSocketBinding(String socketBindingName,String host, int port);
+
     /**
      * Creates socket binding.
      *
@@ -1573,6 +1582,7 @@ public interface JMSOperations {
 
     void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
                                          int backupRequestRetryInterval, int maxBackups, boolean requestBackup);
+    void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl);
     void deploy(Archive archive) throws Exception;
 
     void stopDeliveryToMdb(String deploymentName);
