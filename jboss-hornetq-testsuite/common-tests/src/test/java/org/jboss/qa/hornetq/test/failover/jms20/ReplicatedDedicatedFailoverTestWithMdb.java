@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms20;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;

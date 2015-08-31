@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms20;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -6,11 +6,13 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.*;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.clients20.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients20.PublisherTransAck;
+import org.jboss.qa.hornetq.apps.clients20.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;

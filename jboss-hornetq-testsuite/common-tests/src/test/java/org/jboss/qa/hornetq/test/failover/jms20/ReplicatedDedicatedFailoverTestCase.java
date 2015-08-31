@@ -1,13 +1,13 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms20;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients20.ProducerClientAck;
+import org.jboss.qa.hornetq.apps.clients20.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients20.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;

@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms10;
 
 import org.jboss.qa.hornetq.tools.JMSOperations;
 

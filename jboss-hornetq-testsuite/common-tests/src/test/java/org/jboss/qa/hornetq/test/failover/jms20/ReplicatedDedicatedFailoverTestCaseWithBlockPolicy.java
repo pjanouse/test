@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms20;
 
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 /**
 * Failover tests just with replicated journal with BLOCK policy.
 */
+
 /**
  *
  * @tpChapter   RECOVERY/FAILOVER TESTING

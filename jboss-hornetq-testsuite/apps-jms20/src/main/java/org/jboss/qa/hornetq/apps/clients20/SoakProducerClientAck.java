@@ -1,12 +1,11 @@
-package org.jboss.qa.hornetq.apps.clients;
+package org.jboss.qa.hornetq.apps.clients20;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator20;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
 import javax.jms.*;
@@ -41,34 +40,16 @@ public class SoakProducerClientAck extends Client {
     private int counter = 0;
 
     /**
-     * @param hostname       hostname
-     * @param port           port
-     * @param messages       number of messages to send
-     * @param queueNameJndi  set jndi name of the queue to send messages
+     * @param container         EAP container
+     * @param queueNameJndi     set jndi name of the queue to send messages
+     * @param messages          number of messages to send
      */
-    @Deprecated
-    public SoakProducerClientAck(String hostname, int port, String queueNameJndi, int messages) {
-        this(null, hostname, port, queueNameJndi, messages);
-    }
-
-    /**
-     * @param container     container
-     * @param hostname       hostname
-     * @param port           port
-     * @param messages       number of messages to send
-     * @param queueNameJndi  set jndi name of the queue to send messages
-     */
-    @Deprecated
-    public SoakProducerClientAck(String container, String hostname, int port, String queueNameJndi, int messages) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.messages = messages;
-        this.queueNameJndi = queueNameJndi;
-    }
-
     public SoakProducerClientAck(Container container, String queueNameJndi, int messages) {
-        this(container.getContainerType().toString(), container.getHostname(), container.getJNDIPort(), queueNameJndi, messages);
+        super(container);
+        this.hostname = container.getHostname();
+        this.port = container.getJNDIPort();
+        this.queueNameJndi = queueNameJndi;
+        this.messages = messages;
     }
 
     /**
@@ -78,65 +59,45 @@ public class SoakProducerClientAck extends Client {
 
         Context context = null;
 
-        Connection con = null;
-
-        Session session = null;
-
         try {
 
             ConnectionFactory cf;
 
             context = getContext(hostname, port);
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
+            
+            try (JMSContext jmsContext = cf.createContext(JMSContext.CLIENT_ACKNOWLEDGE)) {
 
-            logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
+                logger.info("Producer for node: " + hostname + ". Do lookup for queue: " + queueNameJndi);
 
-            Queue queue = (Queue) context.lookup(queueNameJndi);
+                Queue queue = (Queue) context.lookup(queueNameJndi);
 
-            con = cf.createConnection();
+                JMSProducer producer = jmsContext.createProducer();
 
-            session = con.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+                Message msg;
 
-            MessageProducer producer = session.createProducer(queue);
+                while (getCounter() < messages && !stop) {
 
-            Message msg;
+                    msg = messageBuilder.createMessage(new MessageCreator20(jmsContext), jmsImplementation);
+                    msg.setIntProperty("count", getCounter());
 
-            while (getCounter() < messages && !stop) {
+                    // send message in while cycle
+                    sendMessage(producer, queue, msg);
 
-                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
-                msg.setIntProperty("count", getCounter());
+                    Thread.sleep(getTimeout());
 
-                // send message in while cycle
-                sendMessage(producer, msg);
-
-                Thread.sleep(getTimeout());
-
-//                if (getCounter() % 1000 == 0) {
-                logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
+                    logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
-//                }
+                }
+
             }
 
-            producer.close();
 
         } catch (Exception e) {
             exception = e;
             logger.error("Producer got exception and ended:", e);
 
         } finally {
-
-            if (session != null) {
-                try {
-                    session.close();
-                } catch (JMSException e) {
-                }
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (JMSException e) {
-                }
-            }
             if (context != null) {
                 try {
                     context.close();
@@ -154,7 +115,7 @@ public class SoakProducerClientAck extends Client {
      * @param producer producer
      * @param msg message to be sent
      */
-    private void sendMessage(MessageProducer producer, Message msg) throws Exception {
+    private void sendMessage(JMSProducer producer, Destination destination, Message msg) throws Exception {
 
         int numberOfRetries = 0;
 
@@ -164,7 +125,7 @@ public class SoakProducerClientAck extends Client {
 
             try {
 
-                producer.send(msg);
+                producer.send(destination, msg);
 
                 if (msg.getStringProperty(duplicatedHeader) != null)   {
                     listOfSentMessages.add(msg.getStringProperty(duplicatedHeader));
@@ -301,16 +262,6 @@ public class SoakProducerClientAck extends Client {
      */
     public void setException(Exception exception) {
         this.exception = exception;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-
-        SoakProducerClientAck producer = new SoakProducerClientAck("localhost", 1099, "jms/queue/InQueue", 10);
-//        SoakProducerClientAck producer = new SoakProducerClientAck("192.168.1.3", 4447, "jms/queue/InQueue", 10000);
-        producer.setMessageBuilder(new MixMessageBuilder(1024 * 1024));
-        producer.start();
-
-        producer.join();
     }
 
     /**

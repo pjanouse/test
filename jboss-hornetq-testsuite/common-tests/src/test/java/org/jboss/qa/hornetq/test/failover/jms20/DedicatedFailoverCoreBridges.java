@@ -1,4 +1,4 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.jms20;
 // TODO test re-deploy from backup -> live (failback)
 
 import org.apache.log4j.Logger;
