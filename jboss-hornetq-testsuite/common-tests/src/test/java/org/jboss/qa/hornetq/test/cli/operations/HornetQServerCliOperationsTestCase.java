@@ -207,6 +207,12 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         }
     }
 
+    @After
+    public void after() {
+        container(1).stop();
+        container(2).stop();
+    }
+
     /**
      * @tpTestDetails Server is started and prepared for XA transactions. 10
      * transactions are prepared. Using CLI invoke operations with transactions.
