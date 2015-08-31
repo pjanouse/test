@@ -91,7 +91,7 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
 
         try
         {
-           container(1).start();
+            container(1).start();
             String payload = "I am an amqp message";
             // Step 1. Create an amqp qpid 1.0 connection
             connection= new Connection(container(1).getHostname(), REMOTE_PORT_EAP, null, null);

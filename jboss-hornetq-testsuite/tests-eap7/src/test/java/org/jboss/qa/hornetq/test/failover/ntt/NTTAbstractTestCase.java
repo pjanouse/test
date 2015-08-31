@@ -1,5 +1,8 @@
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.hornetq.test.failover.ntt;
 
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -10,10 +13,19 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.creaper.commands.foundation.offline.ConfigurationFileBackup;
+import org.jboss.qa.creaper.core.CommandFailedException;
+import org.jboss.qa.creaper.core.ManagementClient;
+import org.jboss.qa.creaper.core.offline.OfflineManagementClient;
+import org.jboss.qa.creaper.core.offline.OfflineOptions;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.servlets.ServletConstants;
 import org.jboss.qa.hornetq.apps.servlets.ServletConsumerTransAck;
 import org.jboss.qa.hornetq.apps.servlets.ServletProducerTransAck;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -25,101 +37,155 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by okalman on 8/10/15.
  */
+
+@RunWith(Arquillian.class)
 public class NTTAbstractTestCase extends HornetQTestCase {
 
     private static Logger log = Logger.getLogger(NTTAbstractTestCase.class);
 
     public static final String PRODUCER_FILE_NAME_PREFIX = "producerServlet";
     public static final String CONSUMER_FILE_NAME_PREFIX = "consumerServlet";
-    public static final int MAX_MESSAGES=2000;
-    public static final int COMMIT_AFTER=10;
-    public static final long RECEIVE_TIMEOUT=10000;
+    public static int MAX_MESSAGES;
+    public static final int COMMIT_AFTER = 1;
+    public static final long RECEIVE_TIMEOUT = 10000;
+    public static final String NIO_JOURNAL = "NIO";
 
     private final WebArchive PRODUCER_TRANSACK = createProducerServletDeployment();
     private final WebArchive CONSUMER_TRANSACK = createConsumerServletDeployment();
 
-    String queueName = "targetQueue0";
-    String queueJndiName = "jms/queue/" + queueName;
+    private String queueName = "targetQueue0";
+    private String queueJndiName = "jms/queue/" + queueName;
+
+    private static String runningTestCase="";
+
+    private static ConfigurationFileBackup configurationFileBackupCont1 = new ConfigurationFileBackup();
+    private static ConfigurationFileBackup configurationFileBackupCont2 = new ConfigurationFileBackup();
+    private static ConfigurationFileBackup configurationFileBackupCont3 = new ConfigurationFileBackup();
+    private static ConfigurationFileBackup configurationFileBackupCont4 = new ConfigurationFileBackup();
+
+    private static final String cfgPath ="standalone" + File.separator + "configuration" + File.separator + "standalone-full-ha.xml";
+    OfflineManagementClient clientCont1;
+    OfflineManagementClient clientCont2;
+    OfflineManagementClient clientCont3;
+    OfflineManagementClient clientCont4;
+    public NTTAbstractTestCase() {
+        try {
+            clientCont1 = ManagementClient.offline(
+                    OfflineOptions.standalone().configurationFile(new File(container(1).getServerHome() + File.separator + cfgPath)).build()
+            );
+            clientCont2 = ManagementClient.offline(
+                    OfflineOptions.standalone().configurationFile(new File(container(2).getServerHome() + File.separator + cfgPath)).build()
+            );
+            clientCont3 = ManagementClient.offline(
+                    OfflineOptions.standalone().configurationFile(new File(container(3).getServerHome() + File.separator + cfgPath)).build()
+            );
+            clientCont4 = ManagementClient.offline(
+                    OfflineOptions.standalone().configurationFile(new File(container(4).getServerHome() + File.separator + cfgPath)).build()
+            );
+        }catch (Exception IOException){}
+
+    }
+    @RunAsClient
+    @Before
+    public void prepareServersForTest() throws CommandFailedException {
+        MAX_MESSAGES=10;
+        if(!serversReady(this.getClass().toString())){
+            prepareServers(false,false, NIO_JOURNAL);
+            setRunningTestCase(this.getClass().toString());
+            clientCont1.apply(configurationFileBackupCont1.backup());
+            clientCont2.apply(configurationFileBackupCont2.backup());
+            clientCont3.apply(configurationFileBackupCont3.backup());
+            clientCont4.apply(configurationFileBackupCont4.backup());
+        }else{
+            clientCont1.apply(configurationFileBackupCont1.restore());
+            clientCont2.apply(configurationFileBackupCont2.restore());
+            clientCont3.apply(configurationFileBackupCont3.restore());
+            clientCont4.apply(configurationFileBackupCont4.restore());
+
+            clientCont1.apply(configurationFileBackupCont1.backup());
+            clientCont2.apply(configurationFileBackupCont2.backup());
+            clientCont3.apply(configurationFileBackupCont3.backup());
+            clientCont4.apply(configurationFileBackupCont4.backup());
+        }
+    }
+    public void overrideMaxMessagesForTest(int maxMessages){
+        MAX_MESSAGES = maxMessages;
+    }
+
 
 
     public void testSequence(int expectedMessagesCount, boolean expectedProducerFailure, boolean expectedConsumerFailure, Container containerForBytemanRule) throws Exception {
         startAllServers();
-        container(3).start();
         container(3).deploy(PRODUCER_TRANSACK);
-
-        container(4).start();
         container(4).deploy(CONSUMER_TRANSACK);
 
         HttpClient httpclient = HttpClients.createDefault();
         HttpPost producerRunPost = createHttpPostForProducerToRun();
         HttpPost consumerRunPost = createHttpPostForConsumerToRun();
+        RuleInstaller.installRule(this.getClass(), containerForBytemanRule);
         httpclient.execute(producerRunPost);
         httpclient.execute(consumerRunPost);
-        waitForAllMessages(10000, (int) ((double) MAX_MESSAGES / 10.0));
-        RuleInstaller.installRule(this.getClass(), containerForBytemanRule);
-        int messagesCount = waitForAllMessages(120000,MAX_MESSAGES);
-        Assert.assertEquals("Number of received messages doesn't match", expectedMessagesCount, messagesCount);
+        int messagesCount = waitForAllMessages(15000,MAX_MESSAGES);
+        if(expectedConsumerFailure ==false && expectedConsumerFailure == false) {
+            Assert.assertEquals("Number of received messages doesn't match", expectedMessagesCount, messagesCount);
+            if(containerForBytemanRule != container(3) && containerForBytemanRule != container(4)) {
+                FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+                String responseSent = (new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForMessages())));
+                String responseReceived = (new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForConsumerForMessages())));
+                messageVerifier.addSendMessages(deserializeResponse(responseSent));
+                messageVerifier.addReceivedMessages(deserializeResponse(responseReceived));
+                messageVerifier.verifyMessages();
+            }
 
-        String producerException = new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForExceptions()));
-        String consumerException = new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForConsumerForExceptions()));
+        }
+
+        String producerException = "";
+        String consumerException = "";
+        if(containerForBytemanRule != container(3)){ //if we kill this container, we cant send him http request
+            producerException = new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForExceptions()));
+        }
+        if(containerForBytemanRule != container(4)) { //if we kill this container, we cant send him http request
+            consumerException = new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForConsumerForExceptions()));
+        }
         if(expectedConsumerFailure){
-            Assert.assertTrue("Consumer didn't threw any exception", consumerException.contains("Exception") || consumerException.contains("exception"));
+            Assert.assertTrue("Consumer didn't throw any exception", consumerException.toLowerCase().contains("exception"));
         }else{
-            Assert.assertFalse("Consumer threw exception", consumerException.contains("Exception") || consumerException.contains("exception"));
+            if(consumerException.toLowerCase().contains("exception")){
+                log.error("EXCEPTION: "+producerException);
+            }
+            Assert.assertFalse("Consumer threw exception", consumerException.toLowerCase().contains("exception"));
         }
         if(expectedProducerFailure){
-            Assert.assertTrue("Producer didn't threw any exception", producerException.contains("Exception") || producerException.contains("exception"));
-        }else{
-            Assert.assertFalse("Producer threw exception", producerException.contains("Exception") || producerException.contains("exception"));
+            Assert.assertTrue("Producer didn't throw any exception",producerException.toLowerCase().contains("exception"));
+        } else{
+            if(producerException.toLowerCase().contains("exception")){
+                log.error("EXCEPTION: "+producerException);
+            }
+            Assert.assertFalse("Producer threw exception",producerException.toLowerCase().contains("exception"));
         }
 
 
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void archiverTestCase() throws Exception {
-        prepareServers(false, false, "NIO");
-        container(1).start();
 
-        container(3).start();
-        container(3).deploy(PRODUCER_TRANSACK);
-
-        container(4).start();
-        container(4).deploy(CONSUMER_TRANSACK);
-        HttpClient httpclient = HttpClients.createDefault();
-
-        HttpPost httpPostProducer = createHttpPostForProducerToRun();
-        HttpResponse producerResponse = httpclient.execute(httpPostProducer);
-        System.out.println("Producer response " + new BasicResponseHandler().handleResponse(producerResponse));
-
-        HttpPost httpPostConsumer = createHttpPostForConsumerToRun();
-        HttpResponse consumerStart = httpclient.execute(httpPostConsumer);
-        System.out.println("Consumer response " + new BasicResponseHandler().handleResponse(consumerStart));
-        int receivedMessagesCount=waitForAllMessages(300000, MAX_MESSAGES);
-        log.info("RECEIVED: " + receivedMessagesCount);
-        container(3).undeploy(PRODUCER_TRANSACK);
-        container(3).stop();
-
-        container(4).undeploy(CONSUMER_TRANSACK);
-        container(4).stop();
-
-        container(1).stop();
-    }
 
     public void prepareServers(boolean cluster, boolean ha, String journalType) {
         if (cluster == false && ha == false) { // for standalone node topology
@@ -233,11 +299,10 @@ public class NTTAbstractTestCase extends HornetQTestCase {
      */
     public static WebArchive createProducerServletDeployment() {
         final WebArchive servletWar = ShrinkWrap.create(WebArchive.class, PRODUCER_FILE_NAME_PREFIX + ".war");
-        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "tools.jar");
-        lib.addClass(TextMessageBuilder.class);
-        lib.addClass(MessageBuilder.class);
+
         servletWar.addClass(ServletProducerTransAck.class);
-        servletWar.addAsLibraries(lib);
+        servletWar.addAsLibraries(createToolsLibrary());
+        servletWar.addAsLibraries(Maven.resolver().resolve("com.fasterxml.jackson.core:jackson-databind:2.6.1").withTransitivity().asFile());
         servletWar.addAsManifestResource(new StringAsset(getManifest()), "MANIFEST.MF");
         log.info(servletWar.toString(true));
         File target = new File("/tmp/" + PRODUCER_FILE_NAME_PREFIX + ".war");
@@ -248,9 +313,12 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         return servletWar;
     }
 
+
     public static WebArchive createConsumerServletDeployment() {
         final WebArchive servletWar = ShrinkWrap.create(WebArchive.class, CONSUMER_FILE_NAME_PREFIX + ".war");
         servletWar.addClass(ServletConsumerTransAck.class);
+        servletWar.addAsLibraries(createToolsLibrary());
+        servletWar.addAsLibraries(Maven.resolver().resolve("com.fasterxml.jackson.core:jackson-databind:2.6.1").withTransitivity().asFile());
         servletWar.addAsManifestResource(new StringAsset(getManifest()), "MANIFEST.MF");
         log.info(servletWar.toString(true));
         File target = new File("/tmp/" + CONSUMER_FILE_NAME_PREFIX + ".war");
@@ -259,6 +327,22 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         }
         servletWar.as(ZipExporter.class).exportTo(target, true);
         return servletWar;
+
+    }
+
+    public static JavaArchive createToolsLibrary(){
+        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "tools.jar");
+        lib.addClass(TextMessageBuilder.class);
+        lib.addClass(MessageBuilder.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.Clients.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.clients.Client.class);
+        lib.addClass(org.jboss.qa.hornetq.constants.Constants.class);
+        lib.addClass(org.jboss.qa.hornetq.tools.CheckServerAvailableUtils.class);
+        lib.addClass(org.jboss.qa.hornetq.tools.JMSOperations.class);
+        lib.addClass(org.jboss.qa.hornetq.JMSTools.class);
+        lib.addClass(org.jboss.qa.hornetq.Container.class);
+
+        return lib;
 
     }
 
@@ -308,11 +392,11 @@ public class NTTAbstractTestCase extends HornetQTestCase {
     }
 
     protected HttpPost createHttpPostForConsumerForReceivedCount() throws UnsupportedEncodingException{
-       return createHttpPostForConsumerForReceivedCount("http://127.0.0.1:11080/" + CONSUMER_FILE_NAME_PREFIX
-                + "/ServletConsumerTransAck");
+       return createHttpPostForReceivedCount("http://127.0.0.1:11080/" + CONSUMER_FILE_NAME_PREFIX
+               + "/ServletConsumerTransAck");
     }
 
-    protected HttpPost createHttpPostForConsumerForReceivedCount(String servletUrl) throws UnsupportedEncodingException {
+    protected HttpPost createHttpPostForReceivedCount(String servletUrl) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(servletUrl);
         List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
         postParameters.add(new BasicNameValuePair("method", "getCount"));
@@ -328,10 +412,30 @@ public class NTTAbstractTestCase extends HornetQTestCase {
     protected HttpPost createHttpPostForConsumerForExceptions(String servletUrl) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(servletUrl);
         List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
-        postParameters.add(new BasicNameValuePair("method", "getExceptions"));
+        postParameters.add(new BasicNameValuePair(ServletConstants.PARAM_METHOD, ServletConstants.METHOD_GET_EXCEPTIONS));
         httpPost.setEntity(new UrlEncodedFormEntity(postParameters));
         return httpPost;
     }
+
+    protected HttpPost createHttpPostForConsumerForMessages() throws UnsupportedEncodingException{
+        return createHttpPostForMessages("http://127.0.0.1:11080/" + CONSUMER_FILE_NAME_PREFIX
+                + "/ServletConsumerTransAck");
+    }
+
+    protected HttpPost createHttpPostForProducerForMessages() throws UnsupportedEncodingException{
+        return createHttpPostForMessages("http://127.0.0.1:10080/" + PRODUCER_FILE_NAME_PREFIX
+                + "/ServletProducerTransAck");
+    }
+
+    protected HttpPost createHttpPostForMessages(String servletUrl) throws UnsupportedEncodingException{
+        HttpPost httpPost = new HttpPost(servletUrl);
+        List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+        postParameters.add(new BasicNameValuePair(ServletConstants.PARAM_METHOD, ServletConstants.METHOD_GET_MESSAGES));
+        httpPost.setEntity(new UrlEncodedFormEntity(postParameters));
+        return httpPost;
+    }
+
+
 
     /**
      *
@@ -367,6 +471,33 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         container(2).stop();
         container(3).stop();
         container(4).stop();
+    }
+
+    private List<Map<String, String>> deserializeResponse(String json) throws IOException {
+        return deserializeToListOfMap(deserializeToList(json));
+    }
+    private List<Object> deserializeToList(String json) throws IOException {
+        List<Object> list;
+        ObjectMapper om = new ObjectMapper();
+        TypeReference<List<Object>> typeRef = new TypeReference<List<Object>>() {};
+        list=om.readValue(json,typeRef);
+        return list;
+    }
+
+    private List<Map<String, String>> deserializeToListOfMap(List<Object> list) throws IOException {
+        List<Map<String, String>> messages = new ArrayList<Map<String,String>>();
+        for(Object item: list){
+            HashMap<String,String> o = (HashMap<String,String>)item;
+            messages.add(o);
+        }
+        return messages;
+    }
+
+    public boolean serversReady(String testCase){
+        return (testCase.equals(runningTestCase)?true:false);
+    }
+    public void setRunningTestCase(String testCase){
+        runningTestCase=testCase;
     }
 
 

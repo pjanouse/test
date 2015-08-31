@@ -1,6 +1,9 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.constants.Constants;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -11,7 +14,6 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TransactionRolledBackException;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,7 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -32,7 +33,6 @@ import java.util.Set;
  */
 @WebServlet("/ServletConsumerTransAck")
 public class ServletConsumerTransAck extends HttpServlet{
-
     private static final Logger log = Logger.getLogger(ServletConsumerTransAck.class.getName());
     int commitAfter = 1;
     String queueJNDIName = "jms/queue/targetQueue0";
@@ -44,7 +44,7 @@ public class ServletConsumerTransAck extends HttpServlet{
     int commitCounter=0;
     private static final int MAX_RETRIES = 20;
     List<Message> messagesToCommit = new ArrayList<Message>();
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
+    private static List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
     private static int resultCount=0;
@@ -60,39 +60,45 @@ public class ServletConsumerTransAck extends HttpServlet{
 
     @Override
     protected  void doPost(HttpServletRequest req, HttpServletResponse resp)  throws ServletException, IOException{
-        if(req.getParameter("method")!=null && req.getParameter("method").equals("getCount")){
+        if(req.getParameter(ServletConstants.PARAM_METHOD)!=null && req.getParameter(ServletConstants.PARAM_METHOD).equals(ServletConstants.METHOD_GET_COUNT)){
             resp.setContentType("text;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
             writer.println(resultCount);
             writer.close();
             return;
         }
-        if(req.getParameter("method")!=null && req.getParameter("method").equals("getExceptions")){
+        if(req.getParameter(ServletConstants.PARAM_METHOD)!=null && req.getParameter(ServletConstants.PARAM_METHOD).equals(ServletConstants.METHOD_GET_EXCEPTIONS)){
             resp.setContentType("text;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
             writer.println(exceptions);
             writer.close();
             return;
         }
-
+        if(req.getParameter(ServletConstants.PARAM_METHOD)!=null && req.getParameter(ServletConstants.PARAM_METHOD).equals(ServletConstants.METHOD_GET_MESSAGES)){
+            resp.setContentType("text;charset=UTF-8");
+            PrintWriter writer = resp.getWriter();
+            writer.println(new ObjectMapper().writeValueAsString(listOfReceivedMessages));
+            writer.close();
+            return;
+        }
         try {
-            commitAfter = (req.getParameter("commitAfter") != null) ? Integer.parseInt(req.getParameter("commitAfter")) : 1;
+            commitAfter = (req.getParameter(ServletConstants.PARAM_COMMIT_AFTER) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_COMMIT_AFTER)) : 1;
         }catch (NumberFormatException e){
             log.error(e.toString());
         }
         try{
-            port = (req.getParameter("port") != null) ? Integer.parseInt(req.getParameter("port")) : 8080;
+            port = (req.getParameter(ServletConstants.PARAM_PORT) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_PORT)) : 8080;
         }catch (NumberFormatException e){
             log.error(e.toString());
         }
         try{
-            receiveTimeOut = (req.getParameter("receiveTimeout") != null) ? Integer.parseInt(req.getParameter("receiveTimeout")) : 10000;
+            receiveTimeOut = (req.getParameter(ServletConstants.PARAM_RECEIVE_TIMEOUT) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_RECEIVE_TIMEOUT)) : 10000;
         }catch (NumberFormatException e){
             log.error(e.toString());
         }
-        queueJNDIName = (req.getParameter("queueJNDIName") !=null) ? req.getParameter("queueJNDIName") : "jms/queue/targetQueue0";
-        host = (req.getParameter("host")!=null) ? req.getParameter("host") : "127.0.0.1";
-        protocol = (req.getParameter("protocol") != null) ? req.getParameter("protocol") : "http-remoting";
+        queueJNDIName = (req.getParameter(ServletConstants.PARAM_QUEUE_JNDI_NAME) !=null) ? req.getParameter(ServletConstants.PARAM_QUEUE_JNDI_NAME) : "jms/queue/targetQueue0";
+        host = (req.getParameter(ServletConstants.PARAM_HOST)!=null) ? req.getParameter(ServletConstants.PARAM_HOST) : "127.0.0.1";
+        protocol = (req.getParameter(ServletConstants.PARAM_PROTOCOL) != null) ? req.getParameter(ServletConstants.PARAM_PROTOCOL) : "http-remoting";
 
 
         resp.setContentType("text;charset=UTF-8");
@@ -109,13 +115,10 @@ public class ServletConsumerTransAck extends HttpServlet{
     }
 
     private void receiveMessages() throws Exception{
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("%s%s:%s", protocol + "://", host, port));
-        Context context = new InitialContext(env);
+        Context context = JMSTools.getEAP7Context(host, port);
         Connection connection = null;
         try {
-            ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
             connection = cf.createConnection();
             Queue queue = (Queue) context.lookup(queueJNDIName);
             Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
@@ -131,6 +134,7 @@ public class ServletConsumerTransAck extends HttpServlet{
                         log.info("Receiver for node: " + host + ". Received message - count: "
                                 + counter + " SENT ROLLBACK");
                         counter-=commitAfter;
+                        messagesToCommit.clear();
                     }else{
                         commitSession(session);
                     }
