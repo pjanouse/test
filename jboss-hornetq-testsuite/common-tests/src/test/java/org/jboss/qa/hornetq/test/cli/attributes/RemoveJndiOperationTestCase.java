@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -43,6 +44,10 @@ public class RemoveJndiOperationTestCase extends HornetQTestCase {
     String topicJndiNameFullExported1 = "java:jboss/exported/" + topicJndiNameRelative1;
     String topicJndiNameFullExported2 = "java:jboss/exported/" + topicJndiNameRelative2;
 
+    @After
+    public void stopServer() {
+        container(1).stop();
+    }
 
     @Test
     @RunAsClient
