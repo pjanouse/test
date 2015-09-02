@@ -267,8 +267,6 @@ public class ReceiverTransAck extends Client {
 
         // receive message with retry
         while (numberOfRetries < maxRetries) {
-            logger.warn("SOM TUUUUUU!!!!!!!!");
-
             try {
 
                 msg = consumer.receive(receiveTimeOut);
