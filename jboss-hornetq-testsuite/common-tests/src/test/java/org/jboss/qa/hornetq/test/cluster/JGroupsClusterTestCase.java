@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -120,6 +121,14 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         }
         jmsAdminOperations.close();
         container.stop();
+    }
+
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
     }
 
     // TODO un-ignore when bz https://bugzilla.redhat.com/show_bug.cgi?id=1132190 is fixed

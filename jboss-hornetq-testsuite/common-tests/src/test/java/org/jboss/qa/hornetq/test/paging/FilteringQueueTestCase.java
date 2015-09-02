@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,6 +38,11 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueue = "jms/queue/" + outQueueName;
+
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+    }
 
     /**
      * @tpTestDetails Server with queue is started. Create producer and send 100

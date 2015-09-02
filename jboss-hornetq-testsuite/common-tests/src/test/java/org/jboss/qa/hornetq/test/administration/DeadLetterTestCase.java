@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -58,6 +59,10 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+    }
 
     /**
      * Tests reading lost message from DLQ after max-deliver-attempts was reached.

@@ -38,6 +38,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,6 +104,7 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         }catch (Exception IOException){}
 
     }
+
     @RunAsClient
     @Before
     public void prepareServersForTest() throws CommandFailedException {
@@ -459,6 +461,8 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         }
         return messagesCount;
     }
+
+    @Before
     public void startAllServers(){
         container(1).start();
         container(2).start();
@@ -466,6 +470,7 @@ public class NTTAbstractTestCase extends HornetQTestCase {
         container(4).start();
     }
 
+    @After
     public void stopAllServers(){
         container(1).stop();
         container(2).stop();

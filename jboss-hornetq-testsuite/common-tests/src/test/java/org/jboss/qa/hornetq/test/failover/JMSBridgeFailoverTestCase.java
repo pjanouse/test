@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,13 @@ import java.util.Map;
 public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);
+
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+    }
 
     // test JMS bridge clean shutdown - no unfinished transactions.
     /**
