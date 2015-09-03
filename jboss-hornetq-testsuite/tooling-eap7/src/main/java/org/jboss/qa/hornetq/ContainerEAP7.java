@@ -279,8 +279,8 @@ public class ContainerEAP7 implements Container {
                 Runtime.getRuntime().exec("kill -9 " + pid);
             }
         } catch (Exception ex) {
-            log.warn("Container " + getName() + " could not be killed. Set debug for logging to see exception stack trace.");
-            log.debug(ex);
+            log.warn("Container " + getName() + " could not be killed.");
+            log.error(ex);
         } finally {
             log.info("Server: " + getName() + " -- KILLED");
         }
