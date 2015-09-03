@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.*;
@@ -40,6 +41,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     static String outQueue = "jms/queue/" + outQueueName;
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
     }

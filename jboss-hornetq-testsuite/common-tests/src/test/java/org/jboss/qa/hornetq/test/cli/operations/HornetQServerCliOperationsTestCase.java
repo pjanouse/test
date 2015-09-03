@@ -207,6 +207,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
         }
     }
 
+    @Before
     @After
     public void after() {
         container(1).stop();

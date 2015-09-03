@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,6 +28,7 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
 
     @After
+    @Before
     public void stopAllServers() {
         container(3).stop();
     }

@@ -17,6 +17,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -378,6 +379,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
     }
 
     @After
+    @Before
     public void stopServerIfAlive() {
         if (CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), container(1).getPort())) {
             container(1).stop();

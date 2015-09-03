@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.*;
@@ -42,6 +43,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
     private String inQueueJndiName = "jms/queue/" + inQueue;
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();

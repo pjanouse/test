@@ -52,6 +52,7 @@ public class ProtocolCompatibilityTestCase extends HornetQTestCase {
     }
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
     }

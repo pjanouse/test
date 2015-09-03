@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -59,6 +60,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
+    @Before
     @After
     public void stopAllServers() {
         container(1).stop();

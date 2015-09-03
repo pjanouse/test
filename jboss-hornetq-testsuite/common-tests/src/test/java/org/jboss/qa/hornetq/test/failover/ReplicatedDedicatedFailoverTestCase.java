@@ -16,6 +16,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.Session;
@@ -39,6 +40,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();

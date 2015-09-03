@@ -70,6 +70,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
+        container(1).stop();
         container(1).start();
 
         if (ContainerUtils.isEAP7(container(1))) {

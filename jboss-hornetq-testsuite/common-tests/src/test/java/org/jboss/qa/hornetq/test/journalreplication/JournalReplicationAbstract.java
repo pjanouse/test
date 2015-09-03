@@ -104,6 +104,9 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
 
     @Before
     public void beforeEachTest() throws Exception {
+        container(1).stop();
+        container(2).stop();
+
         prepareLive(container(1));
 
         prepareBackup(container(2));

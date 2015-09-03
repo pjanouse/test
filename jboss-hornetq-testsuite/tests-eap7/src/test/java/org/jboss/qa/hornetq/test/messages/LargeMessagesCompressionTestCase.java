@@ -61,6 +61,7 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     @Before
     public void startServer() {
+        container(1).stop();
         container(1).start();
     }
 

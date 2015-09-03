@@ -464,6 +464,11 @@ public class NTTAbstractTestCase extends HornetQTestCase {
 
     @Before
     public void startAllServers(){
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
+
         container(1).start();
         container(2).start();
         container(3).start();

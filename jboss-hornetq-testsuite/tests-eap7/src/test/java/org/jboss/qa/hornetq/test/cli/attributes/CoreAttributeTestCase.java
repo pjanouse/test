@@ -141,6 +141,7 @@ public class CoreAttributeTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
+        container(1).stop();
         container(1).start();
     }
 

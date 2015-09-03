@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -52,6 +53,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     String outQueueName = "OutQueue";
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
+    @Before
     @After
     public void stopAllServers() {
         container(1).stop();

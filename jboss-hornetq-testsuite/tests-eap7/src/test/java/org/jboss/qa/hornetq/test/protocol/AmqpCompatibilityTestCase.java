@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.apache.qpid.amqp_1_0.client.Connection;
@@ -32,6 +33,7 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
     private static final Logger log = Logger.getLogger(AmqpCompatibilityTestCase.class);
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
     }
