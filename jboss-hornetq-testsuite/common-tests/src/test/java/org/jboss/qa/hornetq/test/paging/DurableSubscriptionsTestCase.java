@@ -208,6 +208,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
                         (i + 1 < semaphores.length) ? semaphores[i + 1] : null,
                         gapBetweenConsumers, receiveTimeout);
                 consumers[i].start();
+                Thread.sleep(500); // TODO: in RHEL7: if many consumers try to create durable subscription at once, the session.crateDurableSubscriber fails
             }
             Thread.sleep(5000);
             producer.start();
