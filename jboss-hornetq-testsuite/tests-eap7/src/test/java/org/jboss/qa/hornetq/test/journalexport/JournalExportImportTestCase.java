@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.journalexport;
 
-
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -22,6 +21,14 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.jboss.as.controller.client.ModelControllerClient;
+import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
+import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
+import static org.jboss.as.controller.client.helpers.ClientConstants.OUTCOME;
+import static org.jboss.as.controller.client.helpers.ClientConstants.RESULT;
+import static org.jboss.as.controller.client.helpers.ClientConstants.SUCCESS;
+import org.jboss.dmr.ModelNode;
+import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
 
 import static org.junit.Assert.*;
 
@@ -45,7 +52,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
     private static final String DIRECTORY_WITH_JOURNAL = new File("target/journal-directory-for-import-export-testcase").getAbsolutePath();
-    private static final String EXPORTED_JOURNAL_FILE_NAME = "journal_export.xml";
+    private static final String EXPORTED_JOURNAL_FILE_NAME_PATTERN = "journal_export";
 
     private static final String TEST_QUEUE = "testQueue";
     private static final String TEST_QUEUE_NAME = "jms/queue/" + TEST_QUEUE;
@@ -59,7 +66,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     /**
      * Exporting message with null value in its properties
      *
-     * @see <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     * @see
+     * <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
      *
      * @tpTestDetails Start single server. Send text message with null property
      * to the destination on the server. Once sent, shut the server down. Export
@@ -67,7 +75,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
      * messages from the destination.
      * @tpProcedure <ul>
      * <li>Start server with single queue deployed.</li>
-     * <li>Connect to the server with the client and send test messages to the queue.</li>
+     * <li>Connect to the server with the client and send test messages to the
+     * queue.</li>
      * <li>Shut the server down and export its HornetQ journal to XML file.</li>
      * <li>Clean the server directories and start it again.</li>
      * <li>Import the journal</li>
@@ -75,9 +84,9 @@ public class JournalExportImportTestCase extends HornetQTestCase {
      * </ul>
      * @tpPassCrit All the test messages are successfully read and preserve all
      * their properties
-     * @tpInfo <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     * @tpInfo
+     * <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
      */
-    
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -96,7 +105,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         Session session = null;
 
         try {
-            ctx = container(1). getContext();
+            ctx = container(1).getContext();
             ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             conn = factory.createConnection();
 
@@ -114,16 +123,13 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        boolean exported = journalExportImportUtils.exportJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
-        assertTrue("Journal should be exported successfully.", exported);
+        journalExportImportUtils.exportJournal(container(1), EXPORTED_JOURNAL_FILE_NAME_PATTERN);
 
         // delete the journal file before we import it again
         FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+
+        journalExportImportUtils.importJournal(container(1), EXPORTED_JOURNAL_FILE_NAME_PATTERN);
         container(1).start();
-
-        boolean imported = journalExportImportUtils.importJournal(container(1), EXPORTED_JOURNAL_FILE_NAME);
-        assertTrue("Journal should be imported successfully", imported);
-
         Message received;
         try {
             ctx = container(1).getContext();

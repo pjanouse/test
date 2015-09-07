@@ -4,9 +4,17 @@ package org.jboss.qa.hornetq.tools.journal;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
@@ -14,6 +22,8 @@ import org.jboss.qa.hornetq.tools.EapVersion;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.kohsuke.MetaInfServices;
+import org.apache.activemq.artemis.cli.commands.tools.EncodeJournal;
+import org.apache.activemq.artemis.cli.commands.tools.DecodeJournal;
 
 /**
  * Utilities to work with ActiveMQ's journal export/import tool in EAP 7.
@@ -42,7 +52,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean exportJournal(Container container, final String exportedFileName) throws IOException, InterruptedException {
+    public boolean exportJournal(Container container, final String exportedFileName) throws Exception {
 
         LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
 
@@ -55,51 +65,28 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
             return false;
         }
 
-        JavaProcessBuilder processBuilder = new JavaProcessBuilder();
-        processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        processBuilder.addClasspathEntry(journalToolClassPath(container));
-        processBuilder.setMainClass(EAP_70_EXPORT_TOOL_MAIN_CLASS);
-        processBuilder.addArgument("export");
-        processBuilder.addArgument(pathToJournal + File.separator + "bindings");
-        processBuilder.addArgument(pathToJournal + File.separator + "journal");
-        processBuilder.addArgument(pathToJournal + File.separator + "paging");
-        processBuilder.addArgument(pathToJournal + File.separator + "largemessages");
-
-        Process exportProcess = processBuilder.startProcess();
-
-        File exportedFile = new File(exportedFileName);
-        if (!exportedFile.exists()) {
-            exportedFile.createNewFile();
+        File exportedFileBindings = new File(exportedFileName + "bindings");
+        if (!exportedFileBindings.exists()) {
+            exportedFileBindings.createNewFile();
+        }
+        File exportedFileJournal = new File(exportedFileName + "journal");
+        if (!exportedFileJournal.exists()) {
+            exportedFileJournal.createNewFile();
         }
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(exportProcess.getInputStream()));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(exportedFileName));
+        PrintStream bindingsStream = new PrintStream(exportedFileBindings);
+        PrintStream journalStream = new PrintStream(exportedFileJournal);
 
-        String line;
-        try {
-            while ((line = reader.readLine()) != null && !line.trim().equalsIgnoreCase("<?xml version=\"1.0\"?>")) {
-                // ignore anything before actual start of the XML
-                // logger output gets mixed with the XML, so there will be some log lines before actual journal export XML
-                if (line.trim().equalsIgnoreCase("<?xml version=\"1.0\"?>")) {
-                    writer.write(line);
-                    writer.write("\n");
-                }
-                LOG.info(line);
-            }
+        EncodeJournal.exportJournal(pathToJournal + File.separator + "bindings", "activemq-bindings", "bindings", 2, 102400, bindingsStream);
+        EncodeJournal.exportJournal(pathToJournal + File.separator + "journal", "activemq-data", "amq", 2, 102400, journalStream);
 
-            while ((line = reader.readLine()) != null) {
-                writer.write(line);
-                writer.write("\n");
-                LOG.info(line); // duplicate output on stdout to have potential exceptions in the log
-            }
-        } finally {
-            reader.close();
-            writer.close();
-        }
+        boolean err1 = bindingsStream.checkError();
+        bindingsStream.close();
 
-        int retval = exportProcess.waitFor();
-        LOG.info("Journal export is done (with return code " + retval + ")");
-        return retval == 0;
+        boolean err2 = bindingsStream.checkError();
+        journalStream.close();
+
+        return !err1 && !err2;
     }
 
     /**
@@ -112,41 +99,44 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean importJournal(Container container, final String exportedFileName) throws IOException, InterruptedException {
+    public boolean importJournal(Container container, final String exportedFileName) throws IOException, InterruptedException, Exception {
 
-        LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
-
-        JavaProcessBuilder processBuilder = new JavaProcessBuilder();
-        processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        // processBuilder.mergeErrorStreamWithOutput(false);
-        processBuilder.addClasspathEntry(journalToolClassPath(container));
-
-        EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
-        processBuilder.setMainClass(EAP_70_IMPORT_TOOL_MAIN_CLASS);
-
-        processBuilder.addArgument("import");
-        processBuilder.addArgument(new File(exportedFileName).getAbsolutePath());
-        processBuilder.addArgument(container.getHostname());
-        processBuilder.addArgument(String.valueOf(container.getHornetqPort() + container.getPortOffset()));
-        processBuilder.addArgument(String.valueOf(false));
-        processBuilder.addArgument(String.valueOf(true));
-
-        Process importProcess = processBuilder.startProcess();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(importProcess.getInputStream()));
-
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                LOG.info(line);
-            }
-        } finally {
-            reader.close();
+        if (pathToJournal == null || pathToJournal.equals("")) {
+            pathToJournal = getJournalDirectory(container.getServerHome(), "standalone");
+        }
+        File bindingsDirectory = new File(pathToJournal + File.separator + "bindings");
+        File journalDirectory = new File(pathToJournal + File.separator + "journal");
+        if (!bindingsDirectory.exists()) {
+            bindingsDirectory.mkdirs();
+        }
+        if (!journalDirectory.exists()) {
+            journalDirectory.mkdirs();
         }
 
-        int retval = importProcess.waitFor();
-        LOG.info("Journal import is done (with return code " + retval + ")");
-        return retval == 0;
+        File exportedFileBindings = new File(exportedFileName + "bindings");
+        if (!exportedFileBindings.exists()) {
+            throw new RuntimeException("file exported bindings doesnt exists");
+        }
+        File exportedFileJournal = new File(exportedFileName + "journal");
+        if (!exportedFileJournal.exists()) {
+            throw new RuntimeException("file exported journal doesnt exists");
+        }
+
+        FileInputStream fis = new FileInputStream(exportedFileBindings);
+        String bindigsString = readStream(fis);
+        fis.close();
+
+        fis = new FileInputStream(exportedFileJournal);
+        String journalString = readStream(fis);
+        fis.close();
+
+        LOG.info("Importing bindings from file " + exportedFileName + " to container " + container.getName());
+        DecodeJournal.importJournal(bindingsDirectory.getAbsolutePath(), "activemq-bindings", "bindings", 2, 102400, new StringReader(bindigsString));
+
+        LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
+        DecodeJournal.importJournal(journalDirectory.getAbsolutePath(), "activemq-data", "amq", 2, 102400, new StringReader(journalString));
+        
+        return true;
     }
 
     @Override
@@ -170,4 +160,17 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         return jbossHome + File.separator + profile + File.separator + "data" + File.separator + "activemq";
     }
 
+    private String readStream(InputStream is) {
+        StringBuilder sb = new StringBuilder(512);
+        try {
+            Reader r = new InputStreamReader(is, "UTF-8");
+            int c = 0;
+            while ((c = r.read()) != -1) {
+                sb.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return sb.toString();
+    }
 }
