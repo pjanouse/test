@@ -1166,6 +1166,15 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public void setJournalType(String serverName, String journalType) {
         logger.info("This operation is not supported: " + getMethodName());
     }
+    @Override
+    public String exportJournal() {
+        throw new UnsupportedOperationException("export journal not supported for eap5 operations");
+    }
+
+    @Override
+    public void importJournal(String path) {
+        throw new UnsupportedOperationException("import journal not supported for eap5 operations");
+    }
 
     @Override
     public void setLargeMessagesDirectory(String path) {

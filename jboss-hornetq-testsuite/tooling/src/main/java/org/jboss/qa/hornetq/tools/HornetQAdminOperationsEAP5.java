@@ -67,7 +67,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     // protected ObjectName getHornetQServerMBean() throws Exception {
     // return new ObjectName("org.hornetq:module=JMS,type=Server");
     // }
-
     /**
      * Returns MBean for the Queue
      *
@@ -141,7 +140,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param jndiName JNDI name of the destination
      * @param durable determines if created destination is durable
      */
-
     protected void createJmsDestination(boolean isQueue, String destinationName, String jndiName, boolean durable) {
 
         // try to remove it first
@@ -440,7 +438,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
             MBeanServerConnection server = getMBeanServer();
             ObjectName serverPeer = getHornetQQueueMBean(queueName);
             String operation = "removeMessages";
-            server.invoke(serverPeer, operation, new Object[] { "" }, new String[] { String.class.getName() });
+            server.invoke(serverPeer, operation, new Object[]{""}, new String[]{String.class.getName()});
         } catch (Exception e) {
             logger.info("Destination " + queueName + " does not exist");
         }
@@ -689,7 +687,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
             String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
-            boolean noTxSeparatePool,Map<String,String>xaDatasourceProperties) {
+            boolean noTxSeparatePool, Map<String, String> xaDatasourceProperties) {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
@@ -1245,6 +1243,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public String exportJournal() {
+        throw new UnsupportedOperationException("export journal not supported for eap5 operations");
+    }
+
+    @Override
+    public void importJournal(String path) {
+        throw new UnsupportedOperationException("import journal not supported for eap5 operations");
+    }
+
+    @Override
     public void setLargeMessagesDirectory(String path) {
         String configurationFile = getHornetQConfigurationFile();
         try {
@@ -1339,7 +1347,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * @param address address of the queue like '#' (for all queues)
      * @param role role of the user like 'guest'
      * @param permission possible values
-     *        {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
      * @param value true for enable permission
      */
     @Override
@@ -1463,10 +1471,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for
-     * EAP 5.
+     * This method activates preferFactoryRef property in ActivationSpec.java in
+     * ejb3-interceptors-aop.xml. This is specific for EAP 5.
      *
-     * @param active if true then this attribute is activated. It's defaulted to true.
+     * @param active if true then this attribute is activated. It's defaulted to
+     * true.
      */
     @Override
     public void setFactoryRef(boolean active) {
@@ -1489,7 +1498,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
                     "//annotation/*[@expr='!class(@org.jboss.ejb3.annotation.DefaultActivationSpecs)']", doc);
 
             // logger.info("Content of annotation DefaultActivationSpecs is : " + currentValue);
-
             String contentToSet = "@org.jboss.ejb3.annotation.DefaultActivationSpecs(@javax.ejb.ActivationConfigProperty("
                     + "propertyName=\"preferFactoryRef\", propertyValue=\"" + active + "\"))";
 
@@ -1569,8 +1577,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * <p/>
      * Sets basic attributes in ra.xml.
      *
-     * @param connectorClassName 
-     *        org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param connectorClassName
+     * org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
      * @param connectionParameters host->port
      * @param ha if ha
      */
@@ -1671,7 +1679,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         // <max-pool-size>20</max-pool-size>
         // <security-domain-and-application>JmsXARealm</security-domain-and-application>
         // </tx-connection-factory>
-
         try {
 
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -1715,7 +1722,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * <p/>
      * Sets basic attributes in jms-ds.xml.
      *
-     * @param connectorClassName like org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param connectorClassName like
+     * org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
      * @param ha if ha
      * @param reconnectAttempts reconnect attempts in case of jms server failure
      * @param hostname host of hq server
@@ -1752,7 +1760,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         // <max-pool-size>20</max-pool-size>
         // <security-domain-and-application>JmsXARealm</security-domain-and-application>
         // </tx-connection-factory>
-
         try {
 
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -1879,7 +1886,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         // <config-property-type>java.lang.String</config-property-type>
         // <config-property-value>server-id=0</config-property-value>
         // </config-property>
-
         // ADD THIS
         // <config-property>
         // <description>The discovery group address</description>
@@ -1956,7 +1962,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Set old(true) or new failover model(false)
      *
      * @param keepOldFailover false to activate it
-     * @param nodeStateRefreshInterval after which time will be node's timestamp updated in database
+     * @param nodeStateRefreshInterval after which time will be node's timestamp
+     * updated in database
      */
     @Override
     public void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval) {
@@ -2416,7 +2423,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
+    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

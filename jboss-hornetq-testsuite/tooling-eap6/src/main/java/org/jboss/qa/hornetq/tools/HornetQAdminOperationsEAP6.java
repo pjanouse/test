@@ -1399,6 +1399,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public String exportJournal() {
+        throw new UnsupportedOperationException("export journal not supported for eap6 operations");
+    }
+
+    @Override
+    public void importJournal(String path) {
+        throw new UnsupportedOperationException("import journal not supported for eap6 operations");
+    }
     /**
      * The directory to store paged messages in.
      *

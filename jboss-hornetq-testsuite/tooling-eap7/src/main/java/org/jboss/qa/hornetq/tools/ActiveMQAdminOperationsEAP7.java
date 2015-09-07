@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
+import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -1004,7 +1006,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates model node which contains list of strings
-     * 
+     *
      * @param list list of strings
      * @return list of model nodes containing string value
      */
@@ -1375,6 +1377,48 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("path").set(path + File.separator + "journal");
         try {
             this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * Export ActiveMQ Artemis journal.
+     *
+     * server needs to be in admin-only mode
+     * 
+     * @return path to file with exported journal
+     */
+    @Override
+    public String exportJournal() {
+        ModelNode exportJournalOp = new ModelNode();
+        exportJournalOp.get(OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        exportJournalOp.get(OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        exportJournalOp.get(OP).set("export-journal");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(exportJournalOp);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        String filePath = result.asString();
+        return filePath;
+    }
+    
+    /**
+     * Import ActiveMQ Artemis journal.
+     *
+     * @param path to exported file.
+     */
+    @Override
+    public void importJournal(String path){
+        ModelNode importJournalOp = new ModelNode();
+        importJournalOp.get(OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        importJournalOp.get(OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        importJournalOp.get(OP).set("import-journal");
+        importJournalOp.get("file").set(path);
+        ModelNode result;
+        try {
+            result = this.applyUpdate(importJournalOp);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -5415,12 +5459,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
         for (String key : props.keySet()) {
-        model = createModelNode();
-        model.get(ClientConstants.OP).set(ClientConstants.ADD);
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
-        model.get(ClientConstants.OP_ADDR).add("connection-definitions", cfName);
-        model.get(ClientConstants.OP_ADDR).add("config-properties", key);
+            model = createModelNode();
+            model.get(ClientConstants.OP).set(ClientConstants.ADD);
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
+            model.get(ClientConstants.OP_ADDR).add("resource-adapter", raName);
+            model.get(ClientConstants.OP_ADDR).add("connection-definitions", cfName);
+            model.get(ClientConstants.OP_ADDR).add("config-properties", key);
             model.get("config-properties").add(key, props.get(key));
             model.get("value").set(props.get(key));
             try {

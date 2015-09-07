@@ -1101,6 +1101,20 @@ public interface JMSOperations {
      * @param journalType can be "NIO" or "AIO"
      */
     void setJournalType(String serverName, String journalType);
+    
+    /**
+     * Operation for importing messaging journal
+     *
+     * @param path path to file containing data to be imported
+     */
+    public void importJournal(String path);
+
+    /**
+     * Operation for exporting messaging journal
+     *
+     * @return name of exported file
+     */
+    public String exportJournal();
 
     /**
      * The directory in which to store large messages.
