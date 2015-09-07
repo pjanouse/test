@@ -58,6 +58,7 @@ public class AddressSettingsAttributesTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
+        container(1).stop();
         container(1).start();
         CliClient cliClient = new CliClient(cliConf);
         cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + queueJndiName + "\", \"java:jboss/exported/" + queueJndiName + "\"])");

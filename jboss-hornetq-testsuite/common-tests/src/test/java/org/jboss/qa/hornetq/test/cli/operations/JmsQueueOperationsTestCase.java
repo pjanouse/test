@@ -96,6 +96,7 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
 
     @Before
     public void startServer() {
+        container(1).stop();
         container(1).start();
     }
 

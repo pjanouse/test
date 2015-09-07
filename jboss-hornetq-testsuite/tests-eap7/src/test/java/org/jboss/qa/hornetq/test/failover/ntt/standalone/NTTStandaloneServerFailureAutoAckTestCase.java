@@ -143,7 +143,7 @@ public class NTTStandaloneServerFailureAutoAckTestCase extends NTTAbstractTestCa
                     targetLocation = "INVOKE StorageManager.storeAcknowledge()",
                     action = "System.out.println(\"Storing ACK \");"))
     public void beforeStoringAckAfterDeliveringMessage() throws Exception {
-        overrideMaxMessagesForTest(10);
+        overrideMaxMessagesForTest(1);
         serverFailureTestSequence(1,1,2,false,false,false, true);
     }
 

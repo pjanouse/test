@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -144,6 +145,12 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
         node.appendChild(e);
 
         XMLManipulation.saveDOMModel(doc, pathToStandaloneXml.toString());
+    }
+
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+        container(2).stop();
     }
 
     /**

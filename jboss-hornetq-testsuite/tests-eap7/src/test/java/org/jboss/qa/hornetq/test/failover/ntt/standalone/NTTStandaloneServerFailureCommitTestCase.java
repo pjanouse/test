@@ -109,35 +109,24 @@ public class NTTStandaloneServerFailureCommitTestCase extends NTTAbstractTestCas
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void beforeServerDeliversMessage() throws Exception {
-        serverFailureTestSequence(0,MAX_MESSAGES,-1,false,false,false, true);
+        serverFailureTestSequence(0,1,-1,false,false,false, true);
     }
 
-    @BMRules({
-            @BMRule(name = "Setup counter for ChannelImpl",
-                    targetClass = "org.apache.activemq.artemis.core.protocol.core.impl.ChannelImpl",
-                    targetMethod = "send",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Increment counter for every packet containing part of message for consumer",
-                    targetClass = "org.apache.activemq.artemis.core.protocol.core.impl.ChannelImpl",
-                    targetMethod = "send",
-                    binding = "mypacket:Packet = $packet; ptype:byte = mypacket.getType();",
-                    condition = "ptype == 75",
-                    targetLocation = "INVOKE Connection.write()",
-                    action = "System.out.println(\"incrementing counter\");incrementCounter(\"counter\");"),
+    @BMRules(
             @BMRule(name = "Kill JMS server after delivers message",
                     targetClass = "org.apache.activemq.artemis.core.protocol.core.impl.ChannelImpl",
                     targetMethod = "send",
                     binding = "mypacket:Packet = $packet; ptype:byte = mypacket.getType();",
-                    condition = "ptype == 75 && readCounter(\"counter\")==2", //2 packets per message
+                    condition = "ptype == 75 ",
                     targetLocation = "INVOKE Connection.write()",
                     isAfter = true,
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")})
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void afterServerDeliversMessage() throws Exception {
-        serverFailureTestSequence(0, MAX_MESSAGES, -1, false, false, false, true);
+        serverFailureTestSequence(0, 1, -1, false, false, false, true);
     }
 
     @BMRules({

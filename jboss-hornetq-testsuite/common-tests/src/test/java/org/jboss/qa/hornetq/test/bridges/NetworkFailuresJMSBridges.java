@@ -10,7 +10,9 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
@@ -24,6 +26,12 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
     private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridges.class);
 
+    @Before
+    @After
+    public void stopAllServers() {
+        container(1).stop();
+        container(2).stop();
+    }
 
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected)
             throws Exception {

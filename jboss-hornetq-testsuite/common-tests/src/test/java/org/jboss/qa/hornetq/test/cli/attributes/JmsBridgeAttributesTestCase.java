@@ -104,6 +104,9 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     @Before
     public void startServer() throws InterruptedException {
+        container(1).stop();
+        container(2).stop();
+
         container(1).start();
         container(2).start();
 

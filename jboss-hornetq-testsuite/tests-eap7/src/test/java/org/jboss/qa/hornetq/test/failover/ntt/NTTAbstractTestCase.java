@@ -34,6 +34,7 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -653,14 +654,16 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
         return messagesCount;
     }
 
-    public void startAllServers() {
+
+
+    public void startAllServers(){
         container(1).start();
         container(2).start();
         container(3).start();
         container(4).start();
     }
 
-    public void stopAllServers() {
+    public void stopAllServers(){
         container(1).stop();
         container(2).stop();
         container(3).stop();

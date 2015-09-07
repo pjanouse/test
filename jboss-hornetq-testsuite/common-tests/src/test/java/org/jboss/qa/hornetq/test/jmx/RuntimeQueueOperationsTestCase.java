@@ -25,6 +25,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -47,7 +48,8 @@ public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
     private static final String QUEUE_JNDI_NAME = "jms/queue/" + QUEUE_NAME;
 
     @After
-    public void stopServerAfterTest() {
+    @Before
+    public void stopServer() {
         container(1).stop();
     }
 

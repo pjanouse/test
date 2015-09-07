@@ -9,6 +9,8 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +33,11 @@ public class StompCompatibilityTestCase extends ProtocolCompatibilityTestCase  {
     private static final Logger log = Logger.getLogger(StompCompatibilityTestCase.class);
 
 
+    @After
+    @Before
+    public void stopAllServers() {
+        container(1).stop();
+    }
 
     @Test
     @RunAsClient

@@ -19,10 +19,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
@@ -146,6 +143,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     @After
+    @Before
     public void stopServers() {
         container(1).stop();
         container(2).stop();

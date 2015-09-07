@@ -14,7 +14,9 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.Session;
@@ -36,6 +38,13 @@ import java.util.Map;
 public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
+
+    @After
+    @Before
+    public void stopAllServers() {
+        container(1).stop();
+        container(2).stop();
+    }
 
     /**
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with

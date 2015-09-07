@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -271,6 +272,7 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
     }
 
     @After
+    @Before
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();

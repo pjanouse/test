@@ -29,10 +29,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
@@ -123,6 +120,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     @Before
     public void stopServerBeforeReconfiguration() {
+        container(1).stop();
+    }
+
+    @After
+    public void stopAllServers() {
         container(1).stop();
     }
 

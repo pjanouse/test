@@ -187,13 +187,16 @@ public class ContainerEAP7 implements Container {
     @Override
     public void stop() {
 
+        log.info("Server is going to stop.");
         // there is problem with calling stop on already stopped server
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
         try {
             if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
                     || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
+                log.info("Server is really dead.");
                 containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
+                log.info("Ending stopping procedure.");
                 return;
             }
         } catch (Exception ex) {
@@ -217,6 +220,7 @@ public class ContainerEAP7 implements Container {
                         if (System.currentTimeMillis() - startTime > timeout) {
                             // kill server because shutdown hangs and fail test
                             try {
+                                log.info("Killing the server with PID: " + pid + " after timeout: " + timeout);
                                 if (System.getProperty("os.name").contains("Windows")) {
                                     Runtime.getRuntime().exec("taskkill /PID " + pid);
                                 } else { // it's linux or Solaris
@@ -241,8 +245,10 @@ public class ContainerEAP7 implements Container {
             }
         };
         shutdownHook.start();
+        log.info("Stopping the server.");
         containerController.stop(getName());
         try {
+            log.info("Killing the server.");
             containerController.kill(getName());
         } catch (Exception ex) {
             log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
@@ -273,8 +279,8 @@ public class ContainerEAP7 implements Container {
                 Runtime.getRuntime().exec("kill -9 " + pid);
             }
         } catch (Exception ex) {
-            log.warn("Container " + getName() + " could not be killed. Set debug for logging to see exception stack trace.");
-            log.debug(ex);
+            log.warn("Container " + getName() + " could not be killed.");
+            log.error(ex);
         } finally {
             log.info("Server: " + getName() + " -- KILLED");
         }

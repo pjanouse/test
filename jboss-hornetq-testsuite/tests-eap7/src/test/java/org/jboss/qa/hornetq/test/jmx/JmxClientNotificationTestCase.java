@@ -53,6 +53,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     @Before
     public void startServerBeforeTest() {
+        container(1).stop();
         container(1).start();
     }
 

@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     String topicJndiNamePrefix = "jms/topic/testTopic";
     String jndiContextPrefix = "java:jboss/exported/";
 
+    @Before
     @After
     public void stopAllServers() {
         container(1).stop();

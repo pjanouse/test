@@ -10,6 +10,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.After;
 import org.junit.Before;
 
 import java.io.File;
@@ -48,6 +49,12 @@ public class ProtocolCompatibilityTestCase extends HornetQTestCase {
             FileUtils.cleanDirectory(data);
         }
 
+    }
+
+    @After
+    @Before
+    public void stopAllServers() {
+        container(1).stop();
     }
 
     protected void prepareServerForStandaloneBroker(){

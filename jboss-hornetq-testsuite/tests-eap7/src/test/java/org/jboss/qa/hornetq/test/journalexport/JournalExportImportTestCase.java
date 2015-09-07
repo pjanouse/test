@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -47,6 +49,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final String TEST_QUEUE = "testQueue";
     private static final String TEST_QUEUE_NAME = "jms/queue/" + TEST_QUEUE;
+
+    @After
+    @Before
+    public void stopAllServers() {
+        container(1).stop();
+    }
 
     /**
      * Exporting message with null value in its properties
