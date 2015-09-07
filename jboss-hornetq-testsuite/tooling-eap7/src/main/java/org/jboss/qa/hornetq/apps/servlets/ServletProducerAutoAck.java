@@ -13,7 +13,6 @@ import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.TransactionRolledBackException;
 import javax.naming.Context;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -28,21 +27,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by okalman on 8/6/15.
+ * Created by okalman on 9/3/15.
  */
 
 @WebServlet("/ServletProducer")
-public class ServletProducerTransAck extends HttpServlet {
-    private static final Logger log = Logger.getLogger(ServletProducerTransAck.class.getName());
-    int commitAfter=1;
+public class ServletProducerAutoAck extends HttpServlet {
+    private static final Logger log = Logger.getLogger(ServletProducerAutoAck.class.getName());
     int maxMessages=-1;
     String queueJNDIName="jms/queue/targetQueue0";
     String host="127.0.0.1";
     int port=8080;
     String protocol = "http-remoting";
     int counter=0;
-    int commitCounter = 0;
-    List<Message> messagesToCommit = new ArrayList<Message>();
     private static List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
 
     private static final int MAX_RETRIES =20;
@@ -67,11 +63,6 @@ public class ServletProducerTransAck extends HttpServlet {
             writer.println(new ObjectMapper().writeValueAsString(listOfSentMessages));
             writer.close();
             return;
-        }
-        try {
-            commitAfter = (req.getParameter(ServletConstants.PARAM_COMMIT_AFTER) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_COMMIT_AFTER)) : 1;
-        }catch (NumberFormatException e){
-            log.error(e.toString());
         }
         try{
             maxMessages = (req.getParameter(ServletConstants.PARAM_MAX_MESSAGES) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_MAX_MESSAGES)) : -1;
@@ -106,7 +97,7 @@ public class ServletProducerTransAck extends HttpServlet {
             ConnectionFactory cf = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
             connection = cf.createConnection();
             Queue queue = (Queue) context.lookup(queueJNDIName);
-            Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             MessageProducer producer = session.createProducer(queue);
             connection.start();
             TextMessageBuilder mb = new TextMessageBuilder(100);
@@ -115,18 +106,7 @@ public class ServletProducerTransAck extends HttpServlet {
                 Message msg =mb.createMessage(session);
                 msg.setIntProperty("count", counter);
                 sendMessage(producer, msg);
-                messagesToCommit.add(msg);
-                if ((counter % commitAfter) == 0) {
-                    if((commitCounter % 2) == 0 && commitCounter > 0){
-                        rollbackAndCommitSession(session,producer);
-                    }else{
-                        commitSession(session, producer);
-                    }
-                    addMessages(listOfSentMessages,messagesToCommit);
-                    messagesToCommit.clear();
-                    commitCounter++;
-                    log.info("Producer for node: " + host + ". Sent messages - count: " + counter);
-                }
+                addMessage(listOfSentMessages, msg);
             }
             connection.close();
         }catch (Exception e){
@@ -163,55 +143,7 @@ public class ServletProducerTransAck extends HttpServlet {
 
     }
 
-    private void rollbackAndCommitSession(Session session, MessageProducer producer) throws Exception{
-        log.info("ROLLING BACK");
-        session.rollback();
-        counter -= messagesToCommit.size();
 
-        for(Message m : messagesToCommit){
-            sendMessage(producer,m);
-        }
-        commitSession(session,producer);
-
-    }
-
-    private void commitSession(Session session, MessageProducer producer) throws Exception{
-        int retryCounter = 0;
-        while(true){
-            try{
-                session.commit();
-                break;
-            }catch (TransactionRolledBackException rollbackException){
-                log.error("Producer got exception for commit(). Producer counter: " + counter, rollbackException);
-
-                // don't repeat this more than once, this can't happen
-                if (retryCounter > 2) {
-                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
-                            + " Client will terminate.", rollbackException);
-                }
-                counter -= messagesToCommit.size();
-
-                for (Message m : messagesToCommit) {
-                    sendMessage(producer,m);
-                }
-
-                retryCounter++;
-            }catch (JMSException jmsException){
-                log.warn(jmsException);
-                if (retryCounter > 0) {
-                    break;
-                }
-
-                counter -= messagesToCommit.size();
-
-                for (Message m : messagesToCommit) {
-                    sendMessage(producer,m);
-                }
-                retryCounter++;
-            }
-        }
-
-    }
 
     protected void addMessage(List<Map<String,String>> listOfSentMessages, Message message) throws JMSException {
         Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
@@ -229,11 +161,6 @@ public class ServletProducerTransAck extends HttpServlet {
         listOfSentMessages.add(mapOfPropertiesOfTheMessage);
     }
 
-    protected void addMessages(List<Map<String,String>> listOfSentMessages, List<Message> messages) throws JMSException {
-        for (Message m : messages)  {
-            addMessage(listOfSentMessages, m);
-        }
-    }
 
 
 }

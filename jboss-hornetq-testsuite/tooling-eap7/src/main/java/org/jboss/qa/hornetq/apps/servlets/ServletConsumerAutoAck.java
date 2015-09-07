@@ -12,7 +12,6 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.TransactionRolledBackException;
 import javax.naming.Context;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,30 +22,23 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Created by okalman on 8/10/15.
+ * Created by okalman on 9/3/15.
  */
 @WebServlet("/ServletConsumer")
-public class ServletConsumerTransAck extends HttpServlet{
-    private static final Logger log = Logger.getLogger(ServletConsumerTransAck.class.getName());
-    int commitAfter = 1;
+public class ServletConsumerAutoAck extends HttpServlet {
+    private static final Logger log = Logger.getLogger(ServletConsumerAutoAck.class.getName());
     String queueJNDIName = "jms/queue/targetQueue0";
     String host = "127.0.0.1";
     int port = 8080;
     String protocol = "http-remoting";
     long receiveTimeOut = 10000;
     int counter = 0;
-    int commitCounter=0;
     private static final int MAX_RETRIES = 20;
-    List<Message> messagesToCommit = new ArrayList<Message>();
     private static List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
-    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
-    private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
     private static int resultCount=0;
     private static String exceptions="";
 
@@ -80,11 +72,6 @@ public class ServletConsumerTransAck extends HttpServlet{
             writer.println(new ObjectMapper().writeValueAsString(listOfReceivedMessages));
             writer.close();
             return;
-        }
-        try {
-            commitAfter = (req.getParameter(ServletConstants.PARAM_COMMIT_AFTER) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_COMMIT_AFTER)) : 1;
-        }catch (NumberFormatException e){
-            log.error(e.toString());
         }
         try{
             port = (req.getParameter(ServletConstants.PARAM_PORT) != null) ? Integer.parseInt(req.getParameter(ServletConstants.PARAM_PORT)) : 8080;
@@ -121,28 +108,15 @@ public class ServletConsumerTransAck extends HttpServlet{
             ConnectionFactory cf = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
             connection = cf.createConnection();
             Queue queue = (Queue) context.lookup(queueJNDIName);
-            Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             MessageConsumer consumer = session.createConsumer(queue);
             connection.start();
             Message message = null;
             while ((message = receiveMessage(consumer)) !=null) {
-                messagesToCommit.add(message);
+                addMessage(listOfReceivedMessages,message);
                 counter++;
-                if ((counter % commitAfter) == 0) {
-                    if((commitCounter % 2) == 0 && commitCounter > 0){
-                        session.rollback();
-                        log.info("Receiver for node: " + host + ". Received message - count: "
-                                + counter + " SENT ROLLBACK");
-                        counter-=commitAfter;
-                        messagesToCommit.clear();
-                    }else{
-                        commitSession(session);
-                    }
-                    commitCounter++;
-                }
                 resultCount=counter;
             }
-            session.commit();
             resultCount=counter;
             log.info("Received: " + counter);
 
@@ -197,93 +171,7 @@ public class ServletConsumerTransAck extends HttpServlet{
     }
 
 
-    public void commitSession(Session session) throws Exception {
 
-        int numberOfRetries = 0;
-
-        while (numberOfRetries < MAX_RETRIES) {
-            try {
-
-                areThereDuplicatesInLaterDetection();
-
-                session.commit();
-
-                log.info("Receiver for node: " + host + ". Received message - count: "
-                        + counter + " SENT COMMIT");
-
-                addMessages(listOfReceivedMessages, messagesToCommit);
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Message m : messagesToCommit) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
-                }
-                log.debug("Adding messages: " + stringBuilder.toString());
-
-                return;
-
-            } catch (TransactionRolledBackException ex) {
-                log.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + host
-                        + ". Received message - count: " + counter + ", retrying receive", ex);
-                // all unacknowledge messges will be received again
-                ex.printStackTrace();
-                counter = counter - messagesToCommit.size();
-                setOfReceivedMessagesWithPossibleDuplicates.clear();
-
-                return;
-
-            } catch (JMSException ex) {
-                // we need to know which messages we got in the first try because we need to detect possible duplicates
-//                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
-                setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(messagesToCommit);
-
-                addMessages(listOfReceivedMessages, messagesToCommit);
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Message m : messagesToCommit) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
-                }
-                log.debug("Adding messages: " + stringBuilder.toString());
-
-                log.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + host
-                        + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
-                ex.printStackTrace();
-                numberOfRetries++;
-            } finally {
-                // we clear this list because next time we get new or duplicated messages and we compare it with set possible duplicates
-                messagesToCommit.clear();
-            }
-        }
-
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + host + " during acknowledge");
-    }
-
-    private boolean areThereDuplicatesInLaterDetection() throws JMSException {
-        boolean isDup = false;
-
-        Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Message m : messagesToCommit) {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
-        }
-        StringBuilder foundDuplicates = new StringBuilder();
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
-                foundDuplicates.append(m.getJMSMessageID());
-                counter -= 1;
-                // remove this duplicate from the list
-                List<Message> iterationList = new ArrayList<Message>(messagesToCommit);
-                for (Message receivedMessage : iterationList)    {
-                    if (receivedMessage.getStringProperty("_HQ_DUPL_ID").equals(m.getStringProperty("_HQ_DUPL_ID"))) {
-                        messagesToCommit.remove(receivedMessage);
-                    }
-                }
-
-                isDup = true;
-            }
-        }
-        if (!"".equals(foundDuplicates.toString())) {
-            log.info("Later detection found duplicates: " + foundDuplicates.toString());
-            log.info("List of messages to be added to list: " + messagesToCommit.toString());
-        }
-        return isDup;
-    }
     protected void addMessage(List<Map<String,String>> listOfReceivedMessages, Message message) throws JMSException {
         Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
         mapOfPropertiesOfTheMessage.put("messageId", message.getJMSMessageID());
@@ -300,10 +188,5 @@ public class ServletConsumerTransAck extends HttpServlet{
         listOfReceivedMessages.add(mapOfPropertiesOfTheMessage);
     }
 
-    protected void addMessages(List<Map<String,String>> listOfReceivedMessages, List<Message> messages) throws JMSException {
-        for (Message m : messages)  {
-            addMessage(listOfReceivedMessages, m);
-        }
-    }
 
 }
