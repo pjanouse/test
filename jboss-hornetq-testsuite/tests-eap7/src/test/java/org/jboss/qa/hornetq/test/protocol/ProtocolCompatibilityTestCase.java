@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Created by okalman on 8/27/15.
  */
-public class ProtocolCompatibilityTestCase extends HornetQTestCase {
+public abstract class ProtocolCompatibilityTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ProtocolCompatibilityTestCase.class);
 
