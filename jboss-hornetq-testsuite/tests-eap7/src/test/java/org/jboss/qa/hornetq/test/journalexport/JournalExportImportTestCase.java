@@ -78,8 +78,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
      * <li>Connect to the server with the client and send test messages to the
      * queue.</li>
      * <li>Shut the server down and export its HornetQ journal to XML file.</li>
-     * <li>Clean the server directories and start it again.</li>
-     * <li>Import the journal</li>
+     * <li>Clean the server directories and import journal again.</li>
+     * <li>Start the server</li>
      * <li>Read the messages from the queue.</li>
      * </ul>
      * @tpPassCrit All the test messages are successfully read and preserve all
