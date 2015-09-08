@@ -20,30 +20,22 @@ public class    ProcessIdUtils {
     private static final Logger log = Logger.getLogger(ProcessIdUtils.class);
 
     /**
-     * Returns -1 when server is not up.
-     *
      * @return pid of the server
      */
     public static long getProcessId(Container container) {
 
-        long pid;
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "platform-mbean");
+        model.get(ClientConstants.OP_ADDR).add("type", "runtime");
 
         try {
-            JMXConnector jmxConnector = container.getJmxUtils().getJmxConnectorForEap(container.getHostname(), container.getPort());
-
-            MBeanServerConnection mbsc =
-                    jmxConnector.getMBeanServerConnection();
-            ObjectName oname = new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME);
-
-            // form process_id@hostname (f.e. 1234@localhost)
-            String runtimeName = (String) mbsc.getAttribute(oname, "Name");
-
-            pid = Long.valueOf(runtimeName.substring(0, runtimeName.indexOf("@")));
-        } catch (Exception ex)  {
-            throw new RuntimeException("Getting process id failed: ", ex);
+            ModelNode result = ModelNodeUtils.applyOperation(container.getHostname(), container.getPort(), model);
+            String nodeName = result.get("result").get("name").asString();
+            return Long.valueOf(nodeName.substring(0, nodeName.indexOf("@")));
+        } catch (Exception e) {
+            throw new RuntimeException("Error while reading PID failed " + container.getName(), e);
         }
-
-        return pid;
     }
 
     /**
