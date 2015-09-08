@@ -1400,8 +1400,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        String filePath = result.asString();
-        return filePath;
+        String outcome = result.asString();
+        String[] split = outcome.split("\"");
+        if(split.length == 9){
+            return split[7];
+        }
+        return null;
     }
     
     /**

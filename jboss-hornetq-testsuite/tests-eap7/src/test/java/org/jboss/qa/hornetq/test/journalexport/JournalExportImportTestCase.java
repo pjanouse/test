@@ -20,7 +20,11 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.jboss.arquillian.config.descriptor.api.ContainerDef;
+import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.as.controller.client.ModelControllerClient;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
@@ -28,9 +32,11 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.OUTCOME;
 import static org.jboss.as.controller.client.helpers.ClientConstants.RESULT;
 import static org.jboss.as.controller.client.helpers.ClientConstants.SUCCESS;
 import org.jboss.dmr.ModelNode;
+import static org.jboss.qa.hornetq.HornetQTestCase.getArquillianDescriptor;
 import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
 
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  * Set of journal export/import tests.
@@ -130,6 +136,93 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         journalExportImportUtils.importJournal(container(1), EXPORTED_JOURNAL_FILE_NAME_PATTERN);
         container(1).start();
+        Message received;
+        try {
+            ctx = container(1).getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+            conn = factory.createConnection();
+            conn.start();
+
+            session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            MessageConsumer consumer = session.createConsumer(testQueue);
+
+            received = consumer.receive(RECEIVE_TIMEOUT);
+        } finally {
+            closeJmsConnection(ctx, conn, session);
+        }
+
+        assertNotNull("Received message should not be null", received);
+        assertNull("Tested property should be null", received.getStringProperty("test_property"));
+        assertTrue("Test message should be received as proper message type", received instanceof TextMessage);
+        assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
+    }
+
+    @Ignore
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportMessageWithNullPropertyUsingAdminOperation() throws Exception {
+
+        prepareServer(container(1));
+
+        container(1).start();
+
+        Context ctx = null;
+        Connection conn = null;
+        Session session = null;
+
+        try {
+            ctx = container(1).getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+            conn = factory.createConnection();
+
+            session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            MessageProducer producer = session.createProducer(testQueue);
+
+            Message msg = session.createTextMessage("Test text");
+            msg.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
+            msg.setStringProperty("test_property", null);
+            producer.send(msg);
+        } finally {
+            closeJmsConnection(ctx, conn, session);
+        }
+
+        container(1).stop();
+
+        Map<String, String> containerProperties = null;
+        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(container(1).getName())) {
+                    containerProperties = containerDef.getContainerProperties();
+                }
+            }
+        }
+
+        containerProperties.put("adminOnly", "true");
+
+        //start in admin-only mode
+        container(1).start(containerProperties);
+        JMSOperations ops = container(1).getJmsOperations();
+        String exportedJournalFile = ops.exportJournal();
+        ops.close();
+        container(1).stop();
+
+        // delete the journal file before we import it again
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+
+        containerProperties.replace("adminOnly", "false");
+        //start in normal mode
+        container(1).start(containerProperties);
+        ops = container(1).getJmsOperations();
+
+        ops.importJournal(exportedJournalFile);
+        ops.close();
+
         Message received;
         try {
             ctx = container(1).getContext();
