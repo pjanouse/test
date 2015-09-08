@@ -437,6 +437,12 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
 
+        HashMap<String, String> opts = new HashMap<String, String>();
+        opts.put("password-stacking", "useFirstPass");
+        opts.put("unauthenticatedIdentity","guest");
+        jmsAdminOperations.rewriteLoginModule("Remoting", opts);
+        jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
+        
         for (
                 int queueNumber = 0; queueNumber < 3; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
