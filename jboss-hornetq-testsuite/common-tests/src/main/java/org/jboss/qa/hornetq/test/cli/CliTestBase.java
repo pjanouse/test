@@ -29,7 +29,14 @@ public class CliTestBase extends HornetQTestCase {
                     cliClient.reload();
                 }
                 long startTime = System.currentTimeMillis();
-                while (!cliClient.executeCommand("/:read-attribute(name=server-state)").isSuccess())   {
+                while (true) {
+                    try {
+                        if (cliClient.executeCommand("/:read-attribute(name=server-state)").isSuccess()) {
+                            break;
+                        }
+                    } catch (Exception e) {
+                        // it can happen that the server is not active so try again
+                    }
                     Thread.sleep(500);
                     if (startTime - System.currentTimeMillis() > 15000) {
                         log.error("Problem with reload of the server. Server did not start in 15 seconds.");
