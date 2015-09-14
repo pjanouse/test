@@ -12,11 +12,10 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
-import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
@@ -31,10 +30,9 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
-@Ignore(value = "What is purpose of test?")
-public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
+public class ServerUnavailableTestCase extends HornetQTestCase {
 
-    private static final Logger log = Logger.getLogger(ServerNetworkUnavailableTestCase.class);
+    private static final Logger log = Logger.getLogger(ServerUnavailableTestCase.class);
 
     private static final int NUMBER_OF_DESTINATIONS = 1;
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
@@ -142,24 +140,6 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         testWithProducer(new TextMessageBuilder(1024 * 1024 * 20), false);
     }
 
-    /**
-     * Server A is stopped/killed.
-     */
-    @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>124",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testWithConsumer(MessageBuilder messageBuilder, boolean testKill) throws Exception {
 
         prepareServers();
@@ -187,7 +167,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         if (testKill) {
 
-            RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
+            RuleInstaller.installRule(ServerUnavailableTestCase.class);
             Thread.sleep(5000);
             log.info("############# Kill server 1.");
             container(1).waitForKill();
@@ -227,22 +207,6 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
     }
 
-
-    @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    condition = "readCounter(\"counter\")>124",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testWithProducer(MessageBuilder messageBuilder, boolean testKill) throws Exception {
 
         prepareServers();
@@ -264,7 +228,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         if (testKill) {
 
-            RuleInstaller.installRule(ServerNetworkUnavailableTestCase.class);
+            RuleInstaller.installRule(ServerUnavailableTestCase.class);
             Thread.sleep(10000);
             log.info("############# Kill server 1.");
             container(1).waitForKill();
@@ -311,8 +275,13 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
     }
 
     public void prepareServers() {
-        prepareServer(container(1));
-        prepareServer(container(2));
+        if (ContainerUtils.isEAP7(container(1))) {
+            prepareServerEAP7(container(1));
+            prepareServerEAP7(container(2));
+        } else {
+            prepareServerEAP6(container(1));
+            prepareServerEAP6(container(2));
+        }
     }
 
 
@@ -322,7 +291,7 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareServer(Container container) {
+    private void prepareServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -334,12 +303,6 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setClustered(true);
-
-        jmsAdminOperations.setJournalType("NIO");
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(false);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, container.MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
@@ -359,6 +322,49 @@ public class ServerNetworkUnavailableTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
+        }
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares server for topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareServerEAP7(Container container) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        int udpGroupPort = 9875;
+        int broadcastBindingPort = 56880;
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, container.MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), container.MCAST_ADDRESS, udpGroupPort, 10000);
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.disableSecurity();
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
