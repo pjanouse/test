@@ -16,9 +16,9 @@ import org.junit.runner.RunWith;
 /**
  * This is modified failover with mdb test case which is testing remote jca.
  * Tests JMS bridge failover deploy/un-deploy
- * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF CORE BRIDGES - TEST SCENARIOS
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-60-hornetq-ha-failover-bridges/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-bridges/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
  * @author mnovak@redhat.com
  */

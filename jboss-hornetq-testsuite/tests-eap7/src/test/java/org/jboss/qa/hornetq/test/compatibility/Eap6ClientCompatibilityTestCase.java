@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @tpChapter Backward compatibility testing
  * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-client-compatability-EAP-6x-matrix/
- * @tpTcmsLink tbd
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpTestCaseDetails Test older EAP6 JMS client against latest EAP 7.x server, this test case implements tests from
  * ClientCompatibilityTestBase
  * @author mnovak@redhat.com

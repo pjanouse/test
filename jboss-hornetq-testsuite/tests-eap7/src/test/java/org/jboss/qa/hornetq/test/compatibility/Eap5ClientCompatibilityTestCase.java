@@ -50,7 +50,7 @@ import java.util.Map;
  * @tpChapter Backward compatibility testing
  * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
  * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpTestCaseDetails Test older EAP5 JMS client against latest EAP 7.x server, this test case also implements tests from
  * ClientCompatibilityTestBase
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;

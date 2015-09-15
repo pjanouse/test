@@ -42,6 +42,11 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ * 
+ * @tpChapter PERFORMANCE TESTING
+ * @tpSubChapter HORNETQ SOAK TEST
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-soak-test/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19046/activemq-artemis-performance#testcases
  */
 @RunWith(Arquillian.class)
 public class NewSoakTestCase extends HornetQTestCase {
@@ -124,8 +129,25 @@ public class NewSoakTestCase extends HornetQTestCase {
     public static Archive getDeploymentForContainer2() {
         return createArchiveForContainer(CONTAINER2_NAME);
     }
-
-
+    /**
+     * @tpTestDetails Two EAP 7 containers are started. Client sends messages to
+     * one of them, where the messages go through various destinations and
+     * components between servers. Client then reads the messages again from the
+     * output destinations, see if all of the messages are available as
+     * expected.
+     *
+     * @tpProcedure <ul>
+     * <li>Client sends messages to input queue. Messages then go through:</li>
+     *   <ul>
+     *      <li>one server to another through MDB reading and sending them from remote container through resource adapter</li>
+     *      <li>messages are forwarded from one server to another over JMS bridge and back over Core bridge</li>
+     *      <li>messages have JMSReplyTo defined with a temporary queue, that is filled with responses for the client</li>
+     *      <li>messages are read from the destination with stateless EJB and sent back to clients</li>
+     *   </ul>
+     * <li>Client reads the messages after the pass through all the soak modules.</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest

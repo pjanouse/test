@@ -40,10 +40,8 @@ import java.util.Map;
  * @author mnovak@redhat.com
  * @tpChapter Integration testing
  * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIOS
- * @tpJobLink
- * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh/
- * @tpTcmsLink
- * https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
 @RunWith(Arquillian.class)
 public class RemoteJcaTestCase extends HornetQTestCase {
@@ -142,18 +140,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * OutQueue from 1,2
      * @tpProcedure <ul>
      * <li>start 2 servers with deployed InQueue and OutQueue</li>
-<<<<<<< HEAD
      * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
      * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
      * <li>start producer which sends messagese to InQueue to first 2 server</li>
-=======
-     * <li>start 2 servers which have configured HornetQ RA to connect to first
-     * 2 servers</li>
-     * <li>deploy MDB to other servers which reads messages from InQueue and
-     * sends to OutQueue</li>
-     * <li>start producer which sends messagese to InQueue to first 2
-     * server</li>
->>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
+     * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
+     * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
@@ -221,17 +213,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * from InQueue and sends them to OutQueue. Read messages from OutQueue
      * @tpProcedure <ul>
      * <li>start first server with deployed InQueue and OutQueue</li>
-<<<<<<< HEAD
      * <li>start second server which has configured HornetQ RA to connect to first server</li>
      * <li>start producer which sends messages to InQueue</li>
      * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
-=======
-     * <li>start second server which has configured HornetQ RA to connect to
-     * first server</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
      * <li>start producer which sends messages to InQueue</li>
-     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends
-     * to OutQueue</li>
->>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
      * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
@@ -503,15 +490,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      * OutQueue on server2. messages to inQueue
      * @tpProcedure <ul>
      * <li>start 3 servers in cluster with deployed InQueue and OutQueue</li>
-<<<<<<< HEAD
      * <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
      * <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
-=======
-     * <li>kill server 2 and start it again with container properties including
-     * connection parameters for MDB</li>
-     * <li>deploy MDB to server 2 which reads messages from InQueue on server 1
-     * and sends to OutQueue</li>
->>>>>>> e5d673f3165e428940eef341ee49cd6692e833db
+     * <li>kill server 2 and start it again with container properties including connection parameters for MDB</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue on server 1 and sends to OutQueue</li>
      * <li>start producer which sends messages to InQueue to server 1</li>
      * <li>receive messages from OutQueue on server 3</li>
      * </ul>

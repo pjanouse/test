@@ -17,6 +17,10 @@ import org.junit.Test;
 
 import javax.jms.*;
 import javax.naming.Context;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
 /**
  * Created by mnovak on 9/22/14.
@@ -29,12 +33,13 @@ import javax.naming.Context;
  *
  * @tpChapter Functional testing
  * @tpSubChapter MESSAGE CONTENT - TEST SCENARIOS
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
  * @tpTestCaseDetails Tests whether there is duplicate id cache leak when queue is
  * created and deleted many times. This is basically JMS request/reply with JMS
  * standalone org.jboss.qa.hornetq.apps.clients. 
  */
+@RunWith(Arquillian.class)
+@Category(FunctionalTests.class)
 public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DuplicateIdCacheSizeTestCase.class);

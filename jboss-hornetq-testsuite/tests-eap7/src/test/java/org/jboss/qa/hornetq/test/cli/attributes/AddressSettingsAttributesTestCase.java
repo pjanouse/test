@@ -26,8 +26,9 @@ import java.util.Properties;
  * 
  * @tpChapter Integration testing
  * @tpSubChapter Administration of HornetQ component
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Test address settings attributes: Tested attributes :
  * address-full-policy, dead-letter-address, expiry-address, last-value-queue,
  * max-delivery-attempts, max-size-bytes, message-counter-history-day-limit,

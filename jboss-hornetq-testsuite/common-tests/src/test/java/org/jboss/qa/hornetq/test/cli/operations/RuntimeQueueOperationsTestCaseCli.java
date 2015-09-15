@@ -30,8 +30,9 @@ import javax.naming.Context;
  *
  * @tpChapter Integration testing
  * @tpSubChapter Administration of HornetQ component
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpSince EAP6
  * @tpTestCaseDetails Test case simulates using CLI queue operations.There is
  * only 1 server with deployed queue and CLI queue operations are executed.

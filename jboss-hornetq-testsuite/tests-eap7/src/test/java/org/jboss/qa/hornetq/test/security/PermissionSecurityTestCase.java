@@ -44,8 +44,8 @@ import java.util.HashMap;
  *
  * @tpChapter Security testing
  * @tpSubChapter HORNETQ ADDRESS SETTINGS AUTHENTICATION
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Test security permissions to queues and topic. Create 3
  * users on the server - admin, user and guest. Create address settings for all
  * destinations (mask #) as follows: guest can send and receive, user can send,

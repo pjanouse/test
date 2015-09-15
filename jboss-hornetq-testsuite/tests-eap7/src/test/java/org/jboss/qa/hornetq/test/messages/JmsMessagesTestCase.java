@@ -39,8 +39,8 @@ import static org.junit.Assert.*;
  *
  * @tpChapter Functional testing
  * @tpSubChapter MESSAGE CONTENT - TEST SCENARIOS
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails Tests for creating and manipulating messages.
  *
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;

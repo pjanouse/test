@@ -33,8 +33,9 @@ import org.junit.runner.RunWith;
 /**
  * @tpChapter Integration testing
  * @tpSubChapter Administration of HornetQ component
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails One server with deployed queue is started. Some messages
  * are send to queue and correct number of delivering/scheduled messages is
  * checked.

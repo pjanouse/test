@@ -9,11 +9,11 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  *
  * Tests failover of remote JCA and replicated journal.
  *
- * @tpChapter Recovery/Failover testing
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-replicated-journal/
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-replicated-journal-win/
- * @tpTcmsLink tbd
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
  * @tpTestCaseDetails Tests failover of remote JCA and replicated journal with BLOCK policy.
  * This test case implements the same tests as ReplicatedDedicatedFailoverTestWithMdb
  */

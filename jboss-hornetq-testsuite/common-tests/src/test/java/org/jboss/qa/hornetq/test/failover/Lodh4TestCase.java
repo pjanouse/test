@@ -30,10 +30,8 @@ import static org.junit.Assert.assertTrue;
  * Topology - 1,3 - source containers, 2,4 - target containers
  *
  * @tpChapter RECOVERY/FAILOVER TESTING
- * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
- * @tpJobLink
- *            https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
- *            /
+ * @tpSubChapter HORNETQ CORE BRIDGES - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh4/  
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)

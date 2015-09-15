@@ -40,8 +40,9 @@ import java.util.Properties;
  *
  * @tpChapter Integration testing
  * @tpSubChapter Administration of HornetQ component
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Try to read and write values to topic
  * attributes. Tested attributes : delivering-count, durable-message-count,
  * durable-subscription-count, entries, message-count, messages-added,

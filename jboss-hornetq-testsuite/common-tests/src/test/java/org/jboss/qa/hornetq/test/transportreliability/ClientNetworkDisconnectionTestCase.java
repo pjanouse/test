@@ -34,10 +34,11 @@ import java.util.List;
  * <p/>
  * This test also serves
  *
- * @tpChapter tbd
- * @tpSubChapter tbd
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpChapter Functional testing
+ * @tpSubChapter  CLOSE CONNECTIONS - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails This test case simulates network failure and tests whether
  * client is disconnected after network fail. There is only one server with
  * deployed topic. Clients are connected and network error is caused.

@@ -37,10 +37,10 @@ import java.util.List;
 /**
  * This is modified failover with mdb test case which is testing remote jca.
  *
- * @tpChapter Recovery/Failover testing
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF HORNETQ RESOURCE ADAPTER WITH SHARED STORE AND REPLICATED JOURNAL IN DEDICATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-mdb/
- * @tpTcmsLink tbd
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
  * @tpTestCaseDetails This is modified failover with mdb test case which is
  * testing remote jca. There are two servers in dedicated HA topology and MDB
  * deployed on another server. Live server is shutdown/killed and correct

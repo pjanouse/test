@@ -39,12 +39,13 @@ import org.junit.runner.RunWith;
 /**
  *
  * @tpChapter Integration testing
- * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIONS
+ * @tpSubChapter HORNETQ RESOURCE ADAPTER - TEST SCENARIOS
  * @tpTestCaseDetails Test case focuses on defining destinations and connection
  * factories using Java EE annotations "@JMSConnectionFactoryDefinition"
  * ,"@JMSDestinationDefinition".
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @author mstyk
  */
 @RunWith(Arquillian.class)

@@ -23,10 +23,11 @@ import javax.management.remote.JMXConnector;
 import java.lang.reflect.Method;
 
 /**
- * @tpChapter tbd
- * @tpSubChapter tbd
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpChapter Functional testing
+ * @tpSubChapter  CLOSE CONNECTIONS - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails This test case is focused on testing management operations
  * to allow forced client disconnection by user name. There is one
  * server running with connected clients. Based on user name, clients

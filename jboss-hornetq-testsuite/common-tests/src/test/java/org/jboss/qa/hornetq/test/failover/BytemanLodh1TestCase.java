@@ -44,8 +44,8 @@ import static org.junit.Assert.assertTrue;
  * @author msvehla@redhat.com
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-xa-transactions
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-xa-transactions/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpSince EAP6
  */
 @RunWith(Arquillian.class)

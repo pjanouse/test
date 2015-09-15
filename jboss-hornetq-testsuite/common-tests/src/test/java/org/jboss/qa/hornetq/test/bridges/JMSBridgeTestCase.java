@@ -26,10 +26,10 @@ import java.util.Random;
 
 /**
  * @author mnovak@redhat.com
- * @tpChapter   BACKWARD COMPATIBILITY TESTING
+ * @tpChapter Backward compatibility testing
  * @tpSubChapter COMPATIBILITY OF JMS BRIDGES - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-journal-and-jms-bridge-compatibility-matrix/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5534/hornetq-integration#testcases
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
 public class JMSBridgeTestCase extends HornetQTestCase {
 
@@ -198,7 +198,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     public void     testBridge(Container inServer, Container outServer, String qualityOfService) throws Exception {
 
         prepareServers(inServer, outServer, qualityOfService);
-        inServer.start();
+            inServer.start();
         outServer.start();
 
         Thread.sleep(10000);

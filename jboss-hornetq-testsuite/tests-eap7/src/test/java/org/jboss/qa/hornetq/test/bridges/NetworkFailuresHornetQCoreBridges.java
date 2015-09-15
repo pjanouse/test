@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * @author mnovak@redhat.com
  * @tpChapter RECOVERY/FAILOVER TESTING
- * @tpSubChapter Network failure of HornetQ core bridges - test scenarios
+ * @tpSubChapter NETWORK FAILURE OF HORNETQ CORE BRIDGES - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpSince EAP6

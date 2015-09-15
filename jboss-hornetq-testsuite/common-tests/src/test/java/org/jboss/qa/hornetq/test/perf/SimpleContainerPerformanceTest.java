@@ -49,10 +49,10 @@ import static org.junit.Assert.fail;
  * <li>performance.large_messages_length - length of the large messages (kb)</li>
  * </ul>
  * 
- * @tpChapter PERFORMANTCE TESTING
+ * @tpChapter PERFORMANCE TESTING
  * @tpSubChapter HORNETQ LOAD TEST
  * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19046/activemq-artemis-performance#testcases
  * @tpTestCaseDetails Basic performance tests which are executed inside container.
  * MDB consumes messages from inQueue and sends them back. After defined count
  * of cycles calculates time and sends messages into the outQueue. Test client

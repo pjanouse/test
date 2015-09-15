@@ -26,8 +26,8 @@ import java.io.IOException;
  * 
  * @tpChapter Security testing
  * @tpSubChapter HORNETQ ADDRESS SETTINGS FILTERS
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Tests for security settings for various address filters.
  * Set security settings only on destinations with given filter mask through
  * <adress-settings> element in standalone.xml. Tests check if the user is

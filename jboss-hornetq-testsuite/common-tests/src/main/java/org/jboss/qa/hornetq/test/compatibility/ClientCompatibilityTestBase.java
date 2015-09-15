@@ -28,8 +28,8 @@ import javax.jms.Session;
 /**
  * @tpChapter Backward compatibility testing
  * @tpSubChapter COMPATIBILITY OF JMS CLIENTS - TEST SCENARIOS
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-client-compatability-EAP-6x-matrix/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpTestCaseDetails Test base class for older client compatibility against EAP7.
  * ClientCompatibilityTestBase
  */

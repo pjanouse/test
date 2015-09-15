@@ -28,8 +28,6 @@ import java.util.concurrent.Semaphore;
 import static org.junit.Assert.fail;
 
 /**
- * Test case covers tests for durable subscribers with the different speed page address full mode.
- * <p/>
  *
  * @author pslavice@redhat.com
  * TODO

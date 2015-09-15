@@ -37,6 +37,10 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
  *
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter NETWORK FAILURE TESTING IN REPLICATED JOURNAL - TEST SCENARIOS
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-replicated-journal-network-failures/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
  */
 @RunWith(Arquillian.class)
 public abstract class JournalReplicationAbstract extends HornetQTestCase {

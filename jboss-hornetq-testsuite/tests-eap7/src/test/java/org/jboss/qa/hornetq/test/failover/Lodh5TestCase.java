@@ -38,13 +38,9 @@ import org.apache.commons.io.FileUtils;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
- * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH RESOURCE ADAPTER - TEST
- * SCENARIOS (LODH SCENARIOS)
- * @tpJobLink
- * https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-6-hornetq-qe-internal-ts-lodh
- * /
- * @tpTcmsLink
- * https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh5/           /
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest

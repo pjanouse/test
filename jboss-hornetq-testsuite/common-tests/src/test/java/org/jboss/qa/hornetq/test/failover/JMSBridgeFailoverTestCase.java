@@ -27,10 +27,10 @@ import java.util.Map;
 
 /**
  * Tests JMS bridge failover deploy/un-deploy
- * @tpChapter   RECOVERY/FAILOVER TESTING
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF JMS BRIDGES - TEST SCENARIOS
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/_eap-60-hornetq-ha-failover-bridges/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
+ * @tpJobLink  https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-bridges/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
  */
 @RunWith(Arquillian.class)
 public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {

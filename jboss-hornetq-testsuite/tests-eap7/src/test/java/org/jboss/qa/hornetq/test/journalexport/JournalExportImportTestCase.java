@@ -43,8 +43,9 @@ import org.junit.Ignore;
  *
  * @tpChapter Functional testing
  * @tpSubChapter JOURNAL XML EXPORT/IMPORT TOOL
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpTestCaseDetails Tests for ActiveMQ journal export tool. These tests send
  * messages with various properties to ActiveMQ, let ActiveMQ to write them into
  * the journal, shut down the server, start it again and read the message and
@@ -159,7 +160,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
-    @Ignore
     @Test
     @RunAsClient
     @CleanUpBeforeTest

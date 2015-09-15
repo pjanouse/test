@@ -48,11 +48,10 @@ import java.util.*;
  * @author mnovak@redhat.com
  * @author msvehla@redhat.com
  *
- * @tpChapter Recovery/Failover testing
- * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER -
- * TEST SCENARIOS (LODH SCENARIOS)
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpChapter RECOVERY/FAILOVER TESTING
+ * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-xa-transactions/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases 
  * @tpSince EAP6
  * @tpTestCaseDetails Test case simulates server crashes and capability to
  * recover with XA transaction. There are 4 servers. First 2 servers are in

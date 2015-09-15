@@ -45,10 +45,10 @@ import static org.junit.Assert.assertTrue;
  * problems.
  * <p/>
  * 
- * @tpChapter Recovery/Failover testing
+ * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter NETWORK FAILURE OF HORNETQ CORE BRIDGES - TEST SCENARIOS
- * @tpJobLink tbd
- * @tpTcmsLink tbd
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails Basic tests for transfer messages over core-bridge. Here
  * is tested whether all messages are delivered if one source/target server is
  * killed/shutdown or when there are network problems.
