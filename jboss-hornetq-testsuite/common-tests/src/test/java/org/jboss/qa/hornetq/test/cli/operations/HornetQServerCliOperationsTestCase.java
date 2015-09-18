@@ -111,7 +111,7 @@ import static org.junit.Assert.*;
 public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+    public Timeout timeout = new Timeout(400000);
 
     private static final Logger logger = Logger.getLogger(HornetQServerCliOperationsTestCase.class);
 
