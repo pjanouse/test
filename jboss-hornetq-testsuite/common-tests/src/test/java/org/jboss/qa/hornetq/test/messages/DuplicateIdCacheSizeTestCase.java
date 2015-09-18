@@ -39,7 +39,6 @@ import org.junit.runner.RunWith;
  * standalone org.jboss.qa.hornetq.apps.clients. 
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
 public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DuplicateIdCacheSizeTestCase.class);
