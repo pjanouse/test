@@ -3,19 +3,18 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
@@ -110,6 +109,32 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
         String address = getAddress();
 
         writeReadAttributeTest(address, "/hornetqCoreBridgeAttributes.txt");
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void reloadServerTest() throws InterruptedException {
+
+        for (int i = 0; i < 100; i++) {
+
+            try {
+                CLI cli = CLI.newInstance();
+                Thread.sleep(1000);
+                logger.info("!!!!!!!!!!!!!!!!!!! Connect !!!!!!!!!!!!!!!!!!!!!!");
+                cli.connect(cliConf.getHost(), cliConf.getPort(), cliConf.getUser(), cliConf.getPassword());
+                logger.info("!!!!!!!!!!!!!!!!!!! Reload !!!!!!!!!!!!!!!!!!!!!!");
+                cli.cmd("reload");
+                logger.info("!!!!!!!!!!!!!!!!!!! Disconnect !!!!!!!!!!!!!!!!!!!!!!");
+                cli.disconnect();
+                logger.info("!!!!!!!!!!!!!!!!!!! Done !!!!!!!!!!!!!!!!!!!!!!");
+
+                Assert.assertTrue(CheckServerAvailableUtils.waitHornetQToAlive(cliConf.getHost(), cliConf.getPort(), 15000));
+            } catch (IllegalStateException e) {
+                // do nothing
+            }
+        }
     }
 
     private String getAddress() {
