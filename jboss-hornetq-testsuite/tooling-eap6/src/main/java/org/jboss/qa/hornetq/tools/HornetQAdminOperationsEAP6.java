@@ -4031,6 +4031,23 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public boolean isActive(String serverName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("active");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Boolean.valueOf(result.get("result").asString());
+    }
+
     @Override
     public String  getSocketBindingAtributes(String socketBindingName) {
 

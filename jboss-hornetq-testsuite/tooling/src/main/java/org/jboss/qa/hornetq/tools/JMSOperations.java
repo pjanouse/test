@@ -1368,6 +1368,13 @@ public interface JMSOperations {
     void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value);
 
     /**
+     *
+     * @param serverName
+     * @return check whether server (HornetQ/Artemis) is active or not
+     */
+    boolean isActive(String serverName);
+
+    /**
      * Set old(true) or new failover model(false)
      *
      * @param keepOldFailover          false to activate it

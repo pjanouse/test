@@ -1483,8 +1483,8 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
 //        DomainServerGroup serverGroup1 = domain.serverGroup("server-group-1");
 //        DomainServerGroup serverGroup2 = domain.serverGroup("server-group-2");
 //
-//        prepareLiveServer(serverGroup1, domain.getHostname(), JOURNAL_DIRECTORY_A);
-//        prepareBackupServer(serverGroup2, domain.getHostname(), JOURNAL_DIRECTORY_A);
+//        prepareLiveServerEAP6(serverGroup1, domain.getHostname(), JOURNAL_DIRECTORY_A);
+//        prepareBackupServerEAP6(serverGroup2, domain.getHostname(), JOURNAL_DIRECTORY_A);
 //
 //        serverGroup1.startAllNodes();
 //        deployDestinations(serverGroup1);

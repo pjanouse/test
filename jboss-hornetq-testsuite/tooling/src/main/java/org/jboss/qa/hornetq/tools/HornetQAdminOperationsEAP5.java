@@ -1958,6 +1958,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public boolean isActive(String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return false;
+    }
+
     /**
      * Set old(true) or new failover model(false)
      *

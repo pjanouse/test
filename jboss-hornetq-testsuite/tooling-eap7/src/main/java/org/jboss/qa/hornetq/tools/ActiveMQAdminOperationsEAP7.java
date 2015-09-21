@@ -2451,10 +2451,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
-        model.get("name").set("connector");
-        ModelNode modelnew = createModelNode();
-        modelnew.get(connectorName).clear();
-        model.get("value").set(modelnew);
+        model.get("name").set("connectors");
+        List<String> connectors = new ArrayList<String>();
+        connectors.add(connectorName);
+        model.get("value").set(createModelNodeForList(connectors));
 
         System.out.println(model.toString());
 
@@ -4228,6 +4228,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         return result.get("result").asString().substring(1, result.get("result").asString().length() - 2);
     }
 
+    @Override
+    public boolean isActive(String serverName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get("name").set("active");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Boolean.valueOf(result.get("result").asString());
+    }
+
     /**
      * Set old(true) or new failover model(false)
      *
@@ -5524,6 +5540,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
+            System.out.println(jmsAdminOperations.isActive("default"));
             // jmsAdminOperations.setPersistenceEnabled(true);
             // jmsAdminOperations.removeAddressSettings("#");
             // jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
@@ -5546,24 +5563,24 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             // String remoteConnectorName = "netty-remote";
             // String messagingGroupSocketBindingName = "messaging-group";
             // String inVmHornetRaName = "local-hornetq-ra";
-            String bridgeName = "myBridge";
-            String sourceConnectionFactory = "java:/ConnectionFactory";
-            String sourceDestination = "jms/queue/InQueue";
-
-            String targetConnectionFactory = "jms/RemoteConnectionFactory";
-            String targetDestination = "jms/queue/OutQueue";
-            Map<String, String> targetContext = new HashMap<String, String>();
-            targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:10080");
-
-            Map<String, String> sourceContext = new HashMap<String, String>();
-            sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-            sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:8080");
-            // Map<String,String> sourceContext = null;
-            String qualityOfService = "ONCE_AND_ONLY_ONCE";
-
-            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
-                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1, 10, 100, true);
+//            String bridgeName = "myBridge";
+//            String sourceConnectionFactory = "java:/ConnectionFactory";
+//            String sourceDestination = "jms/queue/InQueue";
+//
+//            String targetConnectionFactory = "jms/RemoteConnectionFactory";
+//            String targetDestination = "jms/queue/OutQueue";
+//            Map<String, String> targetContext = new HashMap<String, String>();
+//            targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+//            targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:10080");
+//
+//            Map<String, String> sourceContext = new HashMap<String, String>();
+//            sourceContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+//            sourceContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + "127.0.0.1:8080");
+//            // Map<String,String> sourceContext = null;
+//            String qualityOfService = "ONCE_AND_ONLY_ONCE";
+//
+//            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext,
+//                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, 1000, -1, 10, 100, true);
 
             // System.out.println(jmsAdminOperations.getJournalLargeMessageDirectoryPath());
 

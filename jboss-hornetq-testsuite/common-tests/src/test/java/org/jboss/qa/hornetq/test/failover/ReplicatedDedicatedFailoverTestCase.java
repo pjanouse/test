@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-replicated-journal/
@@ -51,12 +50,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * replicated journal. Live server is killed just before message and  transactional data about producer's incoming
      * message are written into journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -79,12 +78,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * replicated journal. Live server is killed after message is written in to journal, but before transactional data
      * about producer's incoming message are written.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -107,12 +106,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when commit is sent to journal and NOT stored.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before commit is written to journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills server just before commit is written to journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -128,16 +127,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void replicatedTestFailoverTransAckQueueCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
+
     /**
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when commit is sent to journal and stored.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills server after commit is written to journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills server after commit is written to journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -160,12 +160,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when commit is witten in to backup's journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills live server after commit is written to backup's journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills live server after commit is written to backup's journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -188,12 +188,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when message is received but not acked.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills live server after message is received but not acked</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills live server after message is received but not acked</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -215,12 +215,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed before commit of received message is stored in journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -240,12 +240,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when after commit of received message is stored in journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -266,12 +266,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when after commit of received message is stored in backup's journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -315,12 +315,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * replicated journal. Live server is killed just before message and  transactional data about producer's incoming
      * message are written into journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -343,12 +343,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * replicated journal. Live server is killed after message is written in to journal, but before transactional data
      * about producer's incoming message are written.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -370,12 +370,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when commit is sent to journal and NOT stored.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before commit is written to journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills server just before commit is written to journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -396,12 +396,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when commit is sent to journal and stored.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills server after commit is written to journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills server after commit is written to journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -427,12 +427,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when after commit of sent message is stored in backup's journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills live after before commit of sent message is stored in backup's journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills live after before commit of sent message is stored in backup's journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -454,12 +454,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when message is received but not acked.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills live server after message is received but not acked</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills live server after message is received but not acked</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -482,12 +482,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed before commit of received message is stored in journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills live server before commit of received message is stored in journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -507,12 +507,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when after commit of received message is stored in journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills live after before commit of received message is stored in journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -533,12 +533,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @tpTestDetails This test scenario tests failover of clients connected to server in dedicated topology with
      * replicated journal. Live server is killed when after commit of received message is stored in backup's journal.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testTopic on node-1 and receiving them from testTopic on node-1</li>
+     * <li>Install Byteman rule, which kills live after before commit of received message is stored in backup's journal/li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -561,14 +561,14 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @throws Exception
      * @tpTestDetails This test scenario tests if clients are not blocked, when backup fails during synchronization.
      * @tpProcedure <ul>
-     *     <li>Configure 2 nodes to dedicated topology</li>
-     *     <li>Start live (node-1) and send 1GB of large-messages</li>
-     *     <li>Start other producer, sending messages to node-1</li>
-     *     <li>Start consumer, receiving messages from node-1</li>
-     *     <li>Start backup (node-2) and wait until synchronization starts</li>
-     *     <li>Shut down node-2</li>
-     *     <li>Check if clients still send and receive messages</li>
-     *     </ul>
+     * <li>Configure 2 nodes to dedicated topology</li>
+     * <li>Start live (node-1) and send 1GB of large-messages</li>
+     * <li>Start other producer, sending messages to node-1</li>
+     * <li>Start consumer, receiving messages from node-1</li>
+     * <li>Start backup (node-2) and wait until synchronization starts</li>
+     * <li>Shut down node-2</li>
+     * <li>Check if clients still send and receive messages</li>
+     * </ul>
      * @tpPassCrit clients are not blocked after backup shutdown
      */
     @Test
@@ -634,7 +634,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Backup started - synchronization with live will started now.");
 
         // put here some safe time, replication cannot be finished - lets say is a safe value producerFinishTime/2
-        Thread.sleep(producerFinishTime/2);
+        Thread.sleep(producerFinishTime / 2);
 
         // during synchronization live-> backup stop backup (it takes 2 min for live disconnect backup and org.jboss.qa.hornetq.apps.clients continue to work)
         logger.info("Stop backup server - synchronization with live must be in progress now.");
@@ -686,33 +686,13 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container(1).stop();
     }
 
-
-    /**
-     * Prepare two servers in simple dedicated topology.
-     *
-     * @throws Exception
-     */
-    public void prepareSimpleDedicatedTopology() throws Exception {
-        prepareLiveServer(container(1));
-        prepareBackupServer(container(2));
-    }
-
-    protected void prepareLiveServer(Container container) {
-        
-        prepareLiveServer(container, ASYNCIO_JOURNAL_TYPE, false);
-        
-    }
-
-    /**
-     * When message is sent and not stored into journal.
-     */
-
     /**
      * Prepares live server for dedicated topology.
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(Container container, String journalType, boolean useNIOConnectors) {
+    @Override
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -725,17 +705,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (useNIOConnectors)   {
+        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
             // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
+            Map<String, String> connectorParams = new HashMap<String, String>();
+            connectorParams.put("use-nio", "true");
+            connectorParams.put("use-nio-global-worker-pool", "true");
             jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
 
             // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
+            Map<String, String> acceptorParams = new HashMap<String, String>();
+            acceptorParams.put("use-nio", "true");
             jmsAdminOperations.removeRemoteAcceptor(connectorName);
             jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
 
@@ -819,16 +799,98 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.stop();
     }
 
-    protected void prepareBackupServer(Container container) {
-        prepareBackupServer(container, ASYNCIO_JOURNAL_TYPE, false);
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container     The container - defined in arquillian.xml
+     * @param journalType   ASYNCIO, NIO
+     * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
+     */
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+
+        String messagingGroupSocketBindingForConnector = "messaging";
+        String nettyConnectorName = "netty";
+        String nettyAcceptorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String clusterGroupName = "my-cluster";
+        int defaultPortForMessagingSocketBinding = 5445;
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setJournalType(journalType);
+
+        switch (connectorType) {
+            case HTTP_CONNECTOR:
+                break;
+            case NETTY_BIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with BIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                // add acceptor wtih BIO
+                Map<String, String> acceptorParams = new HashMap<String, String>();
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            case NETTY_NIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
+                connectorParamsNIO.put("use-nio", "true");
+                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
+                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
+
+                // add acceptor with NIO
+                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
+                acceptorParamsNIO.put("use-nio", "true");
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            default:
+                break;
+        }
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterGroupName, clusterGroupName);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+        jmsAdminOperations.close();
+        container.stop();
     }
 
-        /**
-         * Prepares backup server for dedicated topology.
-         *
-         * @param container Test container - defined in arquillian.xml
-         */
-    protected void prepareBackupServer(Container container, String journalType, boolean useNIOConnectors) {
+    /**
+     * Prepares backup server for dedicated topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -843,17 +905,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (useNIOConnectors)   {
+        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
             // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
+            Map<String, String> connectorParams = new HashMap<String, String>();
+            connectorParams.put("use-nio", "true");
+            connectorParams.put("use-nio-global-worker-pool", "true");
             jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
 
             // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
+            Map<String, String> acceptorParams = new HashMap<String, String>();
+            acceptorParams.put("use-nio", "true");
             jmsAdminOperations.removeRemoteAcceptor(connectorName);
             jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
 
@@ -943,6 +1005,98 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.stop();
     }
 
+    /**
+     * Prepares backup server for dedicated topology.
+     *
+     * @param container     The container - defined in arquillian.xml
+     * @param journalType   ASYNCIO, NIO
+     * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or HTTP connector
+     */
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+
+        String messagingGroupSocketBindingForConnector = "messaging";
+        String nettyConnectorName = "netty";
+        String nettyAcceptorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        int defaultPortForMessagingSocketBinding = 5445;
+        String clusterGroupName = "my-cluster";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        switch (connectorType) {
+            case HTTP_CONNECTOR:
+                break;
+            case NETTY_BIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with BIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                // add acceptor wtih BIO
+                Map<String, String> acceptorParams = new HashMap<String, String>();
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            case NETTY_NIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
+                connectorParamsNIO.put("use-nio", "true");
+                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
+                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
+
+                // add acceptor with NIO
+                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
+                acceptorParamsNIO.put("use-nio", "true");
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            default:
+                break;
+        }
+        jmsAdminOperations.setJournalType(journalType);
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+
+        jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterGroupName, 1000, clusterGroupName, 60, true, false, null, null, null, null);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
+        jmsAdminOperations.close();
+
+        container.stop();
+    }
+
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {
         setAddressSettings("default", jmsAdminOperations);
     }
@@ -951,122 +1105,4 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
     }
 
-    /**
-     * Start simple failback test with trans_ack on queues
-     */
-    /**
-     * @throws Exception
-     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with replicated journal using NIO
-     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
-     * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
-     * </ul>
-     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
-    }
-
-
-    /**
-     * @throws Exception
-     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with replicated journal using NIO
-     * journal type and clean shut down. Clients are using SESSION_TRANSACTED sessions.
-     *
-     * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
-     * </ul>
-     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
-    }
-
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    /**
-     * @throws Exception
-     * @tpTestDetails This scenario tests simple failover on Dedicated topology with replicated journal using NIO
-     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
-     * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
-     * </ul>
-     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, false, false, false);
-    }
-
-    /**
-     * Start simple failover test with trans_ack on queues
-     */
-    /**
-     * @throws Exception
-     * @tpTestDetails This scenario tests simple failover on Dedicated topology with replicated journal using NIO
-     * journal type and clean shut down. Clients are using SESSION_TRANSACTED sessions.
-     *
-     * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
-     * </ul>
-     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServer(container(1), NIO_JOURNAL_TYPE, true);
-        prepareBackupServer(container(2), NIO_JOURNAL_TYPE, true);
-        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, false, false, true);
-    }
-    
 }

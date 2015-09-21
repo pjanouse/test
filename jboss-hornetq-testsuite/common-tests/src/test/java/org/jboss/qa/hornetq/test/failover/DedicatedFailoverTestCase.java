@@ -695,13 +695,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     protected void waitHornetQBackupToBecomePassive(Container container, int port, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
-        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), port)) {
+//        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), port)) {
+        JMSOperations jmsOperations = container.getJmsOperations();
+        while (jmsOperations.isActive("default")) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime < timeout) {
                 Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
             }
         }
-
     }
 
     protected void waitForClientsToFailover() {
@@ -1523,12 +1524,26 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     public void prepareSimpleDedicatedTopology() throws Exception {
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, CONNECTOR_TYPE.HTTP_CONNECTOR);
+    }
 
+    public void prepareSimpleDedicatedTopology(String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) throws Exception {
         if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareSimpleDedicatedTopologyEAP6();
+            prepareSimpleDedicatedTopologyEAP6(journalDirectory, journalType, connectorType);
         } else {
-            prepareSimpleDedicatedTopologyEAP7();
+            prepareSimpleDedicatedTopologyEAP7(journalDirectory, journalType, connectorType);
         }
+    }
+
+    /**
+     * Prepare two servers in simple dedicated topology.
+     *
+     * @throws Exception
+     */
+    public void prepareSimpleDedicatedTopologyEAP6(String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) throws Exception {
+
+        prepareLiveServerEAP6(container(1), journalDirectory, journalType, connectorType);
+        prepareBackupServerEAP6(container(2), journalDirectory, journalType, connectorType);
 
     }
 
@@ -1537,22 +1552,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareSimpleDedicatedTopologyEAP6() throws Exception {
+    public void prepareSimpleDedicatedTopologyEAP7(String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) throws Exception {
 
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A);
-
-    }
-
-    /**
-     * Prepare two servers in simple dedicated topology.
-     *
-     * @throws Exception
-     */
-    public void prepareSimpleDedicatedTopologyEAP7() throws Exception {
-
-        prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A);
-        prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A);
+        prepareLiveServerEAP7(container(1), journalDirectory, journalType, connectorType);
+        prepareBackupServerEAP7(container(2), journalDirectory, journalType, connectorType);
 
     }
 
@@ -2096,8 +2099,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -2122,8 +2124,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -2147,8 +2148,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -2172,8 +2172,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 
@@ -2199,8 +2198,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalBIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -2225,8 +2223,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownBIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -2250,8 +2247,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalBIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -2275,8 +2271,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 }
