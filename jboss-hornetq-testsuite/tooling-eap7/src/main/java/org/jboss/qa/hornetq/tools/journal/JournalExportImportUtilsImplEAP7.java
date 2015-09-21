@@ -1,29 +1,13 @@
-// TODO Modify it for EAP 7
 package org.jboss.qa.hornetq.tools.journal;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
+import org.apache.activemq.artemis.cli.commands.tools.DecodeJournal;
+import org.apache.activemq.artemis.cli.commands.tools.EncodeJournal;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.EapVersion;
-import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.kohsuke.MetaInfServices;
-import org.apache.activemq.artemis.cli.commands.tools.EncodeJournal;
-import org.apache.activemq.artemis.cli.commands.tools.DecodeJournal;
+
+import java.io.*;
 
 /**
  * Utilities to work with ActiveMQ's journal export/import tool in EAP 7.
@@ -36,9 +20,6 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
     private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq/artemis".replaceAll("/", File.separator);
     private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", File.separator);
     private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", File.separator);
-
-    private static final String EAP_70_EXPORT_TOOL_MAIN_CLASS = "org.apache.activemq.artemis.tools.Main";
-    private static final String EAP_70_IMPORT_TOOL_MAIN_CLASS = "org.apache.activemq.artemis.tools.Main";
 
     private String pathToJournal = null;
 
