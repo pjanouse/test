@@ -91,6 +91,12 @@ public interface HornetQTestCaseConstants {
         EAP5_CONTAINER, EAP6_CONTAINER, EAP5_WITH_JBM_CONTAINER, EAP6_LEGACY_CONTAINER, EAP6_DOMAIN_CONTAINER, EAP7_CONTAINER, EAP7_DOMAIN_CONTAINER;
     }
 
+    public enum CONNECTOR_TYPE {
+        NETTY_BIO,
+        NETTY_NIO,
+        HTTP_CONNECTOR
+    }
+
     // Timeout for CLI tests
     public static final int DEFAULT_TEST_TIMEOUT = 300000;
 

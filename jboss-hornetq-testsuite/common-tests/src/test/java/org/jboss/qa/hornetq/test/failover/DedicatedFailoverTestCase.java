@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH SHARED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated/
@@ -216,14 +215,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @tpTestDetails This scenario tests multiple failover sequence on dedicated topology with shared-store and kill.
      * Clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
-     *     <li>during sending and receiving kill and start node-1 50 times</li>
-     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     * <li>during sending and receiving kill and start node-1 50 times</li>
+     * <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
      * </ul>
      * @tpPassCrit receiver get all sent messages, none of clients gets any exception, failback was successful
-     *
      */
     @Test
     @RunAsClient
@@ -237,11 +235,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @tpTestDetails This scenario tests multiple failover sequence on dedicated topology with shared-store and clean shutdown.
      * Clients are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
-     *     <li>during sending and receiving shutdown and start node-1 50 times</li>
-     *     <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     * <li>during sending and receiving shutdown and start node-1 50 times</li>
+     * <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
      * </ul>
      * @tpPassCrit receiver get all sent messages, none of clients gets any exception, failback was successful
      */
@@ -305,7 +303,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
             Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
                     + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
-                        container(2).getHornetqPort(), 300000));
+                    container(2).getHornetqPort(), 300000));
 
             waitForClientsToFailover();
 
@@ -356,13 +354,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
      * directing to divertQueue.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from inQueue</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
-     *     <li>during sending and receiving kill node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>start receiver on divertQueue  and wait for him to finish</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from inQueue</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     * <li>during sending and receiving kill node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>start receiver on divertQueue  and wait for him to finish</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit consumer received from diverQueue same amount of messages as was send to inQueue and same amount
      * as was received from inQueue
@@ -381,13 +379,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
      * directing to divertQueue.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>during sending and receiving shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>start receiver on divertQueue  and wait for him to finish</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>during sending and receiving shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>start receiver on divertQueue  and wait for him to finish</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
      * as was received from testQueue
@@ -404,15 +402,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @tpTestDetails This scenario tests failover and failback on dedicated topology with shared-store and kill. Clients
      * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testQueue
      * directing to divertQueue.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>during sending and receiving kill node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>start receiver on divertQueue  and wait for him to finish</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testQueue</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>during sending and receiving kill node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>start receiver on divertQueue  and wait for him to finish</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testQueue and same amount
      * as was received from inQueue
@@ -426,17 +423,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails  This scenario tests failover and failback on dedicated topology with shared-store and kill. Clients
+     * @tpTestDetails This scenario tests failover and failback on dedicated topology with shared-store and kill. Clients
      * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue. Divert is set on testTopic
      * directing to divertQueue.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testTopic</li>
-     *     <li>start sending messages to inQueue on node-1 and receiving them from testTopic on node-1</li>
-     *     <li>during sending and receiving  kill node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>start receiver on divertQueue  and wait for him to finish</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology with divert directed to divertQueue from testTopic</li>
+     * <li>start sending messages to inQueue on node-1 and receiving them from testTopic on node-1</li>
+     * <li>during sending and receiving  kill node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>start receiver on divertQueue  and wait for him to finish</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit consumer received from diverQueue same amount of messages as was send to testTopic and same amount
      * as was received from testTopic
@@ -634,19 +631,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
 
     /**
-     *
-     *
      * @throws Exception
      * @tpTestDetails Start live backup pair in dedicated topology with shared store. Start producers and consumer on testQueue on live
      * and call CLI operations :force-failover on messaging subsystem. Live should stop and org.jboss.qa.hornetq.apps.clients failover to backup,
      * backup activates.
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>during sending and receiving call CLI operation: force-failover on messaging subsystem on node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>during sending and receiving call CLI operation: force-failover on messaging subsystem on node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -939,14 +934,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @tpTestDetails Start live backup pair in dedicated topology with shared store. Start producers and consumer on
      * testQueue on live. Kill server with Byteman just before transactional data about producer's incoming message are
      * written into journal. Wait for clients to failover. Stop them and verify messages.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>Install Byteman rule, which kills server just before transactional data about receiving message are written in to Journal</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -954,10 +948,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill before transaction commit is written into journal - receive",
-            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
-            targetMethod = "commit",
-            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    @BMRules({
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void testFailoverTransAckQueueCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -968,10 +968,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill before transaction commit is written into journal - receive",
-            targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
-            targetMethod = "commit",
-            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    @BMRules({
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void testFailoverTransAckQueueCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -1036,14 +1042,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and clean shutdown. Clients
      * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions  sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1081,16 +1086,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean shutdown.
      * Clients are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1106,16 +1110,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
      * shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1141,15 +1144,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
      * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1165,15 +1167,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
      * shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1199,16 +1200,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
      * shutdown. Clients are using CLIENT_ACKNOWLEDGE sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1224,16 +1224,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and clean
      * shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1249,14 +1248,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple producer failover on Dedicated topology with shared-store and clean
      * shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start producer with SESSION_TRANSACTED)session sending messages to testQueue on node-1</li>
-     *     <li>cleanly shut down node-1</li>
-     *     <li>wait for producer to make failover and stop him</li>
-     *     <li>receive messages from testQueue on node-2 (backup)</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start producer with SESSION_TRANSACTED)session sending messages to testQueue on node-1</li>
+     * <li>cleanly shut down node-1</li>
+     * <li>wait for producer to make failover and stop him</li>
+     * <li>receive messages from testQueue on node-2 (backup)</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer successfully made failover and didn't get any exception, receiver received all sent messages
      */
@@ -1287,14 +1285,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and Byteman kill. Clients
      * are using CLIENT_ACKNOWLEDGE sessions to sending and receiving messages from testQueue.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start sending messages to testQueue on node-1 and receiving them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1311,15 +1308,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover on dedicated topology with shared-store and Byteman kill. Clients
      * are using SESSION_TRANSACTED sessions to sending and receiving messages from testQueue.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions  sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1345,16 +1341,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1370,16 +1365,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1405,15 +1399,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1429,15 +1422,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1463,16 +1455,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using CLIENT_ACKNOWLEDGE sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with CLIENT_ACKNOWLEDGE) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1488,16 +1479,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store and
      * Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
-     *     them from testTopic on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testTopic on node-1 and receiving
+     * them from testTopic on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -1534,7 +1524,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     public void prepareSimpleDedicatedTopology() throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareSimpleDedicatedTopologyEAP6();
         } else {
             prepareSimpleDedicatedTopologyEAP7();
@@ -1550,7 +1540,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     public void prepareSimpleDedicatedTopologyEAP6() throws Exception {
 
         prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A);
-        prepareBackupServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A);
 
     }
 
@@ -1568,22 +1558,23 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * Prepares live server for dedicated topology.
-     *  @param container        The container - defined in arquillian.xml
+     *
+     * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
     protected void prepareLiveServerEAP6(Container container, String journalDirectory) {
-        prepareLiveServerEAP6(container, journalDirectory, "ASYNCIO", false);
+        prepareLiveServerEAP6(container, journalDirectory, "ASYNCIO", CONNECTOR_TYPE.NETTY_BIO);
     }
 
     /**
      * Prepares live server for dedicated topology.
+     *
      * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     * @param journalType       ASYNCIO, NIO
-     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
-     *
+     * @param journalType      ASYNCIO, NIO
+     * @param connectorType    whether to use NIO in connectors for CF or old blocking IO
      */
-    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1617,17 +1608,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        if (useNIOConnectors)   {
+        // only if connector type is NIO switch to NIO, ignore BIO and HTTP connector(this one does not apply for EAP 6)
+        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
             // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
+            Map<String, String> connectorParams = new HashMap<String, String>();
+            connectorParams.put("use-nio", "true");
+            connectorParams.put("use-nio-global-worker-pool", "true");
             jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
 
             // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
+            Map<String, String> acceptorParams = new HashMap<String, String>();
+            acceptorParams.put("use-nio", "true");
             jmsAdminOperations.removeRemoteAcceptor(connectorName);
             jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
 
@@ -1660,31 +1652,29 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * Prepares live server for dedicated topology.
+     *
      * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     *
      */
     protected void prepareLiveServerEAP7(Container container, String journalDirectory) {
-        prepareLiveServerEAP7(container, journalDirectory, "ASYNCIO", false);
+        prepareLiveServerEAP7(container, journalDirectory, "ASYNCIO", CONNECTOR_TYPE.HTTP_CONNECTOR);
     }
 
     /**
      * Prepares live server for dedicated topology.
+     *
      * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     * @param journalType       ASYNCIO, NIO
-     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
-     *
+     * @param journalType      ASYNCIO, NIO
+     * @param connectorType    whether to use NIO in connectors for CF or old blocking IO, or http connector
      */
-    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String messagingGroupSocketBindingName = "messaging-group";
         String messagingGroupSocketBindingForConnector = "messaging";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
+        String nettyConnectorName = "netty";
+        String nettyAcceptorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
+        int defaultPortForMessagingSocketBinding = 5445;
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -1695,32 +1685,48 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-
         jmsAdminOperations.setJournalType(journalType);
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        switch (connectorType) {
+            case HTTP_CONNECTOR:
+                break;
+            case NETTY_BIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with BIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                // add acceptor wtih BIO
+                Map<String, String> acceptorParams = new HashMap<String, String>();
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            case NETTY_NIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
+                connectorParamsNIO.put("use-nio", "true");
+                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
+                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        if (useNIOConnectors)   {
-            // add connector with NIO
-            jmsAdminOperations.removeHttpConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
-            jmsAdminOperations.createHttpConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
-
-            // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
-            jmsAdminOperations.removeHttpAcceptor(connectorName);
-            jmsAdminOperations.createHttpAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
-
+                // add acceptor with NIO
+                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
+                acceptorParamsNIO.put("use-nio", "true");
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            default:
+                break;
         }
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
@@ -1751,27 +1757,28 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         container.stop();
     }
 
+
     /**
      * Prepares backup server for dedicated topology.
      *
      * @param container        The container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    protected void prepareBackupServerEAP6(Container container, String bindingAddress, String journalDirectory) {
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory) {
 
-        prepareBackupServerEAP6(container, journalDirectory, "ASYNCIO", false);
+        prepareBackupServerEAP6(container, journalDirectory, "ASYNCIO", CONNECTOR_TYPE.NETTY_BIO);
 
     }
 
     /**
      * Prepares backup server for dedicated topology.
-     *  @param container        The container - defined in arquillian.xml
+     *
+     * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     * @param journalType       ASYNCIO, NIO
-     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     * @param journalType      ASYNCIO, NIO
+     * @param connectorType    whether to use NIO/BIO in connectors for CF or old blocking IO
      */
-    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1784,17 +1791,16 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (useNIOConnectors)   {
-            // add connector with NIO
+        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {            // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
+            Map<String, String> connectorParams = new HashMap<String, String>();
+            connectorParams.put("use-nio", "true");
+            connectorParams.put("use-nio-global-worker-pool", "true");
             jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
 
             // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
+            Map<String, String> acceptorParams = new HashMap<String, String>();
+            acceptorParams.put("use-nio", "true");
             jmsAdminOperations.removeRemoteAcceptor(connectorName);
             jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
 
@@ -1854,40 +1860,64 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     /**
      * Prepares backup server for dedicated topology.
-     *  @param container        The container - defined in arquillian.xml
+     *
+     * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     * @param journalType       ASYNCIO, NIO
-     * @param useNIOConnectors  whether to use NIO in connectors for CF or old blocking IO
+     * @param journalType      ASYNCIO, NIO
+     * @param connectorType    whether to use NIO in connectors for CF or old blocking IO, or HTTP connector
      */
-    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, boolean useNIOConnectors) {
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
 
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String messagingGroupSocketBindingName = "messaging-group";
         String messagingGroupSocketBindingForConnector = "messaging";
+        String nettyConnectorName = "netty";
+        String nettyAcceptorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        int defaultPortForMessagingSocketBinding = 5445;
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (useNIOConnectors)   {
-            // add connector with NIO
-            jmsAdminOperations.removeRemoteConnector(connectorName);
-            Map<String,String> connectorParams = new HashMap<String,String>();
-            connectorParams.put("use-nio","true");
-            connectorParams.put("use-nio-global-worker-pool","true");
-            jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, connectorParams);
+        switch (connectorType) {
+            case HTTP_CONNECTOR:
+                break;
+            case NETTY_BIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with BIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                // add acceptor wtih BIO
+                Map<String, String> acceptorParams = new HashMap<String, String>();
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            case NETTY_NIO:
+                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
+                connectorParamsNIO.put("use-nio", "true");
+                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
+                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
 
-            // add acceptor wtih NIO
-            Map<String,String> acceptorParams = new HashMap<String,String>();
-            acceptorParams.put("use-nio","true");
-            jmsAdminOperations.removeRemoteAcceptor(connectorName);
-            jmsAdminOperations.createRemoteAcceptor(connectorName, messagingGroupSocketBindingForConnector, acceptorParams);
-
+                // add acceptor with NIO
+                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
+                acceptorParamsNIO.put("use-nio", "true");
+                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
+                break;
+            default:
+                break;
         }
-
         jmsAdminOperations.setJournalType(journalType);
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
@@ -1896,15 +1926,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
@@ -1919,7 +1940,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
 
 
-        jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000, true, false, false, null, null, null, null);
+        jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000, true, true, false, null, null, null, null);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -1943,7 +1964,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      */
     protected void prepareBackupServerEAP7(Container container, String journalDirectory) {
 
-        prepareBackupServerEAP7(container, journalDirectory, "ASYNCIO", false);
+        prepareBackupServerEAP7(container, journalDirectory, "ASYNCIO", CONNECTOR_TYPE.HTTP_CONNECTOR);
 
     }
 
@@ -1968,6 +1989,20 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                             + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
             @BMRule(name = "Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>120",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Setup counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Kill server when a number of messages were received",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
@@ -2044,16 +2079,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
      * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 with Byteman</li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -2062,8 +2096,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -2071,16 +2105,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
      * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>cleanly shut down node-1 </li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>start node-1 again and wait for failback</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>cleanly shut down node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -2089,8 +2122,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -2098,15 +2131,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
      * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>kill node-1 </li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -2115,8 +2147,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -2124,15 +2156,14 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
      * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
-     *
      * @tpProcedure <ul>
-     *     <li>start two nodes in dedicated cluster topology</li>
-     *     <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
-     *     them from testQueue on node-1</li>
-     *     <li>Cleanly shut-down node-1 </li>
-     *     <li>clients make failover on backup and continue in sending and receiving messages</li>
-     *     <li>stop producer and consumer</li>
-     *     <li>verify messages</li>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>Cleanly shut-down node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
      * </ul>
      * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
      */
@@ -2141,10 +2172,111 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
-        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
-        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, true);
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 
 
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     * @tpProcedure <ul>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 with Byteman</li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueNIOJournalBIOConnectors() throws Exception {
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover and failback on Dedicated topology with shared-store using NIO
+     * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
+     * @tpProcedure <ul>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>cleanly shut down node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueOnShutdownBIOJournalNIOConnectors() throws Exception {
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
+     * journal type and Byteman kill. Clients are using SESSION_TRANSACTED sessions.
+     * @tpProcedure <ul>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>kill node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueNIOJournalBIOConnectors() throws Exception {
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This scenario tests simple failover on Dedicated topology with shared-store using NIO
+     * journal type and clean shutdown. Clients are using SESSION_TRANSACTED sessions.
+     * @tpProcedure <ul>
+     * <li>start two nodes in dedicated cluster topology</li>
+     * <li>start clients (with SESSION_TRANSACTED) sessions sending messages to testQueue on node-1 and receiving
+     * them from testQueue on node-1</li>
+     * <li>Cleanly shut-down node-1 </li>
+     * <li>clients make failover on backup and continue in sending and receiving messages</li>
+     * <li>stop producer and consumer</li>
+     * <li>verify messages</li>
+     * </ul>
+     * @tpPassCrit producer and  receiver  successfully made failover and didn't get any exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailoverClientAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
+        prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
+        testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
+    }
 }
