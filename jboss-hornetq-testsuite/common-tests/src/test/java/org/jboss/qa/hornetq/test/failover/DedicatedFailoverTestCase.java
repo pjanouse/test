@@ -1700,11 +1700,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.removeConnector(nettyConnectorName);
+                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, null);
                 // add acceptor wtih BIO
                 Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.removeAcceptor(nettyAcceptorName);
                 jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
@@ -1715,7 +1715,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with NIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.removeConnector(nettyConnectorName);
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
@@ -1724,7 +1724,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
+                jmsAdminOperations.removeAcceptor(nettyAcceptorName);
                 jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
