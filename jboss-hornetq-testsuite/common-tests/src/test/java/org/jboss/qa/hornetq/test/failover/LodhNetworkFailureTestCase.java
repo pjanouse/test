@@ -109,6 +109,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         startProxies();
         container(2).start();
 
+        // clean up database
         deleteRecords();
         countRecords();
 
@@ -342,12 +343,12 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         container.start();
         jmsAdminOperations = container.getJmsOperations();
         // add connector with BIO
-        jmsAdminOperations.removeHttpConnector(connectorName);
-        jmsAdminOperations.createAcceptor(connectorName, messagingGroupSocketBindingForConnector, null, null);
+        jmsAdminOperations.removeRemoteConnector(connectorName);
+        jmsAdminOperations.createRemoteConnector(connectorName, messagingGroupSocketBindingForConnector, null);
         // add acceptor wtih BIO
         Map<String, String> acceptorParams = new HashMap<String, String>();
-        jmsAdminOperations.removeHttpAcceptor(acceptorName);
-        jmsAdminOperations.createAcceptor(acceptorName, messagingGroupSocketBindingForConnector, null, null);
+        jmsAdminOperations.removeRemoteAcceptor(acceptorName);
+        jmsAdminOperations.createRemoteAcceptor(acceptorName, messagingGroupSocketBindingForConnector, null);
         jmsAdminOperations.close();
 
         container.stop();
@@ -544,10 +545,9 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         jmsAdminOperations.setXADatasourceAtribute(poolName, "prepared-statements-cache-size", String.valueOf(30));
         jmsAdminOperations.setXADatasourceAtribute(poolName, "share-prepared-statements", String.valueOf(true));
 
-        setupProxies(inServer.getHostname(), inServer.getHornetqPort(), proxyToInServerPort,
-                outServer.getHostname(), outServer.getHornetqPort(), proxyToOutServerPort,
+        setupProxies(inServer.getHostname(),defaultPortForMessagingSocketBinding + inServer.getPortOffset(), proxyToInServerPort,
+                outServer.getHostname(), defaultPortForMessagingSocketBinding + outServer.getPortOffset(), proxyToOutServerPort,
                 serverName, Integer.valueOf(portNumber), proxyToDBPort);
-
         jmsAdminOperations.close();
         container.stop();
 
@@ -580,8 +580,12 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
     protected void setupProxies(String serverInHostname, int serverInHornetQport, int proxyToInServerPort,
                                 String serverOutHostname, int serverOutHornetQport, int proxyToOutServerPort,
                                 String dbHostname, int dbPort, int proxyToDBPort) {
+
+        logger.info("Create proxy pointing to inServer: " + serverInHostname + ":" + serverInHornetQport + " and listenning on: 127.0.0.1:" + proxyToInServerPort );
         proxyToInServer = new SimpleProxyServer(serverInHostname, serverInHornetQport, proxyToInServerPort);
+        logger.info("Create proxy pointing to outServer: " + serverOutHostname + ":" + serverOutHornetQport + " and listenning on: 127.0.0.1:" + proxyToOutServerPort );
         proxyToOutServer = new SimpleProxyServer(serverOutHostname, serverOutHornetQport, proxyToOutServerPort);
+        logger.info("Create proxy pointing to database: " + dbHostname + ":" + dbPort + " and listenning on: 127.0.0.1:" + proxyToDBPort );
         proxyToDB = new SimpleProxyServer(dbHostname, dbPort, proxyToDBPort);
     }
 
