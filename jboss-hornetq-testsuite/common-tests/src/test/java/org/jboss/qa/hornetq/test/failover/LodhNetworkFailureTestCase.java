@@ -90,11 +90,29 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
 
     private Map<String, String> databaseProperties = null;
 
+    /**
+     *
+     * @tpTestDetails There are 3 servers and Oracle database. Server 1 has deployed queue InQueue and 3 servers queue OutQueue. Server 2 is connected
+     * to servers 1 and 3 through resource adapter. MDB deployed to server 2 is resending messaging from InQueue to OutQuee and also inserts
+     * row to Oracle database in XA transaction. During this process network is disconnected for more than 30s and connected again.
+     * @tpProcedure <ul>
+     *     <li>start node 1 with queue InQueue</li>
+     *     <li>start node 3 with queue OutQueueu</li>
+     *     <li>start node 2 with deployed MDB which receives messages from InQueue and sends to OutQueue and inserts rows to database</li>
+     *     <li>producer sends 1000 small and large messages to InQueue</li>
+     *     <li>wait for producer to finish</li>
+     *     <li>disconnect from network node-1 while MDB is processing messages</li>
+     *     <li>restore network for node-1</li>
+     *     <li>wait until all messages are processed</li>
+     *     <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
+     * @tpPassCrit there is the same number of sent and received messages
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void test() throws Exception {
+    public void testLodhWithNetworkFail() throws Exception {
         testNetworkFailureWithRemoteJCA(container(1), container(3));
     }
 
@@ -130,7 +148,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 5, 120000, container(3));
 
         logger.info("Some messages were received. Disconnect network.");
-//        stopProxies();
+        stopProxies();
 
         // wait more than 30s to break connections
         Thread.sleep(70000);
