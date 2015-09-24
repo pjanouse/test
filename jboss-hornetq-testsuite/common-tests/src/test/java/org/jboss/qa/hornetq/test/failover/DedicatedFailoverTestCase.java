@@ -1700,12 +1700,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
-                jmsAdminOperations.removeConnector(nettyConnectorName);
-                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
+                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null);
                 // add acceptor wtih BIO
                 Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
             case NETTY_NIO:
@@ -1715,17 +1715,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with NIO
-                jmsAdminOperations.removeConnector(nettyConnectorName);
+                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
+                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, connectorParamsNIO);
 
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
             default:
@@ -1890,12 +1890,12 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
                 // add acceptor wtih BIO
                 Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
+                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
             case NETTY_NIO:
@@ -1905,17 +1905,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with NIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
+                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
+                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, connectorParamsNIO);
 
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
+                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
                 break;
             default:
@@ -2198,7 +2198,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueNIOJournalBIOConnectors() throws Exception {
-        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, false);
     }
 
@@ -2222,8 +2222,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailbackTransAckQueueOnShutdownBIOJournalNIOConnectors() throws Exception {
-        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+    public void testFailbackTransAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.SESSION_TRANSACTED, true, false, true);
     }
 
@@ -2247,7 +2247,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueNIOJournalBIOConnectors() throws Exception {
-        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
 
@@ -2271,7 +2271,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
-        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_NIO);
+        prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
 }
