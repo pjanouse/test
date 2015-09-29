@@ -1505,6 +1505,8 @@ public interface JMSOperations {
 
     void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName);
 
+    void startJMSBridge(String jmsBridgeName);
+
     /**
      * Set whether environment property replacement is avaible or not.
      *
@@ -1609,4 +1611,6 @@ public interface JMSOperations {
     void stopDeliveryToMdb(String deploymentName);
 
     void startDeliveryToMdb(String deploymentName);
+
+    void stopJMSBridge(String jmsBridgeName);
 }

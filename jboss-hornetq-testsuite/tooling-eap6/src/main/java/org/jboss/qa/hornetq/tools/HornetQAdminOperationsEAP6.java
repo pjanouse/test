@@ -3585,7 +3585,22 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("max-retries").set(maxRetries);
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
-        model.get("module").set("org.hornetq");
+//        model.get("module").set("org.hornetq");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+    }
+
+    public void removeJMSBridge(String bridgeName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", bridgeName);
 
         try {
             this.applyUpdate(model);
@@ -4575,6 +4590,32 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void stopJMSBridge(String jmsBridgeName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("stop");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", jmsBridgeName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void startJMSBridge(String jmsBridgeName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("start");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", jmsBridgeName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void undeploy(String archiveName) throws Exception {
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
         server.undeploy(archiveName);
@@ -5033,11 +5074,51 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            Map<String,String> params = new HashMap<String,String>();
-            params.put("java.naming.provider.url" ,"jnp://localhost:5599");
-            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
-            params.put("java.naming.factory.initial", "org.jboss.legacy.jnp.factory.WatchfulContextFactory");
-            jmsAdminOperations.addExternalContext("java:global/client-context2", "javax.naming.InitialContext", "org.jboss.legacy.naming.spi", "external-context", params );
+
+//            jmsAdminOperations.disableSecurity();
+//
+//            String bridgeName = "myBridge";
+//            String sourceConnectionFactory = "java:/ConnectionFactory";
+//            String sourceDestination = "jms/queue/InQueue";
+//            String qualityOfService = "ONCE_AND_ONLY_ONCE";
+//            int maxRetries = -1;
+//
+//            String targetConnectionFactory = "jms/RemoteConnectionFactory";
+//            String targetDestination = "jms/queue/OutQueue";
+//            Map<String,String> targetContext = new HashMap<String, String>();
+//            targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
+//            targetContext.put("java.naming.provider.url", "remote://127.0.0.1:4447");
+//
+//            if (qualityOfService == null || "".equals(qualityOfService))
+//            {
+//                qualityOfService = "ONCE_AND_ONLY_ONCE";
+//            }
+//
+//            long failureRetryInterval = 1000;
+//            long maxBatchSize = 10;
+//            long maxBatchTime = 100;
+//            boolean addMessageIDInHeader = true;
+//
+//            // set XA on sourceConnectionFactory
+//            jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
+//            jmsAdminOperations.removeJMSBridge(bridgeName);
+//            jmsAdminOperations.createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, null,
+//                    targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,
+//                    maxBatchSize, maxBatchTime, addMessageIDInHeader);
+
+
+            jmsAdminOperations.reloadServer();
+//            try {
+//                Thread.sleep(1500);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            jmsAdminOperations.reloadServer();
+//            Map<String,String> params = new HashMap<String,String>();
+//            params.put("java.naming.provider.url" ,"jnp://localhost:5599");
+//            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
+//            params.put("java.naming.factory.initial", "org.jboss.legacy.jnp.factory.WatchfulContextFactory");
+//            jmsAdminOperations.addExternalContext("java:global/client-context2", "javax.naming.InitialContext", "org.jboss.legacy.naming.spi", "external-context", params );
 //            System.out.println(jmsAdminOperations.getNumberOfActiveClientConnections());
 //            jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
@@ -5080,7 +5161,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //
 //            eap6AdmOps.createRemoteConnector("netty2", "messaging2", props2);
 
-            jmsAdminOperations.close();
+//            jmsAdminOperations.close();
         } finally {
             jmsAdminOperations.close();
         }

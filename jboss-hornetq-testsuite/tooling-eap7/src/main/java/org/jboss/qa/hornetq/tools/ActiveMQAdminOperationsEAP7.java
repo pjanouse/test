@@ -583,6 +583,32 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void stopJMSBridge(String jmsBridgeName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("stop");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", jmsBridgeName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void startJMSBridge(String jmsBridgeName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("start");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("jms-bridge", jmsBridgeName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts,
                                                                String connectorClassName) {
         logger.info("This operation is not supported: " + getMethodName());
@@ -5539,7 +5565,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.isActive("default"));
+//            System.out.println(jmsAdminOperations.isActive("default"));
+            jmsAdminOperations.reloadServer();
             // jmsAdminOperations.setPersistenceEnabled(true);
             // jmsAdminOperations.removeAddressSettings("#");
             // jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);

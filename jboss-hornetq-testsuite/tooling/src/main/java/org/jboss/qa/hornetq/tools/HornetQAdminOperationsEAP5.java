@@ -1806,6 +1806,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void startJMSBridge(String jmsBridgeName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setPropertyReplacement(String propertyName, boolean isEnabled) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2425,6 +2430,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void startDeliveryToMdb(String deploymentName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void stopJMSBridge(String jmsBridgeName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
