@@ -3872,13 +3872,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         model.get("socket-binding").set(socketBinding);
-        if (params == null) {
-            params = new HashMap<String, String>();
-            params.put("http-upgrade-endpoint", "http-acceptor");
-        }
+        model.get("endpoint").set("http-acceptor");
 
-        for (String key : params.keySet()) {
-            model.get("params").add(key, params.get(key));
+        if (params != null) {
+            for (String key : params.keySet()) {
+                model.get("params").add(key, params.get(key));
+            }
         }
 
         try {
