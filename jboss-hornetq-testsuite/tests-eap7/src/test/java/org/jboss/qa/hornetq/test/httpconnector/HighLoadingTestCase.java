@@ -66,11 +66,14 @@ public class HighLoadingTestCase extends HornetQTestCase {
             for (int i = 0; i < subscribersCount; i++) {
                 subscribers[i] = new SubscriberAutoAck(container(1), TOPIC_JNDI, "client" + i, "subscriber" + i);
                 subscribers[i].subscribe();
-                subscribers[i].start();
             }
 
-            Thread.sleep(5000);
             publisher.start();
+
+            for (SubscriberAutoAck subscriber: subscribers) {
+                subscriber.start();
+            }
+
             publisher.join();
 
             for (SubscriberAutoAck subscriber : subscribers) {
