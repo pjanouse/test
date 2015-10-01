@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
+import static org.jboss.qa.hornetq.constants.Constants.*;
+
 
 /**
  * This is modified lodh 2 (kill/shutdown mdb servers) test case which is
@@ -170,22 +172,21 @@ public class Lodh2TestCase extends HornetQTestCase {
     /////////////////////////////// START - Local -> Remote
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
-     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     * <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -196,26 +197,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killJmsLocalRemote() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, false, false, container(2), container(1));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL, false, container(2), container(1));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
-     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     * <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -226,26 +226,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killMdbLocalRemote() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false, false, container(2), container(1));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL, false, container(2), container(1));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
-     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>shutdown node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     * <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>shutdown node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -256,26 +255,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2ShutdownMdbLocalRemote() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, true, false, container(2), container(1));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN, false, container(2), container(1));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue OutQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue InQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
-     *     <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>shutdown node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed outQueue</li>
+     * <li>start cluster two containing node 2 and 4 with deployed inQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>shutdown node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -286,7 +284,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2ShutdownJmsLocalRemote() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, true, false, container(2), container(1));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN, false, container(2), container(1));
     }
 
     /////////////////////////////// END - Local -> Remote
@@ -294,22 +292,21 @@ public class Lodh2TestCase extends HornetQTestCase {
     /////////////////////////////// START - Remote -> Local
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
-     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     * <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -320,26 +317,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killJmsRemoteLocal() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, false, false, container(1), container(2));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL, false, container(1), container(2));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
-     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     * <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -350,26 +346,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killMdbRemoteLocal() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false, false, container(1), container(2));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL, false, container(1), container(2));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
-     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>shutdown node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     * <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>shutdown node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -380,26 +375,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2ShutdownJmsRemoteLocal() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, true, false, container(1), container(2));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN, false, container(1), container(2));
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queue InQueue is deployed to both of them.
      * Cluster B with nodes 2 and 4 is started and queue OutQueue is deployed to both of them. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDBs to node-2 and node-4 which read messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
-     *     <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue </li>
+     * <li>start cluster two containing node 2 and 4 with deployed outQueue</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -410,28 +404,27 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2ShutdownMdbRemoteLocal() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, true, false, container(1), container(2));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN, false, container(1), container(2));
     }
     /////////////////////////////// START - Remote -> Local
 
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -442,11 +435,36 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2kill() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL);
     }
 
     /**
      *
+     * @tpPassCrit there is the same number of sent and received messages
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testLodh2OOMOnMdbServer() throws Exception {
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(2));
+        failureSequence.add(container(4));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testLodh2OOMOnJmsServer() throws Exception {
+        List<Container> failureSequence = new ArrayList<Container>();
+        failureSequence.add(container(1));
+        failureSequence.add(container(3));
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    }
+
+    /**
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Each message has set property color to RED or GREEN.
@@ -455,16 +473,16 @@ public class Lodh2TestCase extends HornetQTestCase {
      * When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to InQueue, each message has set property color to RED or GREEN</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDB to node-2 which reads only RED messages and sends them to outQueue</li>
-     *     <li>deploy MDB to node-4 which reads only GREEN messages and sends them to outQueue</li>
-     *     <li>kill node-2 while MDB is processing messages</li>
-     *     <li>start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue, each message has set property color to RED or GREEN</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDB to node-2 which reads only RED messages and sends them to outQueue</li>
+     * <li>deploy MDB to node-4 which reads only GREEN messages and sends them to outQueue</li>
+     * <li>kill node-2 while MDB is processing messages</li>
+     * <li>start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -475,26 +493,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2killWithFilters() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, false,true);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL, true);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -505,26 +522,25 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh3kill() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 1 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>shutdown node-1 while MDB is processing messages</li>
-     *     <li>start node-1</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>shutdown node-1 while MDB is processing messages</li>
+     * <li>start node-1</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -535,25 +551,24 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh3Shutdown() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, true);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill and restart nodes in following sequence 2,2,4,2,4.
      * Wait until all messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to InQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>kill and start following nodes in this sequence: 2,2,4,2,4</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>kill and start following nodes in this sequence: 2,2,4,2,4</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -568,26 +583,25 @@ public class Lodh2TestCase extends HornetQTestCase {
         failureSequence.add(container(4));
         failureSequence.add(container(2));
         failureSequence.add(container(4));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and topic InTopic and queue OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start publisher which sends 5000 messages
      * (mix of small and large messages) to InTopic. Once producer finishes, deploy MDB which creates non-durable subscription on InTopic and sends messages
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill node 2 and start again. Wait until all
      * messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inTopic and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inTopic</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which create non-durable subscription on inTopic and sends messages to
-     *     outQueue in XA transactions</li>
-     *     <li>kill and start node-2</li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inTopic and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inTopic</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which create non-durable subscription on inTopic and sends messages to
+     * outQueue in XA transactions</li>
+     * <li>kill and start node-2</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -598,27 +612,26 @@ public class Lodh2TestCase extends HornetQTestCase {
     public void testLodh2killWithTempTopic() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaWithTopic(failureSequence, false, false);
+        testRemoteJcaWithTopic(failureSequence, FAILURE_TYPE.KILL, false);
 
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 2,2,4,2,4.
      * Wait until all messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
-     *     outQueue in XA transactions</li>
-     *     <li>cleanly shutdown and start following nodes in this sequence: 2,2,4,2,4 </li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
+     * outQueue in XA transactions</li>
+     * <li>cleanly shutdown and start following nodes in this sequence: 2,2,4,2,4 </li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -633,26 +646,25 @@ public class Lodh2TestCase extends HornetQTestCase {
         failureSequence.add(container(4));
         failureSequence.add(container(2));
         failureSequence.add(container(4));
-        testRemoteJcaInCluster(failureSequence, true);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 1,2.
      * Wait until all messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
-     *     outQueue in XA transactions</li>
-     *     <li>cleanly shutdown and start following nodes in this sequence: 1,2 </li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
+     * outQueue in XA transactions</li>
+     * <li>cleanly shutdown and start following nodes in this sequence: 1,2 </li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -664,26 +676,25 @@ public class Lodh2TestCase extends HornetQTestCase {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(1));
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, true);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.SHUTDOWN);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, kill and restart nodes in following sequence 1,3,1,3,1.
      * Wait until all messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
-     *     outQueue in XA transactions</li>
-     *     <li>kill and start following nodes in this sequence: 1,3,1,3,1 </li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
+     * outQueue in XA transactions</li>
+     * <li>kill and start following nodes in this sequence: 1,3,1,3,1 </li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -698,26 +709,25 @@ public class Lodh2TestCase extends HornetQTestCase {
         failureSequence.add(container(1));
         failureSequence.add(container(3));
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL);
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown and restart nodes in following sequence 1,3,1,3,1.
      * Wait until all messages are processed and consume messages from OutQueue.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
-     *     outQueue in XA transactions</li>
-     *     <li>cleanly shutdown and start following nodes in this sequence: 1,3,1,3,1 </li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to
+     * outQueue in XA transactions</li>
+     * <li>cleanly shutdown and start following nodes in this sequence: 1,3,1,3,1 </li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
@@ -732,17 +742,17 @@ public class Lodh2TestCase extends HornetQTestCase {
         failureSequence.add(container(1));
         failureSequence.add(container(3));
         failureSequence.add(container(1));
-        testRemoteJcaInCluster(failureSequence, false);
+        testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.KILL);
     }
 
-    public void testRemoteJcaWithTopic(List<Container> failureSequence, boolean isShutdown, boolean isDurable) throws Exception {
-        testRemoteJcaWithTopic(failureSequence, isShutdown, isDurable, container(1), container(3));
+    public void testRemoteJcaWithTopic(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isDurable) throws Exception {
+        testRemoteJcaWithTopic(failureSequence, failureType, isDurable, container(1), container(3));
     }
 
     /**
      * @throws Exception
      */
-    public void testRemoteJcaWithTopic(List<Container> failureSequence, boolean isShutdown, boolean isDurable, Container inServer, Container outServer) throws Exception {
+    public void testRemoteJcaWithTopic(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isDurable, Container inServer, Container outServer) throws Exception {
 
         prepareRemoteJcaTopology(inServer, outServer);
         // jms server
@@ -772,7 +782,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
 
-        executeFailureSequence(failureSequence, 3000, isShutdown);
+        executeFailureSequence(failureSequence, 3000, failureType);
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
@@ -811,26 +821,26 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     }
 
-    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown) throws Exception {
-        testRemoteJcaInCluster(failureSequence, isShutdown, false);
+    public void testRemoteJcaInCluster(List<Container> failureSequence, FAILURE_TYPE failureType) throws Exception {
+        testRemoteJcaInCluster(failureSequence, failureType, false);
     }
 
     /**
      * For remote inQueue and remote OutQueue
      *
-     * @param failureSequence  failure sequence
-     * @param isShutdown shutdown
-     * @param isFiltered filtered
+     * @param failureSequence failure sequence
+     * @param failureType     failure type
+     * @param isFiltered      filtered
      */
-    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown, boolean isFiltered) throws Exception {
-        testRemoteJcaInCluster(failureSequence, isShutdown, isFiltered, container(1), container(3));
+    public void testRemoteJcaInCluster(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isFiltered) throws Exception {
+        testRemoteJcaInCluster(failureSequence, failureType, isFiltered, container(1), container(3));
     }
 
 
     /**
      * @throws Exception
      */
-    public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown, boolean isFiltered, Container inServer, Container outServer) throws Exception {
+    public void testRemoteJcaInCluster(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isFiltered, Container inServer, Container outServer) throws Exception {
 
         prepareRemoteJcaTopology(inServer, outServer);
         // cluster A
@@ -862,7 +872,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
                 container(3), container(4));
 
-        executeFailureSequence(failureSequence, 5000, isShutdown);
+        executeFailureSequence(failureSequence, 5000, failureType);
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
                 container(3), container(4));
@@ -903,21 +913,20 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
      * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
      * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
      * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cleanly shutdown node 2 and 4.
      * @tpProcedure <ul>
-     *     <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
-     *     <li>start cluster two containing node 2 and 4</li>
-     *     <li>producer sends 5000 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDBs to node-2 and node-4 which  read messages from inQueue and sends them to
-     *     outQueue in XA transactions</li>
-     *     <li>cleanly shutdown node 2 and 4/li>
-     *     <li>wait until all messages are processed</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which  read messages from inQueue and sends them to
+     * outQueue in XA transactions</li>
+     * <li>cleanly shutdown node 2 and 4/li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit Verify there are no unfished XA transactions.
      */
@@ -994,19 +1003,18 @@ public class Lodh2TestCase extends HornetQTestCase {
 
 
     /**
-     *
      * @tpTestDetails There are 2 nodes. node 1 and 2 are started and queues InQueue and OutQueue are deployed to node 1.
      * Start producer which sends 500 messages (mix of small and large messages) to InQueue.
      * Once producer finishes, deploy MDB to node 2 which reads messages from InQueue and sends
      * to OutQueue (in XA transaction). MDB is using property replacement in @Resource(lookup=${property}) and activation config properties.
      * @tpProcedure <ul>
-     *     <li>start node 1 with deployed inQueue and outQueue</li>
-     *     <li>start node 2 without destinations</li>
-     *     <li>producer sends 500 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDB which is using property replacement in @Resource(name=${property}) and activation config properties
-     *      and which reads messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start node 1 with deployed inQueue and outQueue</li>
+     * <li>start node 2 without destinations</li>
+     * <li>producer sends 500 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDB which is using property replacement in @Resource(name=${property}) and activation config properties
+     * and which reads messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit number of sent and received messages is the same
      */
@@ -1019,19 +1027,18 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails There are 2 nodes. node 1 and 2 are started and queues InQueue and OutQueue are deployed to node 1.
      * Start producer which sends 500 messages (mix of small and large messages) to InQueue.
      * Once producer finishes, deploy MDB to node 2 which reads messages from InQueue and sends
      * to OutQueue (in XA transaction). MDB is using property replacement in @Resource(mappedName=${property}) and activation config properties.
      * @tpProcedure <ul>
-     *     <li>start node 1 with deployed inQueue and outQueue</li>
-     *     <li>start node 2 without destinations</li>
-     *     <li>producer sends 500 small and large messages to inQueue</li>
-     *     <li>wait for producer to finish</li>
-     *     <li>deploy MDB which is using property replacement in @Resource(mappedName=${property}) and activation config properties
-     *      and which reads messages from inQueue and sends them to outQueue in XA transactions</li>
-     *     <li>start Consumer which consumes messages form outQueue</li>
+     * <li>start node 1 with deployed inQueue and outQueue</li>
+     * <li>start node 2 without destinations</li>
+     * <li>producer sends 500 small and large messages to inQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDB which is using property replacement in @Resource(mappedName=${property}) and activation config properties
+     * and which reads messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit number of sent and received messages is the same
      */
@@ -1113,9 +1120,9 @@ public class Lodh2TestCase extends HornetQTestCase {
      * @param failureSequence  list of containers
      * @param timeBetweenKills time between subsequent kills (in milliseconds)
      */
-    private void executeFailureSequence(List<Container> failureSequence, long timeBetweenKills, boolean isShutdown) throws InterruptedException {
+    private void executeFailureSequence(List<Container> failureSequence, long timeBetweenKills, FAILURE_TYPE failureType) throws InterruptedException {
 
-        if (isShutdown) {
+        if (FAILURE_TYPE.SHUTDOWN.equals(failureType)) {
             for (Container container : failureSequence) {
                 Thread.sleep(timeBetweenKills);
                 container.stop();
@@ -1124,11 +1131,21 @@ public class Lodh2TestCase extends HornetQTestCase {
                 container.start();
                 logger.info("Server: " + container.getName() + " -- STARTED");
             }
-        } else {
+        } else if (FAILURE_TYPE.KILL.equals(failureType)) {
             for (Container container : failureSequence) {
                 Thread.sleep(timeBetweenKills);
                 container.kill();
                 Thread.sleep(3000);
+                logger.info("Start server: " + container.getName());
+                container.start();
+                logger.info("Server: " + container.getName() + " -- STARTED");
+            }
+        } else if (FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE.equals(failureType)) {
+            for (Container container : failureSequence) {
+                Thread.sleep(timeBetweenKills);
+                container.fail(failureType);
+                Thread.sleep(60000);
+                container.kill();
                 logger.info("Start server: " + container.getName());
                 container.start();
                 logger.info("Server: " + container.getName() + " -- STARTED");
@@ -1151,7 +1168,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     public void prepareRemoteJcaTopology(Container inServer, Container outServer) throws Exception {
-        if (inServer.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+        if (inServer.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopologyEAP6(inServer, outServer);
         } else {
             prepareRemoteJcaTopologyEAP7(inServer, outServer);
@@ -1449,15 +1466,15 @@ public class Lodh2TestCase extends HornetQTestCase {
         if (isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
             jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, -1);
         }
         // local InServer and remote OutServer
         if (!isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
             jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, -1);
 
             // create new in-vm pooled connection factory and configure it as default for inbound communication
             jmsAdminOperations.createPooledConnectionFactory(inVmHornetRaName, "java:/LocalJmsXA", inVmConnectorName);
@@ -1470,9 +1487,9 @@ public class Lodh2TestCase extends HornetQTestCase {
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
-            jmsAdminOperations.setJndiNameForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, "java:jboss/DefaultJMSConnectionFactory");
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, -1);
+            jmsAdminOperations.setJndiNameForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, "java:jboss/DefaultJMSConnectionFactory");
 
             jmsAdminOperations.close();
             container.restart();

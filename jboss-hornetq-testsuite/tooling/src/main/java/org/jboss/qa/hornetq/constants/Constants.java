@@ -43,4 +43,10 @@ public class Constants {
     public static final String TO_OUT_SERVER_CONNECTION_FACTORY_NAME = "ra-to-out-server";
     public static final String TO_OUT_SERVER_CONNECTION_FACTORY_JNDI_NAME = "java:/JmsXAOutServer";
 
+    public enum FAILURE_TYPE {
+        KILL,
+        SHUTDOWN,
+        OUT_OF_MEMORY_HEAP_SIZE,
+        OUT_OF_MEMORY_UNABLE_TO_OPEN_NEW_NATIE_THREAD
+    }
 }

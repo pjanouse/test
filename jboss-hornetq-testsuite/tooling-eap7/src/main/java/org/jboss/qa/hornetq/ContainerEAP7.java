@@ -7,15 +7,9 @@ import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.arquillian.container.test.api.Deployer;
-import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
@@ -31,13 +25,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.ServiceLoader;
+import java.util.concurrent.TimeUnit;
+
+import static org.jboss.qa.hornetq.constants.Constants.*;
 
 
 @MetaInfServices
 public class ContainerEAP7 implements Container {
 
     private static final Logger log = Logger.getLogger(ContainerEAP7.class);
-
 
 
     private static final String EAP_VERSION_PATTERN =
@@ -75,20 +71,20 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getPort() {
-        return Constants.MANAGEMENT_PORT_DEFAULT_EAP7 + getPortOffset();
+        return MANAGEMENT_PORT_DEFAULT_EAP7 + getPortOffset();
     }
 
 
     @Override
     public int getJNDIPort() {
-        return Constants.JNDI_PORT_DEFAULT_EAP7 + getPortOffset();
+        return JNDI_PORT_DEFAULT_EAP7 + getPortOffset();
     }
 
 
     @Override
     public int getPortOffset() {
 
-        return (containerIndex - 1) * Constants.DEFAULT_PORT_OFFSET_INTERVAL;
+        return (containerIndex - 1) * DEFAULT_PORT_OFFSET_INTERVAL;
     }
 
     @Override
@@ -105,23 +101,20 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public int getHornetqPort() {
-        return Constants.PORT_HORNETQ_DEFAULT_EAP7 + getPortOffset();
+        return PORT_HORNETQ_DEFAULT_EAP7 + getPortOffset();
     }
 
 
     @Override
     public int getHornetqBackupPort() {
-        return Constants.PORT_HORNETQ_DEFAULT_BACKUP_EAP7 + getPortOffset();
+        return PORT_HORNETQ_DEFAULT_BACKUP_EAP7 + getPortOffset();
     }
 
 
     @Override
     public int getBytemanPort() {
-
-        return Constants.DEFAULT_BYTEMAN_PORT + getPortOffset();
-
+        return DEFAULT_BYTEMAN_PORT + getPortOffset();
     }
-
 
     @Override
     public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType() {
@@ -141,6 +134,11 @@ public class ContainerEAP7 implements Container {
     @Override
     public String getPassword() {
         return containerDef.getContainerProperties().get("password");
+    }
+
+    @Override
+    public void fail(FAILURE_TYPE failureType) {
+        new FailureUtils().fail(this, failureType);
     }
 
     @Override
@@ -172,7 +170,7 @@ public class ContainerEAP7 implements Container {
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
         javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
-        javaVmArguments = javaVmArguments.replace(String.valueOf(Constants.DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
+        javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
         start(containerProperties);
@@ -411,7 +409,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public String getConnectionFactoryName() {
-        return Constants.CONNECTION_FACTORY_JNDI_EAP7;
+        return CONNECTION_FACTORY_JNDI_EAP7;
     }
 
     @Override

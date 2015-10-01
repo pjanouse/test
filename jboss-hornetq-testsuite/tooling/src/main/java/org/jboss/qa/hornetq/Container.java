@@ -9,9 +9,9 @@ import javax.naming.NamingException;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
-import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.MulticastAddressUtils;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
@@ -44,6 +44,7 @@ public interface Container {
     int getHttpPort();
     String getUsername();
     String getPassword();
+    void fail(Constants.FAILURE_TYPE failureType);
 
     String getServerVersion() throws FileNotFoundException;
 
