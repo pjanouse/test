@@ -86,7 +86,6 @@ public class DeadLetterTestCase extends HornetQTestCase {
         prepareServer(container(1), "#", true);
         container(1).start();
         this.testDLQDelivery();
-        container(1).stop();
     }
 
 
@@ -108,7 +107,6 @@ public class DeadLetterTestCase extends HornetQTestCase {
         prepareServer(container(1), "jms.queue.test.dlq.#", true);
         container(1).start();
         this.testDLQDelivery();
-        container(1).stop();
     }
 
 
@@ -133,7 +131,6 @@ public class DeadLetterTestCase extends HornetQTestCase {
         prepareServer(container(1), "#", false);
         container(1).start();
         this.testDLQDelivery();
-        container(1).stop();
     }
 
 
@@ -170,8 +167,6 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
         // try again, message should be delivered to DLQ now
         this.testDLQDelivery();
-
-        container(1).stop();
     }
 
 
