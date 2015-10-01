@@ -236,6 +236,5 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeTopic(TOPIC);
         jmsAdminOperations.close();
-        container(1).stop();
     }
 }
