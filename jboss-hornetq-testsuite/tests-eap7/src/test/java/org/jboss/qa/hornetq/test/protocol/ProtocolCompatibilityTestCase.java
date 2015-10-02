@@ -62,11 +62,16 @@ public abstract class ProtocolCompatibilityTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createOutBoundSocketBinding("remote-broker-binding", BROKER_REMOTE_ADDRESS, REMOTE_PORT_BROKER);
         jmsAdminOperations.createRemoteConnector("remote-broker-connector", "remote-broker-binding", null);
+        Map<String,String>params = new HashMap<String, String>();
+        params.put("java.naming.factory.initial", "org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory");
+        params.put("java.naming.provider.url", "tcp://127.0.0.1:62616");
+        jmsAdminOperations.addExternalContext("java:global/remoteContext", "javax.naming.InitialContext", "org.apache.activemq.artemis", "external-context",params );
         container(1).stop();
         container(1).start();
         jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createPooledConnectionFactory("CF", "java:/jms/CF", "remote-broker-connector");
         jmsAdminOperations.setDefaultResourceAdapter("CF");
+
         container(1).stop();
     }
 
