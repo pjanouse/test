@@ -389,7 +389,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     }
 
     public void prepareServers()    {
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER))  {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER))  {
             prepareServersEAP6();
         } else {
             prepareServersEAP7();

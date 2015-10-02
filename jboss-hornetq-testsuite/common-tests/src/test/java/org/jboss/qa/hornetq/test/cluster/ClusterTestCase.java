@@ -29,7 +29,6 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -40,6 +39,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopicToTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.test.security.PermissionGroup;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
@@ -70,7 +70,6 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
 import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
@@ -2509,7 +2508,7 @@ public class ClusterTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         try {
 
-            if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+            if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
                 jmsAdminOperations.setClustered(true);
 
             }
@@ -2770,7 +2769,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     // jms/queue/InQueue
     public static String getJmsXmlWithQueues(Container container) {
-        if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+        if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
             StringBuilder sb = new StringBuilder();
             sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");
@@ -2838,7 +2837,7 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     public static String getJmsXmlWithTopic(Container container) {
-        if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+        if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
             StringBuilder sb = new StringBuilder();
             sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             sb.append("<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">\n");

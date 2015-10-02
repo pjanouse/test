@@ -6,6 +6,7 @@ import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -203,7 +204,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
 
     private CLI.Result runOperation(final String operation, final String... params) {
         String cmd;
-        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+        if (container(1).getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
         } else {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);

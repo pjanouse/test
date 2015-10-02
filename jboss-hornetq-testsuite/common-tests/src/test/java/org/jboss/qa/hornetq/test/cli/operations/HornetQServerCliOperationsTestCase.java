@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JmsServerInfo;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
@@ -753,7 +754,7 @@ public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     private Result runOperation(final String operation, final String... params) {
         String cmd;
-        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+        if (container(1).getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(MODULE_EAP6, ":" + operation, params);
         } else {
             cmd = CliUtils.buildCommand(MODULE_EAP7, ":" + operation, params);

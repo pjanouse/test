@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq;
 
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.container.test.api.ContainerController;
+import org.jboss.qa.hornetq.constants.Constants;
 
 
 /**
@@ -22,7 +23,7 @@ public interface DomainContainer {
     /**
      * @return TYPE OF THE CONTAINER
      */
-    HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
+    Constants.CONTAINER_TYPE getContainerType();
 
     /**
      * @return Host controller hostname or IP

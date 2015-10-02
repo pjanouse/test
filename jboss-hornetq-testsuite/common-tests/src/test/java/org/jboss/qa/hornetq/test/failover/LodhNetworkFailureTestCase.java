@@ -261,7 +261,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
     }
 
     public void prepareRemoteJcaTopology(Container inServer, Container outServer) throws Exception {
-        if (inServer.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+        if (inServer.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopologyEAP6(inServer, outServer);
         } else {
             prepareRemoteJcaTopologyEAP7(inServer, outServer);

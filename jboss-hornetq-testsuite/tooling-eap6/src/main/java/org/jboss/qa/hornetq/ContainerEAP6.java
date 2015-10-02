@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -113,8 +112,8 @@ public class ContainerEAP6 implements Container {
     }
 
     @Override
-    public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType() {
-        return HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
+    public CONTAINER_TYPE getContainerType() {
+        return CONTAINER_TYPE.EAP6_CONTAINER;
     }
 
     @Override

@@ -5,7 +5,6 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -589,7 +588,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
     }
 
     protected void deployBridge(Container container, String qualityOfService, int maxRetries) {
-        if (container.getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+        if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             deployBridgeEAP6(container, qualityOfService, maxRetries);
         } else {
             deployBridgeEAP7(container, qualityOfService, maxRetries);

@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
@@ -481,9 +482,9 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     @Deprecated
     public static int getJNDIPort(String containerName) {
 
-        if (getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_CONTAINER
-                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER
-                || getContainerInfo(containerName).getContainerType() == CONTAINER_TYPE.EAP6_LEGACY_CONTAINER) {
+        if (getContainerInfo(containerName).getContainerType() == Constants.CONTAINER_TYPE.EAP5_CONTAINER
+                || getContainerInfo(containerName).getContainerType() == Constants.CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER
+                || getContainerInfo(containerName).getContainerType() == Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER) {
             return 1099 + getContainerInfo(containerName).getPortOffset();
         } else {
             return 4447 + getContainerInfo(containerName).getPortOffset();
@@ -887,7 +888,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     }
 
     @Deprecated
-    public static CONTAINER_TYPE getContainerType(String containerName) {
+    public static Constants.CONTAINER_TYPE getContainerType(String containerName) {
         return getContainerInfo(containerName).getContainerType();
     }
 
@@ -1282,7 +1283,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
             JMSOperations jmsOperations = container.getJmsOperations();
 
             ContainerInfo ci = getContainerInfo(container.getName());
-            if (CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(ci.getContainerType())) {
+            if (Constants.CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER.equals(ci.getContainerType())) {
                 jmsOperations.addAddressPrefix("host", "master");
                 jmsOperations.addAddressPrefix("server", ci.getDomainName());
             }

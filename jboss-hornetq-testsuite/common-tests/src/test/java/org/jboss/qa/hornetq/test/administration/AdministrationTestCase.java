@@ -68,7 +68,7 @@ public class AdministrationTestCase extends HornetQTestCase {
     }
 
     public void prepareServer(Container container, String journalDirectory) throws IOException {
-        if (container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER)  {
+        if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER)  {
             prepareServerEAP6(container, journalDirectory);
         } else {
             prepareServerEAP7(container, journalDirectory);

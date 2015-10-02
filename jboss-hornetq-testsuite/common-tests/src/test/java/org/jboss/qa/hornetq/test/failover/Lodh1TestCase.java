@@ -596,7 +596,7 @@ public class Lodh1TestCase extends HornetQTestCase {
             FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
             String connectionFactoryName = null;
-            if (container.getContainerType().equals(CONTAINER_TYPE.EAP7_CONTAINER)) {
+            if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER)) {
                 connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP7;
             } else {
                 connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP6;

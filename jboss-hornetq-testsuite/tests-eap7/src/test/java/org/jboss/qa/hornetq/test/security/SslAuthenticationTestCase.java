@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SocketBinding;
@@ -676,7 +676,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", connectorName);
         ops.setSecurityEnabled(true);
 
-        if (container.getContainerType().equals(HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+        if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             ops.addExtension("org.jboss.legacy.jnp");
             ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
             ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
@@ -687,7 +687,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         container.stop();
 
-        if (container.getContainerType().equals(HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+        if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             activateLegacyJnpModule(container);
         }
 

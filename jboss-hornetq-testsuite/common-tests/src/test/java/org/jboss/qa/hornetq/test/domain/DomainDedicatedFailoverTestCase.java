@@ -22,6 +22,7 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.DomainTests;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -1302,7 +1303,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
     }
 
     private void prepareSimpleDedicatedTopology(DomainContainer domain) throws Exception {
-        if (domain.getContainerType().equals(CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER)) {
+        if (domain.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER)) {
             prepareSimpleDedicatedTopologyEAP6(domain);
         } else {
             prepareSimpleDedicatedTopologyEAP7(domain);

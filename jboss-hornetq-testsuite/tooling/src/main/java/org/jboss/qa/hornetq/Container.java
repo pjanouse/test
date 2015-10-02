@@ -39,7 +39,7 @@ public interface Container {
     int getHornetqPort();
     int getHornetqBackupPort();
     int getBytemanPort();
-    HornetQTestCaseConstants.CONTAINER_TYPE getContainerType();
+    Constants.CONTAINER_TYPE getContainerType();
 
     int getHttpPort();
     String getUsername();

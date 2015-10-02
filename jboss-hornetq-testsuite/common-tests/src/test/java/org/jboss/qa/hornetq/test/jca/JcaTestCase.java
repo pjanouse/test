@@ -20,16 +20,13 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;    
-
-import java.io.File;
+import org.junit.runner.RunWith;
 
 /**
  * @author mnovak@redhat.com
@@ -261,7 +258,7 @@ public class JcaTestCase extends HornetQTestCase {
 
     private void prepareServer(Container container) {
         String connectionFactoryName =
-                container.getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER ? Constants.RESOURCE_ADAPTER_NAME_EAP6 : Constants.RESOURCE_ADAPTER_NAME_EAP7;
+                container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER ? Constants.RESOURCE_ADAPTER_NAME_EAP6 : Constants.RESOURCE_ADAPTER_NAME_EAP7;
         prepareJmsServer(container, connectionFactoryName);
     }
 

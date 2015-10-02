@@ -2,7 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.constants.Constants;
 
 import java.io.File;
 
@@ -29,7 +29,7 @@ public final class ContainerInfo {
 
     private final String jbossHome;
 
-    private HornetQTestCaseConstants.CONTAINER_TYPE containerType;
+    private Constants.CONTAINER_TYPE containerType;
 
     public ContainerInfo(final String name, final String domainName, final String ipAddress, final int bytemanPort,
                          final int portOffset, final String jbossHome) {
@@ -55,19 +55,19 @@ public final class ContainerInfo {
 
         String arqConfigurationFile = System.getProperty("arquillian.xml");
         if (new File(eap5hqPath.toString()).exists())   {
-            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_CONTAINER;
+            containerType = Constants.CONTAINER_TYPE.EAP5_CONTAINER;
         } else if (new File(eap5jbmPath.toString()).exists())   {
-            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER;
+            containerType = Constants.CONTAINER_TYPE.EAP5_WITH_JBM_CONTAINER;
         } else if (arqConfigurationFile != null && !arqConfigurationFile.trim().isEmpty()
                 && arqConfigurationFile.toLowerCase().contains("eap6-legacy")) {
 
-            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER;
+            containerType = Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER;
         } else if (arqConfigurationFile != null && !arqConfigurationFile.trim().isEmpty()
                 && arqConfigurationFile.toLowerCase().contains("domain")) {
 
-            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER;
+            containerType = Constants.CONTAINER_TYPE.EAP6_DOMAIN_CONTAINER;
         } else {
-            containerType = HornetQTestCaseConstants.CONTAINER_TYPE.EAP6_CONTAINER;
+            containerType = Constants.CONTAINER_TYPE.EAP6_CONTAINER;
         }
     }
 
@@ -101,7 +101,7 @@ public final class ContainerInfo {
         return jbossHome;
     }
 
-    public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType()   {
+    public Constants.CONTAINER_TYPE getContainerType()   {
         return containerType;
     }
 

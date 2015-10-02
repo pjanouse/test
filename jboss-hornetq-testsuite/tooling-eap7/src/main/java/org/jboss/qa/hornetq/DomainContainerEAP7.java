@@ -35,8 +35,8 @@ public class DomainContainerEAP7 implements DomainContainer {
     }
 
     @Override
-    public HornetQTestCaseConstants.CONTAINER_TYPE getContainerType() {
-        return HornetQTestCaseConstants.CONTAINER_TYPE.EAP7_DOMAIN_CONTAINER;
+    public Constants.CONTAINER_TYPE getContainerType() {
+        return Constants.CONTAINER_TYPE.EAP7_DOMAIN_CONTAINER;
     }
 
     @Override

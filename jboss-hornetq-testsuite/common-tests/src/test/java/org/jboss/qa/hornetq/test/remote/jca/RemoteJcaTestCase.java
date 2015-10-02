@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -520,13 +521,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
             s = containerDef.getContainerProperties().get("javaVmArguments");
             
-            if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+            if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
             } else {
                 s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname() + ";httpUpgradeEnabled=true");
             }
                  
-            if (container(2).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+            if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
             } else {
                 s = s.concat(" -Dconnector.factory.class=org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory");
@@ -591,7 +592,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     public void prepareRemoteJcaTopology() throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_CONTAINER)) {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopologyEAP6();
         } else {
             prepareRemoteJcaTopologyEAP7();

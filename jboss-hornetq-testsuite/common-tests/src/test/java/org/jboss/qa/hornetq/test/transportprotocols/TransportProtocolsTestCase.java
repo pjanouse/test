@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SocketBinding;
@@ -231,7 +232,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
      */
     public void transportProtocolTest() throws Exception {
 
-        if (container(1).getContainerType().equals(CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
             // configure legacy extension
 
             container(1).start();

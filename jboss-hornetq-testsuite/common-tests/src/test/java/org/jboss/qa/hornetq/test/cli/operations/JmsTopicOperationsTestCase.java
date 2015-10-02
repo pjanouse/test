@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
@@ -189,7 +190,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private Result runOperation(final String operation, final String... params) {
         String cmd;
-        if (container(1).getContainerType() == CONTAINER_TYPE.EAP6_CONTAINER) {
+        if (container(1).getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
             cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
         } else {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);

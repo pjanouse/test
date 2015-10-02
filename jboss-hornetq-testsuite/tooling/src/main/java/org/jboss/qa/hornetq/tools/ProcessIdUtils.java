@@ -9,13 +9,14 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import java.lang.management.ManagementFactory;
+
 import org.jboss.qa.hornetq.DomainNode;
 
 
 /**
  * Created by mnovak on 3/18/15.
  */
-public class    ProcessIdUtils {
+public class ProcessIdUtils {
 
     private static final Logger log = Logger.getLogger(ProcessIdUtils.class);
 
@@ -23,7 +24,6 @@ public class    ProcessIdUtils {
      * @return pid of the server
      */
     public static long getProcessId(Container container) {
-
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("core-service", "platform-mbean");
