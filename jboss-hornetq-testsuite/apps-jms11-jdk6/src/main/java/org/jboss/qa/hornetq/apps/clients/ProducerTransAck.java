@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 
 import javax.jms.*;
 import javax.naming.Context;
@@ -317,7 +318,7 @@ public class ProducerTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ProducerTransAck producer = new ProducerTransAck(CONTAINER_TYPE.EAP7_CONTAINER.toString(), "10.40.4.81", 8080, "jms/queue/testQueue0", 20);
+        ProducerTransAck producer = new ProducerTransAck(Constants.CONTAINER_TYPE.EAP7_CONTAINER.toString(), "127.0.0.1", 8080, "jms/queue/testQueue0", 20);
         MessageBuilder builder = new TextMessageBuilder(14);
         producer.setMessageBuilder(builder);
         producer.setTimeout(0);
