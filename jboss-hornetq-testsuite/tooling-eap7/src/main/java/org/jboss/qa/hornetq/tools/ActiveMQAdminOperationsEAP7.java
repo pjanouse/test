@@ -1083,13 +1083,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         addDivert.get("divert-address").set(divertAddress);
         addDivert.get("forwarding-address").set(forwardingAddress);
         addDivert.get("exclusive").set(isExclusive);
-        if (filter != null && !"".equals(filter)) {
+        if (!isEmpty(filter)) {
             addDivert.get("filter").set(filter);
         }
-        if (routingName != null && !"".equals(routingName)) {
+        if (!isEmpty(routingName)) {
             addDivert.get("routing-name").set(routingName);
         }
-        if (transformerClassName != null && !"".equals(transformerClassName)) {
+        if (!isEmpty(transformerClassName)) {
             addDivert.get("transformer-class-name").set(transformerClassName);
         }
 
@@ -5565,8 +5565,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9990);
             jmsAdminOperations.connect();
+            jmsAdminOperations.addDivert("div", "jms.queue.testQueue0", "jms.queue.DLQ", true, null, null, null);
 //            System.out.println(jmsAdminOperations.isActive("default"));
-            jmsAdminOperations.reloadServer();
+//            jmsAdminOperations.reloadServer();
             // jmsAdminOperations.setPersistenceEnabled(true);
             // jmsAdminOperations.removeAddressSettings("#");
             // jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
