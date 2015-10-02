@@ -4256,7 +4256,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public boolean isActive(String serverName) {
         ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
         model.get("name").set("active");

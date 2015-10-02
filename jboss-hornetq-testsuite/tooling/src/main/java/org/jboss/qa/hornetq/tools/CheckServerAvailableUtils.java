@@ -69,4 +69,29 @@ public class CheckServerAvailableUtils {
         return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
     }
 
+
+    public static void waitForBrokerToDeactivate(Container container, long timeout) throws Exception {
+        long startTime = System.currentTimeMillis();
+        JMSOperations jmsOperations = container.getJmsOperations();
+        while (jmsOperations.isActive("default")) {
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
+            }
+        }
+    }
+
+    public static void waitForBrokerToActivate(Container container, long timeout) throws Exception {
+        long startTime = System.currentTimeMillis();
+        log.info("Start waiting for broker in container: " + container + " - to activate");
+        JMSOperations jmsOperations = container.getJmsOperations();
+        while (!jmsOperations.isActive("default")) {
+            log.info("Broker in container: " + container + " - is not active yet. Waiting time :" + (System.currentTimeMillis() - startTime) + " ms");
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Server " + container + " should be up. Timeout was " + timeout);
+            }
+        }
+        log.info("Broker in container: " + container + " - is active");
+    }
 }

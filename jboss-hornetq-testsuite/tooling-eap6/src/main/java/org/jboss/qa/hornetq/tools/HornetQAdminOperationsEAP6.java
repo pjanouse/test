@@ -4050,7 +4050,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public boolean isActive(String serverName) {
         ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("read-resource");
+        model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
         model.get("name").set("active");

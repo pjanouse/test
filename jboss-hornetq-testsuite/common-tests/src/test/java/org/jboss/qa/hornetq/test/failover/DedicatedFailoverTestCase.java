@@ -184,7 +184,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
 //            logger.warn("########################################");
@@ -324,7 +324,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
 
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
 
             waitForClientsToFailover();
 
@@ -514,7 +514,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
 //            logger.warn("########################################");
@@ -695,20 +695,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-
-    protected void waitHornetQBackupToBecomePassive(Container container, int port, long timeout) throws Exception {
-        long startTime = System.currentTimeMillis();
-
-//        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(container.getHostname(), port)) {
-        JMSOperations jmsOperations = container.getJmsOperations();
-        while (jmsOperations.isActive("default")) {
-            Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime < timeout) {
-                Assert.fail("Server " + container + " should be down. Timeout was " + timeout);
-            }
-        }
-    }
-
     protected void waitForClientsToFailover() {
 
         long timeout = 180000;
@@ -804,7 +790,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
-            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 300000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 300000);
             Thread.sleep(5000); // give it some time
 
         }
@@ -2009,7 +1995,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
             // check that backup is really down
-            waitHornetQBackupToBecomePassive(container(2), container(2).getHornetqPort(), 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();
             Thread.sleep(5000); // give it some time
         }

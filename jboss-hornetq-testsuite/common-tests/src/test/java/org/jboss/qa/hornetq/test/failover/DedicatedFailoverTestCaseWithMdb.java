@@ -54,7 +54,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -224,8 +224,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", CheckServerAvailableUtils.waitHornetQToAlive(
-                container(2).getHostname(), container(2).getHornetqPort(), 600000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
@@ -289,14 +288,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
             logger.info("Container 1 killed.");
         }
 
-        Assert.assertTrue("Backup server (container2) did not start after kill.", CheckServerAvailableUtils.waitHornetQToAlive(
-                container(2).getHostname(), container(2).getHornetqPort(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
                 waitForMessagesOnOneNode(container(2), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         container(1).start();
-        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
         logger.info("Container 1 started again");
         Thread.sleep(10000);
         logger.info("Container 2 stopping...");
