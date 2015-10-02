@@ -37,7 +37,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
     public void prepareRemoteJcaTopology() throws Exception {
         prepareLiveServer(container(1));
         prepareBackupServer(container(2));
-        prepareMdbServer(container(3), container(1), container(2));
+        prepareMdbServerEAP6(container(3), container(1), container(2));
         copyApplicationPropertiesFiles();
     }
 

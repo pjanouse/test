@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -692,7 +693,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @param container Test container - defined in arquillian.xml
      */
     @Override
-    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -705,7 +706,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
+        if (Constants.CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
             // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
             Map<String, String> connectorParams = new HashMap<String, String>();
@@ -806,7 +807,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @param journalType   ASYNCIO, NIO
      * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
      */
-    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         String messagingGroupSocketBindingForConnector = "messaging";
         String nettyConnectorName = "netty";
@@ -890,7 +891,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -905,7 +906,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        if (CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
+        if (Constants.CONNECTOR_TYPE.NETTY_NIO.equals(connectorType)) {
             // add connector with NIO
             jmsAdminOperations.removeRemoteConnector(connectorName);
             Map<String, String> connectorParams = new HashMap<String, String>();
@@ -1012,7 +1013,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @param journalType   ASYNCIO, NIO
      * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or HTTP connector
      */
-    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, CONNECTOR_TYPE connectorType) {
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         String messagingGroupSocketBindingForConnector = "messaging";
         String nettyConnectorName = "netty";

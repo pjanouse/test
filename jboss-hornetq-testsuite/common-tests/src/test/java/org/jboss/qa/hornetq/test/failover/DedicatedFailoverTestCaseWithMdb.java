@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -73,7 +74,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 //        File target = new File("/tmp/mdb1.jar");
 //        if (target.exists()) {
@@ -369,10 +370,19 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @throws Exception
      */
     public void prepareRemoteJcaTopology() throws Exception {
-            prepareLiveServer(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-            prepareBackupServer(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_A);
-            prepareMdbServer(container(3), container(1), container(2));
-            copyApplicationPropertiesFiles();
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A);
+            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_A);
+            prepareMdbServerEAP6(container(3), container(1), container(2));
+
+        } else {
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A);
+            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A);
+            prepareMdbServerEAP7(container(3), container(1), container(2));
+
+        }
+
+        copyApplicationPropertiesFiles();
     }
 
     /**
@@ -380,7 +390,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareMdbServer(Container container, Container containerLive, Container containerBackup) {
+    protected void prepareMdbServerEAP6(Container container, Container containerLive, Container containerBackup) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -444,13 +454,64 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
+     * Prepares mdb server for remote jca topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    protected void prepareMdbServerEAP7(Container container, Container containerLive, Container containerBackup) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "http-connector";
+        String remoteConnectorName = "remote-http-connector";
+        String remoteConnectorNameBackup = "remote-http-connector-backup";
+        String pooledConnectionFactoryName = "ra-connection-factory";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+//        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+//        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+//        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", containerLive.getHostname(), containerLive.getHornetqPort());
+        jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+        jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", containerBackup.getHostname(), containerBackup.getHornetqPort());
+        jmsAdminOperations.createHttpConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+
+        List<String> connectorList = new ArrayList<String>();
+        connectorList.add(remoteConnectorName);
+//        connectorList.add(remoteConnectorNameBackup);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, connectorList);
+        jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
+        jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
+        jmsAdminOperations.createPooledConnectionFactory(pooledConnectionFactoryName, "java:/jmsXALocal", connectorName);
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorName);
+        jmsAdminOperations.setNodeIdentifier(123);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
      * Prepares live server for dedicated topology.
      *
      * @param container        Test container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
      * @param journalDirectory path to journal directory
      */
-    private void prepareLiveServer(Container container, String bindingAddress, String journalDirectory) {
+    private void prepareLiveServerEAP6(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -463,9 +524,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container.start();
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
@@ -507,11 +565,51 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container        The container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
+     */
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory) {
+
+        String connectionFactoryName = "RemoteConnectionFactory";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+        jmsAdminOperations.addHAPolicySharedStoreMaster(1000, true);
+
+        jmsAdminOperations.close();
+
+        container.stop();
+    }
+
+    /**
      * Prepares backup server for dedicated topology.
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareBackupServer(Container container, String bindingAddress, String journalDirectory) {
+    private void prepareBackupServerEAP6(Container container, String journalDirectory) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -522,10 +620,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
 
         jmsAdminOperations.setBackup(true);
         jmsAdminOperations.setClustered(true);
@@ -563,6 +657,42 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
         jmsAdminOperations.setFailoverOnShutdown(true);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares backup server for dedicated topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    private void prepareBackupServerEAP7(Container container, String journalDirectory) {
+
+        String connectionFactoryName = "RemoteConnectionFactory";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.setPersistenceEnabled(true);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
+        jmsAdminOperations.addHAPolicySharedStoreSlave(true, 1000, true, true, false, null, null, null, null);
 
         jmsAdminOperations.close();
         container.stop();
