@@ -34,10 +34,9 @@ import javax.naming.Context;
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class RemoteMdbFromQueueToQueue implements MessageDrivenBean, MessageListener{
+public class RemoteMdbFromQueueToQueue implements MessageListener{
 
     private static final Logger log = Logger.getLogger(RemoteMdbFromQueueToQueue.class.getName());
-    private MessageDrivenContext context;
 
 
     @Resource(mappedName = "java:/jms/CF")
@@ -54,7 +53,7 @@ public class RemoteMdbFromQueueToQueue implements MessageDrivenBean, MessageList
             connection = cf.createConnection();
             Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
             System.out.println("MESSAGE RECEIVED");
-            Queue queue = (Queue) context1.lookup("jms/queue/OutQueue");
+            Queue queue = (Queue) context1.lookup("OutQueue");
             MessageProducer sender = session.createProducer(queue);
             sender.send(message);
         }catch(Exception e){
@@ -71,13 +70,6 @@ public class RemoteMdbFromQueueToQueue implements MessageDrivenBean, MessageList
 
     }
 
-    @Override
-    public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) throws EJBException {
-        this.context = messageDrivenContext;
-    }
 
-    @Override
-    public void ejbRemove() throws EJBException {
 
-    }
 }
