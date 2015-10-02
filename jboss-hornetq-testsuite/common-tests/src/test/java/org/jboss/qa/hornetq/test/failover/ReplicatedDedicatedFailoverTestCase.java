@@ -39,6 +39,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
+    private String replicationGroupName = "replication-group-name-1";
+
     @After
     @Before
     public void stopAllServers() {
@@ -809,70 +811,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      */
     protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
-        String messagingGroupSocketBindingForConnector = "messaging";
-        String nettyConnectorName = "netty";
-        String nettyAcceptorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String clusterGroupName = "my-cluster";
-        int defaultPortForMessagingSocketBinding = 5445;
-
         container.start();
+
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
-
-        switch (connectorType) {
-            case HTTP_CONNECTOR:
-                break;
-            case NETTY_BIO:
-                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
-                jmsAdminOperations.close();
-                container.stop();
-                container.start();
-                jmsAdminOperations = container.getJmsOperations();
-                // add connector with BIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
-                // add acceptor wtih BIO
-                Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                break;
-            case NETTY_NIO:
-                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
-                jmsAdminOperations.close();
-                container.stop();
-                container.start();
-                jmsAdminOperations = container.getJmsOperations();
-                // add connector with NIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
-                connectorParamsNIO.put("use-nio", "true");
-                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
-
-                // add acceptor with NIO
-                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
-                acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                break;
-            default:
-                break;
-        }
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        setConnectorForClientEAP7(container, connectorType);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterGroupName, clusterGroupName);
+        jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterConnectionName, replicationGroupName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -882,6 +831,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
         jmsAdminOperations.createQueue(divertedQueue, divertedQueueJndiName, true);
+
         jmsAdminOperations.close();
         container.stop();
     }
@@ -1015,74 +965,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      */
     protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
-        String messagingGroupSocketBindingForConnector = "messaging";
-        String nettyConnectorName = "netty";
-        String nettyAcceptorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        int defaultPortForMessagingSocketBinding = 5445;
-        String clusterGroupName = "my-cluster";
-
         container.start();
+
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        switch (connectorType) {
-            case HTTP_CONNECTOR:
-                break;
-            case NETTY_BIO:
-                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
-                jmsAdminOperations.close();
-                container.stop();
-                container.start();
-                jmsAdminOperations = container.getJmsOperations();
-                // add connector with BIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
-                // add acceptor wtih BIO
-                Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, null);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                break;
-            case NETTY_NIO:
-                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
-                jmsAdminOperations.close();
-                container.stop();
-                container.start();
-                jmsAdminOperations = container.getJmsOperations();
-                // add connector with NIO
-                jmsAdminOperations.removeHttpConnector(nettyConnectorName);
-                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
-                connectorParamsNIO.put("use-nio", "true");
-                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null, connectorParamsNIO);
+        setConnectorForClientEAP7(container, connectorType);
 
-                // add acceptor with NIO
-                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
-                acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeHttpAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null, acceptorParamsNIO);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                break;
-            default:
-                break;
-        }
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.setPersistenceEnabled(true);
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
         jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-
-        jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterGroupName, 1000, clusterGroupName, 60, true, false, null, null, null, null);
+        jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterConnectionName, 1000, replicationGroupName, 60, true, false, null, null, null, null);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

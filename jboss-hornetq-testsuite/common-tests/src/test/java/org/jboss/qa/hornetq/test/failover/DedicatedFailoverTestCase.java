@@ -56,6 +56,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     String topicJndiNamePrefix = "jms/topic/testTopic";
     String divertedQueueJndiName = "jms/queue/divertedQueue";
 
+    String clusterConnectionName = "my-cluster";
+
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
     //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
@@ -1638,16 +1640,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      *
      * @param container        The container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
-     */
-    protected void prepareLiveServerEAP7(Container container, String journalDirectory) {
-        prepareLiveServerEAP7(container, journalDirectory, "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-    }
-
-    /**
-     * Prepares live server for dedicated topology.
-     *
-     * @param container        The container - defined in arquillian.xml
-     * @param journalDirectory path to journal directory
      * @param journalType      ASYNCIO, NIO
      * @param connectorType    whether to use NIO in connectors for CF or old blocking IO, or http connector
      */
@@ -1683,14 +1675,13 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    private void setConnectorForClientEAP7(Container container, Constants.CONNECTOR_TYPE connectorType) {
+    protected void setConnectorForClientEAP7(Container container, Constants.CONNECTOR_TYPE connectorType) {
 
         String messagingGroupSocketBindingForConnector = "messaging";
         String nettyConnectorName = "netty";
         String nettyAcceptorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         int defaultPortForMessagingSocketBinding = 5445;
-        String clusteringConnectionName = "my-cluster";
         String discoveryGroupName = "db-group1";
         String jgroupsChannel = "activemq-cluster";
         String jgroupsStack = "udp";
@@ -1715,8 +1706,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
                 jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                jmsAdminOperations.removeClusteringGroup(clusteringConnectionName);
-                jmsAdminOperations.setClusterConnections(clusteringConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
+                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
+                jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
                 jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
                 jmsAdminOperations.setBroadCastGroup(broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
                 break;
@@ -1739,8 +1730,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
                 jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
                 jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                jmsAdminOperations.removeClusteringGroup(clusteringConnectionName);
-                jmsAdminOperations.setClusterConnections(clusteringConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
+                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
+                jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
                 jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
                 jmsAdminOperations.setBroadCastGroup(broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
                 break;
