@@ -340,7 +340,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
-        jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterConnectionName, 1000, replicationGroupName, 60, true, false, null, null, null, null);
+        jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterConnectionName, 5000, replicationGroupName, 60, true, false, null, null, null, null);
 
         jmsAdminOperations.close();
         container.stop();
