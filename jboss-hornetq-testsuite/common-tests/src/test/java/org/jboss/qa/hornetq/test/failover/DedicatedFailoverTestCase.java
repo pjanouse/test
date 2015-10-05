@@ -1682,7 +1682,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         String nettyAcceptorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
         int defaultPortForMessagingSocketBinding = 5445;
-        String discoveryGroupName = "db-group1";
+        String discoveryGroupName = "dg-group1";
         String jgroupsChannel = "activemq-cluster";
         String jgroupsStack = "udp";
         String broadcastGroupName = "bg-group1";
@@ -1750,18 +1750,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.close();
     }
 
-
-    /**
-     * Prepares backup server for dedicated topology.
-     *
-     * @param container        The container - defined in arquillian.xml
-     * @param journalDirectory path to journal directory
-     */
-    protected void prepareBackupServerEAP6(Container container, String journalDirectory) {
-
-        prepareBackupServerEAP6(container, journalDirectory, "ASYNCIO", Constants.CONNECTOR_TYPE.NETTY_BIO);
-
-    }
 
     /**
      * Prepares backup server for dedicated topology.
@@ -1887,18 +1875,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.close();
 
         container.stop();
-    }
-
-    /**
-     * Prepares backup server for dedicated topology.
-     *
-     * @param container        The container - defined in arquillian.xml
-     * @param journalDirectory path to journal directory
-     */
-    protected void prepareBackupServerEAP7(Container container, String journalDirectory) {
-
-        prepareBackupServerEAP7(container, journalDirectory, "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-
     }
 
     /**
