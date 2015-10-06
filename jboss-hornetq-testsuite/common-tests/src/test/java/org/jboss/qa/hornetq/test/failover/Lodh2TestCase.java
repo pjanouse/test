@@ -438,7 +438,23 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     /**
-     *
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cause OutOfMemoryError on node 2,
+     * restart it and then repeat for node 4. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     * @tpProcedure <ul>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>cause OOM node-2 and restart it while MDB is processing messages</li>
+     * <li>cause OOM node-4 and restart it while MDB is processing messages</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
      * @tpPassCrit there is the same number of sent and received messages
      */
     @Test
@@ -452,6 +468,26 @@ public class Lodh2TestCase extends HornetQTestCase {
         testRemoteJcaInCluster(failureSequence, FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
     }
 
+    /**
+     * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
+     * Cluster B with nodes 2 and 4 is started. Start producer which sends 5000 messages
+     * (mix of small and large messages) to InQueue. Once producer finishes, deploy MDB which reads messages from InQueue and sends
+     * to OutQueue (in XA transaction) to cluster B (node 2,4). When MDBs are processing messages, cause OutOfMemoryError on node 1,
+     * restart it and then repeat for node 3. Wait until all
+     * messages are processed and consume messages from OutQueue.
+     * @tpProcedure <ul>
+     * <li>start cluster one containing node 1 and 3 with deployed inQueue and outQueue</li>
+     * <li>start cluster two containing node 2 and 4</li>
+     * <li>producer sends 5000 small and large messages to InQueue</li>
+     * <li>wait for producer to finish</li>
+     * <li>deploy MDBs to node-2 and node-4 which read messages from inQueue and sends them to outQueue in XA transactions</li>
+     * <li>cause OOM node-1 and restart it while MDB is processing messages</li>
+     * <li>cause OOM node-3 and restart it while MDB is processing messages</li>
+     * <li>wait until all messages are processed</li>
+     * <li>start Consumer which consumes messages form outQueue</li>
+     * </ul>
+     * @tpPassCrit there is the same number of sent and received messages
+     */
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
