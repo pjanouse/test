@@ -57,6 +57,13 @@ public class Constants {
     public enum CONNECTOR_TYPE {
         NETTY_BIO,
         NETTY_NIO,
-        HTTP_CONNECTOR
+        HTTP_CONNECTOR,
+        NETTY_DISCOVERY
     }
+
+    public enum JOURNAL_TYPE
+    {
+        ASYNCIO, NIO
+    }
+
 }
