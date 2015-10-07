@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -22,9 +22,9 @@ public class JournalReplicationNioBlockTestCase extends JournalReplicationAbstra
 {
 
 	@Override
-	public JournalType getJournalType()
+	public Constants.JOURNAL_TYPE getJournalType()
 	{
-		return JournalType.NIO;
+		return Constants.JOURNAL_TYPE.NIO;
 	}
 
 	@Override

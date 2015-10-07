@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
+
+import static org.jboss.qa.hornetq.constants.Constants.*;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -21,9 +23,9 @@ import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
 public class JournalReplicationAsyncioBlockTestCase extends JournalReplicationAbstract
 {
 	@Override
-	public JournalType getJournalType()
+	public JOURNAL_TYPE getJournalType()
 	{
-		return JournalType.ASYNCIO;
+		return JOURNAL_TYPE.ASYNCIO;
 	}
 
 	@Override

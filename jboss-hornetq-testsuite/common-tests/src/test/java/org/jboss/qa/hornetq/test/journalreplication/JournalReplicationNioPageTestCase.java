@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
+
+import static org.jboss.qa.hornetq.constants.Constants.*;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -21,9 +23,9 @@ import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
 public class JournalReplicationNioPageTestCase extends JournalReplicationAbstract
 {
 	@Override
-	public JournalType getJournalType()
+	public JOURNAL_TYPE getJournalType()
 	{
-		return JournalType.NIO;
+		return JOURNAL_TYPE.NIO;
 	}
 
 	@Override

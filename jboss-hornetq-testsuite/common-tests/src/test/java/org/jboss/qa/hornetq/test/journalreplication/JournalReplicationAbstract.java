@@ -8,9 +8,9 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.constants.Constants.JOURNAL_TYPE;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalReplicationConfiguration;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.JournalType;
 import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemController;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
@@ -54,7 +54,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
     private static final int RETRY_MAX_ATTEMPTS = 3;
     private static final int RETRY_SLEEP_SECS = 2;
 
-    public abstract JournalType getJournalType();
+    public abstract JOURNAL_TYPE getJournalType();
 
     public abstract AddressFullPolicy getAddressFullPolicy();
 
