@@ -545,15 +545,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         for (Client c : clients.getProducers()) {
 
             if (c instanceof ProducerTransAck) {
-
                 sendDivertedMessageVerifier.addSendMessages(((ProducerTransAck) c).getListOfSentMessages());
-
             }
-
             if (c instanceof PublisherTransAck) {
-
                 sendDivertedMessageVerifier.addSendMessages(((PublisherTransAck) c).getListOfSentMessages());
-
             }
         }
 
