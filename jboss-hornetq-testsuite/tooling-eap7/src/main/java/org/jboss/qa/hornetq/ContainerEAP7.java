@@ -21,10 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.ServiceLoader;
+import java.util.*;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -44,6 +41,8 @@ public class ContainerEAP7 implements Container {
     private int containerIndex = 0;
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
+    private Map<String, String> originalContainerProperties = null;
+
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
@@ -52,6 +51,7 @@ public class ContainerEAP7 implements Container {
         this.containerIndex = containerIndex;
         this.containerController = containerController;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
+        this.originalContainerProperties = containerDef.getContainerProperties();
     }
 
 
@@ -161,7 +161,7 @@ public class ContainerEAP7 implements Container {
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
         // replace 9091 for byteman port
 
-        Map<String, String> containerProperties = containerDef.getContainerProperties();
+        Map<String, String> containerProperties = getOriginalContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
 
@@ -438,4 +438,17 @@ public class ContainerEAP7 implements Container {
                 + descriptor.getDescriptorName());
     }
 
+    private Map<String, String> getOriginalContainerProperties()
+    {
+        Map<String, String> properties = new HashMap<String, String>();
+
+        if(originalContainerProperties != null)
+        {
+            for(String key: originalContainerProperties.keySet())
+            {
+                properties.put(key, originalContainerProperties.get(key));
+            }
+        }
+        return properties;
+    }
 }
