@@ -499,8 +499,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
-                container(2).getHostname(), container(2).getHornetqPort(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
