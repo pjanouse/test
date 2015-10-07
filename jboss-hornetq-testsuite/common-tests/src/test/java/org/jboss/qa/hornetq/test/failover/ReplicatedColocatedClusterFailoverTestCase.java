@@ -2,29 +2,23 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- *
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF  STANDALONE JMS CLIENT WITH REPLICATED JOURNAL IN DEDICATED/COLLOCATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-colocated-cluster-replicated-journal/
@@ -40,30 +34,58 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
 
-//    /**
-//     * Start simple failover test with client_ack on queues
-//     */
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest
-//    @RestoreConfigBeforeTest
-//    public void testSimpleConfiguration() throws Exception {
-//
-//        prepareColocatedTopologyInCluster();
-//    }
+    private String replicationGroupName = "replication-group-name-1";
+
 
     /**
      * Prepare two servers in colocated topology in cluster.
-     *
      */
     public void prepareColocatedTopologyInCluster() {
 
-        prepareLiveServer(container(1), "firstPair", "firstPairJournalLive");
-        prepareColocatedBackupServer(container(1), "backup", "secondPair", "secondPairJournalBackup");
+        if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
+            prepareLiveServerEAP7(container(1), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP7(container(2), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        } else {
+            prepareLiveServerEAP6(container(1), "firstPair", "firstPairJournalLive");
+            prepareColocatedBackupServerEAP6(container(1), "backup", "secondPair", "secondPairJournalBackup");
 
-        prepareLiveServer(container(2), "secondPair", "secondPairJournalLive");
-        prepareColocatedBackupServer(container(2), "backup", "firstPair", "firstPairJournalBackup");
+            prepareLiveServerEAP6(container(2), "secondPair", "secondPairJournalLive");
+            prepareColocatedBackupServerEAP6(container(2), "backup", "firstPair", "firstPairJournalBackup");
+        }
 
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container     The container - defined in arquillian.xml
+     * @param journalType   ASYNCIO, NIO
+     * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
+     */
+    protected void prepareLiveServerEAP7(Container container, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+
+        container.start();
+
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setJournalType(journalType);
+        setConnectorForClientEAP7(container, connectorType);
+        jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicyCollocatedReplicated("default", 1000, -1, 1000, 1, true, null);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
+        jmsAdminOperations.close();
+        container.stop();
     }
 
     /**
@@ -99,7 +121,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         logger.info("kill - second server");
         logger.info("########################################");
 
-        if (shutdown)   {
+        if (shutdown) {
             container(2).stop();
         } else {
             container(2).kill();
@@ -137,7 +159,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      *
      * @param container Test container - defined in arquillian.xml
      */
-    public void prepareLiveServer(Container container, String backupGroupName, String journalDirectoryPath) {
+    public void prepareLiveServerEAP6(Container container, String backupGroupName, String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -159,7 +181,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setSharedStore(false);
         jmsAdminOperations.setBackupGroupName(backupGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
-        jmsAdminOperations.setJournalFileSize(10 * 1024 *1024);
+        jmsAdminOperations.setJournalFileSize(10 * 1024 * 1024);
         jmsAdminOperations.disableSecurity();
 
         jmsAdminOperations.setJournalType("ASYNCIO");
@@ -271,11 +293,11 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     /**
      * Prepares colocated backup. It creates new configuration of backup server.
      *
-     * @param container            The arquilian container.
-     * @param backupServerName     Name of the new HornetQ backup server.
+     * @param container        The arquilian container.
+     * @param backupServerName Name of the new HornetQ backup server.
      */
-    public void prepareColocatedBackupServer(Container container, String backupServerName, String backupGroupName
-                , String journalDirectoryPath) {
+    public void prepareColocatedBackupServerEAP6(Container container, String backupServerName, String backupGroupName
+            , String journalDirectoryPath) {
 
         String discoveryGroupName = "dg-group-backup";
         String broadCastGroupName = "bg-group-backup";
@@ -294,7 +316,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setClustered(backupServerName, true);
         jmsAdminOperations.setBackupGroupName(backupGroupName, backupServerName);
         jmsAdminOperations.setCheckForLiveServer(true, backupServerName);
-        jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 *1024);
+        jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);
         jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
 
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
