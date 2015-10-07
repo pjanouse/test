@@ -34,9 +34,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
 
-    private String replicationGroupName = "replication-group-name-1";
-
-
     /**
      * Prepare two servers in colocated topology in cluster.
      */
