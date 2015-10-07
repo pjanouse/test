@@ -695,7 +695,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     protected void waitForClientsToFailover() {
 
         long timeout = 180000;
-        // wait for 2 min for producers to receive more messages
+        // wait for 2 min for producers to send more messages
         long startTime = System.currentTimeMillis();
 
         int startValue = 0;
