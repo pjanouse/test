@@ -295,7 +295,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         // cluster B
         container(2).start();
 
-        for (int j = 1; j < 60; j++) {
+        for (int j = 1; j < 30; j++) {
             container(2).deploy(createDeploymentForLimitedPoolSize(j));
         }
 
@@ -314,7 +314,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producer1.join();
 
         receiver1.join();
-
+        
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 

@@ -20,8 +20,7 @@ package org.jboss.qa.hornetq.apps.mdb;
 @MessageDriven(name = "mdb1",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "60"),
-                @ActivationConfigProperty(propertyName = "MinSession", propertyValue = "50"),
+                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "60"),
                 @ActivationConfigProperty(propertyName = "user", propertyValue = "user"),
                 @ActivationConfigProperty(propertyName = "password", propertyValue = "useruser"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
