@@ -5016,6 +5016,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void addHAPolicyCollocatedReplicated() {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyCollocatedReplicated(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup, String... excludedConnectors) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }

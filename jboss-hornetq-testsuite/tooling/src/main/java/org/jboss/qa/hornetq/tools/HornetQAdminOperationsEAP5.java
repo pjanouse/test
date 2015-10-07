@@ -2419,6 +2419,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addHAPolicyCollocatedReplicated() {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHAPolicyCollocatedReplicated(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup, String... excludedConnectors) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void deploy(Archive archive) throws Exception {
         logger.info("This operation is not supported: " + getMethodName());
     }

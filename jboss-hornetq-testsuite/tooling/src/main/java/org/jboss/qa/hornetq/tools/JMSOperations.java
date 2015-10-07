@@ -1605,6 +1605,12 @@ public interface JMSOperations {
 
     void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
                                          int backupRequestRetryInterval, int maxBackups, boolean requestBackup);
+
+    void addHAPolicyCollocatedReplicated();
+
+    void addHAPolicyCollocatedReplicated(String serverName, int backupPortOffest, int backupRequestRetries,
+                                         int backupRequestRetryInterval, int maxBackups, boolean requestBackup, String... excludedConnectors);
+
     void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl);
     void deploy(Archive archive) throws Exception;
 

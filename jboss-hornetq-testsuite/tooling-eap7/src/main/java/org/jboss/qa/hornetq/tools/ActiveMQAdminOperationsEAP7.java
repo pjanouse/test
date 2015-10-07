@@ -5459,6 +5459,39 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void addHAPolicyCollocatedReplicated() {
+        addHAPolicyCollocatedReplicated("default", 1000, -1, 5000, 1, true);
+
+    }
+
+    @Override
+    public void addHAPolicyCollocatedReplicated(String serverName, int backupPortOffest, int backupRequestRetries,
+                                                int backupRequestRetryInterval, int maxBackups, boolean requestBackup, String... excludedConnectors) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "replication-colocated");
+        model.get("backup-port-offset").set(backupPortOffest);
+        model.get("backup-request-retries").set(backupRequestRetries);
+        model.get("backup-request-retry-interval").set(backupRequestRetryInterval);
+        model.get("max-backups").set(maxBackups);
+        model.get("request-backup").set(requestBackup);
+        if (!isEmpty(excludedConnectors)) {
+            List<String> list = new ArrayList<String>();
+            for (String excludedConnector : excludedConnectors) {
+                list.add(excludedConnector);
+            }
+            model.get("excluded-connectors").set(createModelNodeForList(list));
+        }
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password,
                                          List<String> destinationNames, String hostUrl) {
 
@@ -5470,7 +5503,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
         model.get(ClientConstants.OP_ADDR).add("resource-adapter", name);
-        model.get("archive").set("artemis-ra-1.0.0.jar");
+        model.get("archive").set("artemis-ra-1.1.0.jar");
         model.get("transaction-support").set("XATransaction");
         try {
             this.applyUpdate(model);
