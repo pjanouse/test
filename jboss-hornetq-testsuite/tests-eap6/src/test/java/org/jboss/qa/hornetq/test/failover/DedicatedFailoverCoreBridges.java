@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -344,16 +345,16 @@ public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         if (useDiscovery) {
-            if (CONTAINER3_NAME.equals(container.getName())) {
+            if (HornetQTestCaseConstants.CONTAINER3_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupName);
             } else {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, true, discoveryGroupNameForBridges);
             }
 
         } else {
-            if (CONTAINER1_NAME.equals(container.getName()) || CONTAINER2_NAME.equals(container.getName())) {
+            if (HornetQTestCaseConstants.CONTAINER1_NAME.equals(container.getName()) || HornetQTestCaseConstants.CONTAINER2_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector");
-            } else if (CONTAINER3_NAME.equals(container.getName())) {
+            } else if (HornetQTestCaseConstants.CONTAINER3_NAME.equals(container.getName())) {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, "bridge-connector", "bridge-connector-backup");
             }
         }
