@@ -449,10 +449,10 @@ public class PublisherTransAck extends Client {
 
             } catch (TransactionRolledBackException ex) {
                 // if transaction rollback exception -> send messages again and commit
-                ex.printStackTrace();
+                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 0) {
+                if (numberOfRetries > 2) {
                     throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
                             + " Client will terminate.", ex);
                 }
