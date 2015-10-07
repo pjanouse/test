@@ -52,7 +52,7 @@ import java.util.List;
 @RunWith(Arquillian.class)
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);
+    private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
