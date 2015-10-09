@@ -4,7 +4,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.servlets.ServletConsumerTransAck;
 import org.jboss.qa.hornetq.apps.servlets.ServletProducerTransAck;
-import org.jboss.qa.hornetq.test.failover.ntt.NTTAbstractTestCase;
+import org.jboss.qa.hornetq.test.failover.ntt.NTTSeverFailureAbstractTestCase;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class NTTStandaloneServerFailureRollbackTestCase extends NTTAbstractTestCase {
+public class NTTStandaloneServerFailureRollbackTestCase extends NTTSeverFailureAbstractTestCase {
 
 
     @Override
@@ -29,6 +29,16 @@ public class NTTStandaloneServerFailureRollbackTestCase extends NTTAbstractTestC
     @Override
     public Class getConsumerClass() {
         return ServletConsumerTransAck.class;
+    }
+
+    @Override
+    public boolean isClusteredTest(){
+        return false;
+    }
+
+    @Override
+    public boolean isHATest(){
+        return false;
     }
     // KILL PRODUCER
 
@@ -59,7 +69,7 @@ public class NTTStandaloneServerFailureRollbackTestCase extends NTTAbstractTestC
                     targetClass = "org.jboss.qa.hornetq.apps.servlets.ServletProducerTransAck",
                     targetMethod = "rollbackAndCommitSession",
                     isAfter = true,
-                    targetLocation = "INVOKE Session.rolback()",
+                    targetLocation = "INVOKE Session.rollback()",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
     public void afterProducerRollbackTest() throws Exception {
         overrideMaxMessagesForTest(3);

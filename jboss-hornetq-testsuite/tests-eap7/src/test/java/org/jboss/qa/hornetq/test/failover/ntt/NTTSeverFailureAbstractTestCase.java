@@ -34,7 +34,6 @@ import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -54,9 +53,9 @@ import java.util.Map;
  */
 
 @RunWith(Arquillian.class)
-public abstract class NTTAbstractTestCase extends HornetQTestCase {
+public abstract class NTTSeverFailureAbstractTestCase extends HornetQTestCase {
 
-    private static Logger log = Logger.getLogger(NTTAbstractTestCase.class);
+    private static Logger log = Logger.getLogger(NTTSeverFailureAbstractTestCase.class);
 
     public static final String PRODUCER_FILE_NAME_PREFIX = "producerServlet";
     public static final String CONSUMER_FILE_NAME_PREFIX = "consumerServlet";
@@ -83,7 +82,7 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
     OfflineManagementClient clientCont3;
     OfflineManagementClient clientCont4;
 
-    public NTTAbstractTestCase() {
+    public NTTSeverFailureAbstractTestCase() {
         try {
             clientCont1 = ManagementClient.offline(OfflineOptions.standalone()
                     .configurationFile(new File(container(1).getServerHome() + File.separator + cfgPath)).build());
@@ -103,7 +102,7 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
     public void prepareServersForTest() throws CommandFailedException {
         MAX_MESSAGES = 10;
         if (!serversReady(this.getClass().toString())) {
-            prepareServers(false, false, NIO_JOURNAL);
+            prepareServers(isClusteredTest(), isHATest(), NIO_JOURNAL);
             setRunningTestCase(this.getClass().toString());
             clientCont1.apply(configurationFileBackupCont1.backup());
             clientCont2.apply(configurationFileBackupCont2.backup());
@@ -427,6 +426,8 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.setJournalDirectory(journalDirectoryPath);
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "udp", "udp", 1000, "http-connector");
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 1000, "udp", "udp");
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
@@ -453,9 +454,12 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.setJournalType(journalType);
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
         jmsAdminOperations.setJournalDirectory(journalDirectoryPath);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "udp", "udp", 1000, "http-connector");
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 1000, "udp", "udp");
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
                 "http-connector");
         jmsAdminOperations.createQueue(queueName, queueJndiName);
@@ -715,6 +719,9 @@ public abstract class NTTAbstractTestCase extends HornetQTestCase {
     public abstract Class getProducerClass();
 
     public abstract Class getConsumerClass();
+
+    public abstract boolean isClusteredTest();
+    public abstract boolean isHATest();
 
 
 }
