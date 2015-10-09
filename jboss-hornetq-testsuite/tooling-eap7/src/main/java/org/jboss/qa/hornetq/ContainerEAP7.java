@@ -184,15 +184,15 @@ public class ContainerEAP7 implements Container {
     @Override
     public void stop() {
 
-        log.info("Server is going to stop.");
+        log.info("Server " + getName() + "  is going to stop.");
         // there is problem with calling stop on already stopped server
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
         try {
             if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
                     || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
-                log.info("Server is really dead.");
-                containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
+                log.info("Server " + getName() + " is really dead.");
+                        containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
                 log.info("Ending stopping procedure.");
                 return;
             }
