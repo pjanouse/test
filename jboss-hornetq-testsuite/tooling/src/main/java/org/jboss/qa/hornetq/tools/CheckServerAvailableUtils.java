@@ -79,6 +79,7 @@ public class CheckServerAvailableUtils {
                 Assert.fail("Server " + container.getName() + " should be down. Timeout was " + timeout);
             }
         }
+        jmsOperations.close();
     }
 
     public static void waitForBrokerToActivate(Container container, long timeout) throws Exception {
@@ -89,9 +90,11 @@ public class CheckServerAvailableUtils {
             log.info("Broker in container: " + container.getName() + " - is not active yet. Waiting time :" + (System.currentTimeMillis() - startTime) + " ms");
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {
+                jmsOperations.close();
                 Assert.fail("Server " + container.getName() + " should be up. Timeout was " + timeout);
             }
         }
+        jmsOperations.close();
         log.info("Broker in container: " + container.getName() + " - is active");
     }
 }
