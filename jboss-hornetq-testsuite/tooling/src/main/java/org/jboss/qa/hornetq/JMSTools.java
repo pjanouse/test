@@ -123,7 +123,7 @@ public final class JMSTools {
         for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
             long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
-            log.info("Number of messages on node : " + container + " is: " + count);
+            log.info("Number of messages on node : " + container.getName() + " is: " + count);
             sum += count;
             jmsOperations.close();
         }
