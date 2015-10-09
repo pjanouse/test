@@ -32,8 +32,6 @@ public class MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName imple
 
     @Resource(name = "${pooled.connection.factory.name.jms}")
     private ConnectionFactory cf;
-//    @Resource(name = "jms/JmsXA")
-//    private ConnectionFactory cf;
 
     @Resource
     private MessageDrivenContext context;
