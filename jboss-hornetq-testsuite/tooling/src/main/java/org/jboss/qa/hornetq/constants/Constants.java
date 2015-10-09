@@ -35,6 +35,7 @@ public class Constants {
     public static final String CONNECTION_FACTORY_JNDI_FULL_NAME_EAP7 = "java:jboss/exported/jms/" + CONNECTION_FACTORY_EAP7;
     public static final String POOLED_CONNECTION_FACTORY_JNDI_EAP7 = "java:/JmsXA";
     public static final String RESOURCE_ADAPTER_NAME_EAP7 = "activemq-ra";
+    public static final String IN_VM_CONNECTION_FACTORY_EAP7 = "InVmConnectionFactory";
 
     public static final String INITIAL_CONTEXT_FACTORY_EAP7 = "org.jboss.naming.remote.client.InitialContextFactory";
     public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP7 = "http-remoting://";
@@ -65,6 +66,11 @@ public class Constants {
     public enum JOURNAL_TYPE
     {
         ASYNCIO, NIO
+    }
+
+    public enum QUALITY_OF_SERVICE
+    {
+        ONCE_AND_ONLY_ONCE, AT_MOST_ONCE, DUPLICATES_OK
     }
 
 }

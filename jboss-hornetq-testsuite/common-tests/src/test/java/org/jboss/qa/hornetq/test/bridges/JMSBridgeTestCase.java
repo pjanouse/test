@@ -1,3 +1,4 @@
+// todo use constants for quality of service from Contstants class
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
