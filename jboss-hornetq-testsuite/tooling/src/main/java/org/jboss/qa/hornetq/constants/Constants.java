@@ -58,7 +58,8 @@ public class Constants {
         NETTY_BIO,
         NETTY_NIO,
         HTTP_CONNECTOR,
-        NETTY_DISCOVERY
+        NETTY_DISCOVERY,
+        JGROUPS_DISCOVERY
     }
 
     public enum JOURNAL_TYPE
