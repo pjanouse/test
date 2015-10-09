@@ -45,7 +45,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetClass = "org.jboss.qa.hornetq.apps.servlets.ServletProducerTransAck",
                     targetMethod = "sendMessage",
                     targetLocation = "INVOKE MessageProducer.send()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void beforeProducerSendTest() throws Exception {
         producerFailureTestSequence(0, true);
     }
@@ -59,7 +59,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetClass = "org.jboss.qa.hornetq.apps.servlets.ServletProducerTransAck",
                     targetMethod = "commitSession",
                     targetLocation = "INVOKE Session.commit()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void beforeProducerCommitTest() throws Exception {
         producerFailureTestSequence(0, true);
     }
@@ -77,7 +77,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     binding = "mypacket:Packet = $packet; ptype:byte = mypacket.getType();",
                     condition = "ptype == 43", //43 is COMMIT
                     targetLocation = "INVOKE Connection.write()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void whenProducerCommitTest() throws Exception {
         overrideMaxMessagesForTest(1);
         producerFailureTestSequence(1, true);
@@ -93,7 +93,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetMethod = "commitSession",
                     isAfter = true,
                     targetLocation = "INVOKE Session.commit()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void afterProducerCommitTest() throws Exception {
         producerFailureTestSequence(1, true);
     }
@@ -107,7 +107,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     binding = "mypacket:Packet = $packet; ptype:byte = mypacket.getType();",
                     condition = "ptype == 75",
                     targetLocation = "INVOKE Connection.write()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -125,7 +125,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     condition = "ptype == 75 ",
                     targetLocation = "INVOKE Connection.write()",
                     isAfter = true,
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -151,7 +151,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     condition = "readCounter(\"counter\")==2", // we want second commit, first is from producer
                     targetLocation = "INVOKE StorageManager.commit()",
                     isAfter = true,
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");")})
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");")})
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -171,7 +171,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetClass = "org.jboss.qa.hornetq.apps.servlets.ServletConsumerTransAck",
                     targetMethod = "receiveMessage",
                     targetLocation = "INVOKE MessageConsumer.receive()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void beforeConsumerReceiveTest() throws Exception {
         overrideMaxMessagesForTest(1);
         consumerFailureTestSequence(MAX_MESSAGES, true);
@@ -186,7 +186,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetClass = "org.jboss.qa.hornetq.apps.servlets.ServletConsumerTransAck",
                     targetMethod = "commitSession",
                     targetLocation = "INVOKE Session.commit()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void beforeConsumerCommitTest() throws Exception {
 
         consumerFailureTestSequence(MAX_MESSAGES, true);
@@ -203,7 +203,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     binding = "mypacket:Packet = $packet; ptype:byte = mypacket.getType();",
                     condition = "ptype == 43", //43 is COMMIT
                     targetLocation = "INVOKE Connection.write()",
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void whenConsumerCommitTest() throws Exception {
         overrideMaxMessagesForTest(1);
         consumerFailureTestSequence(0, true);
@@ -219,7 +219,7 @@ public class NTTStandaloneServerNetworkFailureCommitTestCase extends NTTNetworkF
                     targetMethod = "commitSession",
                     targetLocation = "INVOKE Session.commit()",
                     isAfter = true,
-                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test recovery\");"))
+                    action = "System.out.println(\"Byteman will invoke network failure\");Runtime.getRuntime().exec(\"sudo /usr/local/bin/network-fail-test fail\");"))
     public void afterConsumerCommitTest() throws Exception {
         overrideMaxMessagesForTest(2);
         consumerFailureTestSequence(1, true);
