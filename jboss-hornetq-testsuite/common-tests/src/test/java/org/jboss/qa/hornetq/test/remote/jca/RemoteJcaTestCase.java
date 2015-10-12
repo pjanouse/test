@@ -694,17 +694,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "http-connector";
-        String acceptorName = "http-acceptor";
         String messagingGroupSocketBindingName = "messaging-group";
-
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
 
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("use-nio", "true");
-        jmsAdminOperations.createHttpAcceptor(acceptorName, "default", map);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
