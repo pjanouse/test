@@ -130,10 +130,13 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         producerToInQueue1.stopSending();
 
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3));
         ReceiverClientAck receiver1;
         if (failback) {
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(1));
             receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         } else {
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(2));
             receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 30000, 100, 10);
         }
         receiver1.setMessageVerifier(messageVerifier);
@@ -148,10 +151,12 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
             Assert.assertEquals("Number of sent and received messages is different.", producerToInQueue1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size());
         } else if (QUALITY_OF_SERVICE.AT_MOST_ONCE.equals(qualityOfService)) {
-            Assert.assertTrue("Number of sent must be same or higher than number of received messages.",
+            Assert.assertTrue("Number of sent must be same or higher than number of received messages. Producer: "
+                            + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
                     producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
         } else if (QUALITY_OF_SERVICE.DUPLICATES_OK.equals(qualityOfService)) {
-            Assert.assertTrue("Number of sent must be same or less than number of received messages.",
+            Assert.assertTrue("Number of sent must be same or less than number of received messages. Producer: "
+                            + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
                     producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
         }
         container(3).stop();
