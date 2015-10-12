@@ -1,10 +1,11 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.BytesMessage;
 import javax.jms.Message;
-import javax.jms.Session;
 import java.util.UUID;
 
 /**
@@ -58,15 +59,17 @@ public class ByteMessageBuilder implements MessageBuilder {
     }
 
     /**
-     * @see {@link MessageBuilder#createMessage(javax.jms.Session)}
+     * @see {@link MessageBuilder#createMessage(MessageCreator, JMSImplementation)}
+     * @param messageCreator
+     * @param jmsImplementation
      */
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
-        BytesMessage message = session.createBytesMessage();
-        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + counter);
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
+        BytesMessage message = messageCreator.createBytesMessage();
+        message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()) + counter);
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         if (isAddDuplicatedHeader())    {
-            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+            message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
         }
 
         if (this.size > 0) {

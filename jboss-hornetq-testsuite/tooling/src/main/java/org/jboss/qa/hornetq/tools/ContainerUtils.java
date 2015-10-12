@@ -1,6 +1,10 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.constants.Constants;
 
 /**
@@ -31,5 +35,13 @@ public class ContainerUtils {
     public static boolean isEAP7(Container container) {
         return container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER);
 
+    }
+
+    public static JMSImplementation getJMSImplementation(Container container) {
+        if (isEAP7(container)) {
+            return ArtemisJMSImplementation.getInstance();
+        } else {
+            return HornetqJMSImplementation.getInstance();
+        }
     }
 }

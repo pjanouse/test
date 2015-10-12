@@ -75,6 +75,7 @@ public class NonDurableTopicSubscriberTransAck extends NonDurableTopicSubscriber
 
     public void commitSession() throws Exception {
         int numberOfRetries = 0;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         while (numberOfRetries < getMaxRetries()) {
             try {
@@ -87,7 +88,7 @@ public class NonDurableTopicSubscriberTransAck extends NonDurableTopicSubscriber
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
                     stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ")
-                            .append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                            .append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -115,7 +116,7 @@ public class NonDurableTopicSubscriberTransAck extends NonDurableTopicSubscriber
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
                     stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ")
-                            .append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                            .append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -138,20 +139,21 @@ public class NonDurableTopicSubscriberTransAck extends NonDurableTopicSubscriber
 
     private boolean areThereDuplicatesInLaterDetection() throws JMSException {
         boolean isDup = false;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : listOfReceivedMessagesToBeCommited) {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
         }
         StringBuilder foundDuplicates = new StringBuilder();
         for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
                 foundDuplicates.append(m.getJMSMessageID());
                 counter -= 1;
                 // remove this duplicate from the list
                 List<Message> iterationList = new ArrayList<Message>(listOfReceivedMessagesToBeCommited);
                 for (Message receivedMessage : iterationList) {
-                    if (receivedMessage.getStringProperty("_HQ_DUPL_ID").equals(m.getStringProperty("_HQ_DUPL_ID"))) {
+                    if (receivedMessage.getStringProperty(duplicatedHeader).equals(m.getStringProperty(duplicatedHeader))) {
                         listOfReceivedMessagesToBeCommited.remove(receivedMessage);
                     }
                 }

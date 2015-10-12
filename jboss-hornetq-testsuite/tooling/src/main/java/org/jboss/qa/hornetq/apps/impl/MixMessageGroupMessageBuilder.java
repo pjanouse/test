@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.MessageCreator;
+
 import javax.jms.Message;
-import javax.jms.Session;
 
 /**
  * Created by mnovak on 5/26/14.
@@ -20,9 +22,9 @@ public class MixMessageGroupMessageBuilder extends ClientMixMessageBuilder {
     }
 
 
-    public synchronized Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
 
-        Message m = super.createMessage(session);
+        Message m = super.createMessage(messageCreator, jmsImplementation);
 
         m.setStringProperty("JMSXGroupID", groupMessageId);
 

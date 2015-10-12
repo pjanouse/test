@@ -3,6 +3,8 @@ package org.jboss.qa.hornetq.apps.servlets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 
@@ -103,7 +105,7 @@ public class ServletProducerAutoAck extends HttpServlet {
             TextMessageBuilder mb = new TextMessageBuilder(100);
 
             while (Math.abs(counter) != maxMessages) {
-                Message msg =mb.createMessage(session);
+                Message msg = mb.createMessage(new MessageCreator10(session), ArtemisJMSImplementation.getInstance());
                 msg.setIntProperty("count", counter);
                 sendMessage(producer, msg);
                 addMessage(listOfSentMessages, msg);

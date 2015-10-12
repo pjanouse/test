@@ -135,7 +135,7 @@ public class SoakReceiverClientAck extends Client {
                             + count + ", message-counter: " + message.getStringProperty("counter")
                             + ", messageId:" + message.getJMSMessageID());
                 }
-                listOfReceivedMessages.add(message.getStringProperty("_HQ_DUPL_ID"));
+                listOfReceivedMessages.add(message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
                 // hold information about last message so we can ack it when null is received = queue empty
                 lastMessage = message;
             }

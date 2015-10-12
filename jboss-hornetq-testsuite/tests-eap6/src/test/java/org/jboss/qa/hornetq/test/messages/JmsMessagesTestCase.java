@@ -9,11 +9,15 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -260,9 +264,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageProducer producer = session.createProducer(originalQueue);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             }
 
             long timeout = System.currentTimeMillis() + 5000;
@@ -434,9 +438,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             producer.setTimeToLive(expireTime);
             TextMessage msg;
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             } else {
-                msg = (TextMessage) new TextMessageBuilder(1).createMessage(session);
+                msg = (TextMessage) new TextMessageBuilder(1).createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             }
             producer.send(msg);
             producer.close();
@@ -650,6 +654,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     private boolean areSameMessages(Message sentMessage, Message receivedMessage) throws Exception {
         boolean isSame = true;
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         if (!sentMessage.getJMSMessageID().equals(receivedMessage.getJMSMessageID())) {
             log.info("Messages IDs are different - " + sentMessage.getJMSMessageID() + ", " + receivedMessage.getJMSMessageID());
@@ -696,8 +702,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             isSame = false;
         }
 
-        if (!sentMessage.getStringProperty("_HQ_DUPL_ID").equals(receivedMessage.getStringProperty("_HQ_DUPL_ID"))) {
-            log.info("_HQ_DUPL_ID IDs are different - " + sentMessage.getStringProperty("_HQ_DUPL_ID") + ", " + receivedMessage.getStringProperty("_HQ_DUPL_ID"));
+        if (!sentMessage.getStringProperty(duplicatedHeader).equals(receivedMessage.getStringProperty(duplicatedHeader))) {
+            log.info(duplicatedHeader + " IDs are different - " + sentMessage.getStringProperty(duplicatedHeader) + ", " + receivedMessage.getStringProperty(duplicatedHeader));
             isSame = false;
         }
 

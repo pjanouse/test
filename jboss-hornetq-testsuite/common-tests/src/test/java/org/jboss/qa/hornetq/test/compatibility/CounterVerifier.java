@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.compatibility;
 import org.apache.log4j.Logger;
 import org.jboss.util.NotImplementedException;
 
-import javax.jms.JMSException;
 import javax.jms.Message;
 import java.util.List;
 

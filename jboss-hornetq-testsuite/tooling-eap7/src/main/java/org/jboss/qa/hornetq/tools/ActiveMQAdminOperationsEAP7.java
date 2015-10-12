@@ -5337,7 +5337,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("failback-delay").set(failbackDelay);
         model.get("failover-on-server-shutdown").set(failoverOnServerShutdown);
         model.get("restart-backup").set(restartBackup);
-        model.get("scale-down").set(scaleDown);
+        //model.get("scale-down").set(scaleDown);
         if (!isEmpty(scaleDownClusterName)) {
             model.get("scale-down-cluster-name").set(scaleDownClusterName);
         }

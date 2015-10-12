@@ -1,6 +1,8 @@
 // TODO refactor hashmap does NOT hold duplicate keys
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import java.io.*;
@@ -19,6 +21,17 @@ import java.util.Map;
  * MessageID,NO_HQ_DUPL_ID
  */
 public class MessageStoreImpl {
+
+    protected JMSImplementation jmsImplementation;
+
+    @Deprecated
+    public MessageStoreImpl() {
+        jmsImplementation = HornetqJMSImplementation.getInstance();
+    }
+
+    public MessageStoreImpl(JMSImplementation jmsImplementation) {
+        this.jmsImplementation = jmsImplementation;
+    }
 
     /**
      * Save messages from list to a file.
@@ -47,7 +60,9 @@ public class MessageStoreImpl {
                 strBuilder.append(m.getJMSMessageID());
                 strBuilder.append(",");
                 try {
-                    strBuilder.append(m.getStringProperty("_HQ_DUPL_ID") != null ? m.getStringProperty("_HQ_DUPL_ID") : "NO_HQ_DUPL_ID");
+                    strBuilder.append(m.getStringProperty(jmsImplementation.getDuplicatedHeader()) != null ?
+                            m.getStringProperty(jmsImplementation.getDuplicatedHeader()) :
+                            "NO" + jmsImplementation.getDuplicatedHeader());
                 } catch (JMSException ignore) {
                     //ignore
                 }

@@ -1,6 +1,5 @@
 package org.jboss.qa.hornetq.test.faultinjection;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -22,9 +21,6 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
-
-import java.io.File;
-import java.io.IOException;
 
 import static org.junit.Assert.*;
 

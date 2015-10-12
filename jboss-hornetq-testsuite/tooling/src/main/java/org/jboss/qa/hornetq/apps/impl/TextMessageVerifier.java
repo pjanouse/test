@@ -6,6 +6,7 @@ package org.jboss.qa.hornetq.apps.impl;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.jms.JMSException;
 import java.util.*;
@@ -23,6 +24,17 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
     private List<Map<String, String>> sentMessages = new ArrayList<Map<String, String>>();
 
     private List<Map<String, String>> receivedMessages = new ArrayList<Map<String, String>>();
+
+    protected JMSImplementation jmsImplementation;
+
+    @Deprecated
+    public TextMessageVerifier() {
+        jmsImplementation = HornetqJMSImplementation.getInstance();
+    }
+
+    public TextMessageVerifier(JMSImplementation jmsImplementation) {
+        this.jmsImplementation = jmsImplementation;
+    }
 
     /**
      * Returns true if all messages are ok = there are equal number of sent and received messages.
@@ -122,14 +134,14 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
 
         Set<String> helpSet = new HashSet<String>();
         for (Map<String, String> receivedMessageInMap : receivedMessages) {
-            helpSet.add(receivedMessageInMap.get("_HQ_DUPL_ID"));
+            helpSet.add(receivedMessageInMap.get(jmsImplementation.getDuplicatedHeader()));
         }
 
         List<String> listOfLostMessages = new ArrayList<String>();
 
 
         for (Map<String, String> mapOfSentMessageProperties : sentMessages) {
-            if (helpSet.add(mapOfSentMessageProperties.get("_HQ_DUPL_ID"))) {
+            if (helpSet.add(mapOfSentMessageProperties.get(jmsImplementation.getDuplicatedHeader()))) {
                 listOfLostMessages.add(mapOfSentMessageProperties.get("messageId"));
             }
         }
@@ -149,7 +161,7 @@ public class TextMessageVerifier implements FinalTestMessageVerifier {
 
         HashSet<String> set = new HashSet<String>();
         for (Map<String, String> receivedMessage : receivedMessages) {
-            if (!set.add(receivedMessage.get("_HQ_DUPL_ID"))) {
+            if (!set.add(receivedMessage.get(jmsImplementation.getDuplicatedHeader()))) {
                 listOfDuplicatedMessages.add(receivedMessage.get("messageId"));
             }
         }

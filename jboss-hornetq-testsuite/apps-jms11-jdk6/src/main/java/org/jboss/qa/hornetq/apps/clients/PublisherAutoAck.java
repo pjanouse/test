@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 
@@ -60,8 +61,6 @@ public class PublisherAutoAck extends Client {
         this.messages = messages;
         this.topicNameJndi = topicNameJndi;
         this.clientId = clientId;
-
-
     }
 
     @Deprecated
@@ -105,7 +104,7 @@ public class PublisherAutoAck extends Client {
 
             while (counter < messages && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 // send message in while cycle
                 sendMessage(publisher, msg);
 

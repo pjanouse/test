@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.test.bridges;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -11,7 +10,6 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -238,7 +236,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
@@ -249,7 +247,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
 
-        NetworkFailuresBridgesAbstract.log.info("Start producer and receiver.");
+        log.info("Start producer and receiver.");
         producer1.start();
         receiver1.start();
 
@@ -263,8 +261,8 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         receiver1.setReceiveTimeOut(120000);
         receiver1.join();
 
-        NetworkFailuresBridgesAbstract.log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-        NetworkFailuresBridgesAbstract.log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
@@ -315,7 +313,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
@@ -327,7 +325,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(groupMessageVerifier);
 
-        NetworkFailuresBridgesAbstract.log.info("Start producer and receiver.");
+        log.info("Start producer and receiver.");
         producer1.start();
         receiver1.start();
 
@@ -344,34 +342,34 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         receiver1.setReceiveTimeOut(10000);
         receiver1.join();
 
-        NetworkFailuresBridgesAbstract.log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-        NetworkFailuresBridgesAbstract.log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         if (staysDisconnected)  {
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
-            NetworkFailuresBridgesAbstract.log.info("Stop server 1.");
+            log.info("Stop server 1.");
             container(1).stop();
-            NetworkFailuresBridgesAbstract.log.info("Server 1 stopped.");
+            log.info("Server 1 stopped.");
             stopProxies();
-            NetworkFailuresBridgesAbstract.log.info("Stop server 2.");
+            log.info("Stop server 2.");
             container(2).stop();
-            NetworkFailuresBridgesAbstract.log.info("Server 2 stopped.");
+            log.info("Server 2 stopped.");
 
-            NetworkFailuresBridgesAbstract.log.info("Start server 1.");
+            log.info("Start server 1.");
             container(1).start();
-            NetworkFailuresBridgesAbstract.log.info("Server 1 started.");
+            log.info("Server 1 started.");
 
-            NetworkFailuresBridgesAbstract.log.info("Start server 2.");
+            log.info("Start server 2.");
             container(2).start();
-            NetworkFailuresBridgesAbstract.log.info("Server 2 started.");
+            log.info("Server 2 started.");
 
             startProxies();
 
             Thread.sleep(10000);
 
-            NetworkFailuresBridgesAbstract.log.info("Container 1 have " + getNumberOfNodesInCluster(container(1)) + " other node in cluster.");
-            NetworkFailuresBridgesAbstract.log.info("Container 2 have " + getNumberOfNodesInCluster(container(2)) + " other node in cluster.");
+            log.info("Container 1 have " + getNumberOfNodesInCluster(container(1)) + " other node in cluster.");
+            log.info("Container 2 have " + getNumberOfNodesInCluster(container(2)) + " other node in cluster.");
             Assert.assertEquals("There shoulld be 2 nodes in cluster for container 1.",
                     1, getNumberOfNodesInCluster(container(1)));
             Assert.assertEquals("There shoulld be 2 nodes in cluster for container 2.",
@@ -393,8 +391,8 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
 
-        NetworkFailuresBridgesAbstract.log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
-        NetworkFailuresBridgesAbstract.log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
         container(1).stop();
         container(2).stop();
@@ -512,9 +510,9 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         long reaperPeriod = 750;
 
         if (isMessageWithGrouping)  {
-            if (HornetQTestCaseConstants.CONTAINER1_NAME.equals(container.getName())) {
+            if (CONTAINER1_NAME.equals(container.getName())) {
                 jmsAdminOperations.addMessageGrouping("default", name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
-            } else if (HornetQTestCaseConstants.CONTAINER2_NAME.equals(container.getName()))    {
+            } else if (CONTAINER2_NAME.equals(container.getName()))    {
                 jmsAdminOperations.addMessageGrouping("default", name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
             }
         }

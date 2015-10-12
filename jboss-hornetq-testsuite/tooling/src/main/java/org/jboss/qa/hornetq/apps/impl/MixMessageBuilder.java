@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.*;
 import java.util.UUID;
@@ -65,40 +67,42 @@ public class MixMessageBuilder implements MessageBuilder {
     }
 
     /**
-     * @see {@link MessageBuilder#createMessage(javax.jms.Session)}
+     * @see {@link MessageBuilder#createMessage(MessageCreator, JMSImplementation)}
+     * @param messageCreator
+     * @param jmsImplementation
      */
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
 
         Message message = null;
 
         if (counter % modulo == 0) { //send large byte messge
-            message = session.createBytesMessage();
+            message = messageCreator.createBytesMessage();
             if (this.size > 0) {
                 ((BytesMessage) message).writeBytes(data);
             }
 
         } else if (counter % modulo == 1) { // send lage text message
-            message = session.createTextMessage();
+            message = messageCreator.createTextMessage();
             if (this.size > 0) {
                 ((TextMessage) message).setText(content);
             }
 
         } else if (counter % modulo == 2) { // send lage object message
-            message = session.createObjectMessage();
+            message = messageCreator.createObjectMessage();
             if (this.size > 0) {
                 ((ObjectMessage) message).setObject(content);
             }
 
         } else { // send normal message
-            message = session.createTextMessage();
+            message = messageCreator.createTextMessage();
             ((TextMessage) message).setText("normal message:" + message.getJMSMessageID());
 
         }
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         if (isAddDuplicatedHeader())    {
-            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+            message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
         }
         return message;
     }

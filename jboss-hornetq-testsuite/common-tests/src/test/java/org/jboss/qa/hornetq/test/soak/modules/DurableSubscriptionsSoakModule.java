@@ -3,13 +3,13 @@ package org.jboss.qa.hornetq.test.soak.modules;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jboss.arquillian.container.test.api.ContainerController;
+
+import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.components.MessageSplliterBean;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
-import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 

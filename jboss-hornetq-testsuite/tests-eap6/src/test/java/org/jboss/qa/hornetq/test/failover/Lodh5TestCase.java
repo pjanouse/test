@@ -29,20 +29,6 @@ import org.junit.runner.RunWith;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.DB2105;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2008R2;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2012;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MSSQL2014;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MYSQL55;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.MYSQL57;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE11GR1;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE11GR2;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.ORACLE12C;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQL92;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQL93;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQLPLUS92;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.POSTGRESQLPLUS93;
-import static org.jboss.qa.hornetq.HornetQTestCaseConstants.SYBASE157;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING

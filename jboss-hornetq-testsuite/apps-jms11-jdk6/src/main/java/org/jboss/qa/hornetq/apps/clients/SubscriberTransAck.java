@@ -146,7 +146,7 @@ public class SubscriberTransAck extends Client {
                 logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                         + ". Received message - counter: "
                         + counter + ", messageId:" + message.getJMSMessageID()
-                        + ", dupId: " + message.getStringProperty("_HQ_DUPL_ID"));
+                        + ", dupId: " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
 
                 if (counter % commitAfter == 0) { // try to ack message
                     commitSession(session);
@@ -269,6 +269,8 @@ public class SubscriberTransAck extends Client {
 
         int numberOfRetries = 0;
 
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
         while (numberOfRetries < maxRetries) {
             try {
 
@@ -308,7 +310,7 @@ public class SubscriberTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -332,7 +334,7 @@ public class SubscriberTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty("_HQ_DUPL_ID" + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -351,20 +353,21 @@ public class SubscriberTransAck extends Client {
 
     private boolean areThereDuplicatesInLaterDetection() throws JMSException {
         boolean isDup = false;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : listOfReceivedMessagesToBeCommited) {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
         }
         StringBuilder foundDuplicates = new StringBuilder();
         for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
                 foundDuplicates.append(m.getJMSMessageID());
                 counter -= 1;
                 // remove this duplicate from the list
                 List<Message> iterationList = new ArrayList<Message>(listOfReceivedMessagesToBeCommited);
                 for (Message receivedMessage : iterationList)    {
-                    if (receivedMessage.getStringProperty("_HQ_DUPL_ID").equals(m.getStringProperty("_HQ_DUPL_ID"))) {
+                    if (receivedMessage.getStringProperty(duplicatedHeader).equals(m.getStringProperty(duplicatedHeader))) {
                         listOfReceivedMessagesToBeCommited.remove(receivedMessage);
                     }
                 }
@@ -381,14 +384,15 @@ public class SubscriberTransAck extends Client {
 
     private boolean areThereDuplicates() throws JMSException {
         boolean isDup = false;
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
         for (Message m : listOfReceivedMessagesToBeCommited)    {
-            setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"));
+            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
         }
 
         for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
-            if (!setOfReceivedMessages.add(m.getStringProperty("_HQ_DUPL_ID"))) {
+            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
                 isDup=true;
             }
         }
@@ -424,7 +428,7 @@ public class SubscriberTransAck extends Client {
                     logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                             + ". Received message - counter: "
                             + counter + ", messageId:" + msg.getJMSMessageID()
-                            + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                            + ", dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
                     msg = cleanMessage(msg);
                 }
                 return msg;

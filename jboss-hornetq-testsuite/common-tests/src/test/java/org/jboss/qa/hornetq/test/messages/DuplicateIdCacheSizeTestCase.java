@@ -5,9 +5,10 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -100,7 +101,7 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
                 MessageProducer producer = session.createProducer(tempQueue);
                 MessageBuilder messageBuilder = new TextMessageBuilder(1);
                 messageBuilder.setAddDuplicatedHeader(true);
-                Message msg = messageBuilder.createMessage(session);
+                Message msg = messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
 
                 logger.info("Iteration: " + iterations + " Send " + numberOfMessages + " to temp queue.");
                 for (int i = 0; i < numberOfMessages; i++) {

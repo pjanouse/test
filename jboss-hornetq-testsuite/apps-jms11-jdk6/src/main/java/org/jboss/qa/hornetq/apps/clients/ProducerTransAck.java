@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 
@@ -60,7 +61,6 @@ public class ProducerTransAck extends Client {
         this.port = container.getJNDIPort();
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
-
     }
 
     /**
@@ -104,9 +104,11 @@ public class ProducerTransAck extends Client {
 
             Message msg = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while (counter < MESSAGES_COUNT && !stop) {
 
-                msg = messageBuilder.createMessage(session);
+                msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 msg.setIntProperty("count", counter);
 
                 sendMessage(msg);
@@ -129,7 +131,7 @@ public class ProducerTransAck extends Client {
                     }
 
                     logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                            + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
                     listOfMessagesToBeCommited.clear();
 
                 }
@@ -153,7 +155,7 @@ public class ProducerTransAck extends Client {
 //                    logger.debug("List of sent messages: " + stringBuilder2.toString());
 //                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
             logger.info("COMMIT - session was commited. Last message with property counter: " + counter
-                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
             listOfMessagesToBeCommited.clear();
 
             producer.close();
@@ -210,7 +212,7 @@ public class ProducerTransAck extends Client {
             numberOfRetries++;
             producer.send(msg);
             logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
+                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             counter++;
         } catch (JMSException ex) {
             logger.error("Failed to send message - counter: " + counter, ex);

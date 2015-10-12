@@ -216,7 +216,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             isAfter = true,
 //            binding = "engine:SSLEngine = $0",
             targetLocation = "INVOKE createSSLEngine",
-            action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.hornetq.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+            action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); SslAuthenticationTestCase.setEnabledProtocols($!)"
 
     )
     public void testOneWaySslOverSSLv3Jms() throws Exception {

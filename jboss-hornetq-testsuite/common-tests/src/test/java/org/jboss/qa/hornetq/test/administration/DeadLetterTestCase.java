@@ -7,6 +7,8 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -187,7 +189,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             Message msg;
 
             MessageProducer producer = session.createProducer(queue);
-            msg = this.messageBuilder.createMessage(session);
+            msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
             producer.send(msg);
             session.commit();
             LOG.info("Message sent with id " + msg.getJMSMessageID());

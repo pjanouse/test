@@ -95,7 +95,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${surefire-version}</version>
                         <configuration>
-                            <groups>org.jboss.qa.hornetq.test.categories.DomainTests</groups>
+                            <groups>DomainTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
@@ -197,14 +197,12 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${surefire-version}</version>
                         <configuration>
-                            <groups>org.jboss.qa.hornetq.test.categories.FunctionalTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
                                     <value>arquillian-4-nodes-eap7.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -275,7 +273,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <groups>org.jboss.qa.hornetq.test.categories.DomainTests</groups>
+                            <groups>DomainTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
@@ -298,7 +296,17 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>tooling-eap7</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>apps-jms11-jdk6</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.qa.hornetq</groupId>
+            <artifactId>apps-jms2</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

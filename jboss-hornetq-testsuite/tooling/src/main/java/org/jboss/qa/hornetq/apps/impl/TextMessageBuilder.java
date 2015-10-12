@@ -1,9 +1,10 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 import java.util.UUID;
 
@@ -55,15 +56,17 @@ public class TextMessageBuilder implements MessageBuilder {
     }
 
     /**
-     * @see {@link org.jboss.qa.hornetq.apps.MessageBuilder#createMessage(javax.jms.Session)}
+     * @see {@link MessageBuilder#createMessage(MessageCreator, JMSImplementation)}
+     * @param messageCreator
+     * @param jmsImplementation
      */
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
-        TextMessage message = session.createTextMessage();
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
+        TextMessage message = messageCreator.createTextMessage();
         message.setIntProperty(MESSAGE_COUNTER_PROPERTY, this.counter++);
         //        message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
         if (isAddDuplicatedHeader()) {
-            message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()));
+            message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
         }
         if (this.size > 0) {
             message.setText(new String(new char[this.size]));

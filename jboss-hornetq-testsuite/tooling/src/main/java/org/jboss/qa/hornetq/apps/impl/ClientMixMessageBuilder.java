@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.apps.impl;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.*;
 import java.util.Random;
@@ -135,55 +137,57 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     }
 
     /**
-     * @see {@link MessageBuilder#createMessage(javax.jms.Session)}
+     * @see {@link MessageBuilder#createMessage(MessageCreator, JMSImplementation)}
+     * @param messageCreator
+     * @param jmsImplementation
      */
     @Override
-    public synchronized Message createMessage(Session session) throws Exception {
+    public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
         Message message = null;
         int modulo = MessageType.values().length;
         MessageType whichProcess = MessageType.values()[counter % modulo];
 
         switch (whichProcess) {
             case BYTE:
-                message = session.createBytesMessage();
+                message = messageCreator.createBytesMessage();
                 ((BytesMessage) message).writeBytes(data);
                 break;
             case TEXT:
-                message = session.createTextMessage();
+                message = messageCreator.createTextMessage();
                 ((TextMessage) message).setText(content);
                 break;
             case OBJECT:
-                message = session.createObjectMessage();
+                message = messageCreator.createObjectMessage();
                 ((ObjectMessage) message).setObject(content);
                 break;
             case MAP:
-                message = session.createMapMessage();
+                message = messageCreator.createMapMessage();
                 fillMapMessage(message, sizeNormalMsg);
                 break;
             case LARGE_BYTE:
-                message = session.createBytesMessage();
+                message = messageCreator.createBytesMessage();
                 ((BytesMessage) message).writeBytes(dataLarge);
                 break;
             case STREAM: /* self-defining stream of primitive values */
-                message = session.createStreamMessage();
+                message = messageCreator.createStreamMessage();
                 ((StreamMessage) message).writeInt(42);
                 ((StreamMessage) message).writeString(content);
                 break;
             case STREAM_LARGE:
-                message = session.createStreamMessage();
+                message = messageCreator.createStreamMessage();
                 ((StreamMessage) message).writeInt(42);
                 ((StreamMessage) message).writeString(contentLarge);
                 break;
             case LARGE_TEXT:
-                message = session.createTextMessage();
+                message = messageCreator.createTextMessage();
                 ((TextMessage) message).setText(contentLarge);
                 break;
             case LARGE_OBJECT:
-                message = session.createObjectMessage();
+                message = messageCreator.createObjectMessage();
                 ((ObjectMessage) message).setObject(contentLarge);
                 break;
             case LARGE_MAP:
-                message = session.createMapMessage();
+                message = messageCreator.createMapMessage();
                 fillMapMessage(message, sizeLargeMsg);
                 break;
         }
@@ -196,7 +200,7 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         if (isAddDuplicatedHeader())    {
-                message.setStringProperty("_HQ_DUPL_ID", String.valueOf(UUID.randomUUID()) + System.currentTimeMillis());
+                message.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()) + System.currentTimeMillis());
         }
 
         if (isAddPriorityToMessage)  {
@@ -206,10 +210,10 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 //        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         if (counter % 100 ==0)  {
             log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-                "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID") + ", priority: " + message.getJMSPriority());
+                    jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         } else {
-            log.info("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
-                    "_HQ_DUPL_ID: " + message.getStringProperty("_HQ_DUPL_ID") + ", priority: " + message.getJMSPriority());
+            log.debug("Sending message with counter: " + this.counter + ", type: " + whichProcess.toString() + ", messageId: " + message.getJMSMessageID() +
+                    jmsImplementation.getDuplicatedHeader() + ": " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         }
         return message;
     }

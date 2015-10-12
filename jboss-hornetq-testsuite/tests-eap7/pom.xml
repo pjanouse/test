@@ -40,6 +40,11 @@
                     <artifactId>apps-jms11-jdk6</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
             <build>
                 <plugins>
@@ -134,6 +139,11 @@
                 <dependency>
                     <groupId>org.jboss.qa.hornetq</groupId>
                     <artifactId>apps-jms11-jdk6</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>

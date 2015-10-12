@@ -5,14 +5,13 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Implementation of the simple JMS client who is able to send and receive messages to or from server
@@ -169,7 +168,7 @@ public class SimpleJMSClient extends Client {
             }
             MessageProducer producer = session.createProducer(queue);
             for (int i = 0; i < this.messages; i++) {
-                Message message = this.messageBuilder.createMessage(session);
+                Message message = this.messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Sending '%s'. message with id '%s'", i, message.getJMSMessageID()));
                 }

@@ -1,12 +1,11 @@
 package org.jboss.qa.hornetq.test.soak.modules;
 
 
+import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
+import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
-import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
-import org.jboss.qa.hornetq.test.soak.SoakTestModule;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.ArrayList;
