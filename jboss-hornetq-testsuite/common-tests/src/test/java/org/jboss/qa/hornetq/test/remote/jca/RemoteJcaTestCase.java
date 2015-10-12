@@ -314,7 +314,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producer1.join();
 
         receiver1.join();
-        
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
@@ -446,6 +446,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(2).undeploy(mdb1);
 
+        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(50, 300));
         producerToInQueue1.start();
@@ -520,13 +521,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
             s = containerDef.getContainerProperties().get("javaVmArguments");
-            
+
             if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname());
             } else {
                 s = s.concat(" -Dconnection.parameters=port=" + container(1).getHornetqPort() + ";host=" + container(1).getHostname() + ";httpUpgradeEnabled=true");
             }
-                 
+
             if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
                 s = s.concat(" -Dconnector.factory.class=org.hornetq.core.remoting.impl.netty.NettyConnectorFactory");
             } else {
@@ -693,20 +694,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "http-connector";
+        String acceptorName = "http-acceptor";
         String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        
+
         Map<String, String> map = new HashMap<String, String>();
         map.put("use-nio", "true");
-        try {
-            jmsAdminOperations.createHttpAcceptor("http-acceptor", null, map);
-        } catch (Exception e) {
-            //ignore
-        }
+        jmsAdminOperations.createHttpAcceptor(acceptorName, "default", map);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -762,9 +760,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 remoteSever.getHornetqPort());
 //        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
         // try use nio
-        Map<String,String> connectorParams = new HashMap<String,String>();
-        connectorParams.put("use-nio","true");
-        connectorParams.put("use-nio-global-worker-pool","true");
+        Map<String, String> connectorParams = new HashMap<String, String>();
+        connectorParams.put("use-nio", "true");
+        connectorParams.put("use-nio-global-worker-pool", "true");
         jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", connectorParams);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
 
