@@ -13,9 +13,10 @@ public class BytemanCustomHelper extends Helper {
 
     public void executeCmd(String cmd){
         try {
-         Runtime.getRuntime().exec(cmd);
+            Runtime.getRuntime().exec(cmd);
+            System.out.println(cmd + "was successfully executed");
         }catch(Exception e){
-            // we don't want to pass anything to foreign program
+            e.printStackTrace();
         }
     }
 }
