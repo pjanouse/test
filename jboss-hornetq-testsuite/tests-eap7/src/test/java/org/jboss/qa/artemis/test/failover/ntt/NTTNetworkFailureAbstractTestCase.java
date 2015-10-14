@@ -18,6 +18,7 @@ import org.jboss.qa.creaper.core.CommandFailedException;
 import org.jboss.qa.creaper.core.ManagementClient;
 import org.jboss.qa.creaper.core.offline.OfflineManagementClient;
 import org.jboss.qa.creaper.core.offline.OfflineOptions;
+import org.jboss.byteman.qa.hornetq.BytemanCustomHelper;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -100,6 +101,8 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
     @RunAsClient
     @Before
     public void prepareServersForTest() throws CommandFailedException {
+
+        createExternalJarForByteman();
         MAX_MESSAGES = 10;
         if (!serversReady(this.getClass().toString())) {
             prepareServers(isClusteredTest(), isHATest(), NIO_JOURNAL);
@@ -123,7 +126,7 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
 
     @After
     public void restoreNetwork() throws Exception{
-        Runtime.getRuntime().exec("sudo /usr/local/bin/network-fail-test recovery");
+       Runtime.getRuntime().exec("sudo /usr/local/bin/network-fail-test recovery;");
     }
 
     public void overrideMaxMessagesForTest(int maxMessages) {
@@ -410,6 +413,7 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
         JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "tools.jar");
         lib.addClass(TextMessageBuilder.class);
         lib.addClass(MessageBuilder.class);
+
         lib.addClass(org.jboss.qa.hornetq.apps.Clients.class);
         lib.addClass(org.jboss.qa.hornetq.apps.clients.Client.class);
         lib.addClass(org.jboss.qa.hornetq.constants.Constants.class);
@@ -417,6 +421,11 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
         lib.addClass(org.jboss.qa.hornetq.tools.JMSOperations.class);
         lib.addClass(org.jboss.qa.hornetq.JMSTools.class);
         lib.addClass(org.jboss.qa.hornetq.Container.class);
+
+        lib.addClass(org.jboss.qa.hornetq.apps.JMSImplementation.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.impl.MessageCreator10.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.MessageCreator.class);
 
         return lib;
 
@@ -603,6 +612,19 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
 
     public abstract boolean isClusteredTest();
     public abstract boolean isHATest();
+
+    public static JavaArchive createExternalJarForByteman() {
+        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "external.jar");
+        lib.addClass(BytemanCustomHelper.class);
+        File target = new File("/tmp/" + "external" + ".jar");
+        if (target.exists()) {
+            target.delete();
+        }
+        lib.as(ZipExporter.class).exportTo(target, true);
+        return lib;
+
+
+    }
 
 
 }
