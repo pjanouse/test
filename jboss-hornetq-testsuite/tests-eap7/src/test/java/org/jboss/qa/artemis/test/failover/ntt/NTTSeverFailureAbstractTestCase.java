@@ -537,6 +537,10 @@ public abstract class NTTSeverFailureAbstractTestCase extends HornetQTestCase {
         lib.addClass(org.jboss.qa.hornetq.tools.JMSOperations.class);
         lib.addClass(org.jboss.qa.hornetq.JMSTools.class);
         lib.addClass(org.jboss.qa.hornetq.Container.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.JMSImplementation.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.impl.MessageCreator10.class);
+        lib.addClass(org.jboss.qa.hornetq.apps.MessageCreator.class);
 
         return lib;
 

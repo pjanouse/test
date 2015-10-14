@@ -95,7 +95,7 @@ public class NTTStandaloneHAServerFailureCommitTestCase extends NTTStandaloneSer
     @RestoreConfigBeforeTest
     public void beforeWriteCommitServerDeliversMessage() throws Exception {
         overrideMaxMessagesForTest(1);
-        serverFailureTestSequence(1, 0, 0, false, false, false, true);
+        serverFailureTestSequence(1, 0, 1, false, false, false, true);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class NTTStandaloneHAServerFailureCommitTestCase extends NTTStandaloneSer
     @RestoreConfigBeforeTest
     public void betweenWriteCommitAndDeleteRecordServerDeliversMessage() throws Exception {
         overrideMaxMessagesForTest(1);
-        serverFailureTestSequence(0, 0, 0, false, false, false, true);
+        serverFailureTestSequence(1, 0, 0, false, false, false, true);
     }
 
 
