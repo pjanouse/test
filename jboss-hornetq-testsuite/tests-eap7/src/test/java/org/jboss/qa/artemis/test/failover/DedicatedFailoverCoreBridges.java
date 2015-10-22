@@ -771,14 +771,14 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
                 break;
             case NETTY_BIO:
-                jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
-                jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), defaultPortForMessagingSocketBinding + container(2).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, null);
-                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
+                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive);
                 break;
             case NETTY_NIO:
-                jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding);
+                jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
                 // add connector with NIO
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
