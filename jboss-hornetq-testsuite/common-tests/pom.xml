@@ -197,6 +197,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${surefire-version}</version>
                         <configuration>
+                            <groups>org.jboss.qa.hornetq.test.categories.FunctionalTests</groups>
                             <systemProperties>
                                 <property>
                                     <name>arquillian.xml</name>
