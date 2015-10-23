@@ -204,6 +204,7 @@
                                     <value>arquillian-4-nodes-eap7.xml</value>
                                 </property>
                             </systemProperties>
+                            <argLine>${hornetq.surefire.jvm.options}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
