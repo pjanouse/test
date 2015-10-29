@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +31,19 @@ public class TopicClientsClientAck implements Clients {
     private int numberOfsubscribersPerTopic;
     private List<PublisherClientAck> publishers = new ArrayList<PublisherClientAck>();
     private List<SubscriberClientAck> subscribers = new ArrayList<SubscriberClientAck>();
-    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private Container container;
+    private String containerType = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
     private int receivedMessagesAckAfter = 1000;
 
-    public TopicClientsClientAck(Container container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic){
+    public TopicClientsClientAck(Container container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
         this(container, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
     }
-    public TopicClientsClientAck(Container container, String topicJndiNamePrefix, int numberOfTopics,
-                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages){
 
-        this.container = container.getContainerType().toString();
+    public TopicClientsClientAck(Container container, String topicJndiNamePrefix, int numberOfTopics,
+                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
+        this.container = container;
+        this.containerType = container.getContainerType().toString();
         this.hostnameForSubscribers = container.getHostname();
         this.hostnameForPublishers = container.getHostname();
         this.jndiPort = container.getJNDIPort();
@@ -72,9 +75,9 @@ public class TopicClientsClientAck implements Clients {
     }
 
     @Deprecated
-    public TopicClientsClientAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+    public TopicClientsClientAck(String containerType, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                  int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
-        this.container = container;
+        this.containerType = containerType;
         this.hostnameForSubscribers = hostname;
         this.hostnameForPublishers = hostname;
         this.jndiPort = jndiPort;
@@ -105,12 +108,12 @@ public class TopicClientsClientAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
 
-                subscriber = new SubscriberClientAck(container, getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberClientAck(containerType, getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
-                verifier = new TextMessageVerifier();
+                verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container));
 
                 subscriber.setMessageVerifier(verifier);
 
@@ -128,7 +131,7 @@ public class TopicClientsClientAck implements Clients {
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
-                publisher = new PublisherClientAck(container, getHostnameForPublishers(), getJndiPort(),
+                publisher = new PublisherClientAck(containerType, getHostnameForPublishers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
@@ -425,7 +428,7 @@ public class TopicClientsClientAck implements Clients {
     @Override
     public List<Client> getProducers() {
         List<Client> list = new ArrayList<Client>();
-        for (Client c : publishers)  {
+        for (Client c : publishers) {
             list.add(c);
         }
         return list;
@@ -434,7 +437,7 @@ public class TopicClientsClientAck implements Clients {
     @Override
     public List<Client> getConsumers() {
         List<Client> list = new ArrayList<Client>();
-        for (Client c : subscribers)  {
+        for (Client c : subscribers) {
             list.add(c);
         }
         return list;

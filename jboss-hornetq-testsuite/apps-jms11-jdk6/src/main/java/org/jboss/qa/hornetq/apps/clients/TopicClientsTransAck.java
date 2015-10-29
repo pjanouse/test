@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,8 @@ public class TopicClientsTransAck implements Clients {
     private int numberOfsubscribersPerTopic;
     private List<PublisherTransAck> publishers = new ArrayList<PublisherTransAck>();
     private List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
-    private String container = HornetQTestCaseConstants.EAP6_CONTAINER;
+    private Container container;
+    private String containerType = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
     private int receivedMessagesAckAfter = 1000;
     private int producedMessagesAckAfter = 1000;
@@ -41,7 +43,8 @@ public class TopicClientsTransAck implements Clients {
 
     public TopicClientsTransAck (Container container, String topicJndiNamePrefix, int numberOfTopics,
                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages){
-        this.container = container.getContainerType().toString();
+        this.container = container;
+        this.containerType = container.getContainerType().toString();
         this.hostnameForSubscribers = container.getHostname();
         this.hostnameForPublishers = container.getHostname();
         this.jndiPort = container.getJNDIPort();
@@ -73,9 +76,9 @@ public class TopicClientsTransAck implements Clients {
     }
 
     @Deprecated
-    public TopicClientsTransAck(String container, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
+    public TopicClientsTransAck(String containerType, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                 int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
-        this.container = container;
+        this.containerType = containerType;
         this.hostnameForSubscribers = hostname;
         this.hostnameForPublishers = hostname;
         this.jndiPort = jndiPort;
@@ -106,12 +109,12 @@ public class TopicClientsTransAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
 
-                subscriber = new SubscriberTransAck(container, getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberTransAck(containerType, getHostnameForSubscribers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, 30000, 30, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
-                verifier = new TextMessageVerifier();
+                verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container));
 
                 subscriber.setMessageVerifier(verifier);
 
@@ -128,7 +131,7 @@ public class TopicClientsTransAck implements Clients {
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
-                p = new PublisherTransAck(container, getHostnameForPublishers(), getJndiPort(),
+                p = new PublisherTransAck(containerType, getHostnameForPublishers(), getJndiPort(),
                         getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
