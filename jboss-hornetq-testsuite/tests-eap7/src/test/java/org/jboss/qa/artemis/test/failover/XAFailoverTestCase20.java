@@ -1,5 +1,5 @@
 // TODO THIS IS FAILING BECAUSE IT'S MISSING HORNETQ-JMS-SERVER.JAR ON CLASSPATH
-package org.jboss.qa.hornetq.test.failover;
+package org.jboss.qa.artemis.test.failover;
 //todo add to test plan to mojo
 
 
