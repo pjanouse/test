@@ -1,6 +1,10 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.patching.IoUtils;
+import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
 
@@ -67,6 +71,38 @@ public class CheckServerAvailableUtils {
             Assert.fail("Server: " + ipAddress + ":" + port + " did not start again. Time out: " + timeout);
         }
         return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
+    }
+
+    public static boolean waitForLiveServerToReload(String ipAddress, int port, long timeout) {
+
+        long start = System.currentTimeMillis();
+        ModelNode operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).setEmptyList();
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set("server-state");
+
+        while (System.currentTimeMillis() - start < timeout) {
+            ModelControllerClient liveClient = null;
+            try {
+                liveClient = ModelControllerClient.Factory.create(ipAddress, port);
+                ModelNode result = liveClient.execute(operation);
+                if ("running".equals(result.get(ClientConstants.RESULT).asString())) {
+                    return true;
+                }
+            } catch (IOException e) {
+                log.info(e);
+            } finally {
+                if (liveClient != null) {
+                    IoUtils.safeClose(liveClient);
+                }
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                log.warn(e);
+            }
+        }
+        return false;
     }
 
 

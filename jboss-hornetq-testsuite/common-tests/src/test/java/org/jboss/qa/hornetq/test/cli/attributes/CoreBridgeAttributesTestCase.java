@@ -130,7 +130,7 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
                 cli.disconnect();
                 logger.info("!!!!!!!!!!!!!!!!!!! Done !!!!!!!!!!!!!!!!!!!!!!");
 
-                Assert.assertTrue(CheckServerAvailableUtils.waitHornetQToAlive(cliConf.getHost(), cliConf.getPort(), 15000));
+                Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 15000));
             } catch (IllegalStateException e) {
                 // do nothing
             }

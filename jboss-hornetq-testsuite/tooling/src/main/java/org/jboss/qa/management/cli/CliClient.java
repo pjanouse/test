@@ -194,14 +194,7 @@ public class CliClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        try {
-
-            return CheckServerAvailableUtils.waitHornetQToAlive(cliConfig.getHost(), cliConfig.getPort(), 15000);
-
-        } catch (InterruptedException e) {
-            log.error("Problem with reload of the server.", e);
-            return false;
-        }
+        return CheckServerAvailableUtils.waitForLiveServerToReload(cliConfig.getHost(), cliConfig.getPort(), 15000);
     }
 
     /**

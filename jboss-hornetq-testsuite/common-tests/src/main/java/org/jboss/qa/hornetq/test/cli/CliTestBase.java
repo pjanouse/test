@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.management.cli.CliClient;
+import org.junit.Assert;
 
 /**
  * Parent class for all Cli tests.
@@ -20,14 +21,7 @@ public class CliTestBase extends HornetQTestCase {
         if (isWritable) {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
             if (cliClient.reloadRequired()) {
-                try {
-                    cliClient.reload();
-                } catch (Exception ex)  {
-                    log.error(ex);
-                    // it can happen that this fails so try again
-                    Thread.sleep(1000);
-                    cliClient.reload();
-                }
+                Assert.assertTrue(cliClient.reload());
                 long startTime = System.currentTimeMillis();
                 while (true) {
                     try {
