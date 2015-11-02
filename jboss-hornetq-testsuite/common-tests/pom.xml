@@ -130,6 +130,11 @@
                     <artifactId>tooling-eap7</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
             <build>
                 <plugins>
@@ -148,7 +153,7 @@
                 </plugins>
             </build>
         </profile>
-        
+
         <profile>
             <id>eap7x-ipv6</id>
             <activation>
@@ -161,6 +166,11 @@
                 <dependency>
                     <groupId>org.jboss.qa.hornetq</groupId>
                     <artifactId>tooling-eap7</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -181,7 +191,7 @@
                 </plugins>
             </build>
         </profile>
-        
+
         <profile>
             <id>eap7x-common</id>
             <activation>
@@ -215,9 +225,14 @@
                     <artifactId>tooling-eap7</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
-        
+
         <profile>
             <id>eap7x-common-ipv6</id>
             <activation>
@@ -251,6 +266,11 @@
                     <artifactId>tooling-eap7</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
 
@@ -266,6 +286,11 @@
                 <dependency>
                     <groupId>org.jboss.qa.hornetq</groupId>
                     <artifactId>tooling-eap7</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.qa.hornetq</groupId>
+                    <artifactId>apps-jms2</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -298,19 +323,10 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
-            <artifactId>tooling-eap7</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>apps-jms11-jdk6</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.qa.hornetq</groupId>
-            <artifactId>apps-jms2</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
     </dependencies>
 
 </project>
