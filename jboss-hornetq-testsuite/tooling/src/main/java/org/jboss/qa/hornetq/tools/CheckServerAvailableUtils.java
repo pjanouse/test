@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.tools;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.patching.IoUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
@@ -93,7 +92,11 @@ public class CheckServerAvailableUtils {
                 log.info(e);
             } finally {
                 if (liveClient != null) {
-                    IoUtils.safeClose(liveClient);
+                    try {
+                        liveClient.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
                 }
             }
             try {
