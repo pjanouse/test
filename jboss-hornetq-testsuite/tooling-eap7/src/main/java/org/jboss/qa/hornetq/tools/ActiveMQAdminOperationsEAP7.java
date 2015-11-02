@@ -1456,6 +1456,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public int countConnections() {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("list-connection-ids");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "NAME_OF_MESSAGING_SUBSYSTEM");
+        model.get(OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+
+        System.out.println(model.toString());
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        logger.info("result:" + result);
+        return result.get("result").asList().size();
+    }
+
     /**
      * The directory to store paged messages in.
      *

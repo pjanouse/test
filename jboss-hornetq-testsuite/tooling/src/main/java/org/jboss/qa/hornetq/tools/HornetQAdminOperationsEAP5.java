@@ -2328,6 +2328,12 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public int countConnections() {
+        logger.info("This operation is not supported: " + getMethodName());
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions) {
         logger.info("This operation is not supported: " + getMethodName());
 

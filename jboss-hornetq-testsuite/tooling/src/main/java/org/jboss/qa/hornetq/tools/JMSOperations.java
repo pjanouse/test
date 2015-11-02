@@ -1558,6 +1558,8 @@ public interface JMSOperations {
 
     void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions);
 
+    int countConnections();
+
     void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions);
 
     void overrideInVMSecurity(boolean b);

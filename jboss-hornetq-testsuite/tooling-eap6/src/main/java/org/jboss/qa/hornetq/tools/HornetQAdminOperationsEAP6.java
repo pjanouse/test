@@ -490,6 +490,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public int countConnections() {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("list-connection-ids");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+
+        System.out.println(model.toString());
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        logger.info("result:" + result);
+        return result.get("result").asList().size();
+    }
+
 
     public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions){
         rewriteLoginModule("other", "classic", loginModule, moduleOptions);
@@ -5084,7 +5104,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-
+//            System.out.println("Count: " + jmsAdminOperations.countConnections());
 //            jmsAdminOperations.disableSecurity();
 //
 //            String bridgeName = "myBridge";
@@ -5117,13 +5137,13 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //                    maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
 
-            jmsAdminOperations.reloadServer();
+//            jmsAdminOperations.reloadServer();
 //            try {
 //                Thread.sleep(1500);
 //            } catch (InterruptedException e) {
 //                e.printStackTrace();
 //            }
-            jmsAdminOperations.reloadServer();
+//            jmsAdminOperations.reloadServer();
 //            Map<String,String> params = new HashMap<String,String>();
 //            params.put("java.naming.provider.url" ,"jnp://localhost:5599");
 //            params.put("java.naming.factory.url.pkgs", "org.jnp.interfaces");
