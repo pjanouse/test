@@ -208,6 +208,80 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
+     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue and OutQueue
+     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
+     * messages to InQueue to 1,2. Deploy MDB to 3 servers which reads
+     * messages from InQueue and sends them to OutQueue. Read messages from
+     * OutQueue from 1,2
+     * @tpProcedure <ul>
+     * <li>start 2 servers with deployed InQueue and OutQueue</li>
+     * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
+     * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>start 2 servers which have configured HornetQ RA to connect to first 2 servers</li>
+     * <li>deploy MDB to other servers which reads messages from InQueue and sends to OutQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfRAToCluster() throws Exception {
+
+        prepareRemoteJcaTopology();
+        // cluster A
+        container(1).start();
+        container(3).start();
+        // cluster B with mdbs
+        container(2).start();
+        container(4).start();
+
+        container(2).deploy(mdb1);
+        container(4).deploy(mdb2);
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer2 = new ProducerTransAck(container(3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        producer1.start();
+        producer2.start();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(3), outQueueJndiName, 3000, 10, 10);
+
+        receiver1.start();
+        receiver2.start();
+
+        // Wait to send and receive some messages
+        Thread.sleep(30 * 1000);
+
+        producer1.stopSending();
+        producer2.stopSending();
+        producer1.join();
+        producer2.join();
+
+        receiver1.join();
+        receiver2.join();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size() + producer2.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
+
+        container(2).undeploy(mdb1);
+        container(4).undeploy(mdb2);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
+
+    }
+
+    /**
+     * @throws Exception
      * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first.
      * Configure HornetQ RA on second sever to connect to first server. Send
      * messages to InQueue. Deploy MDB do second server which reads messages
