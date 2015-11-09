@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -695,7 +696,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         logger.info("@@@@@@@@@@@@@@@ SERVERS RUNNING @@@@@@@@@@@");
 
-        GroupMessageVerifier messageVerifier = new GroupMessageVerifier();
+        GroupMessageVerifier messageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueue, number_of_messages);
 
@@ -724,6 +725,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("@@@@@@@@@@@@@@@ PRODUCERS RUNNING @@@@@@@@@@@");
         Thread.sleep(8000);
 
+        logger.info("################ KILL #######################");
         if (useKill) {
             containerToKill.kill();
         } else {

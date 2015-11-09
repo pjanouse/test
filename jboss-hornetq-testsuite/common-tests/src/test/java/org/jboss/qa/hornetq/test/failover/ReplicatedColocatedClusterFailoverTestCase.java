@@ -80,6 +80,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
             jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
         }
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+
 
         jmsAdminOperations.close();
         container.stop();
