@@ -133,7 +133,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
             @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.apache.activemq.artemis.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
@@ -167,7 +167,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         } else {
             // install rule to first server
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
-            container(1).waitForKill();
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(1), 300000);
         }
 
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
@@ -179,8 +179,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
             logger.info("failback - Start first server again ");
             logger.info("########################################");
             container(1).start();
-            Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(
-                    container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
 //            Thread.sleep(10000);
 //            logger.info("########################################");
 //            logger.info("failback - Stop second server to be sure that failback occurred");
@@ -842,7 +841,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueue.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
@@ -861,7 +860,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueue.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
@@ -1367,7 +1366,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
+        jmsAdminOperations.addHAPolicyColocatedSharedStore("default", 500, -1, 5000, 1, true);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
