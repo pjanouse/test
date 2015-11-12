@@ -3880,7 +3880,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("ha").set(ha);
         model.get("failover-on-server-shutdown").set(true);
         model.get("reconnect-attempts").set(reconnectAttempts);
-        model.get("discovery-group-name").set(discoveryGroupName);
+        model.get("discovery-group").set(discoveryGroupName);
 
         try {
             this.applyUpdate(model);
