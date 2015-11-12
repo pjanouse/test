@@ -16,7 +16,7 @@ public class ArtemisJMSImplementation implements JMSImplementation {
         return instance;
     }
 
-    private ArtemisJMSImplementation() {
+    public ArtemisJMSImplementation() {
 
     }
 

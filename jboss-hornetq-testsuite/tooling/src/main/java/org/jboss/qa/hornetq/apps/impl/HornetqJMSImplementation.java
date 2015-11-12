@@ -18,7 +18,7 @@ public class HornetqJMSImplementation implements JMSImplementation {
         return instance;
     }
 
-    private HornetqJMSImplementation() {
+    public HornetqJMSImplementation() {
 
     }
 
