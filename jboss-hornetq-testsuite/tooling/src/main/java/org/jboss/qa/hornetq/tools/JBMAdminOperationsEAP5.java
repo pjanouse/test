@@ -734,6 +734,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void removeBroadcastGroup(String serverName, String nameOfTheBroadcastGroup) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
         String configurationFile = getMysqlConfigurationFile();
         try {
@@ -743,6 +748,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void removeClusteringGroup(String serverName, String clusterGroupName) {
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -767,6 +777,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void removeDiscoveryGroup(String serverName, String dggroup) {
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -801,6 +816,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void removeRemoteAcceptor(String serverName, String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeRemoteAcceptor(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -822,6 +842,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeHttpConnector(String serverName, String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeRemoteConnector(String serverName, String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -894,6 +919,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setBlockOnAckForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setBlockOnAckForPooledConnectionFactory(String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -943,6 +973,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
     	logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setBroadCastGroup(String serverName, String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -1063,7 +1098,12 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel){
 	logger.info("This operation is not supported: " + getMethodName());
     }
-    
+
+    @Override
+    public void setDiscoveryGroup(String serverName, String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     @Override
     public void setFailoverOnShutdown(String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
@@ -1091,6 +1131,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setHaForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1313,12 +1358,22 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setRetryIntervalForConnectionFactory(String serverName, String connectionFactoryName, long value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setRetryIntervalForPooledConnectionFactory(String connectionFactoryName, long value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setRetryIntervalMultiplierForConnectionFactory(String serverName, String connectionFactoryName, double value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1851,6 +1906,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setConnectorOnConnectionFactory(String serverName, String nameConnectionFactory, String proxyConnectorName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @param doc                         doc
      * @param description                 description
@@ -1935,6 +1995,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createConnectionFactory(String serverName, String connectionFactoryName, String jndiName, String connectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

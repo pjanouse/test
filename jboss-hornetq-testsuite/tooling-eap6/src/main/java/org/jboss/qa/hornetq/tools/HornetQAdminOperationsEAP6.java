@@ -743,10 +743,24 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
+        createConnectionFactory("default", connectionFactoryName, jndiName, connectorName);
+    }
+
+    /**
+     * Creates connection factory.
+     *
+     * @param serverName            name of the server
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param jndiName              jndi name of connection factory
+     * @param connectorName         name of the connector like "remote-connector"
+     */
+    @Override
+    public void createConnectionFactory(String serverName, String connectionFactoryName, String jndiName, String connectorName) {
+
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("entries").add(jndiName);
@@ -1866,11 +1880,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+        setBroadCastGroup("default", name, jgroupsStack, jgroupsChannel, broadcastPeriod, connectorName);
+    }
+
+    @Override
+    public void setBroadCastGroup(String serverName, String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -2025,11 +2044,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
+        setDiscoveryGroup("default", name, refreshTimeout, jgroupsStack, jgroupsChannel);
+    }
+
+    @Override
+    public void setDiscoveryGroup(String serverName, String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -2427,11 +2451,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
+        setHaForConnectionFactory("default", connectionFactoryName, value);
+    }
+
+    @Override
+    public void setHaForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("ha");
         model.get("value").set(value);
@@ -2445,12 +2474,17 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
+        setConnectorOnConnectionFactory("default", connectionFactoryName, connectorName);
+    }
+
+    @Override
+    public void setConnectorOnConnectionFactory(String serverName, String connectionFactoryName, String connectorName) {
         //java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("name").set("connector");
@@ -2614,17 +2648,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
+        setBlockOnAckForConnectionFactory("default", connectionFactoryName, value);
+    }
+
+    @Override
+    public void setBlockOnAckForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
 
         applyUpdateWithRetry(model, 50);
-
     }
 
     /**
@@ -2656,11 +2694,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
+        setRetryIntervalForConnectionFactory("default", connectionFactoryName, value);
+    }
+
+    @Override
+    public void setRetryIntervalForConnectionFactory(String serverName, String connectionFactoryName, long value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval");
         model.get("value").set(value);
@@ -2696,17 +2739,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
+        setRetryIntervalMultiplierForConnectionFactory("default", connectionFactoryName, value);
+    }
+
+    @Override
+    public void setRetryIntervalMultiplierForConnectionFactory(String serverName, String connectionFactoryName, double value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
 
         applyUpdateWithRetry(model, 50);
-
     }
 
     /**
@@ -3373,10 +3420,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
+        removeBroadcastGroup("default", nameOfTheBroadcastGroup);
+    }
+
+    @Override
+    public void removeBroadcastGroup(String serverName, String nameOfTheBroadcastGroup) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", nameOfTheBroadcastGroup);
 
         try {
@@ -3393,11 +3445,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeDiscoveryGroup(String dggroup) {
+        removeDiscoveryGroup("default", dggroup);
+    }
+
+    @Override
+    public void removeDiscoveryGroup(String serverName, String dggroup) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", dggroup);
 
         try {
@@ -3405,7 +3462,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
@@ -3415,11 +3471,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      */
     @Override
     public void removeClusteringGroup(String clusterGroupName) {
+        removeClusteringGroup("default", clusterGroupName);
+    }
+
+    @Override
+    public void removeClusteringGroup(String serverName, String clusterGroupName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
 
         try {
@@ -3764,7 +3825,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
-    private void removeRemoteConnector(String serverName, String name) {
+    public void removeRemoteConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -4285,7 +4346,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      *
      * @param name name of the remote acceptor
      */
-    private void removeRemoteAcceptor(String serverName, String name) {
+    public void removeRemoteAcceptor(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");

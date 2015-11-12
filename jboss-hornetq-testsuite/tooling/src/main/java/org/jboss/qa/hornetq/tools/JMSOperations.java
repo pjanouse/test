@@ -532,9 +532,25 @@ public interface JMSOperations {
     /**
      * Removes broadcast group.
      *
+     * @param serverName name of the server
+     * @param nameOfTheBroadcastGroup name of the broadcast group
+     */
+    void removeBroadcastGroup(String serverName, String nameOfTheBroadcastGroup);
+
+    /**
+     * Removes broadcast group.
+     *
      * @param nameOfTheBroadcastGroup name of the broadcast group
      */
     void removeBroadcastGroup(String nameOfTheBroadcastGroup);
+
+    /**
+     * Removes clustering group.
+     *
+     * @param serverName name of the server
+     * @param clusterGroupName name of the discovery group
+     */
+    void removeClusteringGroup(String serverName, String clusterGroupName);
 
     /**
      * Removes clustering group.
@@ -549,6 +565,14 @@ public interface JMSOperations {
      * @param dggroup name of the discovery group
      */
     void removeDiscoveryGroup(String dggroup);
+
+    /**
+     * Removes discovery group
+     *
+     * @param serverName name of the server
+     * @param dggroup name of the discovery group
+     */
+    void removeDiscoveryGroup(String serverName, String dggroup);
 
     /**
      * Remove messages from queue
@@ -604,6 +628,13 @@ public interface JMSOperations {
      *
      * @param name name of the remote acceptor
      */
+    void removeRemoteAcceptor(String serverName, String name);
+
+    /**
+     * Remove remote acceptor
+     *
+     * @param name name of the remote acceptor
+     */
     void removeRemoteAcceptor(String name);
 
     void removeHttpConnector(String name);
@@ -613,6 +644,13 @@ public interface JMSOperations {
     void removeHttpAcceptor(String name);
 
     void removeHttpConnector(String serverName, String name);
+
+    /**
+     * Remove remote connector
+     *
+     * @param name name of the remote connector
+     */
+    void removeRemoteConnector(String serverName, String name);
 
     /**
      * Remove remote connector
@@ -697,6 +735,15 @@ public interface JMSOperations {
      * @param value                 default false, should be true for fail-over scenarios
      */
     void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value);
+
+    /**
+     * Whether or not messages are acknowledged synchronously.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 default false, should be true for fail-over scenarios
+     */
+    void setBlockOnAckForConnectionFactory(String serverName, String connectionFactoryName, boolean value);
 
     /**
      * Whether or not messages are acknowledged synchronously.
@@ -792,6 +839,16 @@ public interface JMSOperations {
      * @param connectorName   a pair connector
      */
     void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName);
+
+    /**
+     * @param serverName      name of the server
+     * @param name            a unique name for the broadcast group - mandatory
+     * @param jgroupsStack    jgroups protocol stack
+     * @param jgroupsChannel  the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod period in miliseconds between consecutive broadcasts
+     * @param connectorName   a pair connector
+     */
+    void setBroadCastGroup(String serverName, String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName);
 
     /**
      * Sets cluster configuration.
@@ -962,6 +1019,20 @@ public interface JMSOperations {
     void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel);
 
     /**
+     * Discovery group defines how connector information is received from a
+     * multicast address.
+     *
+     * @param serverName     Name of the server
+     * @param name           A unique name for the discovery group - mandatory.
+     * @param refreshTimeout Period the discovery group waits after receiving
+     *                       the last broadcast from a particular server before removing that servers
+     *                       connector pair entry from its list.
+     * @param jgroupsStack   jgroups protocol stack
+     * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
+     */
+    void setDiscoveryGroup(String serverName, String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel);
+
+    /**
      * Sets ha attribute.
      *
      * @param connectionFactoryName
@@ -998,6 +1069,15 @@ public interface JMSOperations {
      * @param value                 true if connection factory supports ha.
      */
     void setHaForConnectionFactory(String connectionFactoryName, boolean value);
+
+    /**
+     * Sets ha attribute.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
+    void setHaForConnectionFactory(String serverName, String connectionFactoryName, boolean value);
 
     /**
      * Sets ha attribute.
@@ -1264,6 +1344,15 @@ public interface JMSOperations {
     /**
      * The time (in ms) to retry a connection after failing.
      *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value
+     */
+    void setRetryIntervalForConnectionFactory(String serverName, String connectionFactoryName, long value);
+
+    /**
+     * The time (in ms) to retry a connection after failing.
+     *
      * @param connectionFactoryName
      * @param value
      */
@@ -1276,6 +1365,15 @@ public interface JMSOperations {
      * @param value                 1.0 by default
      */
     void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value);
+
+    /**
+     * Multiplier to apply to successive retry intervals.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 1.0 by default
+     */
+    void setRetryIntervalMultiplierForConnectionFactory(String serverName, String connectionFactoryName, double value);
 
     /**
      * Multiplier to apply to successive retry intervals.
@@ -1446,6 +1544,8 @@ public interface JMSOperations {
 
     void removeSecuritySettings(String serverName, String addressMask);
 
+    void setConnectorOnConnectionFactory(String serverName, String nameConnectionFactory, String proxyConnectorName);
+
     void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
 
     void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
@@ -1473,6 +1573,8 @@ public interface JMSOperations {
     void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress, int gosshipRouterPort, boolean enableBundling);
 
     void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName);
+
+    void createConnectionFactory(String serverName, String connectionFactoryName, String jndiName, String connectorName);
 
     void removeConnectionFactory(String connectionFactoryName);
 

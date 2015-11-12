@@ -167,7 +167,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         } else {
             // install rule to first server
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
-            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(1), 300000);
+            container(1).waitForKill();
         }
 
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
@@ -1231,8 +1231,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      */
     public void prepareColocatedTopologyInClusterEAP7() {
         String journalType = getJournalType();
-        prepareCollocatedLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, journalType, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-        prepareCollocatedLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, journalType, Constants.CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP7(container(1), JOURNAL_DIRECTORY_B, journalType);
+        prepareLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, Constants.CONNECTOR_TYPE.NETTY_NIO);
+        prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A, journalType);
     }
 
 
@@ -1351,7 +1353,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param container        test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
-    public void prepareCollocatedLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    public void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -1366,7 +1368,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addHAPolicyColocatedSharedStore("default", 500, -1, 5000, 1, true);
+        jmsAdminOperations.addHAPolicySharedStoreMaster("default", 5000, true);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -1383,7 +1385,86 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         container.stop();
     }
 
+    public void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType) {
+
+        final String backupServerName = "backup";
+
+        String discoveryGroupName = "dg-group-backup";
+        String broadCastGroupName = "bg-group-backup";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty-backup";
+        String acceptorName = "netty-backup";
+        String inVmConnectorName = "in-vm";
+        String socketBindingName = "messaging-backup";
+        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
+        String messagingGroupSocketBindingName = "messaging-group";
+        String pooledConnectionFactoryName = "activemq-ra";
+        String jgroupsChannel = "activemq-cluster";
+        String jgroupsStack = "udp";
+
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+        jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectory);
+
+        jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, jgroupsStack, jgroupsChannel, 1000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.setClusterConnections(backupServerName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
+
+
+
+        Map<String, String> connectorParamsNIO = new HashMap<String, String>();
+        connectorParamsNIO.put("use-nio", "true");
+        connectorParamsNIO.put("use-nio-global-worker-pool", "true");
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, connectorParamsNIO);
+        // add acceptor with NIO
+        Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
+        acceptorParamsNIO.put("use-nio", "true");
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, acceptorParamsNIO);
+
+        jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
+        jmsAdminOperations.setJournalType(backupServerName, journalType);
+        jmsAdminOperations.disableSecurity(backupServerName);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicySharedStoreSlave(backupServerName, true, 5000, true, true, false, null, null, null, null);
+
+        // set ha also for hornetq-ra
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+
+        // set security persmissions for roles guest
+        jmsAdminOperations.addSecuritySetting(backupServerName, "#");
+        jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "send", true);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
     protected void setConnectorForClientEAP7(Container container, Constants.CONNECTOR_TYPE connectorType) {
+        setConnectorForClientEAP7(container, "default", connectorType);
+    }
+
+    protected void setConnectorForClientEAP7(Container container, String serverName, Constants.CONNECTOR_TYPE connectorType) {
 
         String messagingGroupSocketBindingForConnector = "messaging";
         String nettyConnectorName = "netty";
@@ -1405,19 +1486,20 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                 jmsAdminOperations.close();
                 container.stop();
                 container.start();
+
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
-                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
-                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null);
+                jmsAdminOperations.removeRemoteConnector(serverName, nettyConnectorName);
+                jmsAdminOperations.createRemoteConnector(serverName, nettyConnectorName, messagingGroupSocketBindingForConnector, null);
                 // add acceptor wtih BIO
                 Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
-                jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
-                jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
-                jmsAdminOperations.setBroadCastGroup(broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
+                jmsAdminOperations.removeRemoteAcceptor(serverName, nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(serverName, nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
+                jmsAdminOperations.setConnectorOnConnectionFactory(serverName, connectionFactoryName, nettyConnectorName);
+                jmsAdminOperations.removeClusteringGroup(serverName, clusterConnectionName);
+                jmsAdminOperations.setClusterConnections(serverName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
+                jmsAdminOperations.removeBroadcastGroup(serverName, broadcastGroupName);
+                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
                 break;
             case NETTY_NIO:
                 jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
@@ -1426,34 +1508,34 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with NIO
-                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
+                jmsAdminOperations.removeRemoteConnector(serverName, nettyConnectorName);
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, connectorParamsNIO);
+                jmsAdminOperations.createRemoteConnector(serverName, nettyConnectorName, messagingGroupSocketBindingForConnector, connectorParamsNIO);
 
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
-                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
-                jmsAdminOperations.setConnectorOnConnectionFactory(connectionFactoryName, nettyConnectorName);
-                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
-                jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
-                jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
-                jmsAdminOperations.setBroadCastGroup(broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
+                jmsAdminOperations.removeRemoteAcceptor(serverName, nettyAcceptorName);
+                jmsAdminOperations.createRemoteAcceptor(serverName, nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
+                jmsAdminOperations.setConnectorOnConnectionFactory(serverName, connectionFactoryName, nettyConnectorName);
+                jmsAdminOperations.removeClusteringGroup(serverName, clusterConnectionName);
+                jmsAdminOperations.setClusterConnections(serverName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
+                jmsAdminOperations.removeBroadcastGroup(serverName, broadcastGroupName);
+                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
                 break;
             default:
                 break;
         }
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setHaForConnectionFactory(serverName, connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(serverName, connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(serverName, connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(serverName, connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.removeDiscoveryGroup(serverName, discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(serverName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
 
         jmsAdminOperations.close();
     }

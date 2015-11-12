@@ -1,15 +1,13 @@
 // TODO - change prefix names of operations - use just set/add/get/is(for boolean)/remove, remove "create" prefix
 package org.jboss.qa.hornetq.tools;
 
+import org.apache.activemq.artemis.utils.json.JSONArray;
 import org.apache.log4j.Logger;
-import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
@@ -730,10 +728,24 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void createConnectionFactory(String connectionFactoryName, String jndiName, String connectorName) {
+        createConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, jndiName, connectorName);
+    }
+
+    /**
+     * Creates connection factory.
+     *
+     * @param serverName            name of the server
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param jndiName              jndi name of connection factory
+     * @param connectorName         name of the connector like "remote-connector"
+     */
+    @Override
+    public void createConnectionFactory(String serverName, String connectionFactoryName, String jndiName, String connectorName) {
+
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("entries").add(jndiName);
@@ -1941,10 +1953,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod,
                                   String connectorName) {
 
+        setBroadCastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, jgroupsStack, jgroupsChannel, broadcastPeriod, connectorName);
+    }
+
+    /**
+     * @param serverName      name of the server
+     * @param name            a unique name for the broadcast group - mandatory
+     * @param jgroupsStack    jgroups protocol stack
+     * @param jgroupsChannel  the name that jgroups channels connect to for broadcasting
+     * @param broadcastPeriod period in miliseconds between consecutive broadcasts
+     * @param connectorName   a pair connector
+     */
+    public void setBroadCastGroup(String serverName, String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
+
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -2082,11 +2107,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setDiscoveryGroup(String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
+        setDiscoveryGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, name, refreshTimeout, jgroupsStack, jgroupsChannel);
+    }
+
+    /**
+     * Discovery group defines how connector information is received from a
+     * multicast address.
+     *
+     * @param serverName     Name of the server
+     * @param name           A unique name for the discovery group - mandatory.
+     * @param refreshTimeout Period the discovery group waits after receiving
+     *                       the last broadcast from a particular server before removing that servers
+     *                       connector pair entry from its list.
+     * @param jgroupsStack   jgroups protocol stack
+     * @param jgroupsChannel the name that jgroups channels connect to for broadcasting
+     */
+    public void setDiscoveryGroup(String serverName, String name, long refreshTimeout, String jgroupsStack, String jgroupsChannel) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", name);
 
         if (!isEmpty(jgroupsStack)) {
@@ -2471,11 +2512,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setHaForConnectionFactory(String connectionFactoryName, boolean value) {
+        setHaForConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, value);
+    }
+
+    /**
+     * Sets ha attribute.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 true if connection factory supports ha.
+     */
+    public void setHaForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("ha");
         model.get("value").set(value);
@@ -2487,14 +2539,18 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-    @Override
     public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
+        setConnectorOnConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, connectorName);;
+    }
+
+    @Override
+    public void setConnectorOnConnectionFactory(String serverName, String connectionFactoryName, String connectorName) {
         // java.lang.UnsupportedOperationException: JBAS011664: Runtime handling for connector is not implemented
 
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
 
         model.get("name").set("connectors");
@@ -2619,17 +2675,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
+        setBlockOnAckForConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, value);
+    }
+
+    /**
+     * Whether or not messages are acknowledged synchronously.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 default false, should be true for fail-over scenarios
+     */
+    public void setBlockOnAckForConnectionFactory(String serverName, String connectionFactoryName, boolean value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("block-on-acknowledge");
         model.get("value").set(value);
 
         applyUpdateWithRetry(model, 50);
-
     }
 
     /**
@@ -2661,11 +2727,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setRetryIntervalForConnectionFactory(String connectionFactoryName, long value) {
+        setRetryIntervalForConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, value);
+    }
+
+    /**
+     * The time (in ms) to retry a connection after failing.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value
+     */
+    public void setRetryIntervalForConnectionFactory(String serverName, String connectionFactoryName, long value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval");
         model.get("value").set(value);
@@ -2701,17 +2778,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setRetryIntervalMultiplierForConnectionFactory(String connectionFactoryName, double value) {
+        setRetryIntervalMultiplierForConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, value);
+    }
+
+    /**
+     * Multiplier to apply to successive retry intervals.
+     *
+     * @param serverName name of the server
+     * @param connectionFactoryName
+     * @param value                 1.0 by default
+     */
+    public void setRetryIntervalMultiplierForConnectionFactory(String serverName, String connectionFactoryName, double value) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
         model.get("name").set("retry-interval-multiplier");
         model.get("value").set(value);
 
         applyUpdateWithRetry(model, 50);
-
     }
 
     /**
@@ -3361,14 +3448,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Removes broadcast group.
      *
+     * @param serverName name of the server
      * @param nameOfTheBroadcastGroup name of the broadcast group
      */
-    @Override
-    public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
+    public void removeBroadcastGroup(String serverName, String nameOfTheBroadcastGroup) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("broadcast-group", nameOfTheBroadcastGroup);
 
         try {
@@ -3379,17 +3466,37 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
+     * Removes broadcast group.
+     *
+     * @param nameOfTheBroadcastGroup name of the broadcast group
+     */
+    @Override
+    public void removeBroadcastGroup(String nameOfTheBroadcastGroup) {
+        removeBroadcastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, nameOfTheBroadcastGroup);
+    }
+
+    /**
      * Removes discovery group
      *
      * @param dggroup name of the discovery group
      */
     @Override
     public void removeDiscoveryGroup(String dggroup) {
+        removeDiscoveryGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, dggroup);
+    }
+
+    /**
+     * Removes discovery group
+     *
+     * @param serverName name of the server
+     * @param dggroup name of the discovery group
+     */
+    public void removeDiscoveryGroup(String serverName, String dggroup) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("discovery-group", dggroup);
 
         try {
@@ -3397,7 +3504,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             logger.warn("Dicovery group " + dggroup + " could not be removed. Reason: ", e);
         }
+    }
 
+    /**
+     * Removes clustering group.
+     *
+     * @param serverName name of the server
+     * @param clusterGroupName name of the discovery group
+     */
+    public void removeClusteringGroup(String serverName, String clusterGroupName) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.warn("Cluster connection " + clusterGroupName + " could not be removed. Reason:", e);
+        }
     }
 
     /**
@@ -3407,18 +3534,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void removeClusteringGroup(String clusterGroupName) {
-
-        ModelNode model = createModelNode();
-        model.get(ClientConstants.OP).set("remove");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
-        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            logger.warn("Cluster connection " + clusterGroupName + " could not be removed. Reason:", e);
-        }
+        removeClusteringGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, clusterGroupName);
     }
 
     /**
@@ -3834,7 +3950,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         removeConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
-    private void removeRemoteConnector(String serverName, String name) {
+    public void removeRemoteConnector(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -4535,7 +4651,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      *
      * @param name name of the remote acceptor
      */
-    private void removeRemoteAcceptor(String serverName, String name) {
+    public void removeRemoteAcceptor(String serverName, String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
