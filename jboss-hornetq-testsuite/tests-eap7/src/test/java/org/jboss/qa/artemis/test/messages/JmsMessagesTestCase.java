@@ -1,7 +1,7 @@
 package org.jboss.qa.artemis.test.messages;
 
+import org.apache.activemq.artemis.core.message.impl.MessageImpl;
 import org.apache.log4j.Logger;
-import org.hornetq.core.message.impl.MessageImpl;
 import org.apache.activemq.artemis.jms.client.ActiveMQBytesMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQObjectMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQTextMessage;
