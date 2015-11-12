@@ -234,28 +234,6 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
     /**
      * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge which uses pre configured (static) bio connector and resends messages from its InQueue to live’s OutQueue. Kill live
-     * server and check that all messages are in OutQueue on backup.
-     * @tpProcedure <ul>
-     * <li>Start live and its backup server</li>
-     * <li>Start 3rd server with deployed Core bridge configured to use static connector
-     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
-     * <li>Start producer which sends messages to InQueue</li>
-     * <li>Start consumer which reads messages from OutQueue</li>
-     * <li>Kill live server</li>
-     * </ul>
-     * @tpPassCrit receiver will receive all messages which were sent
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    public void testFailoverKillWithBridgeWitStaticBIOConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_BIO, false, Constants.FAILURE_TYPE.KILL);
-    }
-
-    /**
-     * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
      * bridge which uses pre configured (static) nio connector and resends messages from its InQueue to live’s OutQueue. Kill live
      * server and check that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
@@ -408,8 +386,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailbackKillWithBridgeWitStaticBIOConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_BIO, true, Constants.FAILURE_TYPE.KILL);
+    public void testFailbackKillWithBridgeWitStaticNIOConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, true, Constants.FAILURE_TYPE.KILL);
     }
 
     /**
@@ -566,27 +544,6 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_NIO);
     }
 
-    /**
-     * @tpTestDetails This scenario tests failback of core bridge from backup to live. Core bridge connects to backup first.
-     * @tpProcedure <ul>
-     * <li>Start live and its backup server</li>
-     * <li>Stop live server</li>
-     * <li>Start 3rd server with deployed Core bridge configured to use pre-defined nio connector which sends messages from 3rd server’s
-     * InQueue to backup’s OutQueue</li>
-     * <li>Start producer which sends messages to InQueue</li>
-     * <li>Start live server again so failback occurs</li>
-     * <li>Start consumer which reads messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit receiver will receive all messages which were sent
-     */
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    public void testInitialFailbackWithStaticBIOConnectors() throws Exception {
-        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_BIO);
-    }
-
 
     protected void prepareServers(Constants.CONNECTOR_TYPE connectorType) throws Exception {
         prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, Constants.JOURNAL_TYPE.ASYNCIO, connectorType);
@@ -668,26 +625,6 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         switch (connectorType) {
             case HTTP_CONNECTOR:
                 break;
-            case NETTY_BIO:
-                jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
-                jmsAdminOperations.close();
-                container.stop();
-                container.start();
-                jmsAdminOperations = container.getJmsOperations();
-                // add connector with BIO
-                jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
-                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null);
-                // add acceptor wtih BIO
-                Map<String, String> acceptorParams = new HashMap<String, String>();
-                jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
-                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
-                jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
-                jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
-                jmsAdminOperations.setBroadCastGroup(broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
-                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
-                break;
             case NETTY_NIO:
                 jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
                 jmsAdminOperations.close();
@@ -696,15 +633,11 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with NIO
                 jmsAdminOperations.removeRemoteConnector(nettyConnectorName);
-                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
-                connectorParamsNIO.put("use-nio", "true");
-                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, connectorParamsNIO);
-                // add acceptor with NIO
-                Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
-                acceptorParamsNIO.put("use-nio", "true");
+                jmsAdminOperations.createRemoteConnector(nettyConnectorName, messagingGroupSocketBindingForConnector, null);
+                // add acceptor wtih NIO
+                Map<String, String> acceptorParams = new HashMap<String, String>();
                 jmsAdminOperations.removeRemoteAcceptor(nettyAcceptorName);
-                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, acceptorParamsNIO);
+                jmsAdminOperations.createRemoteAcceptor(nettyAcceptorName, messagingGroupSocketBindingForConnector, null);
                 jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
                 jmsAdminOperations.setClusterConnections(clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
                 jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
@@ -770,25 +703,12 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 jmsAdminOperations.createHttpConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, null);
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
                 break;
-            case NETTY_BIO:
+            case NETTY_NIO:
                 jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
                 jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), defaultPortForMessagingSocketBinding + container(2).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, null);
                 jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive);
-                break;
-            case NETTY_NIO:
-                jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
-                // add connector with NIO
-                Map<String, String> connectorParamsNIO = new HashMap<String, String>();
-                connectorParamsNIO.put("use-nio", "true");
-                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createRemoteConnector(remoteConnectorNameToLive, removeSocketBindingToLive, connectorParamsNIO);
-                Map<String, String> connectorParamsNIOToBackup = new HashMap<String, String>();
-                connectorParamsNIO.put("use-nio", "true");
-                connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsAdminOperations.createRemoteConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, connectorParamsNIO);
-                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
                 break;
             case NETTY_DISCOVERY:
                 jmsAdminOperations.addSocketBinding(messagingGroupSocketBindingForDiscovery, messagingGroupMulticastAddressForDiscovery,
