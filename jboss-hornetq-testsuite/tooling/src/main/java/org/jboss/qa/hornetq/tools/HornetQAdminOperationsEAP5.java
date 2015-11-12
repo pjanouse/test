@@ -856,7 +856,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void removeRemoteAcceptor(String serverName, String name) {
-        ogger.info("This operation is not supported: " + getMethodName());
+        logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
