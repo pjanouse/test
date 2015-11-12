@@ -141,7 +141,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer);
+            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             // send and receive single message
             Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);
@@ -214,7 +214,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer);
+            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             boolean result = jmsServerControl.destroyQueue(queueName + "0");
             Assert.assertTrue("Calling destroy queue with connected org.jboss.qa.hornetq.apps.clients must pass.", result);
@@ -267,7 +267,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer);
+            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             // send and receive single message
             Clients clients = new TopicClientsAutoAck(container(1), topicJndiName, 1, 1, 1, 1);
@@ -337,7 +337,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer);
+            JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             boolean result = jmsServerControl.destroyTopic(topicName + "0");
             Assert.assertTrue("Calling destroy topic with connected org.jboss.qa.hornetq.apps.clients must pass.", result);

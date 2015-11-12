@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
-import org.hornetq.api.core.management.HornetQServerControl;
-import org.hornetq.api.jms.management.JMSServerControl;
 import org.jboss.qa.hornetq.Container;
 
 import javax.management.MBeanServerConnection;
@@ -18,13 +16,7 @@ public interface JmxUtils {
 
     JMXConnector getJmxConnectorForEap(String host, int port) throws IOException;
 
-    @Deprecated
-    HornetQServerControl getHornetQServerMBean(MBeanServerConnection mbeanServer) throws Exception;
-
     <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception;
-
-    @Deprecated
-    JMSServerControl getJmsServerMBean(MBeanServerConnection mbeanServer) throws Exception;
 
     <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception;
 

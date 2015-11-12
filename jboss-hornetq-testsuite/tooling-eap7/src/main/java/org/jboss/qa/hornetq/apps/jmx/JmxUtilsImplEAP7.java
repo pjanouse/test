@@ -2,7 +2,6 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
-import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.qa.hornetq.Container;
 import org.kohsuke.MetaInfServices;
 
@@ -68,21 +67,10 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
     }
 
     @Override
-    public HornetQServerControl getHornetQServerMBean(MBeanServerConnection mbeanServer) throws Exception {
-        throw new UnsupportedOperationException("This operation is not supported in EAP7 test suite, use generic variant instead");
-    }
-
-    @Override
     public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
         return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
                 mbeanType);
     }
-
-    @Override
-    public org.hornetq.api.jms.management.JMSServerControl getJmsServerMBean(MBeanServerConnection mbeanServer) throws Exception {
-        throw new UnsupportedOperationException("This operation is not supported in EAP7 test suite, use generic variant instead");
-    }
-
 
     @Override
     public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {

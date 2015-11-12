@@ -19,7 +19,7 @@ import org.jboss.qa.hornetq.tools.RandomStringGenerator;
 public class DelayedTextMessageBuilder implements MessageBuilder {
 
     private static final String DUPLICATE_ID_HEADER =
-            org.hornetq.api.core.Message.HDR_DUPLICATE_DETECTION_ID.toString();
+            HornetqJMSImplementation.getInstance().getDuplicatedHeader();
 
     private final int textLength;
     private final long messageDelay;
