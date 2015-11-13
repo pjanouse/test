@@ -55,6 +55,7 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
         return JMXConnectorFactory.connect(beanServerUrl);
     }
 
+
     public HornetQServerControl getHornetQServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
         return (HornetQServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
                 HornetQServerControl.class);
