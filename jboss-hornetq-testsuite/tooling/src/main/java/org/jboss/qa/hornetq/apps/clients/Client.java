@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import javax.jms.JMSException;
@@ -86,10 +87,10 @@ public class Client extends Thread implements HornetQTestCaseConstants {
             context = JMSTools.getEAP5Context(hostname, port);
         } else if (currentContainer.equals(EAP6_CONTAINER) || currentContainer.equals(EAP6_DOMAIN_CONTAINER)) {
             logger.info("Create EAP 6 InitialContext.");
-            context = JMSTools.getEAP6Context(hostname, port);
+            context = JMSTools.getEAP6Context(hostname, port, Constants.JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
         } else {
             logger.info("Create EAP 7 InitialContext to hostname: " + hostname + " and port: " + port);
-            context = JMSTools.getEAP7Context(hostname, port);
+            context = JMSTools.getEAP7Context(hostname, port, Constants.JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
         }
 
         return context;

@@ -35,6 +35,9 @@ public interface Container {
     int getPortOffset();
     Context getContext() throws NamingException;
     String getConnectionFactoryName();
+
+    Context getContext(Constants.JNDI_CONTEXT_TYPE contextType) throws NamingException;
+
     String getHostname();
     int getHornetqPort();
     int getHornetqBackupPort();

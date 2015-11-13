@@ -8,7 +8,9 @@ import org.jboss.qa.hornetq.Container;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 
 import org.jboss.qa.hornetq.DomainNode;
 
@@ -36,6 +38,34 @@ public class ProcessIdUtils {
         } catch (Exception e) {
             throw new RuntimeException("Error while reading PID failed " + container.getName(), e);
         }
+    }
+
+    public static int getProcessId(Process process) {
+
+        int pid = 0;
+        if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+            try {
+                Field f = process.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getInt(process);
+            } catch (Throwable e) {
+            }
+        } else {
+            throw new IllegalStateException("This is non unis process. Implement this method for other OS.");
+        }
+        return pid;
+    }
+
+    /**
+     * priority can be set -19 to 20, lower number = higher priority
+     * @param pid
+     * @param priority
+     */
+    public static void setPriorityToProcess(String pid, int priority) throws Exception {
+
+        String cmd = "renice -n " + priority + " -p " + pid;
+        log.info("Command: " + cmd);
+        Runtime.getRuntime().exec(cmd);
     }
 
     /**

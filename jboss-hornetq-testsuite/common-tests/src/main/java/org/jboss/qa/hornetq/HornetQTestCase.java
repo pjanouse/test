@@ -446,7 +446,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      */
     @Deprecated
     protected Context getEAP6Context(String hostName, int port) throws NamingException {
-        return JMSTools.getEAP6Context(hostName, port);
+        return JMSTools.getEAP6Context(hostName, port, Constants.JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
     }
 
     /**

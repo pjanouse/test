@@ -10,6 +10,8 @@ import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.threads.JBossThreadFactory;
@@ -17,17 +19,23 @@ import org.jboss.threads.JBossThreadFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.kohsuke.MetaInfServices;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 
 /**
  * Basic administration operations for JMS subsystem
- * <p/>
+ * <p>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -460,7 +468,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void overrideInVMSecurity(boolean b) {
-        final ModelNode modelNode= createModelNode();
+        final ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set("write-attribute");
         modelNode.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         modelNode.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
@@ -511,13 +519,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
 
-    public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions){
+    public void rewriteLoginModule(String loginModule, HashMap<String, String> moduleOptions) {
         rewriteLoginModule("other", "classic", loginModule, moduleOptions);
     }
 
 
-
-    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions){
+    public void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions) {
         final ModelNode loginModuleRemove = createModelNode();
         loginModuleRemove.get(ClientConstants.OP).set("write-attribute");
         loginModuleRemove.get(ClientConstants.OP_ADDR).add("subsystem", "security");
@@ -526,9 +533,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         loginModuleRemove.get(ClientConstants.OP_ADDR).add("login-module", loginModule);
         loginModuleRemove.get("name").set("module-options");
         Iterator i = moduleOptions.entrySet().iterator();
-        ArrayList<ModelNode>list= new ArrayList<ModelNode>();
-        for(Map.Entry<String, String> entry : moduleOptions.entrySet()){
-            list.add(new ModelNode().setExpression(entry.getKey(),entry.getValue()));
+        ArrayList<ModelNode> list = new ArrayList<ModelNode>();
+        for (Map.Entry<String, String> entry : moduleOptions.entrySet()) {
+            list.add(new ModelNode().setExpression(entry.getKey(), entry.getValue()));
         }
         //loginModuleRemove.get("value").set(new ModelNode().setExpression("password-stacking","useFirstPass"));
         loginModuleRemove.get("value").set(list);
@@ -1023,7 +1030,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     *
+     * <p>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation
      * address will be populated with path composed of prefix entries (in the order they were added).
      *
@@ -1063,7 +1070,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Sets persistence-enabled attribute in servers configuration.
      *
-     * @param serverName         sets name of the hornetq server to be changed
+     * @param serverName sets name of the hornetq server to be changed
      * @param divertName
      */
     @Override
@@ -1442,6 +1449,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public void importJournal(String path) {
         throw new UnsupportedOperationException("import journal not supported for eap6 operations");
     }
+
     /**
      * The directory to store paged messages in.
      *
@@ -1620,6 +1628,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * XA datasource.
      *
@@ -1631,13 +1640,13 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
      * @param transactionIsolation
      * @param xaDatasourceProperties
      */
-   @Override
+    @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext,
                                    boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass,
-                                   boolean isSameRmOverride, boolean noTxSeparatePool,Map<String,String>xaDatasourceProperties) {
+                                   boolean isSameRmOverride, boolean noTxSeparatePool, Map<String, String> xaDatasourceProperties) {
         throw new UnsupportedOperationException("operation not supported for eap6, use operation without xaDatasourceProperties");
     }
-    
+
     /**
      * Add XA datasource property.
      *
@@ -2099,15 +2108,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
 
     @Override
-    public int getNumberOfPreparedTransaction()    {
+    public int getNumberOfPreparedTransaction() {
         return getNumberOfPreparedTransaction("default");
     }
 
-        /**
-         * Get number of prepared transactions
-         */
+    /**
+     * Get number of prepared transactions
+     */
     @Override
-    public int getNumberOfPreparedTransaction(String serverName)    {
+    public int getNumberOfPreparedTransaction(String serverName) {
         //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
         int i = -1;
         try {
@@ -2133,12 +2142,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public String listPreparedTransaction()    {
+    public String listPreparedTransaction() {
         return listPreparedTransaction("default");
     }
 
     @Override
-    public String listPreparedTransaction(String serverName)    {
+    public String listPreparedTransaction(String serverName) {
         //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
         int i = -1;
         ModelNode result = null;
@@ -2337,7 +2346,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p/>
+     * <p>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -3012,10 +3021,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
-     * @param address       address specification
-     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
-     * @param policy        what should happen with slow consumers
-     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     * @param address     address specification
+     * @param threshold   the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy      what should happen with slow consumers
+     * @param checkPeriod how often to check for slow consumers (in minutes, default is 5)
      */
     @Override
     public void setSlowConsumerPolicy(String address, int threshold, SlowConsumerPolicy policy, int checkPeriod) {
@@ -3025,15 +3034,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
-     * @param serverName    hornetq server name
-     * @param address       address specification
-     * @param threshold     the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
-     * @param policy        what should happen with slow consumers
-     * @param checkPeriod   how often to check for slow consumers (in minutes, default is 5)
+     * @param serverName  hornetq server name
+     * @param address     address specification
+     * @param threshold   the minimum rate of message consumption allowed (in messages-per-second, -1 is disabled)
+     * @param policy      what should happen with slow consumers
+     * @param checkPeriod how often to check for slow consumers (in minutes, default is 5)
      */
     @Override
     public void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy,
-            int checkPeriod) {
+                                      int checkPeriod) {
 
         ModelNode addressSettings = createModelNode();
         addressSettings.get(ClientConstants.OP).set("write-attribute");
@@ -3208,10 +3217,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Adds external context.
-     *
      */
     @Override
-    public void addExternalContext(String binding, String className, String module, String bindingType, Map<String,String> environmentProperies) {
+    public void addExternalContext(String binding, String className, String module, String bindingType, Map<String, String> environmentProperies) {
 //        [standalone@localhost:9999 /] /subsystem=naming/binding="java:global/client-context":add(module=org.jboss.legacy.naming.spi,
 // class=javax.naming.InitialContext,binding-type=external-context,
 // environment={"java.naming.provider.url" => "jnp://localhost:5599", "java.naming.factory.url.pkgs" => "org.jnp.interfaces",
@@ -3240,7 +3248,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
 
     }
-
 
 
     /**
@@ -3352,9 +3359,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or
@@ -3389,9 +3396,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or
@@ -4195,7 +4202,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public String  getSocketBindingAtributes(String socketBindingName) {
+    public String getSocketBindingAtributes(String socketBindingName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-resource");
@@ -4209,7 +4216,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return result.get("result").asString().substring(1,result.get("result").asString().length()-2);
+        return result.get("result").asString().substring(1, result.get("result").asString().length() - 2);
     }
 
     /**
@@ -4562,7 +4569,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p/>
+     * <p>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779
      * TODO remove this when ^ is fixed
      *
@@ -5075,13 +5082,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         ModelNode result;
         try {
             result = this.applyUpdate(model);
-            String res=result.get("result").asString();
-            JSONArray array= new JSONArray(res);
+            String res = result.get("result").asString();
+            JSONArray array = new JSONArray(res);
             return array.length();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
 
 
     }
@@ -5157,7 +5163,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
+    public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 
@@ -5209,12 +5215,59 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-            jmsAdminOperations.setHostname("127.0.0.1");
-            jmsAdminOperations.setPort(9999);
-            jmsAdminOperations.connect();
+//            jmsAdminOperations.setHostname("127.0.0.1");
+//            jmsAdminOperations.setPort(9999);
+//            jmsAdminOperations.connect();
+//
+//            final Properties env = new Properties();
+//            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+//            env.put(Context.PROVIDER_URL, String.format("%s%s:%s", "remote://", "127.0.0.1", 5447));
+//            env.put("jboss.naming.client.ejb.context", true);
+//            Context ctx = new InitialContext(env);
+//            List<SimpleSendEJB> ejbs = new ArrayList<SimpleSendEJB>();
+//            for (int i = 0; i < 20; i++) {
+//                SimpleSendEJB simpleSendEJB = (SimpleSendEJB) ctx.lookup("ejb-sender/SimpleSendEJBStatefulBean!org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB");
+//                simpleSendEJB.createConnection();
+//                simpleSendEJB.sendMessage();
+//                ejbs.add(simpleSendEJB);
+//            }
+//            for (SimpleSendEJB simpleSendEJB : ejbs) {
+//                simpleSendEJB.closeConnection();
+//            }
+//            ctx.close();
+
+            JavaProcessBuilder javaProcessBuilder = new JavaProcessBuilder();
+            javaProcessBuilder.addClasspathEntry(System.getProperty("java.class.path"));
+            javaProcessBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
+            javaProcessBuilder.setMainClass(CpuLoadGenerator.class.getName());
+            try {
+
+                Process process = javaProcessBuilder.startProcess();
+
+                int pid = 0;
+                if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+                    try {
+                        Field f = process.getClass().getDeclaredField("pid");
+                        f.setAccessible(true);
+                        pid = f.getInt(process);
+                    } catch (Throwable e) {
+                    }
+                }
+                System.out.println(pid);
+                process.waitFor();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+//            for (int i = 0; i < 1000; i++) {
+//                simpleSendEJB.sendMessage();
+//            }
+//            ctx.close();
+
 //            System.out.println("Count: " + jmsAdminOperations.countConnections());
 //            jmsAdminOperations.disableSecurity();
 //
@@ -5304,7 +5357,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
 //            jmsAdminOperations.close();
         } finally {
-            jmsAdminOperations.close();
+//            jmsAdminOperations.close();
         }
     }
 

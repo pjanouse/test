@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,6 +23,8 @@ public class TextMessageBuilder implements MessageBuilder {
     private int size;
 
     private boolean addDuplicatedHeader = true;
+
+    private Map<String,String> jndiProperties = null;
 
     /**
      * @return if header for message duplication will be added
@@ -72,8 +75,13 @@ public class TextMessageBuilder implements MessageBuilder {
             message.setText(new String(new char[this.size]));
 //            message.setStringProperty("text", new String(new char[this.size]));
         }
-
+        if (jndiProperties != null && jndiProperties.size() > 0)    {
+            message = (TextMessage) MessageUtils.setPropertiesToMessage(jndiProperties, message);
+        }
         return message;
     }
 
+    public void setJndiProperties(Map<String, String> jndiProperties) {
+        this.jndiProperties = jndiProperties;
+    }
 }

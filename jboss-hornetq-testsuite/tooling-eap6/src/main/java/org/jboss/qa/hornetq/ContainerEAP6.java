@@ -12,6 +12,7 @@ import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.jboss.shrinkwrap.api.Archive;
@@ -82,7 +83,12 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public Context getContext() throws NamingException {
-        return JMSTools.getEAP6Context(getHostname(), getJNDIPort());
+        return getContext(JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
+    }
+
+    @Override
+    public Context getContext(Constants.JNDI_CONTEXT_TYPE contextType) throws NamingException {
+        return JMSTools.getEAP6Context(getHostname(), getJNDIPort(), contextType);
     }
 
 

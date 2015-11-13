@@ -22,6 +22,7 @@ public class Constants {
     public static final String RESOURCE_ADAPTER_NAME_EAP6 = "hornetq-ra";
 
     public static final String INITIAL_CONTEXT_FACTORY_EAP6 = "org.jboss.naming.remote.client.InitialContextFactory";
+    public static final String CLIENT_EJB_CONTEXT_PROPERTY_EAP6 = "jboss.naming.client.ejb.context";
     public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP6 = "remote://";
 
     // EAP 7
@@ -38,6 +39,7 @@ public class Constants {
     public static final String IN_VM_CONNECTION_FACTORY_EAP7 = "InVmConnectionFactory";
 
     public static final String INITIAL_CONTEXT_FACTORY_EAP7 = "org.jboss.naming.remote.client.InitialContextFactory";
+    public static final String EJB_URL_PKG_PREFIX_EAP7 = "org.jboss.ejb.client.naming";
     public static final String PROVIDER_URL_PROTOCOL_PREFIX_EAP7 = "http-remoting://";
 
     // used in LodhNetworkFailureTestCase and MdbToDBAndRemoteInOutQueue
@@ -71,6 +73,11 @@ public class Constants {
     public enum QUALITY_OF_SERVICE
     {
         ONCE_AND_ONLY_ONCE, AT_MOST_ONCE, DUPLICATES_OK
+    }
+
+    public enum JNDI_CONTEXT_TYPE
+    {
+        NORMAL_CONTEXT, EJB_CONTEXT
     }
 
 }

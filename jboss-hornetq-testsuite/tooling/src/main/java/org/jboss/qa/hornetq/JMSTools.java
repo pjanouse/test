@@ -71,10 +71,13 @@ public final class JMSTools {
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
-    public static Context getEAP6Context(String hostName, int port) throws NamingException {
+    public static Context getEAP6Context(String hostName, int port, Constants.JNDI_CONTEXT_TYPE contextType) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
         env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, hostName, port));
+        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType))    {
+            env.put(Constants.CLIENT_EJB_CONTEXT_PROPERTY_EAP6, true);
+        }
         return new InitialContext(env);
     }
 
@@ -188,12 +191,19 @@ public final class JMSTools {
     }
 
     public static Context getEAP7Context(String hostname, int jndiPort) throws NamingException {
+        return getEAP7Context(hostname, jndiPort, Constants.JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
+    }
+
+    public static Context getEAP7Context(String hostname, int jndiPort, Constants.JNDI_CONTEXT_TYPE contextType) throws NamingException {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
         if (isIpv6Address(hostname)) {
             env.put(Context.PROVIDER_URL, String.format("%s[%s]:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
         } else {
             env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
+        }
+        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType))    {
+            env.put(Context.URL_PKG_PREFIXES, Constants.EJB_URL_PKG_PREFIX_EAP7);
         }
         return new InitialContext(env);
     }

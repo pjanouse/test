@@ -88,7 +88,12 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public Context getContext() throws NamingException {
-        return JMSTools.getEAP7Context(getHostname(), getJNDIPort());
+        return getContext(JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
+    }
+
+    @Override
+    public Context getContext(JNDI_CONTEXT_TYPE contextType) throws NamingException {
+        return JMSTools.getEAP7Context(getHostname(), getJNDIPort(), contextType);
     }
 
     @Override
