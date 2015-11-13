@@ -23,14 +23,14 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.4.CP.CR3</eap6.org.jboss.qa.hornetq.apps.clients.version>
+        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.5.CP.CR2</eap6.org.jboss.qa.hornetq.apps.clients.version>
         <eap6.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.client>
         <eap6.controller.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.controller.client>
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.DR13
-        </eap7.org.jboss.qa.hornetq.apps.clients.version>
+
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.DR13</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
@@ -334,17 +334,17 @@
 
         <!-- dependency for CLI libraris -->
         <!--<dependency>-->
-            <!--<groupId>org.jboss.as</groupId>-->
-            <!--<artifactId>jbossqe-eap-tests-management</artifactId>-->
-            <!--<version>1.0-SNAPSHOT</version>-->
-            <!--<type>jar</type>-->
-            <!--<scope>compile</scope>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>*</groupId>-->
-                    <!--<artifactId>*</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
+        <!--<groupId>org.jboss.as</groupId>-->
+        <!--<artifactId>jbossqe-eap-tests-management</artifactId>-->
+        <!--<version>1.0-SNAPSHOT</version>-->
+        <!--<type>jar</type>-->
+        <!--<scope>compile</scope>-->
+        <!--<exclusions>-->
+        <!--<exclusion>-->
+        <!--<groupId>*</groupId>-->
+        <!--<artifactId>*</artifactId>-->
+        <!--</exclusion>-->
+        <!--</exclusions>-->
         <!--</dependency>-->
 
 
@@ -387,6 +387,7 @@
             <artifactId>qpid-amqp-1-0-client</artifactId>
             <version>0.32</version>
         </dependency>
+
     </dependencies>
 
     <profiles>
@@ -718,7 +719,7 @@
             </dependencies>
 
         </profile>
-        
+
         <profile>
             <id>eap7x-ipv6</id>
             <activation>
@@ -933,7 +934,7 @@
                 </dependency>
             </dependencies>
         </profile>
-        
+
         <profile>
             <id>eap7x-common</id>
             <activation>
@@ -1038,7 +1039,7 @@
             </dependencies>
 
         </profile>
-        
+
         <profile>
             <id>eap7x-common-ipv6</id>
             <activation>
