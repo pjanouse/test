@@ -59,7 +59,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
     private final Archive mdb1 = getMdb1();
-    private final Archive lodhLikemdb = getLodhLikeMdb();
     private final Archive mdbWithOnlyInbound = getMdbWithOnlyInboundConnection();
     private final Archive ejbSenderStatefulBean = getEjbSenderStatefulBean();
     private final Archive ejbSenderStatelessBean = getEjbSenderStatelessBean();
@@ -91,19 +90,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
-    }
-
-    public Archive getLodhLikeMdb() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "lodhLikemdb1.jar");
-        mdbJar.addClasses(MdbWithRemoteOutQueueWithOutQueueLookups.class, MessageUtils.class);
-        if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
-            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
-        } else {
-            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.apache.activemq.artemis \n"), "MANIFEST.MF");
-        }
-        logger.info(mdbJar.toString(true));
-        return mdbJar;
-
     }
 
     public Archive getMdbWithOnlyInboundConnection() {
@@ -264,170 +250,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(1).stop();
         container(3).stop();
 
-    }
-
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    @RunAsClient
-    public void testRemoteJcaWithLoad() throws Exception {
-
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
-
-        Archive mdbToDeploy = lodhLikemdb;
-
-        // cluster A
-        container(1).start();
-
-        // cluster B
-        container(2).start();
-
-        // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 500);
-        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
-        for (String key : jndiProperties.keySet()) {
-            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
-        }
-        textMessageBuilder.setJndiProperties(jndiProperties);
-        producer1.setMessageBuilder(textMessageBuilder);
-        producer1.setCommitAfter(100);
-        producer1.start();
-        producer1.join();
-
-        // deploy mdb
-        container(2).deploy(mdbToDeploy);
-//        container(4).deploy(mdb1);
-
-        // bind mdb EAP server to cpu core
-        String cpuToBind = "0";
-        final long pid = ProcessIdUtils.getProcessId(container(2));
-        BindProcessToCpuUtils.bindProcessToCPU(String.valueOf(pid), cpuToBind);
-        ProcessIdUtils.setPriorityToProcess(String.valueOf(pid), 19);
-        logger.info("Container 2 was bound to cpu: " + cpuToBind);
-
-        Process highCpuLoader = HighCPUUtils.generateLoadInSeparateProcess();
-        int highCpuLoaderPid = ProcessIdUtils.getProcessId(highCpuLoader);
-        BindProcessToCpuUtils.bindProcessToCPU(String.valueOf(highCpuLoaderPid), cpuToBind);
-        logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-
-        // Wait until InQueue is empty
-        waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
-        logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-        logger.info("There are no prepared transactions on node-1.");
-
-        highCpuLoader.destroy();
-//        producer1.stopSending();
-//        producer1.join();
-
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
-        receiver1.start();
-        receiver1.join();
-
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-
-        container(2).undeploy(mdbToDeploy);
-        container(2).stop();
-        container(1).stop();
-    }
-
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    @RunAsClient
-    public void testRemoteJcaWithLoadInCluster() throws Exception {
-
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
-
-        Archive mdbToDeploy = lodhLikemdb;
-
-        // cluster A
-        container(1).start();
-        container(3).start();
-
-        // cluster B
-        container(2).start();
-        container(4).start();
-
-        // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 500);
-        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
-        for (String key : jndiProperties.keySet()) {
-            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
-        }
-        textMessageBuilder.setJndiProperties(jndiProperties);
-        producer1.setMessageBuilder(textMessageBuilder);
-        producer1.setCommitAfter(100);
-        producer1.start();
-        producer1.join();
-
-        // deploy mdb
-        container(2).deploy(mdbToDeploy);
-        container(4).deploy(mdbToDeploy);
-
-        // bind mdb EAP server to cpu core
-        String cpuToBind = "0";
-        final long pid = ProcessIdUtils.getProcessId(container(2));
-        BindProcessToCpuUtils.bindProcessToCPU(String.valueOf(pid), cpuToBind);
-        ProcessIdUtils.setPriorityToProcess(String.valueOf(pid), 19);
-        logger.info("Container 2 was bound to cpu: " + cpuToBind);
-
-        Process highCpuLoader = HighCPUUtils.generateLoadInSeparateProcess();
-        int highCpuLoaderPid = ProcessIdUtils.getProcessId(highCpuLoader);
-        BindProcessToCpuUtils.bindProcessToCPU(String.valueOf(highCpuLoaderPid), cpuToBind);
-        logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-
-        // Wait until some messages are consumes from InQueue
-        waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
-        logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
-        logger.info("There are no prepared transactions on node-1 and node-3.");
-        highCpuLoader.destroy();
-        producer1.stopSending();
-        producer1.join();
-
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
-        receiver1.start();
-        receiver1.join();
-
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
-
-        container(2).undeploy(mdbToDeploy);
-        container(4).undeploy(mdbToDeploy);
-        container(2).stop();
-        container(4).stop();
-        container(3).stop();
-        container(1).stop();
-    }
-
-    /**
-     * It will check whether messages are still consumed from this queue. It will return after timeout or there is 0 messages
-     * in queue.
-     * @param queueName
-     * @param timeout
-     * @param containers
-     */
-    private void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
-        long startTime = System.currentTimeMillis();
-        long lastCount = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        long newCount = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        while ((newCount = new JMSTools().countMessages(inQueueName, container(1), container(3))) > 0)  {
-            // check there is a change
-                // if yes then change lastCount and start time
-                // else check time out and if timed out then return
-            if (lastCount - newCount > 0)   {
-                lastCount = newCount;
-                startTime = System.currentTimeMillis();
-            } else if (System.currentTimeMillis() - startTime > timeout)    {
-                return;
-            }
-            Thread.sleep(5000);
-        }
     }
 
     /**

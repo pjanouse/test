@@ -11,7 +11,7 @@ public class BindProcessToCpuUtils {
 
     public static Process bindProcessToCPU(String pid, String cpuIds) throws Exception {
         if (!System.getProperty("os.name").contains("Linux")) {
-            throw new UnsupportedOperationException("Operation bind process to cpu is supported only on linux. " +
+            throw new UnsupportedOperationException("Command taskset which is used to bind process to cpu is supported only on linux. " +
                     "Curren operation system is: " + System.getProperty("os.name").contains("Linux"));
         }
         String cmd = "taskset -a -cp " + cpuIds + " " + pid;

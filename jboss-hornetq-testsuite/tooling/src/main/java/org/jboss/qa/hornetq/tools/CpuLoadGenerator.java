@@ -3,13 +3,19 @@ package org.jboss.qa.hornetq.tools;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Takes one argument - load duration. Specifies for how long to generate load. Default 15 min.
+ */
 public class CpuLoadGenerator implements Runnable {
 
     private static int numberOfThreads = 200;
 
-    private long loadDuration = 900000; //15min;
+    private static long loadDuration = 900000; //15min;
 
     public static void main(String[] args) throws Exception {
+        if (args.length > 0 && args[0] != null && !"".equals(args[0]))    {
+            loadDuration = Long.valueOf(args[0]);
+        }
         generateLoad();
     }
 
@@ -26,10 +32,6 @@ public class CpuLoadGenerator implements Runnable {
             t.join();
             System.out.println("Thread " + t.getName() + " finished.");
         }
-    }
-
-    public void setLoadDuration(long loadDuration) {
-        this.loadDuration = loadDuration;
     }
 
     public void run() {

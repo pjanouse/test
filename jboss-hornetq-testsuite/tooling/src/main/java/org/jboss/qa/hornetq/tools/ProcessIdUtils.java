@@ -62,7 +62,10 @@ public class ProcessIdUtils {
      * @param priority
      */
     public static void setPriorityToProcess(String pid, int priority) throws Exception {
-
+        if (!System.getProperty("os.name").contains("Linux")) {
+            throw new UnsupportedOperationException("Command renice which is used to lower priority of process is supported only on linux. " +
+                    "Current operation system is: " + System.getProperty("os.name").contains("Linux"));
+        }
         String cmd = "renice -n " + priority + " -p " + pid;
         log.info("Command: " + cmd);
         Runtime.getRuntime().exec(cmd);
