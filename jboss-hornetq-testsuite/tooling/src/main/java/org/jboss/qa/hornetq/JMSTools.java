@@ -343,4 +343,31 @@ public final class JMSTools {
         }
     }
 
+    /**
+     * It will check whether messages are still consumed from this queue. It will return after timeout or there is 0 messages
+     * in queue.
+     *
+     * @param queueName
+     * @param timeout
+     * @param containers
+     */
+    public void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
+        long startTime = System.currentTimeMillis();
+        long lastCount = new JMSTools().countMessages(queueName, containers);
+        long newCount = -1;
+        while ((newCount = new JMSTools().countMessages(queueName, containers)) > 0) {
+            // check there is a change
+            // if yes then change lastCount and start time
+            // else check time out and if timed out then return
+            if (lastCount - newCount > 0) {
+                lastCount = newCount;
+                startTime = System.currentTimeMillis();
+            } else if (System.currentTimeMillis() - startTime > timeout) {
+                return;
+            }
+            Thread.sleep(5000);
+        }
+    }
+
+
 }

@@ -11,9 +11,7 @@ import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDb;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
-import org.jboss.qa.hornetq.tools.DBAllocatorUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.JdbcUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -39,124 +37,10 @@ import java.util.concurrent.TimeoutException;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class Lodh5TestCase extends Lodh5TestBase {
+public class Lodh5LoadTestCase extends Lodh5TestBase {
 
-    private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);
+    private static final Logger logger = Logger.getLogger(Lodh5LoadTestCase.class);
 
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Sybase ASE 15.7 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    @Ignore
-    public void testSybase157() throws Exception {
-        testFail(SYBASE157);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to IBM DB2 Enterprise e10.5 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.4.0
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testDb2105() throws Exception {
-        testFail(DB2105);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.2 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testPosgre92() throws Exception {
-        testFail(POSTGRESQL92);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to PostgreSQL 9.3 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.4.0
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testPosgre93() throws Exception {
-        testFail(POSTGRESQL93);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
-     * Plus Advanced Server 9.2 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.1.0
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testPosgrePlus92() throws Exception {
-        testFail(POSTGRESQLPLUS92);
-    }
 
     /**
      * @tpTestDetails Start server with MDB which read messages from queue and insert them to Enterprise DB Postgres
@@ -178,30 +62,8 @@ public class Lodh5TestCase extends Lodh5TestBase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testPosgrePlus93() throws Exception {
+    public void testLoadPosgrePlus93() throws Exception {
         testFail(POSTGRESQLPLUS93);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Oracle 11g R1 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testOracle11gr1() throws Exception {
-        testFail(ORACLE11GR1);
     }
 
     /**
@@ -222,7 +84,7 @@ public class Lodh5TestCase extends Lodh5TestBase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testOracle11gr2() throws Exception {
+    public void testLoadOracle11gr2() throws Exception {
         testFail(ORACLE11GR2);
     }
 
@@ -245,104 +107,13 @@ public class Lodh5TestCase extends Lodh5TestBase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testOracle12c() throws Exception {
+    public void testLoadOracle12c() throws Exception {
         testFail(ORACLE12C);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2014 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.4.0
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testMssql2014() throws Exception {
-        testFail(MSSQL2014);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to Microsoft SQL Server 2012 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.0.1
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testMssql2012() throws Exception {
-        testFail(MSSQL2012);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.5 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testMysql55() throws Exception {
-        testFail(MYSQL55);
-    }
-
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and insert them to MySQL 5.7 database.
-     * Kill server when the MDB is processing messages.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message inserts a new record
-     * to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the number of sent messages
-     * @tpSince 6.4.0
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testMysql57() throws Exception {
-        testFail(MYSQL57);
     }
 
     public void testFail(String databaseName) throws Exception {
 
-        int numberOfMessages = 2000;
+        int numberOfMessages = 100;
 
         prepareServerEAP6(container(1), databaseName);
 
@@ -369,14 +140,22 @@ public class Lodh5TestCase extends Lodh5TestBase {
             Thread.sleep(5000);
         }
 
-        for (int i = 0; i < 1; i++) {
+        Process highCpuLoader = null;
+        try {
+            // bind mdb EAP server to cpu core
+            String cpuToBind = "0";
+            highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
+            logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
-            container(1).kill();
-            container(1).getPrintJournal().printJournal(databaseName + "journal_content_after_kill1.txt");
-            container(1).start();
-            container(2).getPrintJournal().printJournal(databaseName + "journal_content_after_restart2.txt");
-            Thread.sleep(10000);
-
+            // Wait until some messages are consumes from InQueue
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueHornetQName, 300000, container(1));
+            logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+            logger.info("There are no prepared transactions on node-1 and node-3.");
+        } finally {
+            if (highCpuLoader != null) {
+                highCpuLoader.destroy();
+            }
         }
 
         startTime = System.currentTimeMillis();

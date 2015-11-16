@@ -138,7 +138,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // if messages are consumed from InQueue then we're ok, if no message received for 5 min time out then continue
-            waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
             logger.info("There are no prepared transactions on node-1.");
@@ -228,7 +228,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumes from InQueue
-            waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
@@ -253,32 +253,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).stop();
         container(3).stop();
         container(1).stop();
-    }
-
-    /**
-     * It will check whether messages are still consumed from this queue. It will return after timeout or there is 0 messages
-     * in queue.
-     *
-     * @param queueName
-     * @param timeout
-     * @param containers
-     */
-    private void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
-        long startTime = System.currentTimeMillis();
-        long lastCount = new JMSTools().countMessages(inQueueName, containers);
-        long newCount = -1;
-        while ((newCount = new JMSTools().countMessages(inQueueName, containers)) > 0) {
-            // check there is a change
-            // if yes then change lastCount and start time
-            // else check time out and if timed out then return
-            if (lastCount - newCount > 0) {
-                lastCount = newCount;
-                startTime = System.currentTimeMillis();
-            } else if (System.currentTimeMillis() - startTime > timeout) {
-                return;
-            }
-            Thread.sleep(5000);
-        }
     }
 
     /**
