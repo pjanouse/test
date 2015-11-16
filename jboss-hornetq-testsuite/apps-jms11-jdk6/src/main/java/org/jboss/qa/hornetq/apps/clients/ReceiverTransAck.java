@@ -499,7 +499,7 @@ public class ReceiverTransAck extends Client {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ReceiverTransAck receiver = new ReceiverTransAck("127.0.0.1", 4447, "jms/queue/testQueue0", 15000, 1000, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck("127.0.0.1", 4447, "jms/queue/OutQueue", 5000, 1000, 10);
         receiver.setCommitAfter(4);
 
         receiver.start();

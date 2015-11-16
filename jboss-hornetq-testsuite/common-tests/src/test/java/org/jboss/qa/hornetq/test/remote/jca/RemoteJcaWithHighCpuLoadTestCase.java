@@ -265,9 +265,9 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
      */
     private void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
         long startTime = System.currentTimeMillis();
-        long lastCount = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        long newCount = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        while ((newCount = new JMSTools().countMessages(inQueueName, container(1), container(3))) > 0) {
+        long lastCount = new JMSTools().countMessages(inQueueName, containers);
+        long newCount = -1;
+        while ((newCount = new JMSTools().countMessages(inQueueName, containers)) > 0) {
             // check there is a change
             // if yes then change lastCount and start time
             // else check time out and if timed out then return
