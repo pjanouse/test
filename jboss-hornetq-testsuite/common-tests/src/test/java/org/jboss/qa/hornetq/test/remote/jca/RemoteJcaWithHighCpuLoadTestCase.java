@@ -11,11 +11,12 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.HighCPUUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -69,7 +70,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
     public Archive getMdb1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
-        mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithoutDelays.class);
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -114,7 +115,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(2).start();
 
         // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 500);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
         Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
         for (String key : jndiProperties.keySet()) {
@@ -123,6 +124,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         textMessageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(textMessageBuilder);
         producer1.setCommitAfter(100);
+        producer1.setTimeout(0);
         producer1.start();
         producer1.join();
 
@@ -204,7 +206,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).start();
 
         // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 500);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
         Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
         for (String key : jndiProperties.keySet()) {
@@ -213,6 +215,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         textMessageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(textMessageBuilder);
         producer1.setCommitAfter(100);
+        producer1.setTimeout(0);
         producer1.start();
         producer1.join();
 
@@ -236,6 +239,12 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         } finally {
             if (highCpuLoader != null) {
                 highCpuLoader.destroy();
+                try {
+                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader));
+                } catch (Exception ex)  {
+                    // we just ignore it as it's not fatal not to kill it
+                    logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
+                }
             }
         }
 

@@ -51,7 +51,7 @@ public class ProcessIdUtils {
             } catch (Throwable e) {
             }
         } else {
-            throw new IllegalStateException("This is non unis process. Implement this method for other OS.");
+            throw new IllegalStateException("This is non unix process. Implement this method for other OS.");
         }
         return pid;
     }
@@ -101,4 +101,20 @@ public class ProcessIdUtils {
         }
     }
 
+
+    public static void killProcess(int pid) {
+        log.info("Killing process: " + pid);
+        try {
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
+                Runtime.getRuntime().exec("taskkill /f /pid " + pid);
+            } else { // on all other platforms use kill -9
+                Runtime.getRuntime().exec("kill -9 " + pid);
+            }
+        } catch (Exception ex) {
+            log.warn("Process  " + pid + " could not be killed.");
+            log.error(ex);
+        } finally {
+            log.info("Process: " + pid + " -- KILLED");
+        }
+    }
 }

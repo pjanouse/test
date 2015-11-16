@@ -1,24 +1,17 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.impl.MessageUtils;
+        import org.apache.log4j.Level;
+        import org.apache.log4j.Logger;
 
-import javax.annotation.Resource;
-import javax.ejb.*;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
+        import javax.annotation.Resource;
+        import javax.ejb.*;
+        import javax.jms.*;
+        import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A MdbWithRemoteOutQueueWithOutQueueLookups used for lodh tests. Used in RemoteJcaTestCase.
- * <p>
- * This MDB expects JNDI params for OutQueue in every message:
- * <p>
- * This mdb reads messages from outQueue "InQueue" and sends to outQueue "OutQueue".
+ * A MdbWithRemoteOutQueueToContaninerWithoutDelays used for lodh tests. Used in RemoteJcaTestCase.
+ * <p/>
+ * This mdb reads messages from queue "InQueue" and sends to queue "OutQueue".
  *
  * @author <a href="pslavice@jboss.com">Pavel Slavicek</a>
  * @author <a href="mnovak@redhat.com">Miroslav Novak</a>
@@ -30,13 +23,12 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener {
+public class    MdbWithRemoteOutQueueToContaninerWithoutDelays implements MessageListener {
 
-    public static AtomicInteger numberOfProcessedMessages = new AtomicInteger();
     private static final long serialVersionUID = 2770941392406343837L;
-    private static final Logger log = Logger.getLogger(MdbWithRemoteOutQueueWithOutQueueLookups.class.getName());
-
-    private String outQueueJndiName = "jms/queue/OutQueue";
+    private static final Logger log = Logger.getLogger(MdbWithRemoteOutQueueToContaninerWithoutDelays.class.getName());
+    private Queue queue = null;
+    public static AtomicInteger numberOfProcessedMessages= new AtomicInteger();
 
     @Resource(mappedName = "java:/JmsXA")
     private ConnectionFactory cf;
@@ -68,13 +60,14 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // this lookup is performance problem, it does new connection per message
-            Queue outQueue = makeLookup(outQueueJndiName, message);
+            if (queue == null)  {
+                queue = session.createQueue("OutQueue");
+            }
 
             con.start();
 
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
-            MessageProducer sender = session.createProducer(outQueue);
+            MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             newMessage.setStringProperty("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
@@ -85,8 +78,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
             log.debug("End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
-            if (numberOfProcessedMessages.incrementAndGet() % 100 == 0)
-                log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            if (numberOfProcessedMessages.incrementAndGet() % 100 == 0) log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
             log.error(t.getMessage(), t);
@@ -101,23 +93,4 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
             }
         }
     }
-
-    private Queue makeLookup(String outQueueJndiName, Message inMessage) throws Exception {
-
-        Map<String, String> messageProperties = MessageUtils.getPropertiesFromMessage(inMessage);
-
-        Properties props = new Properties();
-        // there are hard ways to configure different jndi properites in MDB for EAP 6/7, this appears to be the the best way
-        props.put(Context.PROVIDER_URL, messageProperties.get(Context.PROVIDER_URL));
-        props.put(Context.INITIAL_CONTEXT_FACTORY, messageProperties.get(Context.INITIAL_CONTEXT_FACTORY));
-        InitialContext remoteContext = new InitialContext(props);
-        Queue queue = null;
-        try {
-            queue = (Queue) remoteContext.lookup(outQueueJndiName);
-        } finally {
-            remoteContext.close();
-        }
-        return queue;
-    }
-
 }
