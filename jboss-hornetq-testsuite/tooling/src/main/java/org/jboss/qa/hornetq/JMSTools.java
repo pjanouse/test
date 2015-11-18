@@ -381,8 +381,9 @@ public final class JMSTools {
         Map<String, String> jndiProperties = new HashMap<String, String>();
         jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
         StringBuilder providerUrl = new StringBuilder();
-        providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6);
+
         for (Container container : containers) {
+            providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6);
             providerUrl.append(container.getHostname());
             providerUrl.append(":");
             providerUrl.append(container.getJNDIPort());
@@ -397,8 +398,9 @@ public final class JMSTools {
         Map<String, String> jndiProperties = new HashMap<String, String>();
         jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
         StringBuilder providerUrl = new StringBuilder();
-        providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7);
+
         for (Container container : containers) {
+            providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7);
             providerUrl.append(container.getHostname());
             providerUrl.append(":");
             providerUrl.append(container.getJNDIPort());
