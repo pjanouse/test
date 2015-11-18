@@ -148,14 +148,14 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             // if messages are consumed from InQueue then we're ok, if no message received for 5 min time out then continue
             new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-            logger.info("There are no prepared transactions on node-1.");
 
         } finally {
             if (highCpuLoader != null) {
                 highCpuLoader.destroy();
             }
         }
+
+        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -166,6 +166,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);
         container(2).stop();
@@ -243,9 +244,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             // Wait until some messages are consumes from InQueue
             new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
-            logger.info("There are no prepared transactions on node-1 and node-3.");
         } finally {
             if (highCpuLoader != null) {
                 highCpuLoader.destroy();
@@ -258,6 +256,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             }
         }
 
+        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         producer1.setMessageVerifier(messageVerifier);
@@ -267,6 +267,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);
         container(4).undeploy(mdbToDeploy);
