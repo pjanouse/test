@@ -122,7 +122,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -218,7 +218,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = (Map<String, String>) container(1).getContext().getEnvironment();
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }

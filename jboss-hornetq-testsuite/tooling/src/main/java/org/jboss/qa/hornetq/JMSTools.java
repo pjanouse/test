@@ -18,11 +18,7 @@ import javax.naming.NamingException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Utilities for JMS org.jboss.qa.hornetq.apps.clients
@@ -34,9 +30,9 @@ public final class JMSTools {
     /**
      * Cleanups resources
      *
-     * @param context initial context
+     * @param context    initial context
      * @param connection connection to JMS server
-     * @param session JMS session
+     * @param session    JMS session
      */
     public static void cleanupResources(Context context, Connection connection, Session session) {
         if (session != null) {
@@ -67,7 +63,7 @@ public final class JMSTools {
      * Returns EAP 6 context
      *
      * @param hostName host name
-     * @param port target port with the service
+     * @param port     target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
@@ -75,7 +71,7 @@ public final class JMSTools {
         final Properties env = new Properties();
         env.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
         env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, hostName, port));
-        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType))    {
+        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType)) {
             env.put(Constants.CLIENT_EJB_CONTEXT_PROPERTY_EAP6, true);
         }
         return new InitialContext(env);
@@ -85,10 +81,10 @@ public final class JMSTools {
      * Waits until all containers in the given queue contains the given number
      * of messages
      *
-     * @param queueName queue name
+     * @param queueName        queue name
      * @param numberOfMessages number of messages
-     * @param timeout time out
-     * @param containers container list
+     * @param timeout          time out
+     * @param containers       container list
      * @return returns true if there is numberOfMessages in queue, when timeout
      * expires it returns false
      * @throws Exception
@@ -117,7 +113,7 @@ public final class JMSTools {
     /**
      * Returns total number of messages in queue on given nodes
      *
-     * @param queueName queue name
+     * @param queueName  queue name
      * @param containers container list
      * @return total number of messages in queue on given nodes
      */
@@ -138,7 +134,7 @@ public final class JMSTools {
      * Returns EAP 5 context
      *
      * @param hostName host name
-     * @param port target port with the service
+     * @param port     target port with the service
      * @return instance of the context
      * @throws NamingException if something goes wrong
      */
@@ -154,7 +150,7 @@ public final class JMSTools {
      * Determine if the given string is a valid IPv4 or IPv6 address.
      *
      * @param ipAddress A string that is to be examined to verify whether or not
-     * it could be a valid IP address.
+     *                  it could be a valid IP address.
      * @return <code>true</code> if the string is a value that is a valid IP
      * address, <code>false</code> otherwise.
      */
@@ -203,7 +199,7 @@ public final class JMSTools {
         } else {
             env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
         }
-        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType))    {
+        if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType)) {
             env.put(Context.URL_PKG_PREFIXES, Constants.EJB_URL_PKG_PREFIX_EAP7);
         }
         return new InitialContext(env);
@@ -262,8 +258,8 @@ public final class JMSTools {
      * HQ started on the given port. For example after failover/failback.
      *
      * @param ipAddress ipAddress
-     * @param port port
-     * @param timeout timeout
+     * @param port      port
+     * @param timeout   timeout
      */
     public static boolean waitHornetQToAlive(String ipAddress, int port, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();
@@ -282,9 +278,9 @@ public final class JMSTools {
      * numberOfMessages, if timeout expires then Assert.fail
      * <p/>
      *
-     * @param receivers receivers
+     * @param receivers        receivers
      * @param numberOfMessages numberOfMessages
-     * @param timeout timeout
+     * @param timeout          timeout
      */
     public static void waitForAtLeastOneReceiverToConsumeNumberOfMessages(List<Client> receivers, int numberOfMessages, long timeout) {
         long startTimeInMillis = System.currentTimeMillis();
@@ -316,16 +312,16 @@ public final class JMSTools {
      * Returns true if the given number of messages is in queue in the given
      * timeout. Otherwise it returns false.
      *
-     * @param container container
-     * @param queueCoreName queue name
+     * @param container                container
+     * @param queueCoreName            queue name
      * @param expectedNumberOfMessages number of messages
-     * @param timeout timeout
+     * @param timeout                  timeout
      * @return Returns true if the given number of messages is in queue in the
      * given timeout. Otherwise it returns false.
      * @throws Exception
      */
     public boolean waitForNumberOfMessagesInQueue(org.jboss.qa.hornetq.Container container, String queueCoreName,
-            int expectedNumberOfMessages, long timeout) throws Exception {
+                                                  int expectedNumberOfMessages, long timeout) throws Exception {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
@@ -373,5 +369,43 @@ public final class JMSTools {
         }
     }
 
+    public Map<String, String> getJndiPropertiesToContainers(Container... containers) throws Exception {
+        if (containers[0].getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            return getJndiPropertiesToContainersEAP6(containers);
+        } else {
+            return getJndiPropertiesToContainersEAP7(containers);
+        }
+    }
 
+    public Map<String, String> getJndiPropertiesToContainersEAP6(Container... containers) throws Exception {
+        Map<String, String> jndiProperties = new HashMap<String, String>();
+        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
+        StringBuilder providerUrl = new StringBuilder();
+        providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6);
+        for (Container container : containers) {
+            providerUrl.append(container.getHostname());
+            providerUrl.append(":");
+            providerUrl.append(container.getJNDIPort());
+            providerUrl.append(",");
+        }
+        providerUrl.deleteCharAt(providerUrl.lastIndexOf(",")); // remove last comma
+        jndiProperties.put(Context.PROVIDER_URL, providerUrl.toString());
+        return jndiProperties;
+    }
+
+    public Map<String, String> getJndiPropertiesToContainersEAP7(Container... containers) throws Exception {
+        Map<String, String> jndiProperties = new HashMap<String, String>();
+        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+        StringBuilder providerUrl = new StringBuilder();
+        providerUrl.append(Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7);
+        for (Container container : containers) {
+            providerUrl.append(container.getHostname());
+            providerUrl.append(":");
+            providerUrl.append(container.getJNDIPort());
+            providerUrl.append(",");
+        }
+        providerUrl.deleteCharAt(providerUrl.lastIndexOf(",")); // remove last comma
+        jndiProperties.put(Context.PROVIDER_URL, providerUrl.toString());
+        return jndiProperties;
+    }
 }
