@@ -7,8 +7,11 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
@@ -64,6 +67,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
+
+    private FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -125,6 +130,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(textMessageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
+        producer1.setMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -152,8 +158,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         }
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
+
+        messageVerifier.verifyMessages();
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
@@ -216,6 +225,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(textMessageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
+        producer1.setMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -250,9 +260,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        producer1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
+        messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
