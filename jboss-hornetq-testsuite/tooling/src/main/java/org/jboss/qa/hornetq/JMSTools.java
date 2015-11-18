@@ -130,6 +130,7 @@ public final class JMSTools {
             sum += count;
             jmsOperations.close();
         }
+        log.info("Sum of messages on nodes is: " + sum);
         return sum;
     }
 
@@ -359,10 +360,13 @@ public final class JMSTools {
             // check there is a change
             // if yes then change lastCount and start time
             // else check time out and if timed out then return
-            if (lastCount - newCount > 0) {
+            log.info("last count " + lastCount + ", new count: " + newCount);
+            if (lastCount > newCount) {
                 lastCount = newCount;
                 startTime = System.currentTimeMillis();
+                log.info("last count is set to " + lastCount + ", startTime is set to: " + startTime);
             } else if (System.currentTimeMillis() - startTime > timeout) {
+                log.info("Time out expired -return. last count is set to " + lastCount + ", new count: " + newCount + ", startTime is set to: " + startTime);
                 return;
             }
             Thread.sleep(5000);
