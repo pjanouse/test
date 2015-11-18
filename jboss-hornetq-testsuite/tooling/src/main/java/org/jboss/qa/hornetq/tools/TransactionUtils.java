@@ -42,7 +42,7 @@ public class TransactionUtils {
         jmsOperations.close();
 
         if (System.currentTimeMillis() - startTime > timeout) {
-            log.error("There are prepared transactions in HornetQ/Artemis journal on node: " + container + " after timeout: " + timeout);
+            log.error("There are prepared transactions in HornetQ/Artemis journal on node: " + container.getName() + " after timeout: " + timeout);
             if (failTestIfUnfinishedTransactions) {
                 Assert.fail("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction);
             } else {

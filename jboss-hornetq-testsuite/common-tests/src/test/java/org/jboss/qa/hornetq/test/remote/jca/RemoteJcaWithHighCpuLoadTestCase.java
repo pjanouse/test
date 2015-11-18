@@ -155,8 +155,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             }
         }
 
-        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
 
+        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
@@ -216,7 +216,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).start();
 
         // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -260,7 +260,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
-        producer1.setMessageVerifier(messageVerifier);
+        receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
