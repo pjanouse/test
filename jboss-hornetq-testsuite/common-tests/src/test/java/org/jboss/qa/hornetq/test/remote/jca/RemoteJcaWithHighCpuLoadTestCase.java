@@ -68,7 +68,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    private FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+    private MdbMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";
@@ -267,6 +267,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.join();
 
         messageVerifier.verifyMessages();
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
@@ -352,6 +353,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.join();
 
         messageVerifier.verifyMessages();
+        Assert.assertFalse("There are duplicated messages. Number of received messages is: " + receiver1.getListOfReceivedMessages().size(),
+                producer1.getListOfSentMessages().size() < receiver1.getListOfReceivedMessages().size());
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", noPreparedTransactions);
