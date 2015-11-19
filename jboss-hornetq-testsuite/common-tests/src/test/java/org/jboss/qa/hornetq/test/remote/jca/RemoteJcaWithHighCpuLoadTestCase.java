@@ -321,7 +321,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         Process highCpuLoader = null;
         try {
             // bind mdb EAP server to cpu core
-            String cpuToBind = "0";
+            String cpuToBind = "0,1";
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
@@ -351,6 +351,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
+        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
         Assert.assertFalse("There are duplicated messages. Number of received messages is: " + receiver1.getListOfReceivedMessages().size(),
