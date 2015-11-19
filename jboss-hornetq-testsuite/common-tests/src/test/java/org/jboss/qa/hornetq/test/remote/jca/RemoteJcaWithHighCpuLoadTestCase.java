@@ -57,7 +57,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
     private String messagingGroupSocketBindingName = "messaging-group";
 
-    // queue to send messages in 
+    // queue to send messages in
+    static String dlqQueueName = "DLQ";
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
 
@@ -265,9 +266,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
+        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
-
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
@@ -470,7 +473,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", -1, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 3);
 //        Map<String, String> map = new HashMap<String, String>();
 //        map.put("use-nio", "true");
         jmsAdminOperations.createRemoteAcceptor("netty", "messaging", null);
