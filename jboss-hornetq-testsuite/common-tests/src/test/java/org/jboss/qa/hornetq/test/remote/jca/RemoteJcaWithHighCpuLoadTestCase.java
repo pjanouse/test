@@ -122,6 +122,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
+        textMessageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -222,6 +223,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
+        textMessageBuilder.setAddDuplicatedHeader(false);
         textMessageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(textMessageBuilder);
         producer1.setCommitAfter(100);
@@ -275,6 +277,104 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).stop();
         container(3).stop();
         container(1).stop();
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testRemoteJcaWithLoadInClusterWithRestart() throws Exception {
+
+        Archive mdbToDeploy = lodhLikemdb;
+
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+
+        // cluster A
+        container(1).start();
+        container(3).start();
+
+        // cluster B
+        container(2).start();
+        container(4).start();
+
+        // send messages to queue
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
+        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        textMessageBuilder.setAddDuplicatedHeader(false);
+        textMessageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(textMessageBuilder);
+        producer1.setCommitAfter(100);
+        producer1.setTimeout(0);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.start();
+        producer1.join();
+
+        // deploy mdb
+        container(2).deploy(mdbToDeploy);
+        container(4).deploy(mdbToDeploy);
+
+        Process highCpuLoader = null;
+        try {
+            // bind mdb EAP server to cpu core
+            String cpuToBind = "0";
+            highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
+            logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
+
+            // Wait until some messages are consumes from InQueue
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+            logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
+        } finally {
+            if (highCpuLoader != null) {
+                highCpuLoader.destroy();
+                try {
+                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader));
+                } catch (Exception ex)  {
+                    // we just ignore it as it's not fatal not to kill it
+                    logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
+                }
+            }
+        }
+
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), false);
+
+
+        restartServers();
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", noPreparedTransactions);
+
+        container(2).undeploy(mdbToDeploy);
+        container(4).undeploy(mdbToDeploy);
+        container(2).stop();
+        container(4).stop();
+        container(3).stop();
+        container(1).stop();
+    }
+
+    private void restartServers()   {
+
+        container(2).stop();
+        container(4).stop();
+        container(3).stop();
+        container(1).stop();
+        container(3).start();
+        container(1).start();
+        container(2).start();
+        container(4).start();
+
     }
 
     /**
