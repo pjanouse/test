@@ -474,6 +474,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", -1, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 3);
+        jmsAdminOperations.setTransactionTimeout(60000);
 //        Map<String, String> map = new HashMap<String, String>();
 //        map.put("use-nio", "true");
         jmsAdminOperations.createRemoteAcceptor("netty", "messaging", null);
