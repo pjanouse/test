@@ -143,7 +143,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         Process highCpuLoader = null;
         try {
             // bind mdb EAP server to cpu core
-            String cpuToBind = "0";
+            String cpuToBind = "0,1";
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
@@ -240,7 +240,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         Process highCpuLoader = null;
         try {
             // bind mdb EAP server to cpu core
-            String cpuToBind = "0";
+            String cpuToBind = "0,1";
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
