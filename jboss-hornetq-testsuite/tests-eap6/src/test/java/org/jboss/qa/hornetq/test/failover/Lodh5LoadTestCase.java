@@ -104,7 +104,7 @@ public class Lodh5LoadTestCase extends Lodh5TestBase {
 
     public void testFail(String databaseName) throws Exception {
 
-        int numberOfMessages = 15000;
+        int numberOfMessages = 5000;
 
         prepareServerEAP6(container(1), databaseName);
 
