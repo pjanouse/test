@@ -357,7 +357,7 @@ public final class JMSTools {
             // if yes then change lastCount and start time
             // else check time out and if timed out then return
             log.info("last count " + lastCount + ", new count: " + newCount);
-            if (lastCount > newCount) {
+            if (lastCount - newCount != 0) {
                 lastCount = newCount;
                 startTime = System.currentTimeMillis();
                 log.info("last count is set to " + lastCount + ", startTime is set to: " + startTime);
