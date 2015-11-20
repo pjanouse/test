@@ -364,12 +364,17 @@ public class Lodh1TestCase extends HornetQTestCase {
         container(1).deploy(mdbNotCommitArchive);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 30000, 1, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 10000, 1, 10);
         receiver1.start();
         receiver1.join();
-
-
         Assert.assertTrue("No message should be received.", receiver1.getCount() == 0);
+
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), true);
+        // now other instance of MDB will process the message
+        ReceiverClientAck receiver2 = new ReceiverClientAck(container(1), outQueue, 10000, 10, 10);
+        receiver2.start();
+        receiver2.join();
+        Assert.assertTrue("No message should be received.", receiver2.getCount() <= 1);
 
         container(1).undeploy(mdbNotCommitArchive);
         container(1).stop();
