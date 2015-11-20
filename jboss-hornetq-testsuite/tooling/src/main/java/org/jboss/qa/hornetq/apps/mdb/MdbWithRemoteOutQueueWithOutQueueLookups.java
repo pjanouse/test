@@ -68,6 +68,12 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
+            for (int i = 0; i < (5 + 5 * Math.random()); i++) {
+                try {
+                    Thread.sleep((int) (10 + 10 * Math.random()));
+                } catch (InterruptedException ex) {
+                }
+            }
             Queue outQueue = makeLookup(outQueueJndiName, message);
 
             con.start();
