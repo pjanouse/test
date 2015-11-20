@@ -236,13 +236,10 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).deploy(mdbToDeploy);
 
         Process highCpuLoader1 = null;
-        Process highCpuLoader2 = null;
         try {
             // bind mdb EAP server to cpu core
             String cpuToBind = "0,1";
             highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
-            logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-            highCpuLoader2 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(4), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumes from InQueue
@@ -253,16 +250,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
                 highCpuLoader1.destroy();
                 try {
                     ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader1));
-                } catch (Exception ex)  {
-                    // we just ignore it as it's not fatal not to kill it
-                    logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
-                }
-            }
-            if (highCpuLoader2 != null) {
-                highCpuLoader2.destroy();
-                try {
-                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader2));
-                } catch (Exception ex)  {
+                } catch (Exception ex) {
                     // we just ignore it as it's not fatal not to kill it
                     logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
                 }
@@ -346,15 +334,15 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
                 highCpuLoader.destroy();
                 try {
                     ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader));
-                } catch (Exception ex)  {
+                } catch (Exception ex) {
                     // we just ignore it as it's not fatal not to kill it
                     logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
                 }
             }
         }
 
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), false);
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
 
 
         restartServers();
@@ -382,7 +370,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
-    private void restartServers()   {
+    private void restartServers() {
 
         container(2).stop();
         container(4).stop();
