@@ -16,6 +16,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -53,6 +54,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000;
 
     private final Archive mdb1Archive = createLodh1Deployment();
+    private final Archive mdbNotCommitArchive = createMdbNoCommitDeployment();
 
     // queue to send messages in
     static String inQueueName = "InQueue";
@@ -125,6 +127,28 @@ public class Lodh1TestCase extends HornetQTestCase {
         return mdbJar;
 
     }
+
+    public static JavaArchive createMdbNoCommitDeployment() {
+
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-not-commit");
+
+        mdbJar.addClass(LocalMdbFromQueueNoCommit.class);
+
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
+
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml("mdb-not-commit")), "jboss-ejb3.xml");
+
+        logger.info(mdbJar.toString(true));
+        // Uncomment when you want to see what's in the servlet
+        // File target = new File("/tmp/mdb.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
+
+    }
+
 
     public static JavaArchive createLodhDeploymentForLimitedPoolSize(int id) {
 
@@ -303,6 +327,51 @@ public class Lodh1TestCase extends HornetQTestCase {
                 + ".", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).undeploy(mdb1Archive);
+        container(1).stop();
+    }
+
+    /**
+     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send message to InQueue. Deploy single MDB
+     *                which reads messages from InQueue and sends them to OutQueue in XA transaction but sleeps after that
+     *                so commit does not happen. Message should be possible to read from OutQueue.
+     * @tpInfo For more information see related test case described in the beginning of this section.
+     * @tpProcedure <ul>
+     *              <li>start first server with deployed InQueue and OutQueue</li>
+     *              <li>start producer which send 1 message to InQueue</li>
+     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue but does not commit</li>
+     *              <li>try receive messages from OutQueue</li>
+     *              </ul>
+     * @tpPassCrit receiver does not get any message
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testNotCommitedMessage() throws Exception {
+
+        // we use only the first server
+        prepareServer(container(1));
+
+        container(1).start();
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, 1);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        logger.info("Start producer.");
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        container(1).deploy(mdbNotCommitArchive);
+
+        logger.info("Start receiver.");
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 30000, 1, 10);
+        receiver1.start();
+        receiver1.join();
+
+
+        Assert.assertTrue("No message should be received.", receiver1.getCount() == 0);
+
+        container(1).undeploy(mdbNotCommitArchive);
         container(1).stop();
     }
 
