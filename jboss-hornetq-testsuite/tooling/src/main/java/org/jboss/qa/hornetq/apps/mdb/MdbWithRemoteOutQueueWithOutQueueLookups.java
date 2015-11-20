@@ -9,6 +9,7 @@ import javax.ejb.*;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,12 +70,6 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            for (int i = 0; i < (5 + 5 * Math.random()); i++) {
-                try {
-                    Thread.sleep((int) (10 + 10 * Math.random()));
-                } catch (InterruptedException ex) {
-                }
-            }
             Queue outQueue = makeLookup(outQueueJndiName, message);
 
             con.start();
@@ -85,6 +80,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             newMessage.setStringProperty("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
             sender.send(newMessage);
+            con.close();
 
             messageInfo = messageInfo + ". Sending new message with inMessageId: " + newMessage.getStringProperty("inMessageId")
                     + " and messageId: " + newMessage.getJMSMessageID();
@@ -94,9 +90,12 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
             if (numberOfProcessedMessages.incrementAndGet() % 100 == 0)
                 log.info(messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
-        } catch (Exception t) {
+        } catch (JMSException t) {
             log.error(t.getMessage(), t);
             throw new RuntimeException(t);
+        } catch (NamingException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             if (con != null) {
                 try {
@@ -108,7 +107,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
         }
     }
 
-    private Queue makeLookup(String outQueueJndiName, Message inMessage) throws Exception {
+    private Queue makeLookup(String outQueueJndiName, Message inMessage) throws JMSException, NamingException {
 
         Map<String, String> messageProperties = MessageUtils.getPropertiesFromMessage(inMessage);
 

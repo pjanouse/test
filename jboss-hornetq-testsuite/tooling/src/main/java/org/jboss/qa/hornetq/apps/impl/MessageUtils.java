@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.apps.impl;
 
+import javax.jms.JMSException;
 import javax.jms.Message;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class MessageUtils {
         return properKey.replaceAll(dotReplacement, ".");
     }
 
-    public static Map<String, String> getPropertiesFromMessage(Message message) throws Exception {
+    public static Map<String, String> getPropertiesFromMessage(Message message) throws JMSException {
 
         Map<String, String> properties = new HashMap<String, String>();
         Enumeration<String> messageProperties = message.getPropertyNames();

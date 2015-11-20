@@ -229,16 +229,17 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
         producer1.start();
-        producer1.join();
 
         // deploy mdb
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
+        producer1.join();
+
         Process highCpuLoader1 = null;
         try {
             // bind mdb EAP server to cpu core
-            String cpuToBind = "0,1";
+            String cpuToBind = "0";
             highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
@@ -262,6 +263,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
@@ -471,7 +473,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", -1, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 3);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
         jmsAdminOperations.setTransactionTimeout(60000);
 //        Map<String, String> map = new HashMap<String, String>();
 //        map.put("use-nio", "true");
