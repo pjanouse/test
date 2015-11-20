@@ -48,7 +48,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
     public void onMessage(Message message) {
 
         Connection con = null;
-        Session session = null;
+        Session session;
 
         try {
 
@@ -68,7 +68,6 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
             session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // this lookup is performance problem, it does new connection per message
             Queue outQueue = makeLookup(outQueueJndiName, message);
 
             con.start();
@@ -90,7 +89,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
 
         } catch (Exception t) {
             log.error(t.getMessage(), t);
-            this.context.setRollbackOnly();
+            throw new RuntimeException(t);
         } finally {
             if (con != null) {
                 try {

@@ -7,8 +7,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
@@ -237,21 +235,33 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        Process highCpuLoader = null;
+        Process highCpuLoader1 = null;
+        Process highCpuLoader2 = null;
         try {
             // bind mdb EAP server to cpu core
             String cpuToBind = "0,1";
-            highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
+            highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
+            logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
+            highCpuLoader2 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(4), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumes from InQueue
             new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
         } finally {
-            if (highCpuLoader != null) {
-                highCpuLoader.destroy();
+            if (highCpuLoader1 != null) {
+                highCpuLoader1.destroy();
                 try {
-                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader));
+                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader1));
+                } catch (Exception ex)  {
+                    // we just ignore it as it's not fatal not to kill it
+                    logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
+                }
+            }
+            if (highCpuLoader2 != null) {
+                highCpuLoader2.destroy();
+                try {
+                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader2));
                 } catch (Exception ex)  {
                     // we just ignore it as it's not fatal not to kill it
                     logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
@@ -267,7 +277,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
@@ -355,7 +365,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
         Assert.assertFalse("There are duplicated messages. Number of received messages is: " + receiver1.getListOfReceivedMessages().size(),
