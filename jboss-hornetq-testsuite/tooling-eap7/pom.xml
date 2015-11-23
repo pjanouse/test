@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>artemis-cli</artifactId>
-            <version>1.0.0</version>
+            <version>${artemis.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
