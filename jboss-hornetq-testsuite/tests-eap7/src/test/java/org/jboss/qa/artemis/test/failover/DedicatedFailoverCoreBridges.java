@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -52,7 +53,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     private String outQueueName = "OutQueue";
     private String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
     //    MessageBuilder messageBuilder = new TextMessageBuilder(10);
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
