@@ -44,7 +44,7 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
     @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+    public Timeout timeout = new Timeout(60 * 60 * 1000);
 
     private Properties attributes;
 
