@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -536,9 +537,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         JMSTools.waitForClientsToFinish(clients);
 
         // message verifiers for diverted messages - compares send and diverted messages
-        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // compare received and diverted messages, to send  messages add messages from normal receiver, to received messages from diverted queue
-        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // add send messages to sendDivertedMessageVerifier
         for (Client c : clients.getProducers()) {
@@ -834,7 +835,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Thread.sleep(10000);
 
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         p.setMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);
