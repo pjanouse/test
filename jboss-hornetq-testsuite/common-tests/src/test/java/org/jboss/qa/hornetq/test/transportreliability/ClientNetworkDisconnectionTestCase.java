@@ -182,10 +182,11 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         long startTime = System.currentTimeMillis();
         do {
             if (System.currentTimeMillis() - startTime > 60000) {
-                Assert.fail("There is still active durable subscription after more than 60s. ");
+                Assert.assertEquals("There is still active durable subscription after more than 60s. ", 0, numberOfSubscribers);
             }
             Thread.sleep(1000);
             numberOfSubscribers = jmsOperations.getNumberOfActiveClientConnections();
+            log.info("Number of subscribers: " + numberOfSubscribers);
         } while (numberOfSubscribers > 0);
         jmsOperations.close();
 
