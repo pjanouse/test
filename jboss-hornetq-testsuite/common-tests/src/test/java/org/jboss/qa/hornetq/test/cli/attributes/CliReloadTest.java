@@ -52,16 +52,5 @@ public class CliReloadTest extends HornetQTestCase {
         }
         container(1).stop();
     }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void justStartServerByArquillianAndWait() throws InterruptedException {
-        container(1).start();
-        logger.info("Server started for 60 minutes.");
-        Thread.sleep(60 * 60 * 1000);
-        container(1).stop();
-    }
 }
 
