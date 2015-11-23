@@ -13,11 +13,13 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.JMSMessageProperties;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
+import org.jboss.qa.hornetq.apps.mdb.MdbConnectionNotClosed;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -33,6 +35,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.*;
+import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -132,6 +136,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-not-commit");
 
+//        mdbJar.addClass(MdbConnectionNotClosed.class);
         mdbJar.addClass(LocalMdbFromQueueNoCommit.class);
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
@@ -173,16 +178,16 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy 21 MDBs which
-     *                reads messages from InQueue and send them to OutQueue in XA transaction. MDB use limited
-     *                connection pool and use different users to create managed connections.
+     * reads messages from InQueue and send them to OutQueue in XA transaction. MDB use limited
+     * connection pool and use different users to create managed connections.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy 21 MDBs which reads messages from InQueue and sends to OutQueue (connection pool
-     *                  limited to 10, and uses different user for creating connection)</li>
-     *              <li>receive messages from OutQueue</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy 21 MDBs which reads messages from InQueue and sends to OutQueue (connection pool
+     * limited to 10, and uses different user for creating connection)</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -232,17 +237,17 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
-     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Kill
-     *                the server when MDB is processing messages and restart it. Read messages from OutQueue.
+     * which reads messages from InQueue and sends them to OutQueue in XA transaction. Kill
+     * the server when MDB is processing messages and restart it. Read messages from OutQueue.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>during processing messages kill the server</li>
-     *              <li>restart the server</li>
-     *              <li>receive messages from OutQueue</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>during processing messages kill the server</li>
+     * <li>restart the server</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -255,17 +260,17 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
-     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Shutdown
-     *                the server when MDB is processing messages and restart it. Read messages from OutQueue.
+     * which reads messages from InQueue and sends them to OutQueue in XA transaction. Shutdown
+     * the server when MDB is processing messages and restart it. Read messages from OutQueue.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>during processing messages shutdown the server</li>
-     *              <li>restart the server</li>
-     *              <li>receive messages from OutQueue</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>during processing messages shutdown the server</li>
+     * <li>restart the server</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -332,15 +337,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send message to InQueue. Deploy single MDB
-     *                which reads messages from InQueue and sends them to OutQueue in XA transaction but sleeps after that
-     *                so commit does not happen. Message should be possible to read from OutQueue.
+     * which reads messages from InQueue and sends them to OutQueue in XA transaction but sleeps after that
+     * so commit does not happen. Message should be possible to read from OutQueue.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which send 1 message to InQueue</li>
-     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue but does not commit</li>
-     *              <li>try receive messages from OutQueue</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which send 1 message to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue but does not commit</li>
+     * <li>try receive messages from OutQueue</li>
+     * </ul>
      * @tpPassCrit receiver does not get any message
      */
     @RunAsClient
@@ -349,32 +354,42 @@ public class Lodh1TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testNotCommitedMessage() throws Exception {
 
+        ConnectionFactory connectionFactory = null;
+        Context context = container(1).getContext();
+
         // we use only the first server
         prepareServer(container(1));
-
         container(1).start();
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER)) {
+            connectionFactory = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP6);
+        } else {
+            connectionFactory = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
+        }
+        Queue queueIn = (Queue) context.lookup(inQueue);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, 1);
-        producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setTimeout(0);
-        logger.info("Start producer.");
-        producerToInQueue1.start();
-        producerToInQueue1.join();
+        Connection connection = connectionFactory.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageProducer producer = session.createProducer(queueIn);
+        Message message = session.createTextMessage("test message");
+        message.setLongProperty(JMSMessageProperties.MESSAGE_CONSUMER_DELAY, 600000);
+
+        logger.info("Send message.");
+        producer.send(message);
 
         container(1).deploy(mdbNotCommitArchive);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 10000, 1, 10);
-        receiver1.start();
-        receiver1.join();
-        Assert.assertTrue("No message should be received.", receiver1.getCount() == 0);
+        Queue queueOut = (Queue) context.lookup(outQueue);
+        MessageConsumer consumer = session.createConsumer(queueOut);
+        Message receiveMessage = consumer.receive(5000);
+        if (receiveMessage != null) {
+            Assert.fail("Message must be null but it's: " + receiveMessage);
+        }
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), true);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1), true);
         // now other instance of MDB will process the message
-        ReceiverClientAck receiver2 = new ReceiverClientAck(container(1), outQueue, 10000, 10, 10);
-        receiver2.start();
-        receiver2.join();
-        Assert.assertTrue("No message should be received.", receiver2.getCount() <= 1);
+        receiveMessage = consumer.receive(5000);
+        Assert.assertNotNull("Must not be null.", receiveMessage);
 
         container(1).undeploy(mdbNotCommitArchive);
         container(1).stop();
@@ -382,16 +397,16 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
-     *                which reads messages from InQueue and cleanly shut-down the server. Check there are
-     *                no unfinished transactions.
+     * which reads messages from InQueue and cleanly shut-down the server. Check there are
+     * no unfinished transactions.
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>cleanly shutdown server</li>
-     *              <li>check there are no unfinished transactions</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>cleanly shutdown server</li>
+     * <li>check there are no unfinished transactions</li>
+     * </ul>
      * @tpPassCrit there are no unfinished transactions
      */
     @Test
@@ -466,15 +481,15 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
-     *                which reads messages from InQueue and sends them to OutQueue in XA transaction. Read messages
-     *                from OutQueue
+     * which reads messages from InQueue and sends them to OutQueue in XA transaction. Read messages
+     * from OutQueue
      * @tpInfo For more information see related test case described in the beginning of this section.
      * @tpProcedure <ul>
-     *              <li>start first server with deployed InQueue and OutQueue</li>
-     *              <li>start producer which sends messages to InQueue</li>
-     *              <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
-     *              <li>receive messages from OutQueue</li>
-     *              </ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @RunAsClient
@@ -523,7 +538,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     /**
      * Executes kill sequence.
      *
-     * @param failSequence map Contanier -> ContainerIP
+     * @param failSequence     map Contanier -> ContainerIP
      * @param timeBetweenFails time between subsequent kills (in milliseconds)
      */
     private void executeNodeFaillSequence(List<Container> failSequence, long timeBetweenFails, boolean shutdown)
@@ -602,7 +617,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);  
+        jmsAdminOperations.setNodeIdentifier(1234567);
 
         HashMap<String, String> opts = new HashMap<String, String>();
         opts.put("password-stacking", "useFirstPass");

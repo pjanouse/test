@@ -1,12 +1,15 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-        import org.apache.log4j.Level;
-        import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
-        import javax.annotation.Resource;
-        import javax.ejb.*;
-        import javax.jms.*;
-        import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.*;
+import javax.jms.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A LocalMdbFromQueueNoCommit used for lodh tests.
@@ -27,10 +30,14 @@ package org.jboss.qa.hornetq.apps.mdb;
 public class LocalMdbFromQueueNoCommit implements MessageListener {
 
     @Resource(mappedName = "java:/JmsXA")
-    private  ConnectionFactory cf;
+    private ConnectionFactory cf;
+
+    Connection con = null;
+    Session session;
+    MessageProducer sender;
 
     @Resource(mappedName = "java:/jms/queue/OutQueue")
-    private  Queue queue;
+    private Queue queue;
 
     public static AtomicInteger globalCounter = new AtomicInteger();
 
@@ -41,25 +48,13 @@ public class LocalMdbFromQueueNoCommit implements MessageListener {
     @Override
     public void onMessage(Message message) {
 
-        Connection con = null;
-
-        Session session;
-
         try {
 
             long time = System.currentTimeMillis();
             int counter = globalCounter.incrementAndGet();
             log.info("Start of message: " + counter + ", message info:" + message.getJMSMessageID());
 
-            con = cf.createConnection();
-
-            con.start();
-
-            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
             String text = message.getJMSMessageID() + " processed by: " + hashCode();
-
-            MessageProducer sender = session.createProducer(queue);
 
             TextMessage newMessage = session.createTextMessage(text);
 
@@ -67,31 +62,28 @@ public class LocalMdbFromQueueNoCommit implements MessageListener {
 
             sender.send(newMessage);
 
-            // sleep for 1 hour for 1st message
+            // sleep for 1 hoour
             if (counter <= 1) {
                 log.info("Sleep for 60 min.");
                 Thread.sleep(60 * 1000 * 60);
             }
 
-            log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.info("End of message: " +  counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
-
             log.log(Level.FATAL, t.getMessage(), t);
-
             throw new RuntimeException(t);
+        }
+    }
 
-        } finally {
-
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
-                }
-            }
-
-
+    @PostConstruct
+    public void init() {
+        try {
+            con = cf.createConnection();
+            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            sender = session.createProducer(queue);
+        } catch (Exception ex) {
+            log.error(ex);
         }
     }
 }
