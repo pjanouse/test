@@ -4,15 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
-
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.reflect.Field;
-
 import org.jboss.qa.hornetq.DomainNode;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 
 
 /**
@@ -25,7 +23,7 @@ public class ProcessIdUtils {
     /**
      * @return pid of the server
      */
-    public static long getProcessId(Container container) {
+    public static int getProcessId(Container container) {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("read-resource");
         model.get(ClientConstants.OP_ADDR).add("core-service", "platform-mbean");
@@ -34,7 +32,7 @@ public class ProcessIdUtils {
         try {
             ModelNode result = ModelNodeUtils.applyOperation(container.getHostname(), container.getPort(), model);
             String nodeName = result.get("result").get("name").asString();
-            return Long.valueOf(nodeName.substring(0, nodeName.indexOf("@")));
+            return Integer.valueOf(nodeName.substring(0, nodeName.indexOf("@")));
         } catch (Exception e) {
             throw new RuntimeException("Error while reading PID failed " + container.getName(), e);
         }
@@ -116,5 +114,48 @@ public class ProcessIdUtils {
         } finally {
             log.info("Process: " + pid + " -- KILLED");
         }
+    }
+
+    public static void suspendProcess(int pid) {
+        log.info("Suspending process: " + pid);
+        try {
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
+                Runtime.getRuntime().exec(getPathToPsSuspend() +" " + pid);
+            } else { // on all other platforms use kill -9
+                Runtime.getRuntime().exec("kill -SIGSTOP " + pid);
+            }
+        } catch (Exception ex) {
+            log.warn("Process  " + pid + " could not be suspended.");
+            log.error(ex);
+        } finally {
+            log.info("Process: " + pid + " -- SUSPENDED");
+        }
+    }
+    public static void resumeProcess(int pid) {
+        log.info("Resuming process: " + pid);
+        try {
+            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
+                Runtime.getRuntime().exec(getPathToPsSuspend() + " -r " + pid);
+            } else { // on all other platforms use kill -9
+                Runtime.getRuntime().exec("kill -SIGCONT " + pid);
+            }
+        } catch (Exception ex) {
+            log.warn("Process  " + pid + " could not be resumed.");
+            log.error(ex);
+        } finally {
+            log.info("Process: " + pid + " -- RESUMED");
+        }
+    }
+
+    private static String getPathToPsSuspend() throws Exception {
+        URL resource = ProcessIdUtils.class.getResource("/pssuspend.exe");
+        return new File(resource.toURI()).getAbsolutePath();
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println("path: " + getPathToPsSuspend());
+
+        suspendProcess(28332);
+        resumeProcess(28332);
     }
 }

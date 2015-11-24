@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.*;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -26,6 +27,8 @@ public class ClientMixMessageBuilder implements MessageBuilder {
 
     private Random random = new Random();
     private boolean isAddPriorityToMessage = false;
+    private Map<String,String> jndiProperties = null;
+
 
     /**
      *
@@ -206,6 +209,9 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         if (isAddPriorityToMessage)  {
             message.setJMSPriority(generatePriority());
         }
+        if (jndiProperties != null && jndiProperties.size() > 0)    {
+            message = MessageUtils.setPropertiesToMessage(jndiProperties, message);
+        }
 
 //        message.setStringProperty("_HQ_DUPL_ID", (UUID.randomUUID().toString() + System.currentTimeMillis() + counter));
         if (counter % 100 ==0)  {
@@ -221,4 +227,9 @@ public class ClientMixMessageBuilder implements MessageBuilder {
     private int generatePriority() {
         return random.nextInt(10);
     }
+
+    public void setJndiProperties(Map<String, String> jndiProperties) {
+        this.jndiProperties = jndiProperties;
+    }
+
 }

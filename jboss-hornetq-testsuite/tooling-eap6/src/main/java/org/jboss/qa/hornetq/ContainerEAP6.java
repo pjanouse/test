@@ -165,6 +165,16 @@ public class ContainerEAP6 implements Container {
         FileUtils.deleteDirectory(new File(getServerHome(), "standalone/data"));
     }
 
+    @Override
+    public void suspend() throws IOException {
+        ProcessIdUtils.suspendProcess(ProcessIdUtils.getProcessId(this));
+    }
+
+    @Override
+    public void resume() throws IOException {
+        ProcessIdUtils.resumeProcess(ProcessIdUtils.getProcessId(this));
+    }
+
 
     @Override
     public void start() {

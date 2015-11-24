@@ -403,6 +403,16 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
+    public void suspend() throws IOException {
+        ProcessIdUtils.suspendProcess(ProcessIdUtils.getProcessId(this));
+    }
+
+    @Override
+    public void resume() throws IOException {
+        ProcessIdUtils.resumeProcess(ProcessIdUtils.getProcessId(this));
+    }
+
+    @Override
     public ContainerDef getContainerDefinition() {
         return containerDef;
     }

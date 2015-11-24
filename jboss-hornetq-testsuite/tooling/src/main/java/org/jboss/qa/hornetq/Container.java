@@ -54,6 +54,10 @@ public interface Container {
     // cleanup operations
     void deleteDataFolder() throws IOException;
 
+    void suspend() throws IOException;
+
+    void resume() throws IOException;
+
     // ContainerController delegates
     void start();
     void start(Map<String,String> containerProperties);

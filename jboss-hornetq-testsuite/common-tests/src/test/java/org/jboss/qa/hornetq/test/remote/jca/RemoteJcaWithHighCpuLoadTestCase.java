@@ -9,9 +9,9 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -96,19 +96,19 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void testRemoteJcaWithLoadNormalMdb() throws Exception {
-        testRemoteJcaWithLoad(mdb1);
+    public void loadNormalMdb() throws Exception {
+        testLoad(mdb1);
     }
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void testRemoteJcaWithLoadLodhMdb() throws Exception {
-        testRemoteJcaWithLoad(lodhLikemdb);
+    public void loadLodhMdb() throws Exception {
+        testLoad(lodhLikemdb);
     }
 
-    private void testRemoteJcaWithLoad(Archive mdbToDeploy) throws Exception {
+    private void testLoad(Archive mdbToDeploy) throws Exception {
 
         prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
 
@@ -120,14 +120,14 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
-        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
-        textMessageBuilder.setAddDuplicatedHeader(false);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+        messageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        textMessageBuilder.setJndiProperties(jndiProperties);
-        producer1.setMessageBuilder(textMessageBuilder);
+        messageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
@@ -177,33 +177,29 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void test() throws Exception {
-        container(2).start();
-        // bind mdb EAP server to cpu core
-        String cpuToBind = "0";
-        Process highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
-        logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-        Thread.sleep(100000);
-        container(2).stop();
+    public void loadInClusterWithNormalMdb() throws Exception {
+        loadInCluster(mdb1, container(2));
     }
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void testRemoteJcaWithLoadInClusterWithNormalMdb() throws Exception {
-        testRemoteJcaWithLoadInCluster(mdb1);
+    public void loadInClusterWithLodhLikeMdb() throws Exception {
+        loadInCluster(lodhLikemdb, container(2));
     }
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void testRemoteJcaWithLoadInClusterWithLodhLikeMdb() throws Exception {
-        testRemoteJcaWithLoadInCluster(lodhLikemdb);
+    public void loadOnJmsInClusterWithLodhLikeMdb() throws Exception {
+        loadInCluster(lodhLikemdb, container(3));
     }
 
-    private void testRemoteJcaWithLoadInCluster(Archive mdbToDeploy) throws Exception {
+    private void loadInCluster(Archive mdbToDeploy, Container containerUnderLoad) throws Exception {
+
+        int numberOfMessages = 50000;
 
         prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
 
@@ -216,15 +212,15 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(4).start();
 
         // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
-        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        textMessageBuilder.setAddDuplicatedHeader(false);
-        textMessageBuilder.setJndiProperties(jndiProperties);
-        producer1.setMessageBuilder(textMessageBuilder);
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
@@ -234,13 +230,13 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        producer1.join();
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
 
         Process highCpuLoader1 = null;
         try {
             // bind mdb EAP server to cpu core
             String cpuToBind = "0";
-            highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
+            highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(containerUnderLoad, cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumes from InQueue
@@ -259,7 +255,9 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         }
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+
+        producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
@@ -283,11 +281,97 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void testRemoteJcaWithLoadInClusterWithRestart() throws Exception {
+    public void suspendOfMdbInClusterWithLodhLikeMdb() throws Exception {
+        suspendInCluster(lodhLikemdb, container(2));
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfJmsInClusterWithLodhLikeMdb() throws Exception {
+        suspendInCluster(lodhLikemdb, container(3));
+    }
+
+    private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend) throws Exception {
+
+        int numberOfMessages = 50000;
+
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+
+        // cluster A
+        container(1).start();
+        container(3).start();
+
+        // cluster B
+        container(2).start();
+        container(4).start();
+
+        // send messages to queue
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.setCommitAfter(100);
+        producer1.setTimeout(0);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.start();
+        producer1.join();
+
+        // deploy mdb
+        container(2).deploy(mdbToDeploy);
+        container(4).deploy(mdbToDeploy);
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
+
+        int containerToSuspenId = ProcessIdUtils.getProcessId(containerToSuspend);
+        logger.info("Going to suspend server: " + containerToSuspend.getName());
+        ProcessIdUtils.suspendProcess(containerToSuspenId);
+        Thread.sleep(60000);
+        logger.info("Going to resume server: " + containerToSuspend.getName());
+        ProcessIdUtils.resumeProcess(containerToSuspenId);
+
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        receiver1.join();
+        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
+
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", noPreparedTransactions);
+
+        container(2).undeploy(mdbToDeploy);
+        container(4).undeploy(mdbToDeploy);
+        container(2).stop();
+        container(4).stop();
+        container(3).stop();
+        container(1).stop();
+    }
+
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadInClusterWithRestart() throws Exception {
 
         Archive mdbToDeploy = lodhLikemdb;
 
@@ -303,14 +387,14 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
-        TextMessageBuilder textMessageBuilder = new TextMessageBuilder(1);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        textMessageBuilder.setAddDuplicatedHeader(false);
-        textMessageBuilder.setJndiProperties(jndiProperties);
-        producer1.setMessageBuilder(textMessageBuilder);
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
@@ -733,7 +817,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
+     * <p>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
