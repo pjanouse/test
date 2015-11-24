@@ -223,10 +223,11 @@ public class ContainerEAP7 implements Container {
                                 } else { // it's linux or Solaris
                                     Runtime.getRuntime().exec("kill -9 " + pid);
                                 }
+                                log.info("Waiting 5 sec for OS close all ports held by container.");
+                                Thread.sleep(5000);
                             } catch (IOException e) {
                                 log.error("Invoking kill -9 " + pid + " failed.", e);
                             }
-                            Assert.fail("Server: " + getName() + " did not shutdown more than: " + timeout + " and will be killed.");
                             return;
                         }
 
