@@ -226,6 +226,53 @@ public interface JMSOperations {
 
     void addSocketBinding(String socketBindingName, int port);
 
+    /**
+     * Create security realm
+     *
+     * @param name  name of the new realm
+     */
+    void createSecurityRealm(String name);
+
+    /**
+     * Add server identity into the security realm
+     *
+     * @param realmName         name of the security realm
+     * @param keyStorePath      path to a key store
+     * @param keyStorePass      password to a key store
+     */
+    void addServerIdentity(String realmName, String keyStorePath, String keyStorePass);
+
+    /**
+     * Add authentication into the security realm
+     *
+     * @param realmName         name of the security realm
+     * @param trustStorePath    path to a trust store
+     * @param keyStorePass      password to a trust store
+     */
+    void addAuthentication(String realmName, String trustStorePath, String keyStorePass);
+
+    /**
+     * Add https listener into undertow subsystem
+     *
+     * @param serverName        name of the undertow server
+     * @param name              name of the https listener
+     * @param securityRealm     name of the security realm
+     * @param socketBinding     name of the socket binding
+     * @param verifyClient      politic for verification of client. Possible values: NOT_REQUESTED
+     *                          TODO: add all possible values
+     */
+    void addHttpsListener(String serverName, String name, String securityRealm, String socketBinding, String verifyClient);
+
+    /**
+     * Add https listener into undertow subsystem
+     *
+     * @param name              name of the https listener
+     * @param securityRealm     name of the security realm
+     * @param socketBinding     name of the socket binding
+     * @param verifyClient      politic for verification of client. Possible values: NOT_REQUESTED
+     *                          TODO: add all possible values
+     */
+    void addHttpsListener(String name, String securityRealm, String socketBinding, String verifyClient);
 
     /**
      * Add XA datasource property.
@@ -382,7 +429,11 @@ public interface JMSOperations {
 
     void createHttpConnector(String name, String socketBinding, Map<String, String> params);
 
+    void createHttpConnector(String name, String socketBinding, Map<String, String> params, String endpoint);
+
     void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params);
+
+    void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params, String endpoint);
 
     void createConnector(String name, Map<String, String> params);
 

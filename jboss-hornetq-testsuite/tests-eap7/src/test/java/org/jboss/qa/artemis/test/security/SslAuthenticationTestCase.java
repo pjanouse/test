@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
@@ -611,6 +613,62 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testHttpsConnectionClientAuth() throws InterruptedException {
+        testHttpsConnection(true, false);
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testHttpsConnectionServerAuth() throws InterruptedException {
+        testHttpsConnection(false, true);
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testHttpsConnectionBothAuth() throws InterruptedException {
+        testHttpsConnection(true, true);
+    }
+
+    public void testHttpsConnection(boolean clientAuth, boolean serverAuth) throws InterruptedException {
+        final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.keystore").getPath();
+        final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.truststore").getPath();
+        final String password = "123456";
+
+        if (clientAuth) {
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+            System.setProperty("javax.net.ssl.keyStorePassword", password);
+        }
+        if (serverAuth) {
+            System.setProperty("javax.net.ssl.trustStore", trustStorePath);
+            System.setProperty("javax.net.ssl.trustStorePassword", password);
+        }
+
+        prepareServerWithHttpsConnection(serverAuth, clientAuth);
+
+        container(1).start();
+
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_ADDRESS, 1);
+        producer.start();
+
+        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), QUEUE_JNDI_ADDRESS);
+        receiver.start();
+
+        producer.join();
+        receiver.join();
+
+        Assert.assertNull("Producer got unexpected exception.", producer.getException());
+        Assert.assertNull("Receiver got unexpected exception.", receiver.getException());
+        Assert.assertEquals("Number of sent and received message are not equal.", producer.getCount(), receiver.getCount());
+    }
+
     private void prepareSeverWithPkcs11(Container container) throws Exception {
 
         installSecurityExtension(container);
@@ -832,6 +890,57 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
                 .create();
 
         return ops;
+    }
+
+    private void prepareServerWithHttpsConnection(boolean setKeyStore, boolean setTrustStore) {
+
+        final String securityRealmName = "https";
+        final String listenerName = "undertow-https";
+        final String sockerBinding = "https";
+        final String verifyClientPolitic = "NOT_REQUESTED";
+        final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.keystore").getPath();
+        final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.truststore").getPath();
+        final String password = "123456";
+        final String httpAcceptorName = "https-acceptor";
+        final String httpConnectorName = "https-connector";
+        final String remoteConnectionFactoryName = "RemoteConnectionFactory";
+        final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
+
+        container(1).start();
+        JMSOperations ops = container(1).getJmsOperations();
+
+        ops.createSecurityRealm(securityRealmName);
+        if (setKeyStore && setTrustStore) {
+            ops.addServerIdentity(securityRealmName, keyStorePath, password);
+            ops.addAuthentication(securityRealmName, trustStorePath, password);
+        } else if (setKeyStore) {
+            ops.addServerIdentity(securityRealmName, keyStorePath, password);
+        } else if (setTrustStore) {
+            ops.addAuthentication(securityRealmName, trustStorePath, password);
+        } else {
+            throw new IllegalArgumentException("At least one of setKeyStore or setTrustStore must be true");
+        }
+
+        ops.close();
+        container(1).restart();
+        ops = container(1).getJmsOperations();
+
+        ops.addHttpsListener(listenerName, securityRealmName, sockerBinding, verifyClientPolitic);
+        ops.createHttpAcceptor(httpAcceptorName, listenerName, null);
+        Map<String, String> httpConnectorParams = new HashMap<String, String>();
+        httpConnectorParams.put("ssl-enabled", "true");
+        ops.createHttpConnector(httpConnectorName, sockerBinding, httpConnectorParams, httpAcceptorName);
+
+        ops.close();
+        container(1).restart();
+        ops = container(1).getJmsOperations();
+
+        ops.removeConnectionFactory(remoteConnectionFactoryName);
+        ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, httpConnectorName);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+
+        ops.close();
+        container(1).stop();
     }
 
 }

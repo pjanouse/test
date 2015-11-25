@@ -412,6 +412,31 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createSecurityRealm(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addServerIdentity(String realmName, String keyStorePath, String keyStorePass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addAuthentication(String realmName, String trustStorePath, String keyStorePass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHttpsListener(String serverName, String name, String securityRealm, String socketBinding, String verifyClient) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHttpsListener(String name, String securityRealm, String socketBinding, String verifyClient) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -561,7 +586,17 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createHttpConnector(String name, String socketBinding, Map<String, String> params, String endpoint) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params, String endpoint) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

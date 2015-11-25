@@ -45,6 +45,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private static String NAME_OF_MESSAGING_SUBSYSTEM = "messaging-activemq";
     private static String NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER = "server"; // it's "server" in "server=default"
     private static String NAME_OF_MESSAGING_DEFAULT_SERVER = "default";
+    private static String NAME_OF_UNDERTOW_SUBSYSTEM = "undertow";
+    private static String NAME_OF_UNDERTOW_DEFAULT_SERVER = "default-server";
+    private static String NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER = "server";
 
     // Logger
     private static final Logger logger = Logger.getLogger(ActiveMQAdminOperationsEAP7.class);
@@ -4016,15 +4019,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         createHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params);
     }
 
+    @Override
+    public void createHttpConnector(String name, String socketBinding, Map<String, String> params, String endpoint) {
+        createHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name, socketBinding, params, endpoint);
+    }
+
+    @Override
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+        createHttpConnector(serverName, name, socketBinding, params, "http-acceptor");
+    }
+
     /**
      * Creates remote connector
      *
      * @param name          name of the remote connector
      * @param socketBinding
      * @param params        source queue
+     * @param endpoint      endpoint name
      */
     @Override
-    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params) {
+    public void createHttpConnector(String serverName, String name, String socketBinding, Map<String, String> params, String endpoint) {
 
         removeHttpConnector(serverName, name);
 
@@ -4034,7 +4048,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         model.get("socket-binding").set(socketBinding);
-        model.get("endpoint").set("http-acceptor");
+        model.get("endpoint").set(endpoint);
 
         if (params != null) {
             for (String key : params.keySet()) {
@@ -4301,6 +4315,74 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void createSecurityRealm(String name) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "management");
+        model.get(ClientConstants.OP_ADDR).add("security-realm", name);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addServerIdentity(String realmName, String keyStorePath, String keyStorePass) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "management");
+        model.get(ClientConstants.OP_ADDR).add("security-realm", realmName);
+        model.get(ClientConstants.OP_ADDR).add("server-identity", "ssl");
+        model.get("keystore-path").set(keyStorePath);
+        model.get("keystore-password").set(keyStorePass);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addAuthentication(String realmName, String trustStorePath, String keyStorePass) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "management");
+        model.get(ClientConstants.OP_ADDR).add("security-realm", realmName);
+        model.get(ClientConstants.OP_ADDR).add("authentication", "truststore");
+        model.get("keystore-path").set(trustStorePath);
+        model.get("keystore-password").set(keyStorePass);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHttpsListener(String serverName, String name, String securityRealm, String socketBinding, String verifyClient) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("https-listener", name);
+        model.get("security-realm").set(securityRealm);
+        model.get("socket-binding").set(socketBinding);
+        model.get("verify-client").set(verifyClient);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHttpsListener(String name, String securityRealm, String socketBinding, String verifyClient) {
+        addHttpsListener(NAME_OF_UNDERTOW_DEFAULT_SERVER, name, securityRealm, socketBinding, verifyClient);
     }
 
     /**
