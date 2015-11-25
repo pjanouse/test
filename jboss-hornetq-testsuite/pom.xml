@@ -751,6 +751,13 @@
             </modules>
             <dependencies>
                 <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-7.0</artifactId>
+                    <version>${jboss.javaee7.version}</version>
+                    <type>pom</type>
+                </dependency>
+
+                <dependency>
                     <groupId>org.jboss.qa</groupId>
                     <artifactId>qa-testplan-generator-annotation-processor</artifactId>
                     <version>0.0.6</version>
