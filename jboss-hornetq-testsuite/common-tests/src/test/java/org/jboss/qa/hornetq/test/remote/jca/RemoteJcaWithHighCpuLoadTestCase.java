@@ -7,11 +7,13 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -141,7 +143,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         Process highCpuLoader = null;
         try {
             // bind mdb EAP server to cpu core
-            String cpuToBind = "0,1";
+            String cpuToBind = "0";
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
@@ -258,7 +260,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
 
         producer1.join();
-
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
@@ -287,7 +288,29 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdb() throws Exception {
-        suspendInCluster(lodhLikemdb, container(2));
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        suspendInCluster(lodhLikemdb, container(2), messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfMdbInClusterWithLodhLikeMdbMixMessages() throws Exception {
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 1000);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        suspendInCluster(lodhLikemdb, container(2), messageBuilder);
     }
 
     @Test
@@ -295,10 +318,17 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfJmsInClusterWithLodhLikeMdb() throws Exception {
-        suspendInCluster(lodhLikemdb, container(3));
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        suspendInCluster(lodhLikemdb, container(3), messageBuilder);
     }
 
-    private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend) throws Exception {
+    private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder) throws Exception {
 
         int numberOfMessages = 50000;
 
@@ -314,13 +344,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
-        for (String key : jndiProperties.keySet()) {
-            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
-        }
-        messageBuilder.setAddDuplicatedHeader(false);
-        messageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
@@ -387,7 +410,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
