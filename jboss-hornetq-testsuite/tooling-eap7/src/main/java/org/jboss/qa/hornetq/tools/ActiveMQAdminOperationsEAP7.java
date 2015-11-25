@@ -4890,7 +4890,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("reload");
 
-        if ("ADMIN_ONLY".equals(isAdminOnlyMode)) {
+        if (isAdminOnlyMode) {
             model.get("admin-only").set("true");
         } else {
             model.get("admin-only").set("false");
