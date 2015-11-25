@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.kohsuke.MetaInfServices;
 
 import java.io.*;
+import java.util.regex.Matcher;
 
 /**
  * Utilities to work with ActiveMQ's journal export/import tool in EAP 7.
@@ -17,9 +18,9 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
 
     private static final Logger LOG = Logger.getLogger(JournalExportImportUtilsImplEAP7.class);
 
-    private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq/artemis".replaceAll("/", File.separator);
-    private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", File.separator);
-    private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", File.separator);
+    private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq/artemis".replaceAll("/", Matcher.quoteReplacement(File.separator));
+    private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", Matcher.quoteReplacement(File.separator));
+    private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", Matcher.quoteReplacement(File.separator));
 
     private String pathToJournal = null;
 
