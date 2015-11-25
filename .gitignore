@@ -16,7 +16,7 @@
 **/PutObjectStoreDirHere*
 **/jboss-hornetq-testsuite/.idea/
 **/tmp.txt
-**/server*
+**/server?
 **/log
 **/jboss-eap*
 **/.gitignore~
