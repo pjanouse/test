@@ -66,7 +66,7 @@ public class ProcessIdUtils {
         }
         String cmd = "renice -n " + priority + " -p " + pid;
         log.info("Command: " + cmd);
-        Runtime.getRuntime().exec(cmd);
+        throwExceptionIfProcessFailed(Runtime.getRuntime().exec(cmd));
     }
 
     /**
@@ -109,41 +109,47 @@ public class ProcessIdUtils {
                 Runtime.getRuntime().exec("kill -9 " + pid);
             }
         } catch (Exception ex) {
-            log.warn("Process  " + pid + " could not be killed.");
-            log.error(ex);
-        } finally {
-            log.info("Process: " + pid + " -- KILLED");
+            log.error("Process  " + pid + " could not be killed.", ex);
         }
+        log.info("Process: " + pid + " -- KILLED");
     }
 
     public static void suspendProcess(int pid) {
         log.info("Suspending process: " + pid);
+        Process suspendProcess = null;
         try {
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
-                Runtime.getRuntime().exec(getPathToPsSuspend() +" " + pid);
+                suspendProcess = Runtime.getRuntime().exec(getPathToPsSuspend() +" " + pid);
             } else { // on all other platforms use kill -9
-                Runtime.getRuntime().exec("kill -SIGSTOP " + pid);
+                suspendProcess = Runtime.getRuntime().exec("kill -SIGSTOP " + pid);
             }
+            throwExceptionIfProcessFailed(suspendProcess);
         } catch (Exception ex) {
             log.warn("Process  " + pid + " could not be suspended.");
             log.error(ex);
-        } finally {
-            log.info("Process: " + pid + " -- SUSPENDED");
         }
+        log.info("Process: " + pid + " -- SUSPENDED");
     }
     public static void resumeProcess(int pid) {
         log.info("Resuming process: " + pid);
+        Process resumeProcess = null;
         try {
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
-                Runtime.getRuntime().exec(getPathToPsSuspend() + " -r " + pid);
+                resumeProcess = Runtime.getRuntime().exec(getPathToPsSuspend() + " -r " + pid);
             } else { // on all other platforms use kill -9
-                Runtime.getRuntime().exec("kill -SIGCONT " + pid);
+                resumeProcess = Runtime.getRuntime().exec("kill -SIGCONT " + pid);
             }
+            throwExceptionIfProcessFailed(resumeProcess);
         } catch (Exception ex) {
             log.warn("Process  " + pid + " could not be resumed.");
             log.error(ex);
-        } finally {
-            log.info("Process: " + pid + " -- RESUMED");
+        }
+        log.info("Process: " + pid + " -- RESUMED");
+    }
+
+    private static void throwExceptionIfProcessFailed(Process process) throws Exception {
+        if (process.waitFor() != 0)   {
+            throw new Exception("Process: " + process + " did not exit with code 0.");
         }
     }
 

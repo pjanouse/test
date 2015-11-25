@@ -42,7 +42,7 @@ public class ContainerEAP7 implements Container {
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
     private Map<String, String> originalContainerProperties = null;
-
+    private int pid = Integer.MIN_VALUE;
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
@@ -183,6 +183,7 @@ public class ContainerEAP7 implements Container {
     @Override
     public void start(Map<String, String> containerProperties) {
         containerController.start(getName(), containerProperties);
+        pid = ProcessIdUtils.getProcessId(this);
     }
 
 

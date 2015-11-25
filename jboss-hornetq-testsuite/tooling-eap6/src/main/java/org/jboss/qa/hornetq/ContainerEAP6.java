@@ -43,6 +43,7 @@ public class ContainerEAP6 implements Container {
     private int containerIndex = 0;
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
+    private int pid = Integer.MIN_VALUE;
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
@@ -167,12 +168,13 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void suspend() throws IOException {
-        ProcessIdUtils.suspendProcess(ProcessIdUtils.getProcessId(this));
+        ProcessIdUtils.suspendProcess(pid);
     }
 
     @Override
     public void resume() throws IOException {
-        ProcessIdUtils.resumeProcess(ProcessIdUtils.getProcessId(this));
+        // we cannot get process id from suspended process calling in CLI, we have to know it already
+        ProcessIdUtils.resumeProcess(pid);
     }
 
 
@@ -203,6 +205,8 @@ public class ContainerEAP6 implements Container {
     @Override
     public void start(Map<String, String> containerProperties) {
         containerController.start(getName(), containerProperties);
+        pid = ProcessIdUtils.getProcessId(this);
+
     }
 
 
