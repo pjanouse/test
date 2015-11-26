@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -58,8 +59,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES = 10000;
 
+    @Before
     @After
-    public void shutdownServerAfterTest() {
+    public void shutdownServerBeforeAfterTest() {
         container(1).stop();
     }
 
@@ -111,7 +113,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             fastConsumer.start();
             slowConsumer.start();
 
-            Thread.sleep(70000);
+            Thread.sleep(80000);
 
             JMSOperations ops = container(1).getJmsOperations();
             int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
