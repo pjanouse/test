@@ -17,9 +17,10 @@ public class TransactionUtils {
      *
      * @param timeout
      * @param container
+     * @param toleratedNumberOfTransactions
      * @throws Exception
      */
-    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container) throws Exception {
+    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container, int toleratedNumberOfTransactions) throws Exception {
 
         // check that number of prepared transaction gets to 0
         log.info("Get information about transactions from HQ:");
@@ -30,7 +31,7 @@ public class TransactionUtils {
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
-        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+        while (numberOfPreparedTransaction > toleratedNumberOfTransactions && System.currentTimeMillis() - startTime < timeout) {
 
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
 
@@ -44,6 +45,17 @@ public class TransactionUtils {
             log.error("There are prepared transactions in HornetQ journal.");
             Assert.fail("There are prepared transactions in HornetQ journal - number of prepared transactions is: " + numberOfPreparedTransaction);
         }
+    }
+
+    /**
+     * Wait for given time-out for no xa transactions in prepared state.
+     *
+     * @param timeout
+     * @param container
+     * @throws Exception
+     */
+    public void waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container) throws Exception {
+        waitUntilThereAreNoPreparedHornetQTransactions(timeout, container, 0);
     }
 
     /**

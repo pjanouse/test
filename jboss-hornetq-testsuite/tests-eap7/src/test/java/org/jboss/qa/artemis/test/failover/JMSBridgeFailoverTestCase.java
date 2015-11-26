@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -53,7 +54,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
     private String outQueueJndiName = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
     String discoveryGroupName = "dg-group1";
     String clusterConnectionName = "my-cluster";
@@ -130,13 +131,13 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         producerToInQueue1.stopSending();
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3), 1);
         ReceiverClientAck receiver1;
         if (failback) {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(1));
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(1), 1);
             receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         } else {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(2));
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(2), 1);
             receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 30000, 100, 10);
         }
         receiver1.setMessageVerifier(messageVerifier);
