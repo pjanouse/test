@@ -664,6 +664,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         producer.join();
         receiver.join();
 
+        container(1).stop();
+
         Assert.assertNull("Producer got unexpected exception.", producer.getException());
         Assert.assertNull("Receiver got unexpected exception.", receiver.getException());
         Assert.assertEquals("Number of sent and received message are not equal.", producer.getCount(), receiver.getCount());
