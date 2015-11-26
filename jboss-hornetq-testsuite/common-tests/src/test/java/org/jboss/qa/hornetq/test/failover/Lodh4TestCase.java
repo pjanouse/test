@@ -240,6 +240,123 @@ public class Lodh4TestCase extends HornetQTestCase {
         testLogicLargeMessages(new MixMessageBuilder(300 * 1024), killSequence, true);
     }
 
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testClusterWithCoreBridge() throws Exception {
+
+        prepareTopologyWith3Servers();
+
+        container(1).start();
+        container(3).start();
+        container(4).start();
+
+        // give some time to server4 to really start
+        Thread.sleep(3000);
+
+        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
+                container(1),
+                relativeJndiInQueueName,
+                NUMBER_OF_DESTINATIONS_BRIDGES,
+                1,
+                1,
+                NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
+        clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
+        clientsA1.setHostnameForConsumers(container(4).getHostname());
+        clientsA1.setPortForConsumers(container(4).getJNDIPort());
+        clientsA1.setMessageBuilder(new ByteMessageBuilder(30));
+        clientsA1.startClients();
+
+        // Get producers some time to send messages
+        Thread.sleep(10000);
+
+        clientsA1.stopClients();
+
+        while (!clientsA1.isFinished()) {
+            Thread.sleep(1000);
+        }
+
+        container(1).stop();
+        container(3).stop();
+        container(4).stop();
+
+        assertTrue("There are problems detected by org.jboss.qa.hornetq.apps.clients. Check logs for more info. Look for: 'Print kill sequence', "
+                + "'Kill and restart server', 'Killing server', 'Evaluate results for queue org.jboss.qa.hornetq.apps.clients with client acknowledge'.", clientsA1.evaluateResults());
+
+    }
+
+    /**
+     * @tpTestDetails We have four servers 1, 2, 3 and 4. Servers 1 and 3 are in cluster A. Servers 2 and 4 are in cluster B.
+     * There are also two core bridges from 1 to 2 and from 3 to 4. Producers send messages to server 1. Consumers receive
+     * messages on server 4. After some time we shutdown server 2 and we expect that all messages will be delivered to server 4
+     * through server 3.
+     * @tpProcedure <ul>
+     *              <li>start 2 server containers 1 and 2 with deployed InQueue in a cluster A</li>
+     *              <li>start other 2 server containers 3 and 4 with deployed OutQueue in a cluster B</li>
+     *              <li>set up 2 Core bridges from InQueue to OutQueue (from container 1 to container 3, and
+     *                  from 2 to 4)</li>
+     *              <li>start producer which sends messages to InQueue to container 1 and
+     *                  consumer which reads messages from OutQueue from container 4</li>
+     *              <li>shutdown server 2</li>
+     *              </ul>
+     * @tpPassCrit receiver will receive all messages which where sent with no duplicates
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailOfOneServer() throws Exception {
+
+        prepareServers();
+
+        container(2).start();
+        container(4).start();
+        container(1).start();
+        container(3).start();
+
+        // give some time to server4 to really start
+        Thread.sleep(3000);
+
+        QueueClientsClientAck clientsA1 = new QueueClientsClientAck(
+                container(1),
+                relativeJndiInQueueName,
+                NUMBER_OF_DESTINATIONS_BRIDGES,
+                1,
+                1,
+                NUMBER_OF_MESSAGES_PER_PRODUCER);
+
+        clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
+        clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
+        clientsA1.setHostnameForConsumers(container(4).getHostname());
+        clientsA1.setPortForConsumers(container(4).getJNDIPort());
+        clientsA1.setMessageBuilder(new ByteMessageBuilder(30));
+        clientsA1.startClients();
+
+        // Get producers some time to send messages
+        Thread.sleep(10000);
+
+        container(2).stop();
+
+        clientsA1.stopClients();
+
+        while (!clientsA1.isFinished()) {
+            Thread.sleep(1000);
+        }
+
+        container(1).stop();
+        container(2).stop();
+        container(3).stop();
+        container(4).stop();
+
+        assertTrue("There are problems detected by org.jboss.qa.hornetq.apps.clients. Check logs for more info. Look for: 'Print kill sequence', "
+                + "'Kill and restart server', 'Killing server', 'Evaluate results for queue org.jboss.qa.hornetq.apps.clients with client acknowledge'.", clientsA1.evaluateResults());
+
+    }
+
     /**
      * Implementation of the basic test scenario: 1. Start cluster A and B 2.
      * Start producers on A1, A2 3. Start consumers on B1, B2 4. Kill sequence -
@@ -395,6 +512,19 @@ public class Lodh4TestCase extends HornetQTestCase {
             prepareServersEAP7();
         }
     }
+
+    /**
+     * We have three servers 1, 2 and 3. 1 and 2 are together with cluster. Server 2 forwards messages to server 3
+     * through the core bridge.
+     */
+    public void prepareTopologyWith3Servers() {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER))  {
+            prepareTopologyWith3ServersEAP6();
+        } else {
+            prepareTopologyWith3ServersEAP7();
+        }
+    }
+
     /**
      * Prepares servers.
      * <p/>
@@ -423,6 +553,16 @@ public class Lodh4TestCase extends HornetQTestCase {
         prepareTargetServerEAP6(container(2));
         prepareTargetServerEAP6(container(4));
 
+    }
+
+    public void prepareTopologyWith3ServersEAP6() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    public void prepareTopologyWith3ServersEAP7() {
+        prepareSourceServerEAP7(container(1), null);
+        prepareSourceServerEAP7(container(3), container(4));
+        prepareTargetServerEAP7(container(4));
     }
 
     /**
@@ -582,34 +722,45 @@ public class Lodh4TestCase extends HornetQTestCase {
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
+        jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.disableSecurity();
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
+            jmsAdminOperations.createQueue("default", hornetqInQueueName + queueNumber, relativeJndiInQueueName + queueNumber, true);
+        }
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
-        try {
-            jmsAdminOperations.removeRemoteSocketBinding("messaging-bridge");
-        } catch (Exception ex)    {
-            // ignore
-        }
-        jmsAdminOperations.close();
-        container.restart();
-
-        jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
-        jmsAdminOperations.createHttpConnector("bridge-connector", "messaging-bridge", null);
-        jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
-            jmsAdminOperations.createQueue("default", hornetqInQueueName + queueNumber, relativeJndiInQueueName + queueNumber, true);                 }
+
         jmsAdminOperations.close();
-
         container.restart();
-
         jmsAdminOperations = container.getJmsOperations();
+
         jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", udpGroupAddress, 55874);
-        for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
-            jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
+
+
+        if (targetServer != null) {
+
+            try {
+                jmsAdminOperations.removeRemoteSocketBinding("messaging-bridge");
+            } catch (Exception ex) {
+                // ignore
+            }
+            jmsAdminOperations.close();
+            container.restart();
+
+            jmsAdminOperations = container.getJmsOperations();
+            jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
+            jmsAdminOperations.createHttpConnector("bridge-connector", "messaging-bridge", null);
+            jmsAdminOperations.close();
+
+            container.restart();
+
+            jmsAdminOperations = container.getJmsOperations();
+            for (int i = 0; i < NUMBER_OF_DESTINATIONS_BRIDGES; i++) {
+                jmsAdminOperations.createCoreBridge("myBridge" + i, "jms.queue." + hornetqInQueueName + i, "jms.queue." + hornetqOutQueueName + i, -1, "bridge-connector");
+            }
         }
 
         jmsAdminOperations.close();
