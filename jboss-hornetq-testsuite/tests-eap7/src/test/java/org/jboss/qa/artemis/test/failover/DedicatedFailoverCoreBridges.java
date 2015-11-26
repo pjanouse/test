@@ -45,6 +45,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1500;
 
+    private static final boolean DOES_NOT_MATTER = false;
+
 
     // Queue to send messages in
     private String inQueueName = "InQueue";
@@ -71,9 +73,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     /**
      * @throws Exception
      */
-    public void testInitialFailback(Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    public void testInitialFailback(Constants.CONNECTOR_TYPE connectorType, boolean connectorToBackup) throws Exception {
 
-        prepareServers(connectorType);
+        prepareServers(connectorType, connectorToBackup);
 
         // start live-backup servers
         container(1).start();
@@ -126,9 +128,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     /**
      * @throws Exception
      */
-    public void testFailoverWithBridge(Constants.CONNECTOR_TYPE connectorType, boolean failback, Constants.FAILURE_TYPE failureType) throws Exception {
+    public void testFailoverWithBridge(Constants.CONNECTOR_TYPE connectorType, boolean failback, Constants.FAILURE_TYPE failureType, boolean connectorToBackup) throws Exception {
 
-        prepareServers(connectorType);
+        prepareServers(connectorType, connectorToBackup);
 
         // start live-backup servers
         container(1).start();
@@ -213,8 +215,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
     /**
      * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge which uses pre configured (static) http connector and resends messages from its InQueue to live’s OutQueue. Kill live
-     * server and check that all messages are in OutQueue on backup.
+     * bridge which uses pre configured (static) http connectors to both live and backup and resends messages from its InQueue
+     * to live’s OutQueue. Kill live server and check that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Start 3rd server with deployed Core bridge configured to use static connector
@@ -229,14 +231,14 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailoverKillWithBridgeWitStaticConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.KILL);
+    public void testFailoverKillWithBridgeWithStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.KILL, true);
     }
 
     /**
      * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge which uses pre configured (static) nio connector and resends messages from its InQueue to live’s OutQueue. Kill live
-     * server and check that all messages are in OutQueue on backup.
+     * bridge which uses pre configured (static) http connector to live but no to backup and resends messages from its InQueue
+     * to live’s OutQueue. Kill live server and check that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Start 3rd server with deployed Core bridge configured to use static connector
@@ -251,8 +253,52 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailoverKillWithBridgeWitStaticNIOConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, false, Constants.FAILURE_TYPE.KILL);
+    public void testFailoverKillWithBridgeWithNonStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.KILL, false);
+    }
+
+    /**
+     * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge which uses pre configured (static) nio connector to both live and backup and resends messages from its InQueue
+     * to live’s OutQueue. Kill live server and check that all messages are in OutQueue on backup.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed Core bridge configured to use static connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Kill live server</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailoverKillWithBridgeWithStaticNIOConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, false, Constants.FAILURE_TYPE.KILL, true);
+    }
+
+    /**
+     * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge which uses pre configured (static) nio connector to live but no to backup and resends messages from its InQueue
+     * to live’s OutQueue. Kill live server and check that all messages are in OutQueue on backup.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed Core bridge configured to use static connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Kill live server</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailoverKillWithBridgeWithNonStaticNIOConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, false, Constants.FAILURE_TYPE.KILL, false);
     }
 
     /**
@@ -276,7 +322,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     public void testFailoverKillWithBridgeWithNettyDiscovery() throws Exception {
 
 
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, false, Constants.FAILURE_TYPE.KILL);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, false, Constants.FAILURE_TYPE.KILL, DOES_NOT_MATTER);
     }
 
     /**
@@ -298,13 +344,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailoverKillWithBridgeWithJGroupsDiscovery() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.JGROUPS_DISCOVERY, false, Constants.FAILURE_TYPE.KILL);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.JGROUPS_DISCOVERY, false, Constants.FAILURE_TYPE.KILL, DOES_NOT_MATTER);
     }
 
     /**
      * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge which uses pre configured (static) http connector and resends messages from its InQueue to live’s OutQueue. Shut
-     * down live server and check that all messages are in OutQueue on backup.
+     * bridge which uses pre configured (static) http connector to both live and backup and resends messages from its InQueue
+     * to live’s OutQueue. Shut down live server and check that all messages are in OutQueue on backup.
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Start 3rd server with deployed Core bridge configured to use static connector
@@ -320,8 +366,31 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridgeWithStaticConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.SHUTDOWN);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.SHUTDOWN, true);
     }
+
+    /**
+     * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge which uses pre configured (static) http connector to live but no backup and resends messages from its InQueue
+     * to live’s OutQueue. Shut down live server and check that all messages are in OutQueue on backup.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed Core bridge configured to use static connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Cleanly shut down live server</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailoverShutdownWithBridgeWithNonStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.SHUTDOWN, false);
+    }
+
 
     /**
      * @tpTestDetails test failover of core bridge. Start live server and its backup. Start 3rd server with deployed core
@@ -342,12 +411,58 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailoverShutdownWithBridgeWithNettyDiscovery() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, false, Constants.FAILURE_TYPE.SHUTDOWN);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, false, Constants.FAILURE_TYPE.SHUTDOWN, DOES_NOT_MATTER);
     }
 
     /**
      * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge configured to use pre-defined (static) http connector which resends messages from its InQueue to live’s OutQueue.
+     * bridge configured to use pre-defined (static) http connector to both live and backup which resends messages from
+     * its InQueue to live’s OutQueue. Kill live server, wait a while and start live again (failback)
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed core bridge configured to use pre-defined (static) connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Kill live server</li>
+     * <li>start live server again</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailbackKillWithBridgeWithStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.KILL, true);
+    }
+
+    /**
+     * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge configured to use pre-defined (static) http connector to live but no to backup which resends messages from
+     * its InQueue to live’s OutQueue. Kill live server, wait a while and start live again (failback)
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed core bridge configured to use pre-defined (static) connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Kill live server</li>
+     * <li>start live server again</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailbackKillWithBridgeWithNonStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.KILL, false);
+    }
+
+    /**
+     * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge configured to use pre-defined (static) bio connector to both live and backup which resends messages from its InQueue to live’s OutQueue.
      * Kill live server, wait a while and start live again (failback)
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
@@ -364,13 +479,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailbackKillWithBridgeWitStaticConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.KILL);
+    public void testFailbackKillWithBridgeWithStaticNIOConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, true, Constants.FAILURE_TYPE.KILL, true);
     }
 
     /**
      * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge configured to use pre-defined (static) bio connector which resends messages from its InQueue to live’s OutQueue.
+     * bridge configured to use pre-defined (static) bio connector to live but not to backup which resends messages from its InQueue to live’s OutQueue.
      * Kill live server, wait a while and start live again (failback)
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
@@ -387,8 +502,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailbackKillWithBridgeWitStaticNIOConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, true, Constants.FAILURE_TYPE.KILL);
+    public void testFailbackKillWithBridgeWithNonStaticNIOConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, true, Constants.FAILURE_TYPE.KILL, false);
     }
 
     /**
@@ -411,13 +526,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailbackKillWithBridgeWithNettyDiscovery() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, true, Constants.FAILURE_TYPE.KILL);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, true, Constants.FAILURE_TYPE.KILL, DOES_NOT_MATTER);
     }
 
     /**
      * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
-     * bridge configured to use pre-defined (static) http connector which resends messages from its InQueue to live’s OutQueue.
-     * Shut down live server, wait a while and start live again (failback)
+     * bridge configured to use pre-defined (static) http connector to both live and backup which resends messages from
+     * its InQueue to live’s OutQueue. Shut down live server, wait a while and start live again (failback)
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Start 3rd server with deployed core bridge  configured to use pre-defined (static) connector
@@ -434,7 +549,30 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridgeWithStaticConnectors() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.SHUTDOWN);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.SHUTDOWN, true);
+    }
+
+    /**
+     * @tpTestDetails Test failback of JMS bridge. Start live server and its backup. Start 3rd server with deployed core
+     * bridge configured to use pre-defined (static) http connector to live but no to backup which resends messages from
+     * its InQueue to live’s OutQueue. Shut down live server, wait a while and start live again (failback)
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Start 3rd server with deployed core bridge  configured to use pre-defined (static) connector
+     * which sends messages from 3rd server’s InQueue to live’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * <li>Cleanly shut down live server</li>
+     * <li>start live server again</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailbackShutdownWithBridgeWithNonStaticConnectors() throws Exception {
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true, Constants.FAILURE_TYPE.SHUTDOWN, false);
     }
 
     /**
@@ -457,7 +595,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testFailbackShutdownWithBridgeWithDiscovery() throws Exception {
-        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, true, Constants.FAILURE_TYPE.SHUTDOWN);
+        testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, true, Constants.FAILURE_TYPE.SHUTDOWN, DOES_NOT_MATTER);
     }
 
 
@@ -479,7 +617,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testInitialFailbackWithNettyDiscovery() throws Exception {
-        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY);
+        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY, DOES_NOT_MATTER);
     }
 
     /**
@@ -500,11 +638,12 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testInitialFailbackWithJgroupsDiscovery() throws Exception {
-        testInitialFailback(Constants.CONNECTOR_TYPE.JGROUPS_DISCOVERY);
+        testInitialFailback(Constants.CONNECTOR_TYPE.JGROUPS_DISCOVERY, DOES_NOT_MATTER);
     }
 
     /**
      * @tpTestDetails This scenario tests failback of core bridge from backup to live. Core bridge connects to backup first.
+     * Core bridge has pre-defined (static) connectors to both live and backup.
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Stop live server</li>
@@ -521,11 +660,34 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testInitialFailbackWithStaticHttpConnectors() throws Exception {
-        testInitialFailback(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        testInitialFailback(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, true);
     }
 
     /**
      * @tpTestDetails This scenario tests failback of core bridge from backup to live. Core bridge connects to backup first.
+     * Core bridge has pre-defined (static) connector to live but no to backup.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Stop live server</li>
+     * <li>Start 3rd server with deployed Core bridge configured to use pre-defined http connector which sends messages from 3rd server’s
+     * InQueue to backup’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start live server again so failback occurs</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testInitialFailbackWithNonStaticHttpConnectors() throws Exception {
+        testInitialFailback(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false);
+    }
+
+    /**
+     * @tpTestDetails This scenario tests failback of core bridge from backup to live. Core bridge connects to backup first.
+     * Core bridge has pre-defined (static) connectors to both live and backup.
      * @tpProcedure <ul>
      * <li>Start live and its backup server</li>
      * <li>Stop live server</li>
@@ -542,14 +704,36 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testInitialFailbackWithStaticNIOConnectors() throws Exception {
-        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_NIO, true);
+    }
+
+    /**
+     * @tpTestDetails This scenario tests failback of core bridge from backup to live. Core bridge connects to backup first.
+     * Core bridge has pre-defined (static) connector to live but no to backup.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server</li>
+     * <li>Stop live server</li>
+     * <li>Start 3rd server with deployed Core bridge configured to use pre-defined nio connector which sends messages from 3rd server’s
+     * InQueue to backup’s OutQueue</li>
+     * <li>Start producer which sends messages to InQueue</li>
+     * <li>Start live server again so failback occurs</li>
+     * <li>Start consumer which reads messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver will receive all messages which were sent
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testInitialFailbackWithNonStaticNIOConnectors() throws Exception {
+        testInitialFailback(Constants.CONNECTOR_TYPE.NETTY_NIO, false);
     }
 
 
-    protected void prepareServers(Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    protected void prepareServers(Constants.CONNECTOR_TYPE connectorType, boolean connectorToBackup) throws Exception {
         prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, Constants.JOURNAL_TYPE.ASYNCIO, connectorType);
         prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A, Constants.JOURNAL_TYPE.ASYNCIO, connectorType);
-        prepareServerWithBridge(container(3), container(1), container(2), connectorType);
+        prepareServerWithBridge(container(3), container(1), container(2), connectorType, connectorToBackup);
 
     }
 
@@ -680,7 +864,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      *
      * @param container The container - defined in arquillian.xml
      */
-    protected void prepareServerWithBridge(Container container, Container jmsLiveServer, Container jmsBackupServer, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    protected void prepareServerWithBridge(Container container, Container jmsLiveServer, Container jmsBackupServer, Constants.CONNECTOR_TYPE connectorType, boolean connectorToBackup) throws Exception {
 
         String removeSocketBindingToLive = "messaging-bridge";
         String remoteSocketBindingToBackup = "messaging-bridge-backup";
@@ -702,14 +886,22 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 jmsAdminOperations.createHttpConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
                 jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), container(2).getHornetqPort());
                 jmsAdminOperations.createHttpConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, null);
-                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
+                if (connectorToBackup) {
+                    jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
+                } else {
+                    jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive);
+                }
                 break;
             case NETTY_NIO:
                 jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
                 jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), defaultPortForMessagingSocketBinding + container(2).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToBackup, remoteSocketBindingToBackup, null);
-                jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive);
+                if (connectorToBackup) {
+                    jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive, remoteConnectorNameToBackup);
+                } else {
+                    jmsAdminOperations.createCoreBridge("myBridge", "jms.queue." + inQueueName, "jms.queue." + outQueueName, -1, remoteConnectorNameToLive);
+                }
                 break;
             case NETTY_DISCOVERY:
                 jmsAdminOperations.addSocketBinding(messagingGroupSocketBindingForDiscovery, messagingGroupMulticastAddressForDiscovery,
