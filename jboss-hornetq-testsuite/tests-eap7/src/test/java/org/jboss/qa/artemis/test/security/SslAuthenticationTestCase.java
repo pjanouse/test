@@ -122,9 +122,12 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     private static final String KEYSTORE_PROVIDER_PROP_NAME = "key-store-provider";
 
-
     @Before
-    public void stopServerBeforeReconfiguration() {
+    public void cleanUpBeforeTest() {
+        System.clearProperty("javax.net.ssl.keyStore");
+        System.clearProperty("javax.net.ssl.keyStorePassword");
+        System.clearProperty("javax.net.ssl.trustStore");
+        System.clearProperty("javax.net.ssl.trustStorePassword");
         container(1).stop();
     }
 
