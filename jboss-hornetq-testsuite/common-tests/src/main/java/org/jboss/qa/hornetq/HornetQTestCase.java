@@ -1162,7 +1162,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     /**
      * Returns true if the given number of messages is in queue in the given timeout. Otherwise it returns false.
      *
-     * @deprecated use @see JMSTools#waitForNumberOfMessagesInQueue
+     * @deprecated use @see JMSTools#waitUntilNumberOfMessagesInQueueIsBelow
      *
      * @param container                container
      * @param queueCoreName            queue name
