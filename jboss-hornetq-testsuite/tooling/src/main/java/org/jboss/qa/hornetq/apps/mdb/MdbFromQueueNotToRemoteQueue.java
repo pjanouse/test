@@ -1,11 +1,11 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.jms.*;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
@@ -52,6 +53,14 @@ public class MdbFromQueueNotToRemoteQueue implements MessageDrivenBean, MessageL
 
         long time = System.currentTimeMillis();
         int counter = globalCounter.incrementAndGet();
+
+        for (int i = 0; i < (5 + 5 * Math.random()); i++) {
+            try {
+                Thread.sleep((int) (10 + 10 * Math.random()));
+            } catch (InterruptedException ex) {
+            }
+        }
+
         try {
             log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
         } catch (JMSException e) {

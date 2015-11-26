@@ -6,15 +6,23 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.HighCPUUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ProcessIdUtils;
+import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -27,6 +35,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import java.util.Map;
 
 /**
  * @author mnovak@redhat.com
@@ -46,6 +56,7 @@ public class JcaTestCase extends HornetQTestCase {
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
     private final Archive mdbDeployment = createDeployment();
+    private final Archive lodhLikemdb = getLodhLikeMdb();
 
     // queue to send messages in
     static String inQueueName = "InQueue";
@@ -110,21 +121,34 @@ public class JcaTestCase extends HornetQTestCase {
 
     }
 
+    public Archive getLodhLikeMdb() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "lodhLikemdb1.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueWithOutQueueLookups.class, MessageUtils.class);
+        if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        } else {
+            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.apache.activemq.artemis \n"), "MANIFEST.MF");
+        }
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+
+    }
+
     /**
-     *
      * @tpTestDetails Start server. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
      * messages from InQueue and sends them to OutQueue. Read messages from OutQueue
      * @tpProcedure <ul>
-     *     <li>start server with deployed InQueue and OutQueue</li>
-     *     <li>start producer which sends messages to InQueue</li>
-     *     <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
-     *     <li>receive messages from OutQueue</li>
+     * <li>start server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes all messages
      */
     @Test
     @RunAsClient
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testJcaSmallMessages() throws Exception {
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
         testJca(messageBuilder);
@@ -177,24 +201,129 @@ public class JcaTestCase extends HornetQTestCase {
     }
 
     /**
-     *
+     * @tpTestDetails Start 2 servers in cluster. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
+     * messages from InQueue and sends them to OutQueue. During processing of messages cause 100% cpu load on 1st server.
+     * Read messages from OutQueue
+     * @tpProcedure <ul>
+     * <li>start 2 servers in cluster with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit receiver consumes all messages
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testJcaInClusterWithLoad() throws Exception {
+
+        int numberOfMesasges = 10000;
+
+        prepareServer(container(1));
+        prepareServer(container(2));
+
+        container(1).start();
+        container(2).start();
+
+        // send messages to InQueue
+        FinalTestMessageVerifier mdbMessageVerifier = new MdbMessageVerifier();
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMesasges);
+        TextMessageBuilder messageBuilder = new TextMessageBuilder();
+        messageBuilder.setAddDuplicatedHeader(false);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(2));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setJndiProperties(jndiProperties);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.setMessageVerifier(mdbMessageVerifier);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(100);
+        logger.info("Start producer.");
+        producer1.start();
+        producer1.join();
+
+        // deploy MDBs
+        container(1).deploy(lodhLikemdb);
+        container(2).deploy(lodhLikemdb);
+
+        // wait to have some messages in OutQueue
+        new JMSTools().waitForMessages(outQueueName, numberOfMesasges/10, 600000, container(1), container(2));
+
+        // start load on 1st node
+        Container containerUnderLoad = container(1);
+        Process highCpuLoader1 = null;
+        try {
+            // bind EAP server to cpu core
+            String cpuToBind = "0";
+            highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(containerUnderLoad, cpuToBind);
+            logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
+
+            // Wait until some messages are consumed from InQueue
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(2));
+            logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
+        } finally {
+            if (highCpuLoader1 != null) {
+                highCpuLoader1.destroy();
+                try {
+                    ProcessIdUtils.killProcess(ProcessIdUtils.getProcessId(highCpuLoader1));
+                } catch (Exception ex) {
+                    // we just ignore it as it's not fatal not to kill it
+                    logger.warn("Process high cpu loader could not be killed, we're ignoring it it's not fatal usually.", ex);
+                }
+            }
+        }
+
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), false);
+
+        logger.info("Start receiver.");
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 20000, 100, 10);
+        receiver1.setMessageVerifier(mdbMessageVerifier);
+        receiver1.setTimeout(0);
+        receiver1.setAckAfter(100);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        mdbMessageVerifier.verifyMessages();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+        Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", noPreparedTransactions);
+
+
+        container(1).undeploy(lodhLikemdb);
+        container(2).undeploy(lodhLikemdb);
+        container(1).stop();
+        container(2).stop();
+
+    }
+
+    /**
      * @tpTestDetails Start server. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
      * messages from InQueue and sends them to OutQueue. Call twice "start-delivery" on MDB.
      * Read messages from OutQueue
      * @tpInfo https://bugzilla.redhat.com/show_bug.cgi?id=1159572
      * @tpProcedure <ul>
-     *     <li>start server with deployed InQueue and OutQueue</li>
-     *     <li>start producer which sends messages to InQueue</li>
-     *     <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
-     *     <li>wait for producer to send few messages</li>
-     *     <li>call operation "start-delivery" on MDB via model-node twice<li/>
-     *     <li>receive messages from OutQueue</li>
+     * <li>start server with deployed InQueue and OutQueue</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB to server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>wait for producer to send few messages</li>
+     * <li>call operation "start-delivery" on MDB via model-node twice<li/>
+     * <li>receive messages from OutQueue</li>
      * </ul>
      * @tpPassCrit receiver consumes same amount of messages as was sent
      */
     @Test
     @RunAsClient
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testJcaWithDoubleStartOfDelivery() throws Exception {
 
         int numberOfMessages = 100;
@@ -213,7 +342,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        new JMSTools().waitForNumberOfMessagesInQueue(container(1), outQueueName, numberOfMessages/10, 60000);
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), outQueueName, numberOfMessages * 9 / 10, 60000);
 
         // call stop delivery
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -270,29 +399,14 @@ public class JcaTestCase extends HornetQTestCase {
     private void prepareJmsServer(Container container, String connectionFactoryName) {
 
         container.start();
-
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-        jmsAdminOperations.removeClusteringGroup("my-cluster");
-        jmsAdminOperations.removeBroadcastGroup("bg-group1");
-        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
         jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
         jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 20);
-
-        try {
-            jmsAdminOperations.removeQueue(inQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
+        jmsAdminOperations.setTransactionTimeout(60000);
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-
-        try {
-            jmsAdminOperations.removeQueue(outQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
         jmsAdminOperations.close();
         container.stop();

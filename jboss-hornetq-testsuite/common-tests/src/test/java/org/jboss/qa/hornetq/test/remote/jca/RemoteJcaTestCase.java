@@ -15,7 +15,6 @@ import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatefulBean;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatelessBean;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -301,12 +300,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         long startTime = System.currentTimeMillis();
         long timeout = 60000;
-        while (countMessagesAcrossCluster(inQueueName, container(1), container(3)) > 0 && System.currentTimeMillis() - startTime < timeout) {
+        while (new JMSTools().countMessages(inQueueName, container(1), container(3)) > 0 && System.currentTimeMillis() - startTime < timeout) {
             logger.info("Waiting for all messages to be read from " + inQueueName);
             Thread.sleep(1000);
         }
         Assert.assertEquals("There are still messages in " + inQueueName + " after timeout " + timeout + "ms.",
-                0, countMessagesAcrossCluster(inQueueName, container(1), container(3)));
+                0, new JMSTools().countMessages(inQueueName, container(1), container(3)));
 
         int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
         int numberOfNewConnections3 = countConnectionOnContainer(container(3)) - initialNumberOfConnections3;
@@ -320,6 +319,77 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Number of connections should be almost equal. Number of new connections on node " + container(1).getName()
                         + " is " + numberOfNewConnections1 + " and node " + container(3).getName() + " is " + numberOfNewConnections3,
                 Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 3);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 3 servers(1, 2, 3). Deploy InQueue
+     * to 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
+     * messages to InQueue to 1. Deploy MDB to 2nd server which reads
+     * messages from InQueue. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 1st servers with deployed InQueue</li>
+     * <li>deploy MDB to 2nd server which reads messages from InQueue</li>
+     * <li>start 3rd server with deployed InQueue</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUp() throws Exception {
+
+        int numberOfMessages = 10000;
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        // cluster A
+        container(1).start();
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        producer1.setTimeout(0);
+        producer1.setMessageBuilder(new TextMessageBuilder(1));
+        producer1.start();
+        producer1.join();
+
+        container(2).start();
+        container(2).deploy(mdbWithOnlyInbound);
+
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages*9/10, 120000);
+        // get number of connections and consumers from server 1 and connections
+        int initialNumberOfConnections1 = countConnectionOnContainer(container(1));
+        int initialNumberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + initialNumberOfConsumer1 + " and connections " + initialNumberOfConnections1);
+
+        // start 3rd server
+        logger.info("Start container node-3");
+        container(3).start();
+        logger.info("Container node-3 started");
+
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages/5, 120000);
+
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+
+        // get number of connections from server 3 and 1
+        int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
+        int numberOfConnections3 = countConnectionOnContainer(container(3));
+
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1 + " and connections " + initialNumberOfConnections1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3 + " and connections " + numberOfConnections3);
+
+//        container(2).undeploy(mdbWithOnlyInbound);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
+
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
     }
 
     /**
@@ -399,7 +469,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         closeConnectionsInEjb(ejbs);
 
         Assert.assertEquals("There is wrong number of messages in " + outQueueName + ". Expected number of messages is: " + numberOfEjbs,
-                numberOfEjbs, countMessagesAcrossCluster(outQueueName, container(1), container(3)));
+                numberOfEjbs, new JMSTools().countMessages(outQueueName, container(1), container(3)));
 
 
         container(2).undeploy(ejbSenderStatefulBean);
@@ -462,7 +532,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         closeConnectionsInEjb(ejbs);
 
         Assert.assertEquals("There is wrong number of messages in " + outQueueName + ". Expected number of messages is: " + 2 * numberOfEjbs,
-                2 * numberOfEjbs, countMessagesAcrossCluster(outQueueName, container(1), container(3)));
+                2 * numberOfEjbs, new JMSTools().countMessages(outQueueName, container(1), container(3)));
 
         container(2).undeploy(ejbSenderStatefulBean);
 
@@ -500,23 +570,21 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
     }
 
-    private long countMessagesAcrossCluster(String queue, Container... containers) {
-        long count = 0;
-        for (Container container : containers) {
-            JMSOperations jmsOperations = container.getJmsOperations();
-            count = count + jmsOperations.getCountOfMessagesOnQueue(queue);
-            jmsOperations.close();
-        }
-        return count;
-    }
-
-
     private int countConnectionOnContainer(Container container) {
         int count = 0;
         JMSOperations jmsOperations = container.getJmsOperations();
         count = jmsOperations.countConnections();
         jmsOperations.close();
         logger.info("Number of connections in container: " + container.getName() + " is " + count);
+        return count;
+    }
+
+    private int countNumberOfConsumers(Container container, String coreQueueName) {
+
+        JMSOperations jmsOperations = container.getJmsOperations();
+        int count = jmsOperations.getNumberOfConsumersOnQueue(coreQueueName);
+        jmsOperations.close();
+        logger.info("Number of consumers on queue: " + coreQueueName + " on container: " + container.getName() + " is " + count);
         return count;
     }
 
@@ -767,7 +835,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         container(2).deploy(mdb1);
 
-        new JMSTools().waitForNumberOfMessagesInQueue(container(1), inQueueName, numberOfMessages / 10, 120000);
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages*9 / 10, 120000);
 
         container(2).undeploy(mdb1);
         container(2).stop();
@@ -1114,7 +1182,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         switch (connectorType) {

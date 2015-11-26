@@ -78,7 +78,7 @@ public final class JMSTools {
     }
 
     /**
-     * Waits until all containers in the given queue contains the given number
+     * Waits until sum of messages in queue in containers contains the given number
      * of messages
      *
      * @param queueName        queue name
@@ -309,7 +309,7 @@ public final class JMSTools {
     }
 
     /**
-     * Returns true if the given number of messages is in queue in the given
+     * Returns true if the given number of messages get below the specified expectedNumberOfMessages in queue in the given
      * timeout. Otherwise it returns false.
      *
      * @param container                container
@@ -320,14 +320,14 @@ public final class JMSTools {
      * given timeout. Otherwise it returns false.
      * @throws Exception
      */
-    public boolean waitForNumberOfMessagesInQueue(org.jboss.qa.hornetq.Container container, String queueCoreName,
-                                                  int expectedNumberOfMessages, long timeout) throws Exception {
+    public boolean waitUntilNumberOfMessagesInQueueIsBelow(org.jboss.qa.hornetq.Container container, String queueCoreName,
+                                                           int expectedNumberOfMessages, long timeout) throws Exception {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         long startTime = System.currentTimeMillis();
 
-        while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) < expectedNumberOfMessages
+        while ((jmsAdminOperations.getCountOfMessagesOnQueue(queueCoreName)) > expectedNumberOfMessages
                 && System.currentTimeMillis() - startTime < timeout) {
             Thread.sleep(500);
         }

@@ -381,7 +381,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         producer1.setMessageVerifier(messageVerifier);
         producer1.start();
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages/2, 600000, container(1), container(3));
+        new JMSTools().waitForMessages(inQueueName, numberOfMessages/2, 600000, container(1), container(3));
 
         // deploy mdb
         container(2).deploy(mdbToDeploy);
@@ -392,19 +392,13 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         int containerToSuspenId = ProcessIdUtils.getProcessId(containerToSuspend);
         logger.info("Going to suspend server: " + containerToSuspend.getName());
         ProcessIdUtils.suspendProcess(containerToSuspenId);
-        Thread.sleep(60000);
+        Thread.sleep(600000);
         logger.info("Going to resume server: " + containerToSuspend.getName());
         ProcessIdUtils.resumeProcess(containerToSuspenId);
 
-<<<<<<< HEAD
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
-=======
         producer1.join();
-
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), false);
->>>>>>> Wait until half of the messages is in InQueue to deploy mdb
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
