@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 import org.junit.After;
@@ -147,8 +148,9 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setClustered(false);
+        if (ContainerUtils.isEAP6(container)) {
+            jmsAdminOperations.setClustered(false);
+        }
         jmsAdminOperations.setPersistenceEnabled(true);
 
         jmsAdminOperations.disableSecurity();
@@ -197,15 +199,18 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
         String sourceDestination = relativeJndiInQueueName;
+        String protocol="http-remoting://";
 //        Map<String,String> sourceContext = new HashMap<String, String>();
 //        sourceContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
 //        sourceContext.put("java.naming.provider.url", "remote://" + getHostname(containerName) + ":4447");
 
         String targetDestination = relativeJndiInQueueName;
         Map<String,String> targetContext = new HashMap<String, String>();
+        if(ContainerUtils.isEAP6(container(2))){
+            protocol="remote://";
+        }
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + container(2).getHostname() + ":" + getJNDIPort(
-                CONTAINER2_NAME));
+        targetContext.put("java.naming.provider.url", protocol + container(2).getHostname() + ":" + container(2).getJNDIPort());
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
