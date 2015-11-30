@@ -209,6 +209,11 @@ public class ContainerEAP6 implements Container {
 
     }
 
+    @Override
+    public int getJGroupsTcpPort()  {
+        return Constants.JGROUPS_TCP_PORT_DEFAULT_EAP6 + getPortOffset();
+    }
+
 
     @Override
     public void stop() {

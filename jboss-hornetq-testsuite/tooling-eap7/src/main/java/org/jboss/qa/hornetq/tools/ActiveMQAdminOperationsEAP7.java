@@ -15,17 +15,9 @@ import org.kohsuke.MetaInfServices;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.Exception;
-import java.lang.Override;
-import java.lang.System;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
@@ -3778,6 +3770,101 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void setFactoryType(String connectionFactoryName, String factoryType) {
         setFactoryType(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, factoryType);
+    }
+
+    /**
+     * Removes jgroups stack
+     *
+     * @param stackName "udp", "tcp",...
+     */
+    @Override
+    public void removeJGroupsStack(String stackName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters) {
+        /*
+            batch
+            /subsystem="jgroups"/stack="tcpping":add()
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="TCPPING")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="initial_hosts":add(value="192.168.10.1[7600],192.168.10.2[7600]")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="port_range":add(value="10")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="timeout":add(value="3000")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="num_initial_members":add(value="2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MERGE2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(socket-binding="jgroups-tcp-fd",type="FD_SOCK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FD")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="VERIFY_SUSPECT")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="BARRIER")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.NAKACK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UNICAST2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.STABLE")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.GMS")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FRAG2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="RSVP")
+            /subsystem="jgroups"/stack="tcpping"/transport="TRANSPORT":add(socket-binding="jgroups-tcp",type="TCP")
+            run-batch
+         */
+        ModelNode composite = new ModelNode();
+        composite.get(ClientConstants.OP).set("composite");
+        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+
+        ModelNode modelAddStack = new ModelNode();
+        modelAddStack.get(ClientConstants.OP).set(ClientConstants.ADD);
+        modelAddStack.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        modelAddStack.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        composite.get(ClientConstants.STEPS).add(modelAddStack);
+
+        for (String protocol : protocols.keySet())  {
+            ModelNode addProtocol = new ModelNode();
+            addProtocol.get(ClientConstants.OP).set("add-protocol");
+            addProtocol.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+            addProtocol.get(ClientConstants.OP_ADDR).add("stack", stackName);
+            addProtocol.get("type").set(protocol);
+            composite.get(ClientConstants.STEPS).add(addProtocol);
+
+            Properties protocolProperties = protocols.get(protocol);
+            if (protocolProperties != null && protocolProperties.size() > 0) {
+                for (String paramName : protocolProperties.stringPropertyNames()) {
+                    ModelNode addParam = new ModelNode();
+                    addParam.get(ClientConstants.OP).set(ClientConstants.ADD);
+                    addParam.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+                    addParam.get(ClientConstants.OP_ADDR).add("stack", stackName);
+                    addParam.get(ClientConstants.OP_ADDR).add("protocol", protocol);
+                    addParam.get(ClientConstants.OP_ADDR).add("property", paramName);
+                    addParam.get("value").set(protocolProperties.getProperty(paramName));
+                    composite.get(ClientConstants.STEPS).add(addParam);
+                }
+            }
+        }
+
+        ModelNode transport = new ModelNode();
+        transport.get(ClientConstants.OP).set(ClientConstants.ADD);
+        transport.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        transport.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        transport.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        for (String paramName : transportParameters.stringPropertyNames()) {
+            transport.get(paramName).set(transportParameters.getProperty(paramName));
+        }
+        composite.get(ClientConstants.STEPS).add(transport);
+
+        try {
+            this.applyUpdate(composite);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

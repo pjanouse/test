@@ -6,9 +6,7 @@ package org.jboss.qa.hornetq.tools;
 
 import org.jboss.shrinkwrap.api.Archive;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -1629,6 +1627,10 @@ public interface JMSOperations {
     void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
     void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
+
+    void removeJGroupsStack(String stackName);
+
+    void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters);
 
     void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
                           String discoveryGroupName);

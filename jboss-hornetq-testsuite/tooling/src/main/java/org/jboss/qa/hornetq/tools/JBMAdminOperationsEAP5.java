@@ -2009,6 +2009,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void removeJGroupsStack(String stackName) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Override
+    public void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha, String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }

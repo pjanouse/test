@@ -61,6 +61,9 @@ public interface Container {
     // ContainerController delegates
     void start();
     void start(Map<String,String> containerProperties);
+
+    int getJGroupsTcpPort();
+
     void stop();
     void kill();
     void waitForKill();

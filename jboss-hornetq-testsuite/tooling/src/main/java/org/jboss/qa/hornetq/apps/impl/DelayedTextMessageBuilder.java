@@ -1,13 +1,13 @@
 package org.jboss.qa.hornetq.apps.impl;
 
 
-import java.util.UUID;
-import javax.jms.Message;
-
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
 import org.jboss.qa.hornetq.tools.RandomStringGenerator;
+
+import javax.jms.Message;
+import java.util.UUID;
 
 
 /**
@@ -17,9 +17,6 @@ import org.jboss.qa.hornetq.tools.RandomStringGenerator;
  * delay after they were sent to the destination.
  */
 public class DelayedTextMessageBuilder implements MessageBuilder {
-
-    private static final String DUPLICATE_ID_HEADER =
-            HornetqJMSImplementation.getInstance().getDuplicatedHeader();
 
     private final int textLength;
     private final long messageDelay;
@@ -42,7 +39,8 @@ public class DelayedTextMessageBuilder implements MessageBuilder {
         msg.setLongProperty(jmsImplementation.getScheduledDeliveryTimeHeader(), System.currentTimeMillis() + messageDelay);
         msg.setIntProperty(MESSAGE_COUNTER_PROPERTY, counter++);
         if (isAddDuplicatedHeader())    {
-            msg.setStringProperty(DUPLICATE_ID_HEADER, String.valueOf(UUID.randomUUID()));
+            String uuid = String.valueOf(UUID.randomUUID());
+            msg.setStringProperty(jmsImplementation.getDuplicatedHeader(), uuid);
         }
         return msg;
     }

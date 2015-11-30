@@ -2262,6 +2262,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void removeJGroupsStack(String stackName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
             String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());

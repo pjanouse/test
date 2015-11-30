@@ -3788,6 +3788,101 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             logger.error(e);
         }
 
+    }
+
+    /**
+     * Removes jgroups stack
+     *
+     * @param stackName "udp", "tcp",...
+     */
+    @Override
+    public void removeJGroupsStack(String stackName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters) {
+        /*
+            batch
+            /subsystem="jgroups"/stack="tcpping":add()
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="TCPPING")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="initial_hosts":add(value="192.168.10.1[7600],192.168.10.2[7600]")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="port_range":add(value="10")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="timeout":add(value="3000")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="num_initial_members":add(value="2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MERGE2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(socket-binding="jgroups-tcp-fd",type="FD_SOCK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FD")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="VERIFY_SUSPECT")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="BARRIER")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.NAKACK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UNICAST2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.STABLE")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.GMS")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FRAG2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="RSVP")
+            /subsystem="jgroups"/stack="tcpping"/transport="TRANSPORT":add(socket-binding="jgroups-tcp",type="TCP")
+            run-batch
+         */
+        ModelNode composite = new ModelNode();
+        composite.get(ClientConstants.OP).set("composite");
+        composite.get(ClientConstants.OP_ADDR).setEmptyList();
+        composite.get(ClientConstants.OPERATION_HEADERS, ClientConstants.ROLLBACK_ON_RUNTIME_FAILURE).set(false);
+
+        ModelNode modelAddStack = new ModelNode();
+        modelAddStack.get(ClientConstants.OP).set(ClientConstants.ADD);
+        modelAddStack.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        modelAddStack.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        composite.get(ClientConstants.STEPS).add(modelAddStack);
+
+        for (String protocol : protocols.keySet())  {
+            ModelNode addProtocol = new ModelNode();
+            addProtocol.get(ClientConstants.OP).set("add-protocol");
+            addProtocol.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+            addProtocol.get(ClientConstants.OP_ADDR).add("stack", stackName);
+            addProtocol.get("type").set(protocol);
+            composite.get(ClientConstants.STEPS).add(addProtocol);
+
+            Properties protocolProperties = protocols.get(protocol);
+            if (protocolProperties != null && protocolProperties.size() > 0) {
+                for (String paramName : protocolProperties.stringPropertyNames()) {
+                    ModelNode addParam = new ModelNode();
+                    addParam.get(ClientConstants.OP).set(ClientConstants.ADD);
+                    addParam.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+                    addParam.get(ClientConstants.OP_ADDR).add("stack", stackName);
+                    addParam.get(ClientConstants.OP_ADDR).add("protocol", protocol);
+                    addParam.get(ClientConstants.OP_ADDR).add("property", paramName);
+                    addParam.get("value").set(protocolProperties.getProperty(paramName));
+                    composite.get(ClientConstants.STEPS).add(addParam);
+                }
+            }
+        }
+
+        ModelNode transport = new ModelNode();
+        transport.get(ClientConstants.OP).set(ClientConstants.ADD);
+        transport.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+        transport.get(ClientConstants.OP_ADDR).add("stack", stackName);
+        transport.get(ClientConstants.OP_ADDR).add("transport", "TRANSPORT");
+        for (String paramName : transportParameters.stringPropertyNames()) {
+            transport.get(paramName).set(transportParameters.getProperty(paramName));
+        }
+        composite.get(ClientConstants.STEPS).add(transport);
+
+        try {
+            this.applyUpdate(composite);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -5218,9 +5313,63 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
-//            jmsAdminOperations.setHostname("127.0.0.1");
-//            jmsAdminOperations.setPort(9999);
-//            jmsAdminOperations.connect();
+            jmsAdminOperations.setHostname("127.0.0.1");
+            jmsAdminOperations.setPort(9999);
+            jmsAdminOperations.connect();
+            jmsAdminOperations.removeJGroupsStack("tcp");
+            /*
+            batch
+            /subsystem="jgroups"/stack="tcpping":add()
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="TCPPING")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="initial_hosts":add(value="192.168.10.1[7600],192.168.10.2[7600]")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="port_range":add(value="10")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="timeout":add(value="3000")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="num_initial_members":add(value="2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MERGE2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(socket-binding="jgroups-tcp-fd",type="FD_SOCK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FD")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="VERIFY_SUSPECT")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="BARRIER")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.NAKACK")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UNICAST2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.STABLE")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="pbcast.GMS")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="UFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="MFC")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="FRAG2")
+            /subsystem="jgroups"/stack="tcpping":add-protocol(type="RSVP")
+            /subsystem="jgroups"/stack="tcpping"/transport="TRANSPORT":add(socket-binding="jgroups-tcp",type="TCP")
+            run-batch
+         */
+            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+            Properties tcpPingProperties = new Properties();
+            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
+            tcpPingProperties.put("port_range", "10");
+            tcpPingProperties.put("timeout", "3000");
+            tcpPingProperties.put("num_initial_members", "2");
+            protocols.put("TCPPING", tcpPingProperties);
+            protocols.put("MERGE2", null);
+            protocols.put("FD_SOCK", null);
+            protocols.put("FD", null);
+            protocols.put("VERIFY_SUSPECT", null);
+            protocols.put("BARRIER", null);
+            protocols.put("UNICAST2", null);
+            protocols.put("pbcast.STABLE", null);
+            protocols.put("pbcast.GMS", null);
+            protocols.put("UFC", null);
+            protocols.put("MFC", null);
+            protocols.put("FRAG2", null);
+            protocols.put("RSVP", null);
+
+            Properties transportProperties = new Properties();
+            transportProperties.put("socket-binding", "jgroups-tcp");
+            transportProperties.put("type", "TCP");
+            jmsAdminOperations.addJGroupsStack("tcp", protocols, transportProperties);
+
+
+
+
+
 //
 //            final Properties env = new Properties();
 //            env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
@@ -5239,29 +5388,29 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 //            }
 //            ctx.close();
 
-            JavaProcessBuilder javaProcessBuilder = new JavaProcessBuilder();
-            javaProcessBuilder.addClasspathEntry(System.getProperty("java.class.path"));
-            javaProcessBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-            javaProcessBuilder.setMainClass(CpuLoadGenerator.class.getName());
-            try {
-
-                Process process = javaProcessBuilder.startProcess();
-
-                int pid = 0;
-                if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
-                    try {
-                        Field f = process.getClass().getDeclaredField("pid");
-                        f.setAccessible(true);
-                        pid = f.getInt(process);
-                    } catch (Throwable e) {
-                    }
-                }
-                System.out.println(pid);
-                process.waitFor();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            JavaProcessBuilder javaProcessBuilder = new JavaProcessBuilder();
+//            javaProcessBuilder.addClasspathEntry(System.getProperty("java.class.path"));
+//            javaProcessBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
+//            javaProcessBuilder.setMainClass(CpuLoadGenerator.class.getName());
+//            try {
+//
+//                Process process = javaProcessBuilder.startProcess();
+//
+//                int pid = 0;
+//                if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+//                    try {
+//                        Field f = process.getClass().getDeclaredField("pid");
+//                        f.setAccessible(true);
+//                        pid = f.getInt(process);
+//                    } catch (Throwable e) {
+//                    }
+//                }
+//                System.out.println(pid);
+//                process.waitFor();
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
 //            for (int i = 0; i < 1000; i++) {
 //                simpleSendEJB.sendMessage();
@@ -5357,7 +5506,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
 //            jmsAdminOperations.close();
         } finally {
-//            jmsAdminOperations.close();
+            jmsAdminOperations.close();
         }
     }
 

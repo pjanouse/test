@@ -18,7 +18,9 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.*;
+import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -35,10 +37,7 @@ import org.junit.runner.RunWith;
 import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is modified lodh 2 test case which is testing remote jca in cluster and
@@ -343,7 +342,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void testLoadBalancingOfInboundConnectionsToClusterScaleUp() throws Exception {
 
         int numberOfMessages = 10000;
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
         // cluster A
         container(1).start();
 
@@ -1176,7 +1175,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    private void setConnectorTypeForPooledConnectionFactoryEAP6(Container container, Constants.CONNECTOR_TYPE connectorType, Container[] remoteSever) {
+    private void setConnectorTypeForPooledConnectionFactoryEAP6(Container container, Constants.CONNECTOR_TYPE connectorType, Container[] remoteContainers) {
         String remoteSocketBindingPrefix = "socket-binding-to-";
         String remoteConnectorNamePrefix = "connector-to-node-";
         String discoveryGroupName = "dg-group1";
@@ -1186,7 +1185,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         switch (connectorType) {
             case NETTY_BIO:
-                for (Container c : remoteSever) {
+                for (Container c : remoteContainers) {
                     jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingPrefix + c.getName(), c.getHostname(), c.getHornetqPort());
                 }
                 jmsAdminOperations.close();
@@ -1195,7 +1194,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
                 List<String> remoteConnectorList = new ArrayList<String>();
-                for (Container c : remoteSever) {
+                for (Container c : remoteContainers) {
                     String remoteConnectorNameForRemoteContainer = remoteConnectorNamePrefix + c.getName();
                     jmsAdminOperations.removeRemoteConnector(remoteConnectorNameForRemoteContainer);
                     jmsAdminOperations.createRemoteConnector(remoteConnectorNameForRemoteContainer,
@@ -1214,8 +1213,45 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP6, discoveryGroupName);
                 break;
-            default:
+            case JGROUPS_TCP:
+                String jgroupsStackName = "tcp";
+                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+                Properties tcpPingProperties = new Properties();
+                StringBuilder initialHosts = new StringBuilder();
+                for (Container c : remoteContainers) {
+                    initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
+                }
+                initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
+                tcpPingProperties.put("initial_hosts", initialHosts);
+                tcpPingProperties.put("port_range", "10");
+                tcpPingProperties.put("timeout", "3000");
+                tcpPingProperties.put("num_initial_members", remoteContainers.length);
+                protocols.put("TCPPING", tcpPingProperties);
+                protocols.put("MERGE2", null);
+                protocols.put("FD_SOCK", null);
+                protocols.put("FD", null);
+                protocols.put("VERIFY_SUSPECT", null);
+                protocols.put("BARRIER", null);
+                protocols.put("UNICAST2", null);
+                protocols.put("pbcast.STABLE", null);
+                protocols.put("pbcast.GMS", null);
+                protocols.put("UFC", null);
+                protocols.put("MFC", null);
+                protocols.put("FRAG2", null);
+                protocols.put("RSVP", null);
+                Properties transportProperties = new Properties();
+                transportProperties.put("socket-binding", "jgroups-tcp");
+                transportProperties.put("type", "TCP");
+                jmsAdminOperations.removeJGroupsStack(jgroupsStackName);
+                jmsAdminOperations.addJGroupsStack(jgroupsStackName, protocols, transportProperties);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, jgroupsStackName, jgroupsStackName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP6, discoveryGroupName);
                 break;
+            default:
+                throw new RuntimeException("Type of connector unknown for EAP 6");
         }
         jmsAdminOperations.close();
 

@@ -13,6 +13,7 @@ public class Constants {
     public static final int PORT_HORNETQ_DEFAULT_EAP6 = 5445;
     public static final int PORT_HORNETQ_BACKUP_DEFAULT_EAP6 = 5446;
     public static final int MANAGEMENT_PORT_DEFAULT_EAP6 = 9999;
+    public static final int JGROUPS_TCP_PORT_DEFAULT_EAP6 = 7600;
     public static final int JNDI_PORT_DEFAULT_EAP6 = 4447;
 
     public static final String CONNECTION_FACTORY_EAP6 = "RemoteConnectionFactory";
@@ -27,6 +28,7 @@ public class Constants {
 
     // EAP 7
     public static final int MANAGEMENT_PORT_DEFAULT_EAP7 = 9990;
+    public static final int JGROUPS_TCP_PORT_DEFAULT_EAP7 = 7600;
     public static final int PORT_HORNETQ_DEFAULT_EAP7 = 8080;
     public static final int LEGACY_PORT_HORNETQ_DEFAULT_EAP7 = 5445;
     public static final int PORT_HORNETQ_DEFAULT_BACKUP_EAP7 = 8080;
@@ -62,7 +64,8 @@ public class Constants {
         NETTY_NIO,
         HTTP_CONNECTOR,
         NETTY_DISCOVERY,
-        JGROUPS_DISCOVERY
+        JGROUPS_DISCOVERY,
+        JGROUPS_TCP
     }
 
     public enum JOURNAL_TYPE
