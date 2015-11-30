@@ -48,6 +48,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private static String NAME_OF_UNDERTOW_SUBSYSTEM = "undertow";
     private static String NAME_OF_UNDERTOW_DEFAULT_SERVER = "default-server";
     private static String NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER = "server";
+    private static String NAME_OF_JGROUPS_SUBSYSTEM = "jgroups";
+
 
     // Logger
     private static final Logger logger = Logger.getLogger(ActiveMQAdminOperationsEAP7.class);
@@ -3820,19 +3822,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             logger.error(e);
         }
 
-        model = createModelNode();
-        model.get(ClientConstants.OP).set("add");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
-        model.get(ClientConstants.OP_ADDR).add("stack", stackName);
-        model.get(ClientConstants.OP_ADDR).add("transport", "UDP");
-        model.get(ClientConstants.OP_ADDR).add("property", "gossip_router_hosts");
-        model.get("value").set(gosshipRouterAddress + "[" + gosshipRouterPort + "]");
-
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            logger.error(e);
-        }
+        setTunnelForJGroups(gosshipRouterAddress,gosshipRouterPort);
 
         model = createModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -4518,7 +4508,32 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort) {
-        logger.info("This operation is not supported: " + getMethodName());
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", "udp");
+        model.get(ClientConstants.OP_ADDR).add("protocol", "TUNNEL");
+        model.get("type").set("TUNNEL");
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "jgroups");
+        model.get(ClientConstants.OP_ADDR).add("stack", "udp");
+        model.get(ClientConstants.OP_ADDR).add("protocol", "TUNNEL");
+        model.get(ClientConstants.OP_ADDR).add("property", "gossip_router_hosts");
+        model.get("value").set(gossipRouterHostname+"["+gossipRouterPort+"]");
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**

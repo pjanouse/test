@@ -1925,7 +1925,7 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * @tpTestDetails Start 2 servers in cluster with message grouping. First
      * server has LOCAL group handler second has REMOTE. Create one consumer on
-     * node-2 and tow producers (one for each server). Producers starts sending
+     * node-2 and two producers (one for each server). Producers starts sending
      * messages to inQueue, each producer uses own group-id. After producers
      * finish, node-1 is killed and started again. Then two new consumers are
      * created with same configuration as previous one. Wait for consumer and

@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -361,7 +362,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -437,7 +438,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         container(2).start(); // B1
 
 
-        GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
+        GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ArtemisJMSImplementation.getInstance());
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1), relativeJndiInQueueName, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
