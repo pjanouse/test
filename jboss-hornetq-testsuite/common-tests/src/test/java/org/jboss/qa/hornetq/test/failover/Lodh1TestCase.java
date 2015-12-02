@@ -386,7 +386,8 @@ public class Lodh1TestCase extends HornetQTestCase {
             Assert.fail("Message must be null but it's: " + receiveMessage);
         }
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1), true);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1), 0, true);
+
         // now other instance of MDB will process the message
         receiveMessage = consumer.receive(5000);
         Assert.assertNotNull("Must not be null.", receiveMessage);

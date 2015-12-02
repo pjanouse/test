@@ -8,19 +8,20 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatefulBean;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatelessBean;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -57,14 +58,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
     private final Archive mdb1 = getMdb1();
+    private final Archive mdb2 = getMdb2();
     private final Archive mdbWithOnlyInbound = getMdbWithOnlyInboundConnection();
     private final Archive ejbSenderStatefulBean = getEjbSenderStatefulBean();
     private final Archive ejbSenderStatelessBean = getEjbSenderStatelessBean();
     private final Archive mdb1OnNonDurable = getMdb1OnNonDurable();
-    private final Archive mdb2 = getMdb2();
 
     private String messagingGroupSocketBindingName = "messaging-group";
-
+    private int messagingGroupMulticastPort = 9876;
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -153,9 +154,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     public Archive getMdb2() {
-
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -355,7 +359,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(2).start();
         container(2).deploy(mdbWithOnlyInbound);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages*9/10, 120000);
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
         // get number of connections and consumers from server 1 and connections
         int initialNumberOfConnections1 = countConnectionOnContainer(container(1));
         int initialNumberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
@@ -366,7 +370,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).start();
         logger.info("Container node-3 started");
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages/5, 120000);
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000);
 
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
@@ -381,7 +385,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1 + " and connections " + initialNumberOfConnections1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3 + " and connections " + numberOfConnections3);
 
-//        container(2).undeploy(mdbWithOnlyInbound);
+        container(2).undeploy(mdbWithOnlyInbound);
         container(2).stop();
         container(1).stop();
         container(3).stop();
@@ -389,6 +393,151 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         // assert that number of consumers on both server is almost equal
         Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+
+    }
+
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterOneServerRestart() throws Exception {
+
+        int numberOfMessages = 10000;
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+
+        container(1).start();
+
+        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        producer1.setTimeout(0);
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.start();
+        producer1.join();
+
+        container(2).start();
+        container(3).start();
+        container(2).deploy(mdb1);
+        container(4).start();
+        container(4).deploy(mdb1);
+
+        container(1).restart();
+        container(2).restart();
+        container(4).restart();
+        container(3).restart();
+
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
+
+
+        Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+
+        container(2).undeploy(mdbWithOnlyInbound);
+        container(4).undeploy(mdbWithOnlyInbound);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
+        container(4).stop();
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterJmsMdbServerStopStart() throws Exception {
+        testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(container(2), container(1));
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterTwoJmsServerStopStart() throws Exception {
+        testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(container(1), container(3));
+    }
+
+    public void testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(Container container1, Container container2) throws Exception {
+
+        int numberOfMessages = 10000;
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+
+        container(1).start();
+
+        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        producer1.setTimeout(0);
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.start();
+        producer1.join();
+
+        container(2).start();
+        container(3).start();
+        container(2).deploy(mdb1);
+        container(4).start();
+        container(4).deploy(mdb1);
+
+        // stop start jms and mdb server
+        container1.stop();
+        container2.stop();
+        container1.start();
+        container2.start();
+
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
+
+
+        Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+
+        container(2).undeploy(mdbWithOnlyInbound);
+        container(4).undeploy(mdbWithOnlyInbound);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
+        container(4).stop();
     }
 
     /**
@@ -834,7 +983,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         container(2).deploy(mdb1);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages*9 / 10, 120000);
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
 
         container(2).undeploy(mdb1);
         container(2).stop();
@@ -977,7 +1126,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopologyEAP6(connectorType);
         } else {
-            prepareRemoteJcaTopologyEAP7();
+            prepareRemoteJcaTopologyEAP7(connectorType);
         }
     }
 
@@ -988,10 +1137,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      */
     public void prepareRemoteJcaTopologyEAP6(Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
-        prepareJmsServerEAP6(container(1));
+        prepareJmsServerEAP6(container(1), connectorType, container(1), container(3));
         prepareMdbServerEAP6(container(2), connectorType, container(1), container(3));
 
-        prepareJmsServerEAP6(container(3));
+        prepareJmsServerEAP6(container(3), connectorType, container(1), container(3));
         prepareMdbServerEAP6(container(4), connectorType, container(1), container(3));
 
         copyApplicationPropertiesFiles();
@@ -1003,13 +1152,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopologyEAP7() throws Exception {
+    public void prepareRemoteJcaTopologyEAP7(Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
-        prepareJmsServerEAP7(container(1));
-        prepareMdbServerEAP7(container(2), container(1));
+        prepareJmsServerEAP7(container(1), connectorType, container(1), container(3));
+        prepareMdbServerEAP7(container(2), connectorType, container(1), container(3));
 
-        prepareJmsServerEAP7(container(3));
-        prepareMdbServerEAP7(container(4), container(1));
+        prepareJmsServerEAP7(container(3), connectorType, container(1), container(3));
+        prepareMdbServerEAP7(container(4), connectorType, container(1), container(3));
 
         copyApplicationPropertiesFiles();
 
@@ -1020,7 +1169,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServerEAP6(Container container) {
+    private void prepareJmsServerEAP6(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1029,36 +1178,129 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
         jmsAdminOperations.setClustered(true);
-
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        String socketBindingPrefix = "socket-binding-to-";
+        String connectorPrefix = "connector-to-";
+        switch (connectorType) {
+            case NETTY_BIO:
+
+                for (Container remoteContainer : remoteContainers) {
+                    // create outbound socket bindings
+                    jmsAdminOperations.addRemoteSocketBinding(socketBindingPrefix + remoteContainer.getName(), remoteContainer.getHostname(), remoteContainer.getHornetqPort());
+                }
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+                List<String> staticConnectorsNames = new ArrayList<String>();
+                for (Container remoteContainer : remoteContainers) {
+                    // create static connector
+                    String staticBIOConnectorName = connectorPrefix + remoteContainer.getName();
+                    jmsAdminOperations.createRemoteConnector(staticBIOConnectorName, socketBindingPrefix + remoteContainer.getName(), null);
+                    staticConnectorsNames.add(staticBIOConnectorName);
+                }
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", false, 1, 1000, true, connectorName,
+                        staticConnectorsNames.toArray(new String[remoteContainers.length]));
+                break;
+            case NETTY_NIO:
+
+                for (Container remoteContainer : remoteContainers) {
+                    // create outbound socket bindings
+                    jmsAdminOperations.addRemoteSocketBinding(socketBindingPrefix + remoteContainer.getName(), remoteContainer.getHostname(), remoteContainer.getHornetqPort());
+                }
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+                List<String> staticNIOConnectorsNames = new ArrayList<String>();
+                for (Container remoteContainer : remoteContainers) {
+                    // create static connector
+                    String staticConnectorName = connectorPrefix + remoteContainer.getName();
+                    Map<String, String> connectorParams = new HashMap<String, String>();
+                    connectorParams.put("use-nio", "true");
+                    connectorParams.put("use-nio-global-worker-pool", "true");
+                    jmsAdminOperations.createRemoteConnector(staticConnectorName, socketBindingPrefix + remoteContainer.getName(), connectorParams);
+                    staticNIOConnectorsNames.add(staticConnectorName);
+                }
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", false, 1, 1000, true, connectorName,
+                        staticNIOConnectorsNames.toArray(new String[remoteContainers.length]));
+                break;
+            case NETTY_DISCOVERY:
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case JGROUPS_DISCOVERY:
+                String udpJgroupsStackName = "udp";
+                String udpJgroupsChannelName = udpJgroupsStackName;
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, udpJgroupsStackName, udpJgroupsChannelName, 2000, connectorName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, udpJgroupsStackName, udpJgroupsChannelName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case JGROUPS_TCP:
+                String tcpJgroupsStackName = "tcp";
+                String tcpJgroupsChannelName = tcpJgroupsStackName;
+                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
+                Properties tcpPingProperties = new Properties();
+                StringBuilder initialHosts = new StringBuilder();
+                for (Container c : remoteContainers) {
+                    initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
+                    initialHosts.append(",");
+                }
+                initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
+                tcpPingProperties.put("initial_hosts", initialHosts.toString());
+                tcpPingProperties.put("port_range", "10");
+                tcpPingProperties.put("timeout", "3000");
+                tcpPingProperties.put("num_initial_members", String.valueOf(remoteContainers.length));
+                protocols.put("TCPPING", tcpPingProperties);
+                protocols.put("MERGE2", null);
+                protocols.put("FD_SOCK", null);
+                protocols.put("FD", null);
+                protocols.put("VERIFY_SUSPECT", null);
+                protocols.put("pbcast.NAKACK", null);
+                protocols.put("UNICAST2", null);
+                protocols.put("pbcast.STABLE", null);
+                protocols.put("pbcast.GMS", null);
+                protocols.put("UFC", null);
+                protocols.put("MFC", null);
+                protocols.put("FRAG2", null);
+                protocols.put("RSVP", null);
+                Properties transportProperties = new Properties();
+                transportProperties.put("socket-binding", "jgroups-tcp");
+                transportProperties.put("type", "TCP");
+                jmsAdminOperations.removeJGroupsStack(tcpJgroupsStackName);
+                jmsAdminOperations.addJGroupsStack(tcpJgroupsStackName, protocols, transportProperties);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, tcpJgroupsStackName, tcpJgroupsChannelName, 2000, connectorName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, tcpJgroupsStackName, tcpJgroupsStackName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case HTTP_CONNECTOR:
+                throw new RuntimeException("HTTP connector is not supported with EAP 6");
+            default:
+                throw new RuntimeException("Type of connector unknown for EAP 6");
+        }
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
-//        Map<String, String> map = new HashMap<String, String>();
-//        map.put("use-nio", "true");
-        jmsAdminOperations.createRemoteAcceptor("netty", "messaging", null);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }
-
         jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
-
         jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
-
         jmsAdminOperations.close();
         container.stop();
     }
@@ -1068,27 +1310,132 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareJmsServerEAP7(Container container) {
+    private void prepareJmsServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
         String connectorName = "http-connector";
-        String messagingGroupSocketBindingName = "messaging-group";
+        String defaultNettySocketBindingName = "messaging";
+        String defaultNettyAcceptorName = "netty-acceptor";
+        String defaultNettyConnectorName = "netty-connector";
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setPersistenceEnabled(true);
-
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
         jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        String socketBindingPrefix = "socket-binding-to-";
+        String connectorPrefix = "connector-to-";
+        switch (connectorType) {
+            case NETTY_BIO:
+                throw new RuntimeException("BIO connectors are not supported with EAP 7");
+            case NETTY_NIO:
+                // create netty acceptor
+                jmsAdminOperations.createSocketBinding(defaultNettySocketBindingName, Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7);
+                for (Container remoteContainer : remoteContainers) {
+                    // create outbound socket bindings
+                    jmsAdminOperations.addRemoteSocketBinding(socketBindingPrefix + remoteContainer.getName(), remoteContainer.getHostname(),
+                            Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7 + remoteContainer.getPortOffset());
+                }
+                jmsAdminOperations.close();
+
+                container.restart();
+
+                jmsAdminOperations = container.getJmsOperations();
+                jmsAdminOperations.createRemoteAcceptor(defaultNettyAcceptorName, defaultNettySocketBindingName, null);
+                jmsAdminOperations.createRemoteConnector(defaultNettyConnectorName, defaultNettySocketBindingName, null);
+                List<String> staticNIOConnectorsNames = new ArrayList<String>();
+                for (Container remoteContainer : remoteContainers) {
+                    // create static connector
+                    String staticConnectorName = connectorPrefix + remoteContainer.getName();
+                    jmsAdminOperations.createRemoteConnector(staticConnectorName, socketBindingPrefix + remoteContainer.getName(), null);
+                    staticNIOConnectorsNames.add(staticConnectorName);
+                }
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", Constants.MESSAGE_LOAD_BALANCING_POLICY.ON_DEMAND,
+                        1, 1000, true, defaultNettyConnectorName, staticNIOConnectorsNames.toArray(new String[remoteContainers.length]));
+                break;
+            case NETTY_DISCOVERY:
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case JGROUPS_DISCOVERY:
+                String udpJgroupsStackName = "udp";
+                String udpJgroupsChannelName = udpJgroupsStackName;
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, udpJgroupsStackName, udpJgroupsChannelName, 2000, connectorName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, udpJgroupsStackName, udpJgroupsChannelName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case JGROUPS_TCP:
+                String tcpJgroupsStackName = "tcp";
+                String tcpJgroupsChannelName = tcpJgroupsStackName;
+                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
+                Properties tcpPingProperties = new Properties();
+                StringBuilder initialHosts = new StringBuilder();
+                for (Container c : remoteContainers) {
+                    initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
+                    initialHosts.append(",");
+                }
+                initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
+                tcpPingProperties.put("initial_hosts", initialHosts.toString());
+                tcpPingProperties.put("port_range", "10");
+                tcpPingProperties.put("timeout", "3000");
+                tcpPingProperties.put("num_initial_members", String.valueOf(remoteContainers.length));
+                protocols.put("TCPPING", tcpPingProperties);
+                protocols.put("MERGE2", null);
+                protocols.put("FD_SOCK", null);
+                protocols.put("FD", null);
+                protocols.put("VERIFY_SUSPECT", null);
+                protocols.put("pbcast.NAKACK", null);
+                protocols.put("UNICAST2", null);
+                protocols.put("pbcast.STABLE", null);
+                protocols.put("pbcast.GMS", null);
+                protocols.put("UFC", null);
+                protocols.put("MFC", null);
+                protocols.put("FRAG2", null);
+                protocols.put("RSVP", null);
+                Properties transportProperties = new Properties();
+                transportProperties.put("socket-binding", "jgroups-tcp");
+                transportProperties.put("type", "TCP");
+                jmsAdminOperations.removeJGroupsStack(tcpJgroupsStackName);
+                jmsAdminOperations.addJGroupsStack(tcpJgroupsStackName, protocols, transportProperties);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, tcpJgroupsStackName, tcpJgroupsChannelName, 2000, connectorName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, tcpJgroupsStackName, tcpJgroupsStackName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+                break;
+            case HTTP_CONNECTOR:
+                for (Container remoteContainer : remoteContainers) {
+                    // create outbound socket bindings
+                    jmsAdminOperations.addRemoteSocketBinding(socketBindingPrefix + remoteContainer.getName(), remoteContainer.getHostname(), remoteContainer.getHornetqPort());
+                }
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+                List<String> staticHttpConnectorsNames = new ArrayList<String>();
+                for (Container remoteContainer : remoteContainers) {
+                    // create static connector
+                    String staticConnectorName = connectorPrefix + remoteContainer.getName();
+                    jmsAdminOperations.createHttpConnector(staticConnectorName, socketBindingPrefix + remoteContainer.getName(), null, "http-acceptor");
+                    staticHttpConnectorsNames.add(staticConnectorName);
+                }
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", Constants.MESSAGE_LOAD_BALANCING_POLICY.ON_DEMAND, 1, 1000, true, connectorName,
+                        staticHttpConnectorsNames.toArray(new String[remoteContainers.length]));
+                break;
+            default:
+                throw new RuntimeException("Type of connector unknown for EAP 6");
+        }
+
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue");
@@ -1115,6 +1462,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
+        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
@@ -1193,15 +1541,39 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 container.start();
                 jmsAdminOperations = container.getJmsOperations();
                 // add connector with BIO
-                List<String> remoteConnectorList = new ArrayList<String>();
+                List<String> bioConnectorList = new ArrayList<String>();
                 for (Container c : remoteContainers) {
                     String remoteConnectorNameForRemoteContainer = remoteConnectorNamePrefix + c.getName();
                     jmsAdminOperations.removeRemoteConnector(remoteConnectorNameForRemoteContainer);
                     jmsAdminOperations.createRemoteConnector(remoteConnectorNameForRemoteContainer,
                             remoteSocketBindingPrefix + c.getName(), null);
-                    remoteConnectorList.add(remoteConnectorNameForRemoteContainer);
+                    bioConnectorList.add(remoteConnectorNameForRemoteContainer);
                 }
-                jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, remoteConnectorList);
+                jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, bioConnectorList);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                break;
+            case NETTY_NIO:
+                for (Container c : remoteContainers) {
+                    jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingPrefix + c.getName(), c.getHostname(), c.getHornetqPort());
+                }
+                jmsAdminOperations.close();
+                container.stop();
+                container.start();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                List<String> nioConnectorList = new ArrayList<String>();
+                for (Container c : remoteContainers) {
+                    String remoteConnectorNameForRemoteContainer = remoteConnectorNamePrefix + c.getName();
+                    Map<String, String> connectorParams = new HashMap<String, String>();
+                    connectorParams.put("use-nio", "true");
+                    connectorParams.put("use-nio-global-worker-pool", "true");
+                    jmsAdminOperations.createRemoteConnector(remoteConnectorNameForRemoteContainer,
+                            remoteSocketBindingPrefix + c.getName(), connectorParams);
+                    nioConnectorList.add(remoteConnectorNameForRemoteContainer);
+                }
+                jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, nioConnectorList);
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
                 jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
@@ -1213,25 +1585,35 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP6, discoveryGroupName);
                 break;
+            case JGROUPS_DISCOVERY:
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                String udpJgroupsStackName = "udp";
+                String udpJgroupsChannelName = udpJgroupsStackName;
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, udpJgroupsStackName, udpJgroupsChannelName);
+                jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP6, discoveryGroupName);
+                break;
             case JGROUPS_TCP:
                 String jgroupsStackName = "tcp";
-                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
                 Properties tcpPingProperties = new Properties();
                 StringBuilder initialHosts = new StringBuilder();
                 for (Container c : remoteContainers) {
                     initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
+                    initialHosts.append(",");
                 }
                 initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
-                tcpPingProperties.put("initial_hosts", initialHosts);
+                tcpPingProperties.put("initial_hosts", initialHosts.toString());
                 tcpPingProperties.put("port_range", "10");
                 tcpPingProperties.put("timeout", "3000");
-                tcpPingProperties.put("num_initial_members", remoteContainers.length);
+                tcpPingProperties.put("num_initial_members", String.valueOf(remoteContainers.length));
                 protocols.put("TCPPING", tcpPingProperties);
                 protocols.put("MERGE2", null);
                 protocols.put("FD_SOCK", null);
                 protocols.put("FD", null);
                 protocols.put("VERIFY_SUSPECT", null);
-                protocols.put("BARRIER", null);
+                protocols.put("pbcast.NAKACK", null);
                 protocols.put("UNICAST2", null);
                 protocols.put("pbcast.STABLE", null);
                 protocols.put("pbcast.GMS", null);
@@ -1250,6 +1632,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP6, discoveryGroupName);
                 break;
+            case HTTP_CONNECTOR:
+                throw new RuntimeException("HTTP connector type is not supported with EAP 6.");
             default:
                 throw new RuntimeException("Type of connector unknown for EAP 6");
         }
@@ -1262,7 +1646,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServerEAP7(Container container, Container remoteSever) {
+    private void prepareMdbServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1281,10 +1665,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", remoteSever.getHostname(),
-                remoteSever.getHornetqPort());
-        jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory("activemq-ra", remoteConnectorName);
+        setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteContainers);
 
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
@@ -1338,9 +1719,122 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container.stop();
     }
 
+    private void setConnectorTypeForPooledConnectionFactoryEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
+        String remoteSocketBindingPrefix = "socket-binding-to-";
+        String remoteConnectorNamePrefix = "connector-to-node-";
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        switch (connectorType) {
+            case NETTY_BIO:
+                throw new RuntimeException("HTTP connector type is not supported with EAP 6.");
+            case NETTY_NIO:
+                for (Container c : remoteContainers) {
+                    jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingPrefix + c.getName(), c.getHostname(), Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7 + c.getPortOffset());
+                }
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                List<String> nioConnectorList = new ArrayList<String>();
+                for (Container c : remoteContainers) {
+                    String remoteConnectorNameForRemoteContainer = remoteConnectorNamePrefix + c.getName();
+                    jmsAdminOperations.createRemoteConnector(remoteConnectorNameForRemoteContainer,
+                            remoteSocketBindingPrefix + c.getName(), null);
+                    nioConnectorList.add(remoteConnectorNameForRemoteContainer);
+                }
+                jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, nioConnectorList);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                break;
+            case NETTY_DISCOVERY:
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP7, discoveryGroupName);
+                break;
+            case JGROUPS_DISCOVERY:
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+
+                String udpJgroupsStackName = "udp";
+                String udpJgroupsChannelName = udpJgroupsStackName;
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, udpJgroupsStackName, udpJgroupsChannelName);
+                jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP7, discoveryGroupName);
+                break;
+            case JGROUPS_TCP:
+                String jgroupsStackName = "tcp";
+                LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
+                Properties tcpPingProperties = new Properties();
+                StringBuilder initialHosts = new StringBuilder();
+                for (Container c : remoteContainers) {
+                    initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
+                    initialHosts.append(",");
+                }
+                initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
+                tcpPingProperties.put("initial_hosts", initialHosts.toString());
+                tcpPingProperties.put("port_range", "10");
+                tcpPingProperties.put("timeout", "3000");
+                tcpPingProperties.put("num_initial_members", String.valueOf(remoteContainers.length));
+                protocols.put("TCPPING", tcpPingProperties);
+                protocols.put("MERGE2", null);
+                protocols.put("FD_SOCK", null);
+                protocols.put("FD", null);
+                protocols.put("VERIFY_SUSPECT", null);
+                protocols.put("pbcast.NAKACK", null);
+                protocols.put("UNICAST2", null);
+                protocols.put("pbcast.STABLE", null);
+                protocols.put("pbcast.GMS", null);
+                protocols.put("UFC", null);
+                protocols.put("MFC", null);
+                protocols.put("FRAG2", null);
+                protocols.put("RSVP", null);
+                Properties transportProperties = new Properties();
+                transportProperties.put("socket-binding", "jgroups-tcp");
+                transportProperties.put("type", "TCP");
+                jmsAdminOperations.removeJGroupsStack(jgroupsStackName);
+                jmsAdminOperations.addJGroupsStack(jgroupsStackName, protocols, transportProperties);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, jgroupsStackName, jgroupsStackName);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.setPooledConnectionFactoryToDiscovery(Constants.RESOURCE_ADAPTER_NAME_EAP7, discoveryGroupName);
+                break;
+            case HTTP_CONNECTOR:
+                for (Container c : remoteContainers) {
+                    jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingPrefix + c.getName(), c.getHostname(), c.getHornetqPort());
+                }
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+                // add connector with NIO
+                List<String> httpConnectors = new ArrayList<String>();
+                for (Container c : remoteContainers) {
+                    String remoteHttpConnectorNameForRemoteContainer = remoteConnectorNamePrefix + c.getName();
+                    jmsAdminOperations.createHttpConnector(remoteHttpConnectorNameForRemoteContainer,
+                            remoteSocketBindingPrefix + c.getName(), null, "http-acceptor");
+                    httpConnectors.add(remoteHttpConnectorNameForRemoteContainer);
+                }
+                jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, httpConnectors);
+                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+                break;
+            default:
+                throw new RuntimeException("Type of connector unknown for EAP 6");
+        }
+        jmsAdminOperations.close();
+
+    }
+
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
+     * <p>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {

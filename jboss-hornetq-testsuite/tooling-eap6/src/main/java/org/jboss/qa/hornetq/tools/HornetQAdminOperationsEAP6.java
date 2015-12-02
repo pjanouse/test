@@ -2334,6 +2334,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    @Override
+    public void setStaticClusterConnections(String serverName, String name, String address, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
+        throw new RuntimeException("This operation is not supported.");
+    }
+
     /**
      * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.
      *
@@ -4036,6 +4041,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void createOutBoundSocketBinding(String socketBindingName, String host, int port) {
         logger.info("This operation is not supported: " + getMethodName());
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
     }
 
     /**
@@ -5352,7 +5358,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             protocols.put("FD_SOCK", null);
             protocols.put("FD", null);
             protocols.put("VERIFY_SUSPECT", null);
-            protocols.put("BARRIER", null);
+            protocols.put("pbcast.NAKACK", null);
             protocols.put("UNICAST2", null);
             protocols.put("pbcast.STABLE", null);
             protocols.put("pbcast.GMS", null);

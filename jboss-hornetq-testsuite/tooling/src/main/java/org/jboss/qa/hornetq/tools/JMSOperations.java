@@ -4,6 +4,7 @@
  */
 package org.jboss.qa.hornetq.tools;
 
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 
 import java.util.*;
@@ -1504,6 +1505,10 @@ public interface JMSOperations {
      * @param connectorName          Name of connector to use for live connection.
      */
     void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors);
+
+    void setStaticClusterConnections(String serverName, String name, String address, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy,
+                                     int maxHops, long retryInterval, boolean useDuplicateDetection,
+                                     String connectorName, String... remoteConnectors);
 
     /**
      * This method activates preferFactoryRef property in ActivationSpec.java in ejb3-interceptors-aop.xml. This is specific for EAP 5.

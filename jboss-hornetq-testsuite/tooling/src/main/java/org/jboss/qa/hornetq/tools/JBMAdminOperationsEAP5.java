@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1458,6 +1459,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setStaticClusterConnections(String serverName, String name, String address, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
+        throw new RuntimeException("This operation is not supported.");
     }
 
     /**

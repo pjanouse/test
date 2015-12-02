@@ -275,8 +275,8 @@ public class JcaTestCase extends HornetQTestCase {
             }
         }
 
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), false);
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), 0, false);
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 20000, 100, 10);

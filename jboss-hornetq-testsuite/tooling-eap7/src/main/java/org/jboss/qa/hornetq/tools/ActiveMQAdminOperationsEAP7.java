@@ -8,6 +8,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.kohsuke.MetaInfServices;
@@ -538,7 +539,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         undefineConnector.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
                 NAME_OF_MESSAGING_DEFAULT_SERVER);
         undefineConnector.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
-        undefineConnector.get("name").set("connector");
+        undefineConnector.get("name").set("connectors");
 
         ModelNode setDiscoveryGroup = createModelNode();
         setDiscoveryGroup.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
@@ -546,7 +547,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER,
                 NAME_OF_MESSAGING_DEFAULT_SERVER);
         setDiscoveryGroup.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", pooledConnectionFactoryName);
-        setDiscoveryGroup.get("name").set("discovery-group-name");
+        setDiscoveryGroup.get("name").set("discovery-group");
         setDiscoveryGroup.get("value").set(discoveryGroupName);
         composite.get(ClientConstants.STEPS).add(undefineConnector);
         composite.get(ClientConstants.STEPS).add(setDiscoveryGroup);
@@ -1469,7 +1470,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public int countConnections() {
         final ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("list-connection-ids");
-        model.get(ClientConstants.OP_ADDR).add("subsystem", "NAME_OF_MESSAGING_SUBSYSTEM");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
 
         System.out.println(model.toString());
@@ -2349,7 +2350,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @param serverName             Set name of hornetq server.
      * @param name                   Name of the cluster group - like "failover-cluster"
      * @param address                Name of address this cluster connection applies to.
-     * @param forwardWhenNoConsumers Should messages be load balanced if there are no matching consumers on target?
+     * @param forwardWhenNoConsumers This is actually load balancing policy in EAP 7
      * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
      * @param retryInterval          Period (in ms) between successive retries.
      * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
@@ -2370,7 +2371,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-hops").set(maxHops);
         model.get("retry-interval").set(retryInterval);
         model.get("use-duplicate-detection").set(useDuplicateDetection);
-        model.get("connector-ref").set(connectorName);
+        model.get("connector-name").set(connectorName);
 
         for (String remoteConnectorName : remoteConnectors) {
             model.get("static-connectors").add(remoteConnectorName);
@@ -2382,6 +2383,47 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * Sets cluster configuration.
+     *
+     * @param serverName             Set name of hornetq server.
+     * @param name                   Name of the cluster group - like "failover-cluster"
+     * @param address                Name of address this cluster connection applies to.
+     * @param messageLoadBalancingPolicy This is actually load balancing policy in EAP 7
+     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval          Period (in ms) between successive retries.
+     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName          Name of connector to use for live connection.
+     */
+    @Override
+    public void setStaticClusterConnections(String serverName, String name, String address, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy,
+                                            int maxHops, long retryInterval, boolean useDuplicateDetection,
+                                            String connectorName, String... remoteConnectors) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", name);
+
+        model.get("cluster-connection-address").set(address);
+        model.get("message-load-balancing-type").set(messageLoadBalancingPolicy.toString());
+        model.get("max-hops").set(maxHops);
+        model.get("retry-interval").set(retryInterval);
+        model.get("use-duplicate-detection").set(useDuplicateDetection);
+        model.get("connector-name").set(connectorName);
+
+        for (String remoteConnectorName : remoteConnectors) {
+            model.get("static-connectors").add(remoteConnectorName);
+        }
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -3796,10 +3838,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             batch
             /subsystem="jgroups"/stack="tcpping":add()
             /subsystem="jgroups"/stack="tcpping":add-protocol(type="TCPPING")
-            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="initial_hosts":add(value="192.168.10.1[7600],192.168.10.2[7600]")
-            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="port_range":add(value="10")
-            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="timeout":add(value="3000")
-            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="num_initial_members":add(value="2")
             /subsystem="jgroups"/stack="tcpping":add-protocol(type="MERGE2")
             /subsystem="jgroups"/stack="tcpping":add-protocol(socket-binding="jgroups-tcp-fd",type="FD_SOCK")
             /subsystem="jgroups"/stack="tcpping":add-protocol(type="FD")
@@ -3815,6 +3853,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             /subsystem="jgroups"/stack="tcpping":add-protocol(type="RSVP")
             /subsystem="jgroups"/stack="tcpping"/transport="TRANSPORT":add(socket-binding="jgroups-tcp",type="TCP")
             run-batch
+
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="initial_hosts":add(value="192.168.10.1[7600],192.168.10.2[7600]")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="port_range":add(value="10")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="timeout":add(value="3000")
+            /subsystem="jgroups"/stack="tcpping"/protocol="TCPPING"/property="num_initial_members":add(value="2")
          */
         ModelNode composite = new ModelNode();
         composite.get(ClientConstants.OP).set("composite");
@@ -3834,20 +3877,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             addProtocol.get(ClientConstants.OP_ADDR).add("stack", stackName);
             addProtocol.get("type").set(protocol);
             composite.get(ClientConstants.STEPS).add(addProtocol);
-
-            Properties protocolProperties = protocols.get(protocol);
-            if (protocolProperties != null && protocolProperties.size() > 0) {
-                for (String paramName : protocolProperties.stringPropertyNames()) {
-                    ModelNode addParam = new ModelNode();
-                    addParam.get(ClientConstants.OP).set(ClientConstants.ADD);
-                    addParam.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
-                    addParam.get(ClientConstants.OP_ADDR).add("stack", stackName);
-                    addParam.get(ClientConstants.OP_ADDR).add("protocol", protocol);
-                    addParam.get(ClientConstants.OP_ADDR).add("property", paramName);
-                    addParam.get("value").set(protocolProperties.getProperty(paramName));
-                    composite.get(ClientConstants.STEPS).add(addParam);
-                }
-            }
         }
 
         ModelNode transport = new ModelNode();
@@ -3864,6 +3893,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             this.applyUpdate(composite);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+
+        for (String protocol : protocols.keySet()) {
+            Properties protocolProperties = protocols.get(protocol);
+            if (protocolProperties != null && protocolProperties.size() > 0) {
+                for (String paramName : protocolProperties.stringPropertyNames()) {
+                    ModelNode addParam = new ModelNode();
+                    addParam.get(ClientConstants.OP).set(ClientConstants.ADD);
+                    addParam.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
+                    addParam.get(ClientConstants.OP_ADDR).add("stack", stackName);
+                    addParam.get(ClientConstants.OP_ADDR).add("protocol", protocol);
+                    addParam.get(ClientConstants.OP_ADDR).add("property", paramName);
+                    addParam.get("value").set(protocolProperties.getProperty(paramName));
+                    try {
+                        this.applyUpdate(addParam);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
         }
     }
 
@@ -4293,6 +4342,12 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
                                     int multicastPort) {
+
+        try {
+            removeSocketBinding(socketBindingName);
+        } catch (Exception ex)  {
+            // ignore
+        }
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
@@ -5981,9 +6036,38 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ActiveMQAdminOperationsEAP7 jmsAdminOperations = new ActiveMQAdminOperationsEAP7();
         try {
             jmsAdminOperations.setHostname("127.0.0.1");
-            jmsAdminOperations.setPort(9990);
+            jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            jmsAdminOperations.addDivert("div", "jms.queue.testQueue0", "jms.queue.DLQ", true, null, null, null);
+
+            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+            Properties tcpPingProperties = new Properties();
+            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
+            tcpPingProperties.put("port_range", "10");
+            tcpPingProperties.put("timeout", "3000");
+            tcpPingProperties.put("num_initial_members", "2");
+            protocols.put("TCPPING", tcpPingProperties);
+            protocols.put("MERGE2", null);
+            protocols.put("FD_SOCK", null);
+            protocols.put("FD", null);
+            protocols.put("VERIFY_SUSPECT", null);
+            protocols.put("pbcast.NAKACK", null);
+            protocols.put("UNICAST2", null);
+            protocols.put("pbcast.STABLE", null);
+            protocols.put("pbcast.GMS", null);
+            protocols.put("UFC", null);
+            protocols.put("MFC", null);
+            protocols.put("FRAG2", null);
+            protocols.put("RSVP", null);
+
+            Properties transportProperties = new Properties();
+            transportProperties.put("socket-binding", "jgroups-tcp");
+            transportProperties.put("type", "TCP");
+            jmsAdminOperations.addJGroupsStack("tcp2", protocols, transportProperties);
+
+
+//            jmsAdminOperations.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "http-connector");
+
+//            jmsAdminOperations.addDivert("div", "jms.queue.testQueue0", "jms.queue.DLQ", true, null, null, null);
 //            System.out.println(jmsAdminOperations.isActive("default"));
 //            jmsAdminOperations.reloadServer();
             // jmsAdminOperations.setPersistenceEnabled(true);

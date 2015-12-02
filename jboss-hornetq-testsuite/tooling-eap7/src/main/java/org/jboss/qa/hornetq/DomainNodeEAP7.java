@@ -53,7 +53,7 @@ public class DomainNodeEAP7 implements DomainNode {
      */
     @Override
     public int getHornetqPort() {
-        return Constants.PORT_HORNETQ_DEFAULT_EAP7 + getPortOffset();
+        return Constants.PORT_ARTEMIS_DEFAULT_EAP7 + getPortOffset();
     }
 
     /**
