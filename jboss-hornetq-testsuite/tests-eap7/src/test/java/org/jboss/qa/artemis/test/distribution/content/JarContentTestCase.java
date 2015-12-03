@@ -14,6 +14,8 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.qa.hornetq.Container;
 import org.junit.Test;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.junit.experimental.categories.Category;
 import org.testng.Assert;
 
 /**
@@ -22,6 +24,7 @@ import org.testng.Assert;
  *
  * @author mstyk
  */
+@Category(FunctionalTests.class)
 public class JarContentTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JarContentTestCase.class);
