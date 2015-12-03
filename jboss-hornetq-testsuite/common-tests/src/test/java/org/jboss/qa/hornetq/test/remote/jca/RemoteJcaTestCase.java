@@ -1,7 +1,3 @@
-//TODO add paramatrized connector type tests for inbound test
-// TODO add mdb on intopic sending to outqueue
-// TODO add mdb on intopic with different subscription name and client id
-// TODO parametrize in topic tests with more connector types
 package org.jboss.qa.hornetq.test.remote.jca;
 
 import org.apache.commons.io.FileUtils;
@@ -72,7 +68,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     private final Archive lodhLikeMdbFromTopic = getLodhLikeMdbFromTopic();
 
     private String messagingGroupSocketBindingName = "messaging-group";
-    private int messagingGroupMulticastPort = 9876;
+
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -109,11 +105,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         final JavaArchive ejbJar = ShrinkWrap.create(JavaArchive.class, "ejb-sender.jar");
         ejbJar.addClasses(SimpleSendEJB.class, SimpleSendEJBStatefulBean.class);
         logger.info(ejbJar.toString(true));
-        File target = new File("/tmp/ejb-sender.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        ejbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/ejb-sender.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        ejbJar.as(ZipExporter.class).exportTo(target, true);
         return ejbJar;
     }
 
@@ -121,11 +117,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         final JavaArchive ejbJar = ShrinkWrap.create(JavaArchive.class, "ejb-sender.jar");
         ejbJar.addClasses(SimpleSendEJB.class, SimpleSendEJBStatelessBean.class);
         logger.info(ejbJar.toString(true));
-        File target = new File("/tmp/ejb-sender-stateless.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        ejbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/ejb-sender-stateless.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        ejbJar.as(ZipExporter.class).exportTo(target, true);
         return ejbJar;
     }
 
@@ -226,7 +222,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRemoteJcaInCluster() throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+
         // cluster A
         container(1).start();
         container(3).start();
@@ -273,6 +274,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     }
 
+
     /**
      * @throws Exception
      * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
@@ -292,10 +294,89 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testLoadBalancingOfInboundConnectionsToCluster() throws Exception {
+    public void testLoadBalancingOfInboundConnectionsToClusterStaticNettyConnectors() throws Exception {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
+     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
+     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
+     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 2 servers with deployed InQueue</li>
+     * <li>deploy MDB to other server which reads messages from InQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterNettyDiscovery() throws Exception {
+        testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
+     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
+     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
+     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 2 servers with deployed InQueue</li>
+     * <li>deploy MDB to other server which reads messages from InQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterJGroupsDiscovery() throws Exception {
+        testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE.JGROUPS_DISCOVERY);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
+     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
+     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
+     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 2 servers with deployed InQueue</li>
+     * <li>deploy MDB to other server which reads messages from InQueue</li>
+     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterJGroupsTCP() throws Exception {
+        testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
+    }
+
+
+    public void testLoadBalancingOfInboundConnectionsToCluster(Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         int numberOfMessagesPerServer = 500;
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+
+        prepareRemoteJcaTopology(connectorType);
         // cluster A
         container(1).start();
         container(3).start();
@@ -362,10 +443,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testLoadBalancingOfInboundConnectionsToClusterScaleUp() throws Exception {
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpStaticNetty() throws Exception {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+    }
+
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         int numberOfMessages = 10000;
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
+        prepareRemoteJcaTopology(connectorType);
         // cluster A
         container(1).start();
 
@@ -437,7 +526,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpTopicWithLodhMdb() throws Exception {
+    public void testLoadBalancingOfInboundConnectionsScaleUpTopicLodhMdb_JGROUPS_TCP() throws Exception {
         TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -445,7 +534,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        testLoadBalancingOfInboundConnectionsTopic(messageBuilder);
+        testLoadBalancingOfInboundConnectionsTopic(messageBuilder, Constants.CONNECTOR_TYPE.JGROUPS_TCP);
     }
 
     /**
@@ -468,19 +557,80 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpTopicWithNormalMdb() throws Exception {
+    public void testLoadBalancingOfInboundConnectionsScaleUpTopicNormalMdb_JGROUPS_TCP() throws Exception {
         TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(false);
-        testLoadBalancingOfInboundConnectionsTopic(messageBuilder);
+        testLoadBalancingOfInboundConnectionsTopic(messageBuilder, Constants.CONNECTOR_TYPE.JGROUPS_TCP);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
+     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
+     * messages to InTopic to 1. Deploy MDB (jndi lookup for each message) to 2nd server which reads
+     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 1st server with deployed InTopic and OutQueue</li>
+     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
+     * <li>start 3rd server with deployed InTopic</li>
+     * <li>wait until all messages processed</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsScaleUpTopicLodhMdb_STATIC_NETTY() throws Exception {
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsTopic(messageBuilder, Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            testLoadBalancingOfInboundConnectionsTopic(messageBuilder, Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
+     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
+     * messages to InTopic to 1. Deploy MDB to 2nd server which reads
+     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 1st server with deployed InTopic and OutQueue</li>
+     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
+     * <li>start 3rd server with deployed InTopic</li>
+     * <li>wait until all messages processed</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsScaleUpTopicNormalMdb_NETTY_DISCOVERY() throws Exception {
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        messageBuilder.setAddDuplicatedHeader(false);
+        testLoadBalancingOfInboundConnectionsTopic(messageBuilder, Constants.CONNECTOR_TYPE.NETTY_DISCOVERY);
     }
 
 
-    public void testLoadBalancingOfInboundConnectionsTopic(MessageBuilder messageBuilder) throws Exception {
+    public void testLoadBalancingOfInboundConnectionsTopic(MessageBuilder messageBuilder, Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         int numberOfMessages = 10000;
         String clientId = "myClientId";
         String subscriptionName = "mySubscription";
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        prepareRemoteJcaTopology(connectorType);
         // cluster A
         container(1).start();
 
@@ -504,7 +654,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(2).start();
         container(2).deploy(lodhLikeMdbFromTopic);// change here
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages/10, 300000, container(1));
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 300000, container(1));
         // start 3rd server
         logger.info("Start container node-3");
         container(3).start();
@@ -546,7 +696,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void testLoadBalancingOfInboundConnectionsToClusterOneServerRestart() throws Exception {
 
         int numberOfMessages = 10000;
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         container(1).start();
 
@@ -622,7 +776,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     public void testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(Container container1, Container container2) throws Exception {
 
         int numberOfMessages = 10000;
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         container(1).start();
 
@@ -859,7 +1017,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
     private int countConnectionOnContainer(Container container) {
-        int count = 0;
+        int count;
         JMSOperations jmsOperations = container.getJmsOperations();
         count = jmsOperations.countConnections();
         jmsOperations.close();
@@ -885,7 +1043,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 + " on container: " + container.getName() + " is " + count);
         return count;
     }
-
 
 
     /**
