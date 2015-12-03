@@ -110,7 +110,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
     private void testLoad(Archive mdbToDeploy) throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         // cluster A
         container(1).start();
@@ -237,7 +241,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         int numberOfMessages = 50000;
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         // cluster A
         container(1).start();
@@ -362,7 +370,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         int numberOfMessages = 50000;
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         // cluster A
         container(1).start();
@@ -430,7 +442,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
 
         Archive mdbToDeploy = lodhLikemdb;
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         // cluster A
         container(1).start();
