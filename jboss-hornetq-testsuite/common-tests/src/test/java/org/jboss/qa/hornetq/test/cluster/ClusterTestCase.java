@@ -47,6 +47,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -201,6 +202,109 @@ public class ClusterTestCase extends HornetQTestCase {
 
         container(1).stop();
 
+        container(2).stop();
+
+    }
+
+    /**
+     * @tpTestDetails Start two server in HornetQ cluster and deploy queue and
+     * each. Queue is load-balanced. Set reconnect attempts to -1 on cluster connection.
+     * Kill server 2 and Start producer which sends messages to queue on first server. Start consumer which reads messages
+     * from queue from 1st server. Verify that all messages were received.
+     * @tpProcedure <ul>
+     * <li>start two servers (nodes) in cluster with one queue with reconnect attempts 1 in cluster connection
+     * </li>
+     * <li>kill 2nd server in cluster</li>
+     * <li>producer starts to send messages to queue on node-1</li>
+     * <li>consumer reads messages from queue on node-1</li>
+     * <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads all messages
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestKillTargetServer1ReconnectAttemptNoRestart() throws Exception {
+        clusterTestKillTargetServer1ReconnectAttempt(false);
+    }
+
+    /**
+     * @tpTestDetails Start two server in HornetQ cluster and deploy queue and
+     * each. Queue is load-balanced. Set reconnect attempts to -1 on cluster connection.
+     * Kill server 2 and Start producer which sends messages to queue on first server. Start consumer which reads messages
+     * from queue from 1st server. Verify that all messages were received.
+     * @tpProcedure <ul>
+     * <li>start two servers (nodes) in cluster with one queue with reconnect attempts 1 in cluster connection
+     * </li>
+     * <li>kill 2nd server in cluster</li>
+     * <li>producer starts to send messages to queue on node-1</li>
+     * <li>consumer reads messages from queue on node-1</li>
+     * <li>verify messages count</li>
+     * </ul>
+     * @tpPassCrit receiver reads all messages
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestKillTargetServer1ReconnectAttemptWithRestart() throws Exception {
+        clusterTestKillTargetServer1ReconnectAttempt(true);
+    }
+
+    public void clusterTestKillTargetServer1ReconnectAttempt(boolean withRestart) throws Exception {
+
+        int numberOfMessages = 1000;
+        prepareServer(container(1), true, 1);
+        prepareServer(container(2), true, 1);
+
+        container(2).start();
+        container(1).start();
+
+        // give it some time to create cluster
+        Thread.sleep(5000);
+
+        // stop server 2
+        container(2).kill();
+
+        //send messages
+        ProducerTransAck queueProducer = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        queueProducer.setMessageBuilder(new TextMessageBuilder(1));
+        queueProducer.setTimeout(0);
+        queueProducer.setCommitAfter(10);
+        queueProducer.start();
+        queueProducer.join();
+
+        // receive messages
+        ReceiverTransAck queueConsumer1 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0");
+        queueConsumer1.setTimeout(0);
+        queueConsumer1.setReceiveTimeOut(10000);
+        queueConsumer1.setCommitAfter(10);
+        queueConsumer1.start();
+        queueConsumer1.join();
+
+        if (withRestart) {
+            log.info("Restart 1st server and try to consume messages.");
+            container(1).restart();
+            // receive messages
+            ReceiverTransAck queueConsumer2 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0");
+            queueConsumer2.setTimeout(0);
+            queueConsumer2.setReceiveTimeOut(10000);
+            queueConsumer2.setCommitAfter(10);
+            queueConsumer2.start();
+            queueConsumer2.join();
+            Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(),
+                    queueConsumer1.getListOfReceivedMessages().size() + queueConsumer2.getListOfReceivedMessages().size());
+        } else {
+            Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(),
+                    queueConsumer1.getListOfReceivedMessages().size());
+        }
+
+        container(1).stop();
         container(2).stop();
 
     }
@@ -2496,6 +2600,17 @@ public class ClusterTestCase extends HornetQTestCase {
      * if true, otherwise no.
      */
     private void prepareServer(Container container, boolean createDestinations) {
+        prepareServer(container, createDestinations, -1);
+    }
+    /**
+     * Prepares server for topology.
+     *
+     * @param container The container - defined in arquillian.xml
+     * @param createDestinations Create destination topics and queues and topics
+     * @param reconnectAttempts number of reconnect attempts in cluster connection
+     * if true, otherwise no.
+     */
+    private void prepareServer(Container container, boolean createDestinations, int reconnectAttempts) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -2528,7 +2643,7 @@ public class ClusterTestCase extends HornetQTestCase {
             jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
             jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
             jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-            jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+            jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, reconnectAttempts);
 
             jmsAdminOperations.disableSecurity();
             // jmsAdminOperations.setLoggingLevelForConsole("INFO");
