@@ -857,7 +857,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLoadBalancingOfOutboundConnectionsToClusterBIO() throws Exception {
-        testLoadBalancingOfOutboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfOutboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            testLoadBalancingOfOutboundConnectionsToCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
     }
 
     /**
@@ -935,9 +939,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLoadBalancingOfOutboundConnectionsToClusterWithFail() throws Exception {
-        Constants.CONNECTOR_TYPE connectorType = Constants.CONNECTOR_TYPE.NETTY_BIO;
+
         int numberOfEjbs = 20;
-        prepareRemoteJcaTopology(connectorType);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
         // cluster A
         container(1).start();
         container(3).start();
@@ -1071,7 +1079,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRemoteJca() throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
         // cluster A
         container(1).start();
 
@@ -1127,7 +1139,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRemoteJcaWithManyMDB() throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
         // cluster A
         container(1).start();
 
@@ -1208,7 +1224,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRemoteJcaWithNonDurableMdbs() throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+
         // cluster A
         container(1).start();
 
@@ -1278,7 +1299,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         int numberOfMessages = 500;
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         container(1).start();//jms server
         container(2).start();// mdb server
@@ -1348,7 +1373,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testRAConfiguredByMdbInRemoteJcaTopology() throws Exception {
 
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
 
         // cluster A
         container(1).start();
