@@ -5628,6 +5628,27 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public int getNumberOfConsumersOnTopic(String clientId, String subscriptionName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("list-consumers-as-json");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("runtime-queue", clientId + "." + subscriptionName);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+            String res = result.get("result").asString();
+            JSONArray array = new JSONArray(res);
+            return array.length();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         final ModelNode removeMessagesFromQueue = new ModelNode();
         removeMessagesFromQueue.get(ClientConstants.OP).set("remove-message");

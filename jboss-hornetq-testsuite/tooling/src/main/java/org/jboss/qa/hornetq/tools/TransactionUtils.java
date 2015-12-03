@@ -12,6 +12,7 @@ public class TransactionUtils {
 
     private static final Logger log = Logger.getLogger(CheckFileContentUtils.class);
 
+
     /**
      * Wait for given time-out for no xa transactions in prepared state.
      *
@@ -20,6 +21,18 @@ public class TransactionUtils {
      * @param toleratedNumberOfTransactions
      * @throws Exception
      */
+    public boolean waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container, int toleratedNumberOfTransactions) throws Exception {
+        return waitUntilThereAreNoPreparedHornetQTransactions(timeout, container, toleratedNumberOfTransactions, true);
+    }
+        /**
+         * Wait for given time-out for no xa transactions in prepared state.
+         *
+         * @param timeout
+         * @param container
+         * @param toleratedNumberOfTransactions
+         * @param failTestIfUnfinishedTransactions if this should fail the test when there are more than toleratedNumberOfTransactions
+         * @throws Exception
+         */
     public boolean waitUntilThereAreNoPreparedHornetQTransactions(long timeout, org.jboss.qa.hornetq.Container container, int toleratedNumberOfTransactions, boolean failTestIfUnfinishedTransactions) throws Exception {
 
         // check that number of prepared transaction gets to 0

@@ -2225,6 +2225,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public int getNumberOfConsumersOnTopic(String clientId, String subscriptionName) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeMessageFromQueue(String queueName, String jmsMessageID) {
         logger.info("This operation is not supported: " + getMethodName());
 

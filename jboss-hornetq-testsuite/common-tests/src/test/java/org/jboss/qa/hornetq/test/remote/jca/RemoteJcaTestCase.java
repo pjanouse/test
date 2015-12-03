@@ -1,3 +1,7 @@
+//TODO add paramatrized connector type tests for inbound test
+// TODO add mdb on intopic sending to outqueue
+// TODO add mdb on intopic with different subscription name and client id
+// TODO parametrize in topic tests with more connector types
 package org.jboss.qa.hornetq.test.remote.jca;
 
 import org.apache.commons.io.FileUtils;
@@ -11,7 +15,9 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatefulBean;
@@ -63,6 +69,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     private final Archive ejbSenderStatefulBean = getEjbSenderStatefulBean();
     private final Archive ejbSenderStatelessBean = getEjbSenderStatelessBean();
     private final Archive mdb1OnNonDurable = getMdb1OnNonDurable();
+    private final Archive lodhLikeMdbFromTopic = getLodhLikeMdbFromTopic();
 
     private String messagingGroupSocketBindingName = "messaging-group";
     private int messagingGroupMulticastPort = 9876;
@@ -120,6 +127,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
         ejbJar.as(ZipExporter.class).exportTo(target, true);
         return ejbJar;
+    }
+
+    public Archive getLodhLikeMdbFromTopic() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "lodhLikemdbFromTopic.jar");
+        mdbJar.addClasses(LODHMdbWithRemoteInTopicWithJNDI.class, MessageUtils.class);
+        if (container(2).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        } else {
+            mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.apache.activemq.artemis \n"), "MANIFEST.MF");
+        }
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
     }
 
     public static String createEjbXml(String mdbName) {
@@ -362,7 +381,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
         // get number of connections and consumers from server 1 and connections
         int initialNumberOfConnections1 = countConnectionOnContainer(container(1));
-        int initialNumberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
+        int initialNumberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + initialNumberOfConsumer1 + " and connections " + initialNumberOfConnections1);
 
         // start 3rd server
@@ -373,8 +392,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000);
 
         // get number of consumer from server 3 and 1
-        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
-        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+        int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
 
@@ -396,6 +415,127 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
+     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
+     * messages to InTopic to 1. Deploy MDB (jndi lookup for each message) to 2nd server which reads
+     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 1st server with deployed InTopic and OutQueue</li>
+     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
+     * <li>start 3rd server with deployed InTopic</li>
+     * <li>wait until all messages processed</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpTopicWithLodhMdb() throws Exception {
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        for (String key : jndiProperties.keySet()) {
+            logger.warn("key: " + key + " value: " + jndiProperties.get(key));
+        }
+        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setJndiProperties(jndiProperties);
+        testLoadBalancingOfInboundConnectionsTopic(messageBuilder);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
+     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
+     * messages to InTopic to 1. Deploy MDB to 2nd server which reads
+     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpProcedure <ul>
+     * <li>start 1st server with deployed InTopic and OutQueue</li>
+     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
+     * <li>start 3rd server with deployed InTopic</li>
+     * <li>wait until all messages processed</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpTopicWithNormalMdb() throws Exception {
+        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+        messageBuilder.setAddDuplicatedHeader(false);
+        testLoadBalancingOfInboundConnectionsTopic(messageBuilder);
+    }
+
+
+    public void testLoadBalancingOfInboundConnectionsTopic(MessageBuilder messageBuilder) throws Exception {
+
+        int numberOfMessages = 10000;
+        String clientId = "myClientId";
+        String subscriptionName = "mySubscription";
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        // cluster A
+        container(1).start();
+
+        container(2).start();
+        container(2).deploy(lodhLikeMdbFromTopic);// change here
+        // just wait here a while to create subscription
+        Thread.sleep(5000);
+        container(2).undeploy(lodhLikeMdbFromTopic);// change here
+        container(2).stop();
+
+        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        PublisherTransAck producer1 = new PublisherTransAck(container(1), inTopicJndiName, numberOfMessages, "publisher");
+        producer1.setTimeout(0);
+        producer1.setMessageBuilder(messageBuilder);
+        List<FinalTestMessageVerifier> verifiers = new ArrayList<FinalTestMessageVerifier>();
+        verifiers.add(messageVerifier);
+        producer1.start();
+        producer1.join();
+
+
+        container(2).start();
+        container(2).deploy(lodhLikeMdbFromTopic);// change here
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages/10, 300000, container(1));
+        // start 3rd server
+        logger.info("Start container node-3");
+        container(3).start();
+        logger.info("Container node-3 started");
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1), container(3));
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumersOnTopic(container(1), clientId, subscriptionName);
+        int numberOfConsumer3 = countNumberOfConsumersOnTopic(container(3), clientId, subscriptionName);
+
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inTopicName + " is " + numberOfConsumer1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inTopicName + " is " + numberOfConsumer3);
+
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        receiver1.join();
+
+        container(2).undeploy(lodhLikeMdbFromTopic);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
+
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+        Assert.assertTrue("Message verified found duplicate/lost messages: ", messageVerifier.verifyMessages());
     }
 
 
@@ -431,8 +571,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).restart();
 
         // get number of consumer from server 3 and 1
-        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
-        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+        int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
@@ -508,8 +648,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container2.start();
 
         // get number of consumer from server 3 and 1
-        int numberOfConsumer1 = countNumberOfConsumers(container(1), inQueueName);
-        int numberOfConsumer3 = countNumberOfConsumers(container(3), inQueueName);
+        int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
@@ -727,7 +867,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         return count;
     }
 
-    private int countNumberOfConsumers(Container container, String coreQueueName) {
+    private int countNumberOfConsumersOnQueue(Container container, String coreQueueName) {
 
         JMSOperations jmsOperations = container.getJmsOperations();
         int count = jmsOperations.getNumberOfConsumersOnQueue(coreQueueName);
@@ -735,6 +875,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info("Number of consumers on queue: " + coreQueueName + " on container: " + container.getName() + " is " + count);
         return count;
     }
+
+    private int countNumberOfConsumersOnTopic(Container container, String clientId, String subscriptionName) {
+
+        JMSOperations jmsOperations = container.getJmsOperations();
+        int count = jmsOperations.getNumberOfConsumersOnTopic(clientId, subscriptionName);
+        jmsOperations.close();
+        logger.info("Number of consumers on subscription: " + clientId + "." + subscriptionName
+                + " on container: " + container.getName() + " is " + count);
+        return count;
+    }
+
+
 
     /**
      * @throws Exception
@@ -1729,7 +1881,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         switch (connectorType) {
             case NETTY_BIO:
-                throw new RuntimeException("HTTP connector type is not supported with EAP 6.");
+                throw new RuntimeException("NETTY_BIO connector type is not supported with EAP 7.");
             case NETTY_NIO:
                 for (Container c : remoteContainers) {
                     jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingPrefix + c.getName(), c.getHostname(), Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7 + c.getPortOffset());
@@ -1826,7 +1978,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
                 break;
             default:
-                throw new RuntimeException("Type of connector unknown for EAP 6");
+                throw new RuntimeException("Type of connector unknown for EAP 7");
         }
         jmsAdminOperations.close();
 

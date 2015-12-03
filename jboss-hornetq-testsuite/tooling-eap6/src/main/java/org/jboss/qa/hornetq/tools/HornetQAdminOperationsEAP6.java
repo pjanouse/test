@@ -5172,6 +5172,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         return result.get("result").asList().size();
     }
 
+    @Override
     public int getNumberOfConsumersOnQueue(String queue) {
 
         ModelNode model = new ModelNode();
@@ -5189,7 +5190,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
 
+    @Override
+    public int getNumberOfConsumersOnTopic(String clientId, String subscriptionName) {
+
+        ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("list-consumers-as-json");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("runtime-queue", clientId + "." + subscriptionName);
+
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+            String res = result.get("result").asString();
+            JSONArray array = new JSONArray(res);
+            return array.length();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -5322,7 +5342,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            jmsAdminOperations.removeJGroupsStack("tcp");
+            System.out.println(jmsAdminOperations.getNumberOfConsumersOnTopic("myClientId", "mySubscription"));
+//            jmsAdminOperations.removeJGroupsStack("tcp");
             /*
             batch
             /subsystem="jgroups"/stack="tcpping":add()
@@ -5347,32 +5368,32 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             /subsystem="jgroups"/stack="tcpping"/transport="TRANSPORT":add(socket-binding="jgroups-tcp",type="TCP")
             run-batch
          */
-            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
-            Properties tcpPingProperties = new Properties();
-            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
-            tcpPingProperties.put("port_range", "10");
-            tcpPingProperties.put("timeout", "3000");
-            tcpPingProperties.put("num_initial_members", "2");
-            protocols.put("TCPPING", tcpPingProperties);
-            protocols.put("MERGE2", null);
-            protocols.put("FD_SOCK", null);
-            protocols.put("FD", null);
-            protocols.put("VERIFY_SUSPECT", null);
-            protocols.put("pbcast.NAKACK", null);
-            protocols.put("UNICAST2", null);
-            protocols.put("pbcast.STABLE", null);
-            protocols.put("pbcast.GMS", null);
-            protocols.put("UFC", null);
-            protocols.put("MFC", null);
-            protocols.put("FRAG2", null);
-            protocols.put("RSVP", null);
-
-            Properties transportProperties = new Properties();
-            transportProperties.put("socket-binding", "jgroups-tcp");
-            transportProperties.put("type", "TCP");
-            jmsAdminOperations.addJGroupsStack("tcp", protocols, transportProperties);
-
-
+//            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+//            Properties tcpPingProperties = new Properties();
+//            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
+//            tcpPingProperties.put("port_range", "10");
+//            tcpPingProperties.put("timeout", "3000");
+//            tcpPingProperties.put("num_initial_members", "2");
+//            protocols.put("TCPPING", tcpPingProperties);
+//            protocols.put("MERGE2", null);
+//            protocols.put("FD_SOCK", null);
+//            protocols.put("FD", null);
+//            protocols.put("VERIFY_SUSPECT", null);
+//            protocols.put("pbcast.NAKACK", null);
+//            protocols.put("UNICAST2", null);
+//            protocols.put("pbcast.STABLE", null);
+//            protocols.put("pbcast.GMS", null);
+//            protocols.put("UFC", null);
+//            protocols.put("MFC", null);
+//            protocols.put("FRAG2", null);
+//            protocols.put("RSVP", null);
+//
+//            Properties transportProperties = new Properties();
+//            transportProperties.put("socket-binding", "jgroups-tcp");
+//            transportProperties.put("type", "TCP");
+//            jmsAdminOperations.addJGroupsStack("tcp", protocols, transportProperties);
+//
+//
 
 
 

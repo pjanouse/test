@@ -1735,6 +1735,8 @@ public interface JMSOperations {
 
     int getNumberOfActiveClientConnections();
 
+    int getNumberOfConsumersOnTopic(String clientId, String subscriptionName);
+
     void removeMessageFromQueue(String queueName, String jmsMessageID);
 
     void forceFailover();
