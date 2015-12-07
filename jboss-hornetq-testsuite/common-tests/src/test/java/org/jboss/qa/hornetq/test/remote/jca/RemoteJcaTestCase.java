@@ -466,6 +466,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(2).start();
         container(2).deploy(mdbWithOnlyInbound);
+        container(4).start();
+        container(4).deploy(mdbWithOnlyInbound);
 
         new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
         // get number of connections and consumers from server 1 and connections
@@ -495,14 +497,98 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(2).undeploy(mdbWithOnlyInbound);
         container(2).stop();
+        container(4).stop();
         container(1).stop();
         container(3).stop();
 
         // assert that number of consumers on both server is almost equal
         Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
-                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 3);
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails 4 servers(1, 2, 3). Deploy InQueue
+     * to 1 and 3. Servers 1 and 3 are in cluster. Configure ActiveMQ RA with Netty static connectors on severs 2,4 to connect to server 1,3. Send 10000
+     * messages to InQueue to 1. Deploy MDB to 2nd server which reads
+     * messages from InQueue. When MDBs are processing messages, stop 3rd server and check that all inbound connections are rebalanced to 1st server.
+     * @tpProcedure <ul>
+     * <li>start servers 1,3 in cluster with deployed queue InQueue</li>
+     * <li>start server 2.4 with deployed MDB which reads messages from InQueue from cluster of servers 1,3</li>
+     * <li>stop server 3 and check that consumers/connections are rebalanced to server 1</li>
+     * </ul>
+     * @tpPassCrit Check that all inbound connections are rebalanced to 1st server
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleDownStaticNetty() throws Exception {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsToClusterScaleDown(Constants.CONNECTOR_TYPE.NETTY_BIO);
+        } else {
+            testLoadBalancingOfInboundConnectionsToClusterScaleDown(Constants.CONNECTOR_TYPE.NETTY_NIO);
+        }
+    }
+
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleDown(Constants.CONNECTOR_TYPE connectorType) throws Exception {
+
+        int numberOfMessages = 10000;
+        prepareRemoteJcaTopology(connectorType);
+        // cluster A
+        container(1).start();
+        container(3).start();
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        producer1.setTimeout(0);
+        producer1.setMessageBuilder(new TextMessageBuilder(1));
+        producer1.start();
+        producer1.join();
+
+        container(2).start();
+        container(2).deploy(mdbWithOnlyInbound);
+        container(4).start();
+        container(4).deploy(mdbWithOnlyInbound);
+
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 20, 120000);
+
+        // get number of consumer from server 3 and 1
+        int numberOfConsumerBeforeScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumerBeforeScaleDown3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumerBeforeScaleDown1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumerBeforeScaleDown3);
+
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumerBeforeScaleDown1 + " and on node-3 is: " + numberOfConsumerBeforeScaleDown3,
+                Math.abs(numberOfConsumerBeforeScaleDown1 - numberOfConsumerBeforeScaleDown3) < 3);
+
+        // start 3rd server
+        logger.info("Stopping container node-3");
+        container(3).stop();
+        logger.info("Container node-3 stopped");
+
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000);
+
+        // get number of consumers from server 1
+        int numberOfConsumerAfterScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumerAfterScaleDown1);
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
+
+        Assert.assertTrue("Number of consumers after scale down should be " + (numberOfConsumerBeforeScaleDown3 + numberOfConsumerBeforeScaleDown1)
+                + ". Number of consumers on node-1 is: " + numberOfConsumerAfterScaleDown1,
+                numberOfConsumerBeforeScaleDown3 + numberOfConsumerBeforeScaleDown1 == numberOfConsumerAfterScaleDown1);
+
+        container(2).undeploy(mdbWithOnlyInbound);
+        container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
 
     }
 
