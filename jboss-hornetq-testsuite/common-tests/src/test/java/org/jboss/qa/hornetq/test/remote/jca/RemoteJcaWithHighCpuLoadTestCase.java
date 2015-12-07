@@ -320,7 +320,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
-
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
