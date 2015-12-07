@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -35,6 +36,10 @@ public class AIOJournalLoadTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
+        
+        log.info(System.getProperty("os.name"));
+        
+        Assume.assumeTrue("This test dont run only on Linux machines", System.getProperty("os.name").contains("Linux"));
         
         Container container = container(1);
         
