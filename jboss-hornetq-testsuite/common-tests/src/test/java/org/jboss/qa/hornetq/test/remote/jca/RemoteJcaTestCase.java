@@ -198,7 +198,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * @throws Exception
      * @tpTestDetails Start 4 servers(1, 2, 3, 4). Deploy InQueue and OutQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3,4 to connect to 1,2 server. Send
+     * to 1,2. Configure RA on sever 3,4 to connect to 1,2 server. Send
      * messages to InQueue to 1,2. Deploy MDB to 3,4 servers which reads
      * messages from InQueue and sends them to OutQueue. Read messages from
      * OutQueue from 1,2
@@ -277,16 +277,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
-     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
-     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpTestDetails Start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using static Netty connectors.
+     * Queue InQueue is deployed to server 1,3,
+     * Configure RA inbound connection on sever 2 to connect to 1 and 3 server using static Netty connectors.
+     * Deploy MDB to server 2 which reads messages from InQueue. Check that all inbound connections are load-balanced.
      * @tpProcedure <ul>
-     * <li>start 2 servers with deployed InQueue</li>
-     * <li>deploy MDB to other server which reads messages from InQueue</li>
-     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using static Netty connectors.</li>
+     * <li>Queue InQueue is deployed to server 1,3. Queue InQueue is deployed to server 1,3,</li>
+     * <li>configure RA inbound connection on sever 2 to connect to 1 and 3 server using static Netty connectors.</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit Check that all inbound connections are load-balanced to servers 1,3.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -304,16 +305,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
-     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
-     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpTestDetails Start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using Netty discovery.
+     * Queue InQueue is deployed to server 1,3,
+     * Configure RA inbound connection on sever 2 to connect to 1 and 3 server using Netty discovery.
+     * Deploy MDB to server 2 which reads messages from InQueue. Check that all inbound connections are load-balanced.
      * @tpProcedure <ul>
-     * <li>start 2 servers with deployed InQueue</li>
-     * <li>deploy MDB to other server which reads messages from InQueue</li>
-     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using static Netty connectors.</li>
+     * <li>Queue InQueue is deployed to server 1,3. Queue InQueue is deployed to server 1,3,</li>
+     * <li>configure RA inbound connection on sever 2 to connect to 1 and 3 server using static Netty connectors.</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit Check that all inbound connections are load-balanced to servers 1,3.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -327,16 +329,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
-     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
-     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpTestDetails Start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using JGroups "udp" discovery.
+     * Queue InQueue is deployed to server 1,3,
+     * Configure RA inbound connection on sever 2 to connect to 1 and 3 server using JGroups "udp" discovery.
+     * Deploy MDB to server 2 which reads messages from InQueue. Check that all inbound connections are load-balanced.
      * @tpProcedure <ul>
-     * <li>start 2 servers with deployed InQueue</li>
-     * <li>deploy MDB to other server which reads messages from InQueue</li>
-     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using static Netty connectors.</li>
+     * <li>Queue InQueue is deployed to server 1,3. Queue InQueue is deployed to server 1,3,</li>
+     * <li>configure RA inbound connection on sever 2 to connect to 1 and 3 server using static Netty connectors.</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit Check that all inbound connections are load-balanced to servers 1,3.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -350,16 +353,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails Start 3 servers(1, 2, 3). Deploy InQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Send
-     * messages to InQueue to 1,2. Deploy MDB to 3rd server which reads
-     * messages from InQueue. Check that all inbound connections are load-balanced.
+     * @tpTestDetails Start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using JGroups "tcp".
+     * Queue InQueue is deployed to server 1,3,
+     * Configure RA inbound connection on sever 2 to connect to 1 and 3 server using JGroups "tcp"
+     * Deploy MDB to server 2 which reads messages from InQueue. Check that all inbound connections are load-balanced.
      * @tpProcedure <ul>
-     * <li>start 2 servers with deployed InQueue</li>
-     * <li>deploy MDB to other server which reads messages from InQueue</li>
-     * <li>start producer which sends messagese to InQueue to first 2 server</li>
+     * <li>start 3 EAP servers 1, 2 and 3. Severs 1, 3 are in cluster configured using static Netty connectors.</li>
+     * <li>Queue InQueue is deployed to server 1,3. Queue InQueue is deployed to server 1,3,</li>
+     * <li>configure RA inbound connection on sever 2 to connect to 1 and 3 server using static Netty connectors.</li>
+     * <li>deploy MDB to server 2 which reads messages from InQueue.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit Check that all inbound connections are load-balanced to servers 1,3.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -426,16 +430,21 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 3 servers(1, 2, 3). Deploy InQueue
-     * to 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
-     * messages to InQueue to 1. Deploy MDB to 2nd server which reads
-     * messages from InQueue. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using static Netty connectors.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA (inbound) configured to connect to servers 1 and 3 server using static Netty connectors.
+     * Start server 1 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue
+     * Wait until MDBs process 1/10 of messages from InQueue and start server 3
+     * In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be <= 2.
      * @tpProcedure <ul>
-     * <li>start 1st servers with deployed InQueue</li>
-     * <li>deploy MDB to 2nd server which reads messages from InQueue</li>
-     * <li>start 3rd server with deployed InQueue</li>
+     * <li>Start server 1 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue</li>
+     * <li>Wait until MDBs process 1/10 of messages from InQueue and start server 3</li>
+     * <li>In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -451,6 +460,70 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
     }
 
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using JGroups "tcp" stack.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA (inbound) configured to connect to servers 1 and 3 server using JGroups "tcp" stack.
+     * Start server 1 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue
+     * Wait until MDBs process 1/10 of messages from InQueue and start server 3
+     * In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be <= 2.
+     * @tpProcedure <ul>
+     * <li>Start server 1 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue</li>
+     * <li>Wait until MDBs process 1/10 of messages from InQueue and start server 3</li>
+     * <li>In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.</li>
+     * </ul>
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpJgroupsTcp() throws Exception {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
+        } else {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
+        }
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using Netty UDP discovery.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA (inbound) configured to connect to servers 1 and 3 server Netty UDP discovery.
+     * Start server 1 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue
+     * Wait until MDBs process 1/10 of messages from InQueue and start server 3
+     * In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be <= 2.
+     * @tpProcedure <ul>
+     * <li>Start server 1 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue</li>
+     * <li>Wait until MDBs process 1/10 of messages from InQueue and start server 3</li>
+     * <li>In the moment when MDBs processed 4/5 of messages measure number of consumers on InQueue on server 1 and 3.</li>
+     * </ul>
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingOfInboundConnectionsToClusterScaleUpNettyDiscovery() throws Exception {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY);
+        } else {
+            testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE.NETTY_DISCOVERY);
+        }
+    }
+
     public void testLoadBalancingOfInboundConnectionsToClusterScaleUp(Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         int numberOfMessages = 10000;
@@ -460,7 +533,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producer1.setTimeout(0);
-        producer1.setMessageBuilder(new TextMessageBuilder(1));
+        producer1.setMessageBuilder(new TextMessageBuilder(1000));
         producer1.start();
         producer1.join();
 
@@ -492,7 +565,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
         int numberOfConnections3 = countConnectionOnContainer(container(3));
 
-        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1 + " and connections " + initialNumberOfConnections1);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1 + " and connections " + numberOfNewConnections1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3 + " and connections " + numberOfConnections3);
 
         container(2).undeploy(mdbWithOnlyInbound);
@@ -511,9 +584,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 4 servers(1, 2, 3). Deploy InQueue
-     * to 1 and 3. Servers 1 and 3 are in cluster. Configure ActiveMQ RA with Netty static connectors on severs 2,4 to connect to server 1,3. Send 10000
-     * messages to InQueue to 1. Deploy MDB to 2nd server which reads
+     * @tpTestDetails There are 4 servers 1, 2, 3 and 4. Deploy InQueue and OutQueue servers
+     * to 1 and 3. Servers 1 and 3 are in cluster configured using static Netty connectors.
+     * Configure RA on severs 2,4 to connect to server 1,3 using static Netty connectors.
+     * Start server 1 and 3 and send 10000 messages to InQueue to 1.
+     * Deploy MDB to 2nd, 4 server which reads
      * messages from InQueue. When MDBs are processing messages, stop 3rd server and check that all inbound connections are rebalanced to 1st server.
      * @tpProcedure <ul>
      * <li>start servers 1,3 in cluster with deployed queue InQueue</li>
@@ -572,20 +647,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).stop();
         logger.info("Container node-3 stopped");
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000);
-
+        Thread.sleep(30000);
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 30000, container(1));
         // get number of consumers from server 1
         int numberOfConsumerAfterScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumerAfterScaleDown1);
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
-
         Assert.assertTrue("Number of consumers after scale down should be " + (numberOfConsumerBeforeScaleDown3 + numberOfConsumerBeforeScaleDown1)
                 + ". Number of consumers on node-1 is: " + numberOfConsumerAfterScaleDown1,
                 numberOfConsumerBeforeScaleDown3 + numberOfConsumerBeforeScaleDown1 == numberOfConsumerAfterScaleDown1);
-
         container(2).undeploy(mdbWithOnlyInbound);
         container(2).stop();
+        container(4).undeploy(mdbWithOnlyInbound);
         container(4).stop();
         container(1).stop();
         container(3).stop();
@@ -594,17 +667,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
-     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
-     * messages to InTopic to 1. Deploy MDB (jndi lookup for each message) to 2nd server which reads
-     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpTestDetails There are 3 EAP servers. Severs 1, 3 are in cluster configured using JGroups "tcp" stack.
+     * Topic InTopic is deployed on servers 1 and 3,
+     * Server 2 has RA (inbound, outbound connections) configured to connect to servers 1 and 3 using JGroups "tcp" stack.
+     * Deploy MDB which is consuming from InTopic and sending to OutQueue to server 2. MDB does JNDI lookup for OutQueue for every message. (LODH does that.)
+     * Start server 1 and server 2 so MDB creates subscription on InTopic.
+     * Stop server 2.
+     * Send 10000 (~1b) messages to InTopic
+     * Start server 2 with MDB consuming messages from InTopic
+     * Wait until MDB process 1/10 of messages from InTopic and start server 3
+     * In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpProcedure <ul>
-     * <li>start 1st server with deployed InTopic and OutQueue</li>
-     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
-     * <li>start 3rd server with deployed InTopic</li>
-     * <li>wait until all messages processed</li>
+     * <li>Start server 1 and server 2 with MDB to create subscription on InTopic deployed to server 1.</li>
+     * <li>Stop server 2</li>
+     * <li>Send 10000 (~1Kb) messages to InTopic</li>
+     * <li>Start server 2 with MDB consuming messages from InTopic and sending to OutQueue</li>
+     * <li>Wait until MDB process 1/10 of messages from InTopic and start server 3</li>
+     * <li>In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -625,17 +707,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
-     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
-     * messages to InTopic to 1. Deploy MDB to 2nd server which reads
-     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpTestDetails There are 3 EAP servers. Severs 1, 3 are in cluster configured using JGroups "tcp" stack.
+     * Topic InTopic is deployed on servers 1 and 3,
+     * Server 2 has RA (inbound, outbound connections) configured to connect to servers 1 and 3 using JGroups "tcp" stack.
+     * Deploy MDB which is consuming from InTopic and sending to OutQueue to server 2. MDB calls session.createQueue(OutQueue) for every message.
+     * Start server 1 and server 2 so MDB creates subscription on InTopic.
+     * Stop server 2.
+     * Send 10000 (~1b) messages to InTopic
+     * Start server 2 with MDB consuming messages from InTopic
+     * Wait until MDB process 1/10 of messages from InTopic and start server 3
+     * In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpProcedure <ul>
-     * <li>start 1st server with deployed InTopic and OutQueue</li>
-     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
-     * <li>start 3rd server with deployed InTopic</li>
-     * <li>wait until all messages processed</li>
+     * <li>Start server 1 and server 2 with MDB to create subscription on InTopic deployed to server 1.</li>
+     * <li>Stop server 2</li>
+     * <li>Send 10000 (~1Kb) messages to InTopic</li>
+     * <li>Start server 2 with MDB consuming messages from InTopic and sending to OutQueue</li>
+     * <li>Wait until MDB process 1/10 of messages from InTopic and start server 3</li>
+     * <li>In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -651,17 +742,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
-     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
-     * messages to InTopic to 1. Deploy MDB (jndi lookup for each message) to 2nd server which reads
-     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpTestDetails There are 3 EAP servers. Severs 1, 3 are in cluster configured using static Netty connectors.
+     * Topic InTopic is deployed on servers 1 and 3,
+     * Server 2 has RA (inbound, outbound connections) configured to connect to servers 1 and 3 using static Netty connectors.
+     * Deploy MDB which is consuming from InTopic and sending to OutQueue to server 2. MDB does JNDI lookup for OutQueue for every message. (LODH does that.)
+     * Start server 1 and server 2 so MDB creates subscription on InTopic.
+     * Stop server 2.
+     * Send 10000 (~1b) messages to InTopic
+     * Start server 2 with MDB consuming messages from InTopic
+     * Wait until MDB process 1/10 of messages from InTopic and start server 3
+     * In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpProcedure <ul>
-     * <li>start 1st server with deployed InTopic and OutQueue</li>
-     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
-     * <li>start 3rd server with deployed InTopic</li>
-     * <li>wait until all messages processed</li>
+     * <li>Start server 1 and server 2 with MDB to create subscription on InTopic deployed to server 1.</li>
+     * <li>Stop server 2</li>
+     * <li>Send 10000 (~1Kb) messages to InTopic</li>
+     * <li>Start server 2 with MDB consuming messages from InTopic and sending to OutQueue</li>
+     * <li>Wait until MDB process 1/10 of messages from InTopic and start server 3</li>
+     * <li>In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -686,17 +786,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
     /**
      * @throws Exception
-     * @tpTestDetails 3 servers(1, 2, 3). Deploy InTopic and OutQueue
-     * to servers 1 and 3. Configure ActiveMQ RA on sever 2 to connect to 1,3 server. Send
-     * messages to InTopic to 1. Deploy MDB to 2nd server which reads
-     * messages from InTopic. Then start 3rd server and check that all inbound connections are load-balanced.
+     * @tpTestDetails There are 3 EAP servers. Severs 1, 3 are in cluster configured using Netty discovery.
+     * Topic InTopic is deployed on servers 1 and 3,
+     * Server 2 has RA (inbound, outbound connections) configured to connect to servers 1 and 3 using Netty discovery.
+     * Deploy MDB which is consuming from InTopic and sending to OutQueue to server 2. MDB calls session.createQueue(OutQueue) for every message.
+     * Start server 1 and server 2 so MDB creates subscription on InTopic.
+     * Stop server 2.
+     * Send 10000 (~1b) messages to InTopic
+     * Start server 2 with MDB consuming messages from InTopic
+     * Wait until MDB process 1/10 of messages from InTopic and start server 3
+     * In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.
+     * Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpProcedure <ul>
-     * <li>start 1st server with deployed InTopic and OutQueue</li>
-     * <li>deploy MDB to 2nd server which reads messages from InTopic</li>
-     * <li>start 3rd server with deployed InTopic</li>
-     * <li>wait until all messages processed</li>
+     * <li>Start server 1 and server 2 with MDB to create subscription on InTopic deployed to server 1.</li>
+     * <li>Stop server 2</li>
+     * <li>Send 10000 (~1Kb) messages to InTopic</li>
+     * <li>Start server 2 with MDB consuming messages from InTopic and sending to OutQueue</li>
+     * <li>Wait until MDB process 1/10 of messages from InTopic and start server 3</li>
+     * <li>In the moment when MDBs processes all messages measure number of consumers on InTopic on server 1 and 3.</li>
      * </ul>
-     * @tpPassCrit Check that all inbound connections are load-balanced.
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be < 2.
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
@@ -719,7 +828,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         prepareRemoteJcaTopology(connectorType);
         // cluster A
         container(1).start();
-
         container(2).start();
         container(2).deploy(lodhLikeMdbFromTopic);// change here
         // just wait here a while to create subscription
@@ -775,6 +883,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
 
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using Netty static connectors.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA configured to connect to servers 1 and 3 server using Netty static connectors.
+     * Start servers 1,3 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue in XA transaction. MDB calls session.createQueue(OutQueue) for 1st message it processes.
+     * When MDBs are processing messages, restart (clean shutdown and start) servers in this order: 1,2,4,3
+     * Wait until all messages are processed.
+     * Difference between number of consumers on InQueue on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpProcedure <ul>
+     * <li>Start server 1,3 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue</li>
+     * <li>When MDBs are processing messages, restart (clean shutdown and start) servers in this order: 1,2,4,3</li>
+     * <li>Wait until all messages are processed.</li>
+     * </ul>
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -831,7 +959,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
         // assert that number of consumers on both server is almost equal
         Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
-                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 3);
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
@@ -843,6 +971,26 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(4).stop();
     }
 
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using Netty static connectors.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA configured to connect to servers 1 and 3 server using Netty static connectors.
+     * Start servers 1,3 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue in XA transaction
+     * When MDBs are processing messages, clean shutdown servers 1 and 2 then start again. MDB calls session.createQueue(OutQueue) for 1st message it processes.
+     * Wait until all messages are processed.
+     * Difference between number of consumers on InQueue on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpProcedure <ul>
+     * <li>Start server 1,3 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue</li>
+     * <li>When MDBs are processing messages, clean shutdown servers 1 and 2 then start again</li>
+     * <li>Wait until all messages are processed.</li>
+     * </ul>
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -851,6 +999,27 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(container(2), container(1));
     }
 
+
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 4 EAP servers. Severs 1, 3 are in cluster configured using Netty static connectors.
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 and 4 have RA configured to connect to servers 1 and 3 server using Netty static connectors.
+     * Start servers 1,3 and send 10000 (~1Kb) messages to InQueue
+     * Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue in XA transaction
+     * When MDBs are processing messages, clean shutdown servers 1 and 3 then start again. MDB calls session.createQueue(OutQueue) for 1st message it processes.
+     * Wait until all messages are processed.
+     * Difference between number of consumers on InQueue on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpProcedure <ul>
+     * <li>Start server 1,3 and send 10000 (~1Kb) messages to InQueue</li>
+     * <li>Start servers 2,4 with MDB consuming messages from InQueue and sending to OutQueue</li>
+     * <li>When MDBs are processing messages, clean shutdown servers 1 and 3 then start again</li>
+     * <li>Wait until all messages are processed.</li>
+     * </ul>
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2. There is no lost or duplicated message.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -912,7 +1081,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
         // assert that number of consumers on both server is almost equal
         Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
-                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 2);
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 3);
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
@@ -927,7 +1096,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * @throws Exception
      * @tpTestDetails Start 3 servers(1, 2, 3). Deploy OutQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Deploy EJB
+     * to 1,2. Configure RA on sever 3 to connect to 1,2 server. Deploy EJB
      * to 3rd server which sends
      * messages to OutQueue. Check that all outbound connections are load-balanced.
      * @tpProcedure <ul>
@@ -953,7 +1122,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     /**
      * @throws Exception
      * @tpTestDetails Start 3 servers(1, 2, 3). Deploy OutQueue
-     * to 1,2. Configure ActiveMQ RA on sever 3 to connect to 1,2 server. Deploy EJB
+     * to 1,2. Configure RA on sever 3 to connect to 1,2 server. Deploy EJB
      * to 3rd server which sends
      * messages to OutQueue. RA is using discovery group to find servers 1,2 which are in cluster.
      * Check that all outbound connections are load-balanced.
@@ -2061,6 +2230,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
             default:
                 throw new RuntimeException("Type of connector unknown for EAP 6");
         }
+        jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, true);
         jmsAdminOperations.close();
 
     }
@@ -2138,7 +2308,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         } catch (IOException e) {
             logger.error(e);
         }
-
+        jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, true);
         jmsAdminOperations.close();
         container.stop();
     }
