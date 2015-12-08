@@ -929,8 +929,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(2).start();
         container(3).start();
-        container(2).deploy(mdb1);
         container(4).start();
+        container(2).deploy(mdb1);
         container(4).deploy(mdb1);
 
         container(1).restart();
@@ -2308,7 +2308,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         } catch (IOException e) {
             logger.error(e);
         }
-        jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP6, true);
+        jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
         jmsAdminOperations.close();
         container.stop();
     }
