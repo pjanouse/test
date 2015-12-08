@@ -278,8 +278,14 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
             highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(containerUnderLoad, cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
+            if (containerUnderLoad.getName().equalsIgnoreCase(container(1).getName())
+                    || containerUnderLoad.getName().equalsIgnoreCase(container(3).getName())) {
+                Thread.sleep(300000); // do not count messages if jms servers under load
+                highCpuLoader1.destroy();
+            }
             // Wait until some messages are consumes from InQueue
             new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
         } finally {
             if (highCpuLoader1 != null) {
