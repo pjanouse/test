@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "mySubscription"),
                 @ActivationConfigProperty(propertyName = "clientID", propertyValue = "myClientId"),
                 @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
+                @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)

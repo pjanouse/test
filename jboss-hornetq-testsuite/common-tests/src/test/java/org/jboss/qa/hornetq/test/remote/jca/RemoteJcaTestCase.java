@@ -60,6 +60,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
     private final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
     private final Archive mdb1 = getMdb1();
+    private final Archive mdb1WithRebalancing = getMdb1WithRebalancing();
     private final Archive mdb2 = getMdb2();
     private final Archive mdbWithOnlyInbound = getMdbWithOnlyInboundConnection();
     private final Archive ejbSenderStatefulBean = getEjbSenderStatefulBean();
@@ -87,6 +88,17 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+    }
+
+    public Archive getMdb1WithRebalancing() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithRebalancing.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueWithRebalancing.class);
         mdbJar.addClass(JMSImplementation.class);
         mdbJar.addClass(jmsImplementation.getClass());
         mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
@@ -820,7 +832,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     }
 
 
-    public void testLoadBalancingOfInboundConnectionsTopic(MessageBuilder messageBuilder, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    private void testLoadBalancingOfInboundConnectionsTopic(MessageBuilder messageBuilder, Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         int numberOfMessages = 10000;
         String clientId = "myClientId";
@@ -930,8 +942,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(2).start();
         container(3).start();
         container(4).start();
-        container(2).deploy(mdb1);
-        container(4).deploy(mdb1);
+        container(2).deploy(mdb1WithRebalancing);
+        container(4).deploy(mdb1WithRebalancing);
 
         container(1).restart();
         container(2).restart();
@@ -963,8 +975,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
-        container(2).undeploy(mdbWithOnlyInbound);
-        container(4).undeploy(mdbWithOnlyInbound);
+        container(2).undeploy(mdb1WithRebalancing);
+        container(4).undeploy(mdb1WithRebalancing);
         container(2).stop();
         container(1).stop();
         container(3).stop();
@@ -1028,7 +1040,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(container(1), container(3));
     }
 
-    public void testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(Container container1, Container container2) throws Exception {
+    private void testLoadBalancingOfInboundConnectionsToClusterTwoServerStopStart(Container container1, Container container2) throws Exception {
 
         int numberOfMessages = 10000;
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
@@ -1050,9 +1062,9 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(2).start();
         container(3).start();
-        container(2).deploy(mdb1);
+        container(2).deploy(mdb1WithRebalancing);
         container(4).start();
-        container(4).deploy(mdb1);
+        container(4).deploy(mdb1WithRebalancing);
 
         // stop start jms and mdb server
         container1.stop();
@@ -1085,8 +1097,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
-        container(2).undeploy(mdbWithOnlyInbound);
-        container(4).undeploy(mdbWithOnlyInbound);
+        container(2).undeploy(mdb1WithRebalancing);
+        container(4).undeploy(mdb1WithRebalancing);
         container(2).stop();
         container(1).stop();
         container(3).stop();
