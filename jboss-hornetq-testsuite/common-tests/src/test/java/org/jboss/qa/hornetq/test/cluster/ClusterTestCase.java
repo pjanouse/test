@@ -1695,7 +1695,7 @@ public class ClusterTestCase extends HornetQTestCase {
         groupMessageVerifiers.add(messageVerifier);
 
         for (int i = 0; i < 2; i++) {
-            GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
+            GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(serverWithConsumer));
             groupMessageVerifiers.add(groupMessageVerifier);
             ReceiverTransAck receiver = new ReceiverTransAck(serverWithConsumer, inQueueJndiNameForMdb, 40000, 100, 10);
             receiver.setMessageVerifier(groupMessageVerifier);
@@ -2346,7 +2346,7 @@ public class ClusterTestCase extends HornetQTestCase {
             producers.add(producerToInQueue1);
         }
         for (int i = 0; i < 2; i++) {
-            GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier();
+            GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(testedContainer));
             groupMessageVerifiers.add(groupMessageVerifier);
             ReceiverTransAck receiver = new ReceiverTransAck(testedContainer, inQueueJndiNameForMdb, 10000, 100, 10);
             receiver.setMessageVerifier(groupMessageVerifier);
