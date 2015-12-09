@@ -951,11 +951,10 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(4).restart();
         container(3).restart();
 
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
-
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
 
@@ -1073,11 +1072,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container1.start();
         container2.start();
 
+
+
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
-
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, true);
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
 
@@ -1086,10 +1086,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
-
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
-
 
         Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
         // assert that number of consumers on both server is almost equal
