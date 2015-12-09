@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
@@ -124,8 +125,12 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
         writer.println("remote-jms-server=" + container(1).getHostname());
         writer.close();
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
