@@ -853,6 +853,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(messageBuilder);
         List<FinalTestMessageVerifier> verifiers = new ArrayList<FinalTestMessageVerifier>();
         verifiers.add(messageVerifier);
+        producer1.setMessageVerifiers(verifiers);
         producer1.start();
         producer1.join();
 
