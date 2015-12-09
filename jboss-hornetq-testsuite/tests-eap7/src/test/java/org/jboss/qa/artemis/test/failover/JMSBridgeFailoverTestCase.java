@@ -135,6 +135,10 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         ReceiverClientAck receiver1;
         if (failback) {
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(1), 1);
+//            logger.warn("########################################");
+//            logger.warn("WAITING 3 minutes");
+//            logger.warn("########################################");
+//            Thread.sleep(180000);
             receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         } else {
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(2), 1);
@@ -510,7 +514,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         String bridgeName = "myBridge";
         String sourceConnectionFactory = "java:/ConnectionFactory";
         String sourceDestination = inQueueJndiName;
-        String targetConnectionFactory = CONNECTION_FACTORY_JNDI_EAP7;
+        String targetConnectionFactory = "jms/bridgeCF";
         String targetDestination = outQueueJndiName;
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
@@ -554,6 +558,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
         setConnectorTypeForLiveBackupPair(container, connectorType);
+        setConnectionFactoryForBridge(container);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType.toString());
         jmsAdminOperations.disableSecurity();
@@ -585,6 +590,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setPersistenceEnabled(true);
         setConnectorTypeForLiveBackupPair(container, connectorType);
+        setConnectionFactoryForBridge(container);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
@@ -593,6 +599,18 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
         jmsAdminOperations.close();
         container.stop();
+    }
+
+
+    protected void setConnectionFactoryForBridge(Container container){
+        String CF = "bridgeCF";
+        String JNDI_CF = "java:jboss/exported/jms/"+CF;
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.createConnectionFactory(CF,JNDI_CF,"http-connector");
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CF,0);
+        jmsAdminOperations.close();
+
+
     }
 
     /**
