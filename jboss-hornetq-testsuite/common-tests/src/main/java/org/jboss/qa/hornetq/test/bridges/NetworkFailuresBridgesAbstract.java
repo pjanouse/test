@@ -274,17 +274,15 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
         for (int i = 0; i < numberOfFails; i++) {
 
+
+
             stopProxies();
 
-            log.info("Sleeping: " + timeBetweenFails);
             Thread.sleep(timeBetweenFails);
 
             startProxies();
 
-            if(i != numberOfFails-1) {
-                log.info("Sleeping: " + timeBetweenFails);
-                Thread.sleep(timeBetweenFails);
-            }
+            Thread.sleep(timeBetweenFails);
 
         }
     }
